@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
@@ -73,12 +74,14 @@ public class MetadataManagementResourceTest {
     private StoreGraphService storeGraphService;
     private GraphComputeService graphBuilderService;
     private ReconstructionRequestItem requestItem;
+    private ReclassificationDistributionService reclassificationDistributionService;
 
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
         storeGraphService = mock(StoreGraphService.class);
         graphBuilderService = mock(GraphComputeService.class);
+        reclassificationDistributionService = mock(ReclassificationDistributionService.class);
         requestItem = new ReconstructionRequestItem();
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
     }
@@ -93,7 +96,7 @@ public class MetadataManagementResourceTest {
         map.put(MetadataCollections.OBJECTGROUP, 3);
         when(storeGraphService.tryStoreGraph()).thenReturn(map);
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.storeGraph();
 
@@ -114,7 +117,7 @@ public class MetadataManagementResourceTest {
         String errorMessage = "Error store unit graph in the offer";
         when(storeGraphService.tryStoreGraph()).thenThrow(new RuntimeException(errorMessage));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.storeGraph();
 
@@ -133,7 +136,7 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
             .thenReturn(new GraphComputeResponse(10, 3));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
 
@@ -154,7 +157,7 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
             .thenThrow(new RuntimeException(errorMessage));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
 
@@ -172,7 +175,7 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
             .thenReturn(new GraphComputeResponse(10, 3));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
@@ -193,7 +196,7 @@ public class MetadataManagementResourceTest {
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
             .thenThrow(new RuntimeException(errorMessage));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
@@ -212,7 +215,7 @@ public class MetadataManagementResourceTest {
 
         when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.reconstructCollection(Collections.singletonList(requestItem));
 
@@ -231,7 +234,7 @@ public class MetadataManagementResourceTest {
     public void should_return_empty_response_when_that_request_empty() {
         // Given
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
         Response response = reconstructionResource.reconstructCollection(new ArrayList<>());
         // Then
@@ -247,7 +250,7 @@ public class MetadataManagementResourceTest {
         // Given
         when(reconstructionService.reconstruct(requestItem)).thenThrow(new IllegalArgumentException("Database error"));
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
 
         // When
         Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
@@ -266,7 +269,7 @@ public class MetadataManagementResourceTest {
     public void should_return_ok_when__request_item_no_offset() {
         // Given
         MetadataManagementResource reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When / Then
         assertThatCode(() -> reconstructionResource.reconstructCollection(null))
             .isInstanceOf(IllegalArgumentException.class);

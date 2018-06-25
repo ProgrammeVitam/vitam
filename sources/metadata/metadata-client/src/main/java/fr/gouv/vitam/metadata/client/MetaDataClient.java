@@ -166,7 +166,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update ObjectGroup
-     * 
+     *
      * @param updateQuery
      * @param objectGroupId
      * @throws InvalidParseOperationException
@@ -180,7 +180,7 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 
     /**
-     * 
+     *
      * @param operationId
      * @return the list of UnitsPerOriginatingAgency
      * @throws MetaDataClientServerException
@@ -189,7 +189,7 @@ public interface MetaDataClient extends BasicClient {
         throws MetaDataClientServerException;
 
     /**
-     * 
+     *
      * @param operationId
      * @return the list of ObjectGroupPerOriginatingAgency
      * @throws MetaDataClientServerException
@@ -214,23 +214,23 @@ public interface MetaDataClient extends BasicClient {
         MetaDataClientServerException;
 
     /**
-     * 
+     *
      * @return True if the Units index is flushed
      * @throws MetaDataClientServerException
      */
     boolean flushUnits() throws MetaDataClientServerException;
 
     /**
-     * 
+     *
      * @return True if the ObjectGroups index is flushed
      * @throws MetaDataClientServerException
      */
     boolean flushObjectGroups() throws MetaDataClientServerException;
 
     /**
-     * 
+     *
      * Reindex a collection with parameters
-     * 
+     *
      * @param indexParam reindexation parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -241,9 +241,9 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
 
     /**
-     * 
+     *
      * Switch indexes
-     * 
+     *
      * @param switchIndexParam switch index parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -295,4 +295,13 @@ public interface MetaDataClient extends BasicClient {
      */
     GraphComputeResponse computeGraph(GraphComputeAction action, Set<String> ids) throws VitamClientException ;
 
+
+    /**
+     * Export all units and object groups that are a descendants of the provided units to workspace for graph update.
+     *
+     * @param ids the unit ids for which all descendant nodes (units and object groups) are to be updated.
+     * @throws VitamClientException
+     */
+    void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
+        String objectGroupsToUpdateChainedFileName) throws VitamClientException, MetaDataExecutionException;
 }

@@ -62,6 +62,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 /**
@@ -613,6 +614,39 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             response = performRequest(HttpMethod.POST, COMPUTE_GRAPH_URI + "/" + action.name(), null, ids,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return response.readEntity(GraphComputeResponse.class);
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
+        String objectGroupsToUpdateChainedFileName)
+        throws VitamClientException, MetaDataExecutionException {
+        ParametersChecker.checkParameter("All params are mandatory", ids);
+        Response response = null;
+        try {
+
+            ReclassificationChildNodeExportRequest reclassificationChildNodeExportRequest =
+                new ReclassificationChildNodeExportRequest(ids, unitsToUpdateChainedFileName,
+                    objectGroupsToUpdateChainedFileName);
+
+            response = performRequest(HttpMethod.POST, "exportReclassificationChildNodes", null,
+                reclassificationChildNodeExportRequest,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+                // Every thing is OK
+                return;
+            }
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
 
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
