@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import org.junit.Test;
 

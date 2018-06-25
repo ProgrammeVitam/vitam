@@ -24,65 +24,60 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.UnitType;
 
+import java.util.Set;
+
 /**
- * Pojo for storing child / parent attachment with inconsistent unit-type reference.
+ * Pojo for in unit graph deserialization
  */
-class IllegalUnitTypeAttachment {
+public class UnitGraphInfo {
 
-    @JsonProperty("childUnidId")
-    private String childUnidId;
+    @JsonProperty("#id")
+    private String id;
+    @JsonProperty("#unitType")
+    private UnitType unitType;
+    @JsonProperty("#unitups")
+    private Set<String> up;
+    @JsonProperty("#originatingAgency")
+    private String sp;
 
-    @JsonProperty("childUnidType")
-    private UnitType childUnidType;
-
-    @JsonProperty("parentUnidId")
-    private String parentUnidId;
-
-    @JsonProperty("parentUnidType")
-    private UnitType parentUnidType;
-
-    public IllegalUnitTypeAttachment(String childUnidId, UnitType childUnidType, String parentUnidId,
-        UnitType parentUnidType) {
-        this.childUnidId = childUnidId;
-        this.childUnidType = childUnidType;
-        this.parentUnidId = parentUnidId;
-        this.parentUnidType = parentUnidType;
+    public UnitGraphInfo() {
+        // Empty constructor for deserialization
     }
 
-    public String getChildUnidId() {
-        return childUnidId;
+    public String getId() {
+        return id;
     }
 
-    public void setChildUnidId(String childUnidId) {
-        this.childUnidId = childUnidId;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public UnitType getChildUnidType() {
-        return childUnidType;
+    public UnitType getUnitType() {
+        return unitType;
     }
 
-    public void setChildUnidType(UnitType childUnidType) {
-        this.childUnidType = childUnidType;
+    public void setUnitType(UnitType unitType) {
+        this.unitType = unitType;
     }
 
-    public String getParentUnidId() {
-        return parentUnidId;
+    public Set<String> getUp() {
+        return up;
     }
 
-    public void setParentUnidId(String parentUnidId) {
-        this.parentUnidId = parentUnidId;
+    public void setUp(Set<String> up) {
+        this.up = up;
     }
 
-    public UnitType getParentUnidType() {
-        return parentUnidType;
+    public String getSp() {
+        return sp;
     }
 
-    public void setParentUnidType(UnitType parentUnidType) {
-        this.parentUnidType = parentUnidType;
+    public void setSp(String sp) {
+        this.sp = sp;
     }
 }

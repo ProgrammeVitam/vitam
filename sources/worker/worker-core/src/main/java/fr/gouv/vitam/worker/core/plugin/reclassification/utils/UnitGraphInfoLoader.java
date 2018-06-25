@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,6 +43,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.worker.core.plugin.reclassification.model.UnitGraphInfo;
 import org.apache.commons.collections4.ListUtils;
 
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelpe
 /**
  * Helper class for db access via DSL for reclassification
  */
-class UnitGraphInfoLoader {
+public class UnitGraphInfoLoader {
 
     private static final int MAX_IN_REQUEST_SIZE = 1000;
     private static final String RESULTS = "$results";

@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -94,6 +95,6 @@ public class LightweightWorkflowLockTest {
         // When / Then
         assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentReclassificationWorkflows("any", "any"))
             .isInstanceOf(ReclassificationException.class)
-            .matches(e -> ((ReclassificationException)e).getStatusCode().equals(StatusCode.FATAL));
+            .matches(e -> ((ReclassificationException) e).getStatusCode().equals(StatusCode.FATAL));
     }
 }

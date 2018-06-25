@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -39,16 +39,17 @@ import java.util.stream.Collectors;
  * Helper class for graph cycle detection.
  *
  * Usage :
- *  - addRelations() + removeRelations() to create target graph.
- *  - checkCycles() to get cycles in the graph, if any.
+ * - addRelations() + removeRelations() to create target graph.
+ * - checkCycles() to get cycles in the graph, if any.
  */
-class GraphCycleDetector {
+public class GraphCycleDetector {
 
     private MultiValuedMap<String, String> childToParents = new HashSetValuedHashMap<>();
     private MultiValuedMap<String, String> parentToChildren = new HashSetValuedHashMap<>();
 
     /**
      * Add child/parent relations to the graph
+     *
      * @param child the child unit id
      * @param parents the list of parent unit ids
      */
@@ -61,6 +62,7 @@ class GraphCycleDetector {
 
     /**
      * Remove child/parent relations from the graph
+     *
      * @param child the child unit id
      * @param parents the list of parent unit ids
      */

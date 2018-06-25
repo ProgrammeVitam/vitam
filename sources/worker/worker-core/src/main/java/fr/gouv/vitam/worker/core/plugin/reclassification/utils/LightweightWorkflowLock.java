@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.error.VitamError;
@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,9 +51,7 @@ import java.util.stream.Collectors;
  */
 public class LightweightWorkflowLock {
 
-
     private final ProcessingManagementClientFactory processingManagementClientFactory;
-
 
     /**
      * Default constructor
@@ -71,6 +70,7 @@ public class LightweightWorkflowLock {
 
     /**
      * Returns all concurrent non completed (running / paused) workflows.
+     *
      * @param workflowId the workflow Id to check
      * @param currentProcessId the current process id (filtred from result)
      * @return the list of concurrent workflows if any, or an empty list if no concurrent workflow is found.

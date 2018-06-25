@@ -24,61 +24,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.model;
 
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.StatusCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.UnitType;
 
-public class ReclassificationException extends VitamException {
+/**
+ * Pojo for storing child / parent attachment with inconsistent unit-type reference.
+ */
+public class IllegalUnitTypeAttachment {
 
-    private static final long serialVersionUID = -7825681489095452636L;
+    @JsonProperty("childUnidId")
+    private String childUnidId;
 
-    private final StatusCode statusCode;
-    private final ReclassificationEventDetails eventDetails;
+    @JsonProperty("childUnidType")
+    private UnitType childUnidType;
 
-    /**
-     * @param statusCode associated status code
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ReclassificationException(StatusCode statusCode, String message, Throwable cause) {
-        this(statusCode, null, message, cause);
+    @JsonProperty("parentUnidId")
+    private String parentUnidId;
+
+    @JsonProperty("parentUnidType")
+    private UnitType parentUnidType;
+
+    public IllegalUnitTypeAttachment(String childUnidId, UnitType childUnidType, String parentUnidId,
+        UnitType parentUnidType) {
+        this.childUnidId = childUnidId;
+        this.childUnidType = childUnidType;
+        this.parentUnidId = parentUnidId;
+        this.parentUnidType = parentUnidType;
     }
 
-    /**
-     * @param statusCode associated status code
-     * @param message associated message
-     */
-    public ReclassificationException(StatusCode statusCode, String message) {
-        this(statusCode, null, message, null);
-    }
-    /**
-     * @param statusCode associated status code
-     * @param eventDetails event details
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ReclassificationException(StatusCode statusCode, ReclassificationEventDetails eventDetails, String message,
-        Throwable cause) {
-        super(message, cause);
-        this.statusCode = statusCode;
-        this.eventDetails = eventDetails;
+    public String getChildUnidId() {
+        return childUnidId;
     }
 
-    /**
-     * @param statusCode associated status code
-     * @param eventDetails associated event details
-     * @param message associated message
-     */
-    public ReclassificationException(StatusCode statusCode, ReclassificationEventDetails eventDetails, String message) {
-        this(statusCode, eventDetails, message, null);
+    public void setChildUnidId(String childUnidId) {
+        this.childUnidId = childUnidId;
     }
 
-    public StatusCode getStatusCode() {
-        return statusCode;
+    public UnitType getChildUnidType() {
+        return childUnidType;
     }
 
-    public ReclassificationEventDetails getEventDetails() {
-        return eventDetails;
+    public void setChildUnidType(UnitType childUnidType) {
+        this.childUnidType = childUnidType;
+    }
+
+    public String getParentUnidId() {
+        return parentUnidId;
+    }
+
+    public void setParentUnidId(String parentUnidId) {
+        this.parentUnidId = parentUnidId;
+    }
+
+    public UnitType getParentUnidType() {
+        return parentUnidType;
+    }
+
+    public void setParentUnidType(UnitType parentUnidType) {
+        this.parentUnidType = parentUnidType;
     }
 }
