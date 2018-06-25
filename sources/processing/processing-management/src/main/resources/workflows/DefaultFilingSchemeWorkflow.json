@@ -186,7 +186,8 @@
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "element": "UnitsLevel/ingestLevelStack.json",
-        "type": "Units"
+        "type": "Units",
+        "bulkSize": 1000
       },
       "actions": [
         {

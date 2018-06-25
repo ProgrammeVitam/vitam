@@ -17,6 +17,8 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.Distribution;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
@@ -129,8 +132,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private final IWorkerManager workerManager;
     private Map<String, Step> currentSteps = new HashMap<>();
     private WorkspaceClientFactory workspaceClientFactory;
-    private static final int batchSize =
-        VitamConfiguration.getDistributeurBatchSize() * VitamConfiguration.getWorkerBulkSize();
 
     /**
      * Empty constructor
@@ -512,6 +513,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         boolean fatalOccurred = false;
 
         while (offset < sizeList && !fatalOccurred) {
+
+            int bulkSize = findBulkSize(step.getDistribution());
+            int batchSize = VitamConfiguration.getDistributeurBatchSize() * bulkSize;
+
             int nextOffset = sizeList > offset + batchSize ? offset + batchSize : sizeList;
             List<String> subList = objectsList.subList(offset, nextOffset);
             List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
@@ -535,8 +540,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             int subListSize = subList.size();
 
             while (subOffset < subListSize) {
-                int nextSubOffset = subListSize > subOffset + VitamConfiguration.getWorkerBulkSize() ?
-                    subOffset + VitamConfiguration.getWorkerBulkSize() : subListSize;
+                int nextSubOffset = subListSize > subOffset + bulkSize ?
+                    subOffset + bulkSize : subListSize;
 
                 List<String> newSubList = subList.subList(subOffset, nextSubOffset);
 
@@ -621,6 +626,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return true;
     }
 
+    @VisibleForTesting
+    Integer findBulkSize(Distribution distribution) {
+        return firstNonNull(distribution.getBulkSize(), VitamConfiguration.getWorkerBulkSize());
+    }
 
     /**
      * Distribution on stream.
@@ -721,7 +730,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 throw new ProcessingException(
                     AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_GET_DISTIBUTOR_INDEX_FROM_WORKSPACE, e);
             }
-        }else{
+        } else {
             spliterator = new VitamReaderSpliterator(bufferedReader);
         }
 
@@ -729,7 +738,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final Set<ItemStatus> paused = new HashSet<>();
         boolean fatalOccurred = false;
         boolean finishedStream = false;
-        int globalBatchSize = VitamConfiguration.getDistributeurBatchSize() * VitamConfiguration.getWorkerBulkSize();
+
+        int bulkSize = findBulkSize(step.getDistribution());
+
+        int globalBatchSize = VitamConfiguration.getDistributeurBatchSize() * bulkSize;
 
         while (!finishedStream && !fatalOccurred) {
             int nextOffset = offset + globalBatchSize;
@@ -783,8 +795,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             int subListSize = subList.size();
 
             while (subOffset < subListSize) {
-                int nextSubOffset = subListSize > subOffset + VitamConfiguration.getWorkerBulkSize() ?
-                    subOffset + VitamConfiguration.getWorkerBulkSize() : subListSize;
+                int nextSubOffset = subListSize > subOffset + bulkSize ?
+                    subOffset + bulkSize : subListSize;
 
                 // split the list of items to be processed according to the capacity of the workers
                 List<String> newSubList = subList.subList(subOffset, nextSubOffset);

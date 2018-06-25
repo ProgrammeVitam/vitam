@@ -39,12 +39,18 @@ public class Distribution {
 
     @JsonProperty("kind")
     private DistributionKind kind;
+
     @JsonProperty("element")
     private String element;
+
     @JsonProperty("type")
     private DistributionType type;
+
     @JsonProperty("statusOnEmptyDistribution")
     private StatusCode statusOnEmptyDistribution = StatusCode.WARNING;
+
+    @JsonProperty("bulkSize")
+    private Integer bulkSize;
 
     /**
      * getKind(), get the object kind
@@ -127,6 +133,23 @@ public class Distribution {
      */
     public Distribution setStatusOnEmptyDistribution(StatusCode statusOnEmptyDistribution) {
         this.statusOnEmptyDistribution = statusOnEmptyDistribution;
+        return this;
+    }
+
+    /**
+     * @return bulkSize
+     */
+
+    public Integer getBulkSize() {
+        return bulkSize;
+    }
+
+    /**
+     * @param bulkSize bulkSize
+     * @return the distribution
+     */
+    public Distribution setBulkSize(Integer bulkSize) {
+        this.bulkSize = bulkSize;
         return this;
     }
 

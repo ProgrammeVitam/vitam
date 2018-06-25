@@ -223,17 +223,12 @@ public class WorkFlow {
     }
 
     /**
-     * toString : get the wortflowId and comments on workflow as String
+     * toString : get the workflowId and comments on workflow as String
      */
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("ID=" + getId() + "\n");
-        sb.append("name=" + getName() + "\n");
-        sb.append("identifier=" + getIdentifier() + "\n");
-        sb.append("typeProc=" + getTypeProc() + "\n");
-        sb.append("comments=" + getComment() + "\n");
-        return sb.toString();
+        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\n",
+            getId(), getName(), getIdentifier(), getTypeProc(), getComment());
     }
 
     public LifecycleState getLifecycleLog() {

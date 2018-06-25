@@ -278,7 +278,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
-        "element": "Units"
+        "element": "Units",
+        "bulkSize": 1000
       },
       "actions": [
         {
