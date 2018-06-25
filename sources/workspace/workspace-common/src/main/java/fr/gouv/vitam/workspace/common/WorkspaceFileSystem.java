@@ -63,6 +63,8 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -511,6 +513,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
             ArchiveEntry entry;
             boolean isEmpty = true;
+            boolean manifestFileFounded = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
 
@@ -534,6 +537,10 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     }
                     if (!entry.isDirectory()) {
                         Files.copy(entryInputStream, target, StandardCopyOption.REPLACE_EXISTING);
+                        if(!manifestFileFounded && isManifestFileName(entry.getName())) {
+                            Files.move(target, target.resolveSibling(IngestWorkflowConstants.SEDA_FILE));
+                            manifestFileFounded = true;
+                        }
                     }
                 }
                 entryInputStream.setClosed(false);
@@ -599,5 +606,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 });
             }
         }
+    }
+
+    private boolean isManifestFileName(String fileName) {
+        return fileName.matches(VitamConstants.MANIFEST_FILE_NAME_REGEX);
     }
 }
