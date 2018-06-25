@@ -1,7 +1,6 @@
-package fr.gouv.vitam.worker.core.service;
+package fr.gouv.vitam.worker.core.distribution;
 
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.model.ChainedFileModel;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -33,7 +32,6 @@ public class ChainedFileWriterTest {
             // Empty
         }
 
-
         // Then
         ChainedFileModel chainedFileModel0 = JsonHandler.getFromFile(chainedFile0, ChainedFileModel.class);
 
@@ -62,7 +60,6 @@ public class ChainedFileWriterTest {
             instance.addEntry("3");
             instance.addEntry("4");
         }
-
 
         // Then
         ChainedFileModel chainedFileModel0 = JsonHandler.getFromFile(chainedFile0, ChainedFileModel.class);

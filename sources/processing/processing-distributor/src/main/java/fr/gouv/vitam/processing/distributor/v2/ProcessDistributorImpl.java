@@ -80,7 +80,7 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.model.ChainedFileModel;
+import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
 import fr.gouv.vitam.processing.model.JsonLineModel;
 import fr.gouv.vitam.worker.client.exception.PauseCancelException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;

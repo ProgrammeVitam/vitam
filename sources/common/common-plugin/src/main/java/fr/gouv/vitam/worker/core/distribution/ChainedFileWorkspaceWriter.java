@@ -24,72 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.service;
+package fr.gouv.vitam.worker.core.distribution;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.model.ChainedFileModel;
-import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
-/**
- * Helper class for exporting chained files
- */
-public class ChainedFileWriter implements AutoCloseable {
+public class ChainedFileWorkspaceWriter extends AbstractChainedFileWriter {
 
-    private final HandlerIO handler;
-    private final String filename;
-    private final int batchSize;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final String containerName;
 
-    private ChainedFileModel currentChainedFile;
-    private String currentFileName;
-    private int chainedFileCount;
-    private boolean closed;
-
-    public ChainedFileWriter(HandlerIO handler, String filename, int batchSize) {
-        this.handler = handler;
-        this.filename = filename;
-        this.batchSize = batchSize;
-
-        this.currentChainedFile = new ChainedFileModel();
-        this.currentFileName = filename;
-        this.chainedFileCount = 0;
-    }
-
-    public void addEntry(String id) throws InvalidParseOperationException, ProcessingException {
-
-        if(closed) {
-            throw new IllegalStateException("Closed writer");
-        }
-
-        currentChainedFile.getElements().add(id);
-        if (currentChainedFile.getElements().size() == batchSize) {
-
-            chainedFileCount++;
-            String nextFileName = filename + "." + chainedFileCount;
-            currentChainedFile.setNextFile(nextFileName);
-
-            storeToWorkspace();
-
-            currentFileName = nextFileName;
-            currentChainedFile = new ChainedFileModel();
-        }
-    }
-
-    private void storeToWorkspace() throws InvalidParseOperationException, ProcessingException {
-        File file = handler.getNewLocalFile(currentFileName);
-        JsonHandler.writeAsFile(currentChainedFile, file);
-
-        handler.transferFileToWorkspace(currentFileName, file, true, false);
+    public ChainedFileWorkspaceWriter(WorkspaceClientFactory workspaceClientFactory, String containerName,
+        String filename,
+        int batchSize) {
+        super(filename, batchSize);
+        this.containerName = containerName;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     @Override
-    public void close() throws InvalidParseOperationException, ProcessingException {
-        if(!closed) {
-            storeToWorkspace();
-            closed = true;
+    protected void storeToWorkspace(String filename, ChainedFileModel chainedFileModel)
+        throws IOException, InvalidParseOperationException {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
+
+            try (InputStream inputStream = JsonHandler.writeToInpustream(chainedFileModel)) {
+                client.putObject(containerName, filename, inputStream);
+            } catch (ContentAddressableStorageServerException e) {
+                throw new IOException("Could not store file to workspace");
+            }
         }
     }
 }

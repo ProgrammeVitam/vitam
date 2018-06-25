@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.service.ChainedFileWriter;
+import fr.gouv.vitam.worker.core.distribution.ChainedFileWriter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -104,7 +104,7 @@ class MigrationHelper {
                     try {
                         chainedFileWriter.addEntry(id);
                         jsonGenerator.writeString(id);
-                    } catch (IOException | ProcessingException | InvalidParseOperationException e) {
+                    } catch (IOException | InvalidParseOperationException e) {
                         throw new VitamRuntimeException(e);
                     }
                 });

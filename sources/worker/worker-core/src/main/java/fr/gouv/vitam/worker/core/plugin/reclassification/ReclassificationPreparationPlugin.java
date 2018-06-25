@@ -59,8 +59,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.ChainedFileWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.service.ChainedFileWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.SetUtils;
@@ -557,7 +557,7 @@ public class ReclassificationPreparationPlugin extends ActionHandler {
                 }
             }
 
-        } catch (ProcessingException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (IOException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ReclassificationException(StatusCode.FATAL,
                 "Could not export the list of units and object groups to update", e);
         }
