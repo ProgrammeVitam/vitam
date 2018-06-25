@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -57,7 +58,6 @@ public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
 
     private static final String RECLASSIFICATION_PREPARATION_CHECK_LOCK = "RECLASSIFICATION_PREPARATION_CHECK_LOCK";
 
-    static final String RECLASSIFICATION_WORKFLOW_IDENTIFIER = "RECLASSIFICATION";
     static final String CONCURRENT_RECLASSIFICATION_PROCESS = "Concurrent reclassification process(es) found";
 
     private final LightweightWorkflowLock lightweightWorkflowLock;
@@ -100,7 +100,7 @@ public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
         try {
 
             List<ProcessDetail> concurrentReclassificationWorkflows = lightweightWorkflowLock
-                .listConcurrentReclassificationWorkflows(RECLASSIFICATION_WORKFLOW_IDENTIFIER, processId);
+                .listConcurrentReclassificationWorkflows(Contexts.RECLASSIFICATION.getEventType(), processId);
 
             if (!concurrentReclassificationWorkflows.isEmpty()) {
                 throw new ReclassificationException(

@@ -9,6 +9,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -27,7 +28,6 @@ import org.mockito.junit.MockitoRule;
 import java.util.Collections;
 
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockPlugin.CONCURRENT_RECLASSIFICATION_PROCESS;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockPlugin.RECLASSIFICATION_WORKFLOW_IDENTIFIER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -78,7 +78,7 @@ public class ReclassificationPreparationCheckLockPluginTest {
         concurrentProcessDetail.setStepStatus("FATAL");
 
         doReturn(Collections.singletonList(concurrentProcessDetail)).when(lightweightWorkflowLock)
-            .listConcurrentReclassificationWorkflows(RECLASSIFICATION_WORKFLOW_IDENTIFIER,
+            .listConcurrentReclassificationWorkflows(Contexts.RECLASSIFICATION.getEventType(),
                 VitamThreadUtils.getVitamSession().getRequestId());
 
         // When
