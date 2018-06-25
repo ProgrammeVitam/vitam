@@ -124,6 +124,9 @@ hosts-mongos-offer
 hosts-mongoc-offer
 hosts-mongod-offer
 
+[hosts-mongodb-offer:vars]
+mongo_cluster_name=offer-fs-1
+
 [hosts-mongos-offer]
 localhost
 
@@ -151,13 +154,13 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost   mongo_cluster_name=mongo-data
+localhost
 
 [hosts-mongoc-data]
-localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
+localhost                     mongo_rs_bootstrap=true
 
 [hosts-mongod-data]
-localhost   mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
+localhost   mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 
