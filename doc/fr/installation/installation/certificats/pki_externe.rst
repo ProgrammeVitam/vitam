@@ -1,4 +1,3 @@
-
 Cas 2: Configuration production
 ===============================
 
