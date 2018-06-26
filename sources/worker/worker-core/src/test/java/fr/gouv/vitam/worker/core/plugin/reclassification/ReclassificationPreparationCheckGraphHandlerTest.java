@@ -34,16 +34,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphPlugin.CANNOT_APPLY_RECLASSIFICATION_REQUEST_CYCLE_DETECTED;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphPlugin.COULD_NOT_LOAD_UNITS;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphPlugin.INVALID_UNIT_TYPE_ATTACHMENTS;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler.CANNOT_APPLY_RECLASSIFICATION_REQUEST_CYCLE_DETECTED;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler.COULD_NOT_LOAD_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler.INVALID_UNIT_TYPE_ATTACHMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 @RunWithCustomExecutor
-public class ReclassificationPreparationCheckGraphPluginTest {
+public class ReclassificationPreparationCheckGraphHandlerTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -68,7 +68,7 @@ public class ReclassificationPreparationCheckGraphPluginTest {
 
     private WorkerParameters parameters;
 
-    ReclassificationPreparationCheckGraphPlugin reclassificationPreparationCheckGraphPlugin;
+    ReclassificationPreparationCheckGraphHandler reclassificationPreparationCheckGraphHandler;
 
     @Before
     public void init() throws Exception {
@@ -85,8 +85,8 @@ public class ReclassificationPreparationCheckGraphPluginTest {
             .setObjectNameList(Lists.newArrayList(objectId))
             .setObjectName(objectId).setCurrentStep("StepName");
 
-        reclassificationPreparationCheckGraphPlugin =
-            new ReclassificationPreparationCheckGraphPlugin(metaDataClientFactory,
+        reclassificationPreparationCheckGraphHandler =
+            new ReclassificationPreparationCheckGraphHandler(metaDataClientFactory,
                 unitGraphInfoLoader, 1000);
     }
 
@@ -110,7 +110,7 @@ public class ReclassificationPreparationCheckGraphPluginTest {
         doReturn(unitGraphInfoMap).when(unitGraphInfoLoader).selectAllUnitGraphByIds(eq(metaDataClient), any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckGraphPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckGraphHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
@@ -139,7 +139,7 @@ public class ReclassificationPreparationCheckGraphPluginTest {
         doReturn(unitGraphInfoMap).when(unitGraphInfoLoader).selectAllUnitGraphByIds(eq(metaDataClient), any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckGraphPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckGraphHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -180,7 +180,7 @@ public class ReclassificationPreparationCheckGraphPluginTest {
         doReturn(unitGraphInfoMap).when(unitGraphInfoLoader).selectAllUnitGraphByIds(eq(metaDataClient), any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckGraphPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckGraphHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -215,7 +215,7 @@ public class ReclassificationPreparationCheckGraphPluginTest {
         doReturn(unitGraphInfoMap).when(unitGraphInfoLoader).selectAllUnitGraphByIds(eq(metaDataClient), any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckGraphPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckGraphHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);

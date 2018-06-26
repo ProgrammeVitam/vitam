@@ -49,12 +49,12 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
 
 /**
- * Reclassification lock check plugin.
+ * Reclassification lock check handler.
  */
-public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
+public class ReclassificationPreparationCheckLockHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckLockPlugin.class);
+        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckLockHandler.class);
 
     private static final String RECLASSIFICATION_PREPARATION_CHECK_LOCK = "RECLASSIFICATION_PREPARATION_CHECK_LOCK";
 
@@ -65,7 +65,7 @@ public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
     /**
      * Default constructor
      */
-    public ReclassificationPreparationCheckLockPlugin() {
+    public ReclassificationPreparationCheckLockHandler() {
         this(new LightweightWorkflowLock());
     }
 
@@ -73,7 +73,7 @@ public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    ReclassificationPreparationCheckLockPlugin(LightweightWorkflowLock lightweightWorkflowLock) {
+    ReclassificationPreparationCheckLockHandler(LightweightWorkflowLock lightweightWorkflowLock) {
         this.lightweightWorkflowLock = lightweightWorkflowLock;
     }
 
@@ -121,5 +121,9 @@ public class ReclassificationPreparationCheckLockPlugin extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
+    }
+
+    public static String getId() {
+        return RECLASSIFICATION_PREPARATION_CHECK_LOCK;
     }
 }

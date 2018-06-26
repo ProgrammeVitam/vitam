@@ -96,6 +96,10 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockHandler;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationUpdateDistributionHandler;
 
 
 /**
@@ -209,6 +213,11 @@ public class WorkerImpl implements Worker {
 
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());
+
+        actions.put(ReclassificationPreparationCheckLockHandler.getId(), new ReclassificationPreparationCheckLockHandler());
+        actions.put(ReclassificationPreparationLoadRequestHandler.getId(), new ReclassificationPreparationLoadRequestHandler());
+        actions.put(ReclassificationPreparationCheckGraphHandler.getId(), new ReclassificationPreparationCheckGraphHandler());
+        actions.put(ReclassificationPreparationUpdateDistributionHandler.getId(), new ReclassificationPreparationUpdateDistributionHandler());
     }
 
     @Override

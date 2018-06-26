@@ -27,15 +27,6 @@
 
 package fr.gouv.vitam.metadata.client;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
@@ -64,6 +55,14 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Rest client for metadata
@@ -642,11 +641,11 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 reclassificationChildNodeExportRequest,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+            if (response.getStatus() == Status.OK.getStatusCode()) {
                 // Every thing is OK
                 return;
             }
-            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR + ". Status= " + response.getStatus());
 
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);

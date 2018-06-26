@@ -53,12 +53,12 @@ import java.util.Set;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
 
 /**
- * Reclassification update distribution plugin.
+ * Reclassification update distribution handler.
  */
-public class ReclassificationPreparationUpdateDistributionPlugin extends ActionHandler {
+public class ReclassificationPreparationUpdateDistributionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationUpdateDistributionPlugin.class);
+        VitamLoggerFactory.getInstance(ReclassificationPreparationUpdateDistributionHandler.class);
 
     private static final String RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION =
         "RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION";
@@ -76,7 +76,7 @@ public class ReclassificationPreparationUpdateDistributionPlugin extends ActionH
     /**
      * Default constructor
      */
-    public ReclassificationPreparationUpdateDistributionPlugin() {
+    public ReclassificationPreparationUpdateDistributionHandler() {
         this(MetaDataClientFactory.getInstance());
     }
 
@@ -84,7 +84,7 @@ public class ReclassificationPreparationUpdateDistributionPlugin extends ActionH
      * Test only constructor
      */
     @VisibleForTesting
-    ReclassificationPreparationUpdateDistributionPlugin(MetaDataClientFactory metaDataClientFactory) {
+    ReclassificationPreparationUpdateDistributionHandler(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
@@ -172,5 +172,9 @@ public class ReclassificationPreparationUpdateDistributionPlugin extends ActionH
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
+    }
+
+    public static String getId() {
+        return RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION;
     }
 }

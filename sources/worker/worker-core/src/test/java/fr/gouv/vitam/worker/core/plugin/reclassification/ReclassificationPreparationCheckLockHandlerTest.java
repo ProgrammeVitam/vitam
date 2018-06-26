@@ -27,13 +27,13 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Collections;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockPlugin.CONCURRENT_RECLASSIFICATION_PROCESS;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockHandler.CONCURRENT_RECLASSIFICATION_PROCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 
 @RunWithCustomExecutor
-public class ReclassificationPreparationCheckLockPluginTest {
+public class ReclassificationPreparationCheckLockHandlerTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -46,7 +46,7 @@ public class ReclassificationPreparationCheckLockPluginTest {
     private LightweightWorkflowLock lightweightWorkflowLock;
 
     @InjectMocks
-    private ReclassificationPreparationCheckLockPlugin reclassificationPreparationCheckLockPlugin;
+    private ReclassificationPreparationCheckLockHandler reclassificationPreparationCheckLockHandler;
 
     @Mock
     private HandlerIO handlerIO;
@@ -82,7 +82,7 @@ public class ReclassificationPreparationCheckLockPluginTest {
                 VitamThreadUtils.getVitamSession().getRequestId());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckLockPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckLockHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -98,7 +98,7 @@ public class ReclassificationPreparationCheckLockPluginTest {
             .listConcurrentReclassificationWorkflows(any(), any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationCheckLockPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationCheckLockHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);

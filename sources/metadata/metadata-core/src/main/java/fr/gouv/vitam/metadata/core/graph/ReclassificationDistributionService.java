@@ -82,7 +82,6 @@ public class ReclassificationDistributionService {
             .projection(Projections.include(Unit.ID, Unit.OG));
 
         try (MongoCursor<Document> iterator = query.iterator();
-
             ChainedFileWorkspaceWriter unitChainedFileWriter = createChainedFileWriter(
                 unitsToUpdateChainedFileName);
             ChainedFileWorkspaceWriter objectGroupChainedFileWriter = createChainedFileWriter(

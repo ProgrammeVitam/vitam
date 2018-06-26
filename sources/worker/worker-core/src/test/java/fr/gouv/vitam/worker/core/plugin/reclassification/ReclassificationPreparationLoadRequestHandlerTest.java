@@ -49,11 +49,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin.ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin.ACCESS_DENIED_OR_MISSING_UNITS;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin.COULD_NOT_PARSE_RECLASSIFICATION_REQUEST;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin.NO_ACCESS_CONTRACT_PROVIDED;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin.NO_UNITS_TO_UPDATE;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.ACCESS_DENIED_OR_MISSING_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.COULD_NOT_PARSE_RECLASSIFICATION_REQUEST;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_ACCESS_CONTRACT_PROVIDED;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_UNITS_TO_UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @RunWithCustomExecutor
-public class ReclassificationPreparationLoadRequestPluginTest {
+public class ReclassificationPreparationLoadRequestHandlerTest {
 
     private final static int MAX_BULK_THRESHOLD = 1000;
 
@@ -95,7 +95,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
 
     private WorkerParameters parameters;
 
-    private ReclassificationPreparationLoadRequestPlugin reclassificationPreparationLoadRequestPlugin;
+    private ReclassificationPreparationLoadRequestHandler reclassificationPreparationLoadRequestHandler;
 
     @Before
     public void init() throws Exception {
@@ -113,8 +113,8 @@ public class ReclassificationPreparationLoadRequestPluginTest {
             .setObjectNameList(Lists.newArrayList(objectId))
             .setObjectName(objectId).setCurrentStep("StepName");
 
-        reclassificationPreparationLoadRequestPlugin =
-            new ReclassificationPreparationLoadRequestPlugin(adminManagementClientFactory, metaDataClientFactory,
+        reclassificationPreparationLoadRequestHandler =
+            new ReclassificationPreparationLoadRequestHandler(adminManagementClientFactory, metaDataClientFactory,
                 unitGraphInfoLoader, reclassificationRequestDslParser, MAX_BULK_THRESHOLD, 1000, 1000);
     }
 
@@ -124,7 +124,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
         doThrow(ProcessingException.class).when(handlerIO).getJsonFromWorkspace("request.json");
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
@@ -138,7 +138,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
             .when(reclassificationRequestDslParser).parseReclassificationRequest(any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -158,7 +158,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
         givenDslRequests(entries.toArray(new ParsedReclassificationDslRequestEntry[0]));
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -176,7 +176,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
         VitamThreadUtils.getVitamSession().setContractId(null);
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -197,7 +197,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
         doReturn(emptyResponse).when(adminManagementClient).findAccessContracts(any());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -226,7 +226,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
         givenAccessibleParentUnitIds(accessContract, "id2");
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -253,7 +253,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery, accessContract);
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
@@ -289,7 +289,7 @@ public class ReclassificationPreparationLoadRequestPluginTest {
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery2, accessContract);
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);

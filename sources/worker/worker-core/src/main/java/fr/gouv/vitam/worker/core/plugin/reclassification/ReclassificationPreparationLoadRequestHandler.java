@@ -76,12 +76,12 @@ import static fr.gouv.vitam.worker.core.plugin.reclassification.Reclassification
 import static org.apache.commons.collections4.SetUtils.union;
 
 /**
- * Reclassification request loading plugin.
+ * Reclassification request loading handler.
  */
-public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler {
+public class ReclassificationPreparationLoadRequestHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationLoadRequestPlugin.class);
+        VitamLoggerFactory.getInstance(ReclassificationPreparationLoadRequestHandler.class);
 
     private static final String RECLASSIFICATION_PREPARATION_LOAD_REQUEST = "RECLASSIFICATION_PREPARATION_LOAD_REQUEST";
     private static final int RECLASSIFICATION_ORDERS_PARAMETER_RANK = 0;
@@ -105,7 +105,7 @@ public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler 
     /**
      * Default constructor
      */
-    public ReclassificationPreparationLoadRequestPlugin() {
+    public ReclassificationPreparationLoadRequestHandler() {
         this(
             AdminManagementClientFactory.getInstance(),
             MetaDataClientFactory.getInstance(),
@@ -120,7 +120,7 @@ public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler 
      * Test only constructor
      */
     @VisibleForTesting
-    ReclassificationPreparationLoadRequestPlugin(AdminManagementClientFactory adminManagementClientFactory,
+    ReclassificationPreparationLoadRequestHandler(AdminManagementClientFactory adminManagementClientFactory,
         MetaDataClientFactory metaDataClientFactory, UnitGraphInfoLoader unitGraphInfoLoader,
         ReclassificationRequestDslParser reclassificationRequestDslParser, int maxBulkThreshold, int maxUnitsThreshold,
         int maxGuildListSizeInLogbookOperation) {
@@ -383,5 +383,9 @@ public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
+    }
+
+    public static String getId() {
+        return RECLASSIFICATION_PREPARATION_LOAD_REQUEST;
     }
 }

@@ -52,7 +52,7 @@ class ReclassificationPluginHelper {
 
     public static ItemStatus buildItemStatus(String action, StatusCode statusCode,
         ReclassificationEventDetails eventDetails) {
-        ItemStatus itemStatus = new ItemStatus();
+        final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
         if (eventDetails != null) {
             try {

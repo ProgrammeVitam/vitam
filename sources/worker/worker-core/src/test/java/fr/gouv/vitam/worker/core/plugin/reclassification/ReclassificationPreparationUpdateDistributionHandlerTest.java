@@ -46,7 +46,7 @@ import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 
 @RunWithCustomExecutor
-public class ReclassificationPreparationUpdateDistributionPluginTest {
+public class ReclassificationPreparationUpdateDistributionHandlerTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -69,7 +69,7 @@ public class ReclassificationPreparationUpdateDistributionPluginTest {
 
     private WorkerParameters parameters;
 
-    private ReclassificationPreparationUpdateDistributionPlugin reclassificationPreparationLoadRequestPlugin;
+    private ReclassificationPreparationUpdateDistributionHandler reclassificationPreparationLoadHandlerPlugin;
 
     @Before
     public void init() throws Exception {
@@ -95,8 +95,8 @@ public class ReclassificationPreparationUpdateDistributionPluginTest {
             return null;
         }).when(handlerIO).transferInputStreamToWorkspace(anyString(), any(), any(null), eq(false));
 
-        reclassificationPreparationLoadRequestPlugin =
-            new ReclassificationPreparationUpdateDistributionPlugin(metaDataClientFactory);
+        reclassificationPreparationLoadHandlerPlugin =
+            new ReclassificationPreparationUpdateDistributionHandler(metaDataClientFactory);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ReclassificationPreparationUpdateDistributionPluginTest {
             .exportReclassificationChildNodes(any(), anyString(), anyString());
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadHandlerPlugin.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
@@ -133,7 +133,7 @@ public class ReclassificationPreparationUpdateDistributionPluginTest {
         Mockito.doReturn(reclassificationOrders).when(handlerIO).getInput(0);
 
         // When
-        ItemStatus itemStatus = reclassificationPreparationLoadRequestPlugin.execute(parameters, handlerIO);
+        ItemStatus itemStatus = reclassificationPreparationLoadHandlerPlugin.execute(parameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);

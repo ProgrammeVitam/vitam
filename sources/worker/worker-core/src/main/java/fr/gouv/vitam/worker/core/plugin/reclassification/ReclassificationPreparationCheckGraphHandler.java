@@ -64,12 +64,12 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
 
 /**
- * Reclassification graph check plugin.
+ * Reclassification graph check handler.
  */
-public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
+public class ReclassificationPreparationCheckGraphHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckGraphPlugin.class);
+        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckGraphHandler.class);
 
     private static final String RECLASSIFICATION_PREPARATION_CHECK_GRAPH = "RECLASSIFICATION_PREPARATION_CHECK_GRAPH";
     private static final int RECLASSIFICATION_ORDERS_PARAMETER_RANK = 0;
@@ -86,7 +86,7 @@ public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
     /**
      * Default constructor
      */
-    public ReclassificationPreparationCheckGraphPlugin() {
+    public ReclassificationPreparationCheckGraphHandler() {
         this(
             MetaDataClientFactory.getInstance(),
             new UnitGraphInfoLoader(),
@@ -97,7 +97,7 @@ public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    ReclassificationPreparationCheckGraphPlugin(
+    ReclassificationPreparationCheckGraphHandler(
         MetaDataClientFactory metaDataClientFactory, UnitGraphInfoLoader unitGraphInfoLoader,
         int maxGuildListSizeInLogbookOperation) {
         this.metaDataClientFactory = metaDataClientFactory;
@@ -256,5 +256,9 @@ public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
+    }
+
+    public static String getId() {
+        return RECLASSIFICATION_PREPARATION_CHECK_GRAPH;
     }
 }
