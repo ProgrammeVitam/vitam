@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -78,9 +79,6 @@ public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
         "Cannot apply reclassification request. Cycle detected";
     static final String INVALID_UNIT_TYPE_ATTACHMENTS = "Invalid unit type attachment(s)";
 
-    // FIXME (use conf)
-    private static final int MAX_GUID_LIST_SIZE_IN_LOGBOOK_OPERATION = 1000;
-
     private final int maxGuildListSizeInLogbookOperation;
     private final MetaDataClientFactory metaDataClientFactory;
     private final UnitGraphInfoLoader unitGraphInfoLoader;
@@ -89,11 +87,10 @@ public class ReclassificationPreparationCheckGraphPlugin extends ActionHandler {
      * Default constructor
      */
     public ReclassificationPreparationCheckGraphPlugin() {
-        // FIXME (use conf)
         this(
             MetaDataClientFactory.getInstance(),
             new UnitGraphInfoLoader(),
-            MAX_GUID_LIST_SIZE_IN_LOGBOOK_OPERATION);
+            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation());
     }
 
     /***

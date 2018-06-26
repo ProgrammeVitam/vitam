@@ -26,17 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.google.common.base.Strings;
-
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -414,6 +413,19 @@ public class VitamConfiguration {
      * Admin Tenant
      */
     private static int ADMIN_TENANT = -1;
+
+    /**
+     * Max dsl queries per reclassification request
+     */
+    private static int reclassificationMaxBulkThreshold = 1000;
+    /**
+     * Max units to update per reclassification request
+     */
+    private static int reclassificationMaxUnitsThreshold = 10000;
+    /**
+     * Max dsl queries per reclassification request
+     */
+    private static int reclassificationMaxGuildListSizeInLogbookOperation = 1000;
 
     static {
         getConfiguration().setDefault();
@@ -801,6 +813,19 @@ public class VitamConfiguration {
 
         if (null != parameters.isForceChunkModeInputStream()) {
             setForceChunkModeInputStream(parameters.isForceChunkModeInputStream());
+        }
+
+        if (null != parameters.getReclassificationMaxBulkThreshold()) {
+            setReclassificationMaxBulkThreshold(parameters.getReclassificationMaxBulkThreshold());
+        }
+
+        if (null != parameters.getReclassificationMaxUnitsThreshold()) {
+            setReclassificationMaxUnitsThreshold(parameters.getReclassificationMaxUnitsThreshold());
+        }
+
+        if (null != parameters.getReclassificationMaxGuildListSizeInLogbookOperation()) {
+            setReclassificationMaxGuildListSizeInLogbookOperation(
+                parameters.getReclassificationMaxGuildListSizeInLogbookOperation());
         }
     }
 
@@ -1955,5 +1980,49 @@ public class VitamConfiguration {
 
     public static void setWorkspaceWorkflowsFolder(String workspaceWorkflowsFolder) {
         VitamConfiguration.workspaceWorkflowsFolder = workspaceWorkflowsFolder;
+    }
+
+    /**
+     * Max dsl queries per reclassification request
+     */
+    public static int getReclassificationMaxBulkThreshold() {
+        return reclassificationMaxBulkThreshold;
+    }
+
+    /**
+     * Max dsl queries per reclassification request
+     */
+    public static void setReclassificationMaxBulkThreshold(int reclassificationMaxBulkThreshold) {
+        VitamConfiguration.reclassificationMaxBulkThreshold = reclassificationMaxBulkThreshold;
+    }
+
+    /**
+     * Max units to update per reclassification request
+     */
+    public static int getReclassificationMaxUnitsThreshold() {
+        return reclassificationMaxUnitsThreshold;
+    }
+
+    /**
+     * Max units to update per reclassification request
+     */
+    public static void setReclassificationMaxUnitsThreshold(int reclassificationMaxUnitsThreshold) {
+        VitamConfiguration.reclassificationMaxUnitsThreshold = reclassificationMaxUnitsThreshold;
+    }
+
+    /**
+     * Max guid to store in logbook operation in evDetData
+     */
+    public static int getReclassificationMaxGuildListSizeInLogbookOperation() {
+        return reclassificationMaxGuildListSizeInLogbookOperation;
+    }
+
+    /**
+     * Max guid to store in logbook operation in evDetData
+     */
+    public static void setReclassificationMaxGuildListSizeInLogbookOperation(
+        int reclassificationMaxGuildListSizeInLogbookOperation) {
+        VitamConfiguration.reclassificationMaxGuildListSizeInLogbookOperation =
+            reclassificationMaxGuildListSizeInLogbookOperation;
     }
 }

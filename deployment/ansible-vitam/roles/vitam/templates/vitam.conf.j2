@@ -17,3 +17,9 @@ delayValidationAfterInactivity : 2500
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 adminTenant : {{vitam_tenant_admin}}
 forceChunkModeInputStream : {{vitam_defaults.vitam_force_chunk_mode}}
+
+{% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
+reclassificationMaxBulkThreshold: 1000
+reclassificationMaxUnitsThreshold: 10000
+reclassificationMaxGuildListSizeInLogbookOperation: 1000
+{% endif %}

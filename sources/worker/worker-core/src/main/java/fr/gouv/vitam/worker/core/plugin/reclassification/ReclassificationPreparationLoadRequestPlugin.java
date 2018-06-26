@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.reclassification;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -93,11 +94,6 @@ public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler 
     static final String ACCESS_DENIED_OR_MISSING_UNITS = "Access denied or missing units.";
     static final String NO_UNITS_TO_UPDATE = "No units to update.";
 
-
-    // FIXME (use conf)
-    private static final int MAX_BULK_THRESHOLD = 1000;
-    private static final int MAX_UNITS_THRESHOLD = 10000;
-    private static final int MAX_GUID_LIST_SIZE_IN_LOGBOOK_OPERATION = 1000;
     private final int maxBulkThreshold;
     private final int maxUnitsThreshold;
     private final int maxGuildListSizeInLogbookOperation;
@@ -110,15 +106,14 @@ public class ReclassificationPreparationLoadRequestPlugin extends ActionHandler 
      * Default constructor
      */
     public ReclassificationPreparationLoadRequestPlugin() {
-        // FIXME (use conf)
         this(
             AdminManagementClientFactory.getInstance(),
             MetaDataClientFactory.getInstance(),
             new UnitGraphInfoLoader(),
             new ReclassificationRequestDslParser(),
-            MAX_BULK_THRESHOLD,
-            MAX_UNITS_THRESHOLD,
-            MAX_GUID_LIST_SIZE_IN_LOGBOOK_OPERATION);
+            VitamConfiguration.getReclassificationMaxBulkThreshold(),
+            VitamConfiguration.getReclassificationMaxUnitsThreshold(),
+            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation());
     }
 
     /***

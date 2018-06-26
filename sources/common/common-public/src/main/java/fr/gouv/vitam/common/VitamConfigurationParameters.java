@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.base.Strings;
+
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.base.Strings;
 
 
 /**
@@ -262,6 +262,19 @@ public class VitamConfigurationParameters {
      * Vitam Clean period (In hours)
      */
     private Integer vitamCleanPeriod;
+
+    /**
+     * Max dsl queries per reclassification request
+     */
+    private Integer reclassificationMaxBulkThreshold;
+    /**
+     * Max units to update per reclassification request
+     */
+    private Integer reclassificationMaxUnitsThreshold;
+    /**
+     * Max dsl queries per reclassification request
+     */
+    private Integer reclassificationMaxGuildListSizeInLogbookOperation;
 
     /**
      * VitamData empty constructor for YAMLFactory
@@ -1108,5 +1121,46 @@ public class VitamConfigurationParameters {
         this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
     }
 
+    /**
+     * Max dsl queries per reclassification request
+     */
+    public Integer getReclassificationMaxBulkThreshold() {
+        return reclassificationMaxBulkThreshold;
+    }
 
+    /**
+     * Max dsl queries per reclassification request
+     */
+    public void setReclassificationMaxBulkThreshold(Integer reclassificationMaxBulkThreshold) {
+        this.reclassificationMaxBulkThreshold = reclassificationMaxBulkThreshold;
+    }
+
+    /**
+     * Max units to update per reclassification request
+     */
+    public Integer getReclassificationMaxUnitsThreshold() {
+        return reclassificationMaxUnitsThreshold;
+    }
+
+    /**
+     * Max units to update per reclassification request
+     */
+    public void setReclassificationMaxUnitsThreshold(Integer reclassificationMaxUnitsThreshold) {
+        this.reclassificationMaxUnitsThreshold = reclassificationMaxUnitsThreshold;
+    }
+
+    /**
+     * Max guid to store in logbook operation in evDetData
+     */
+    public Integer getReclassificationMaxGuildListSizeInLogbookOperation() {
+        return reclassificationMaxGuildListSizeInLogbookOperation;
+    }
+
+    /**
+     * Max guid to store in logbook operation in evDetData
+     */
+    public void setReclassificationMaxGuildListSizeInLogbookOperation(
+        Integer reclassificationMaxGuildListSizeInLogbookOperation) {
+        this.reclassificationMaxGuildListSizeInLogbookOperation = reclassificationMaxGuildListSizeInLogbookOperation;
+    }
 }
