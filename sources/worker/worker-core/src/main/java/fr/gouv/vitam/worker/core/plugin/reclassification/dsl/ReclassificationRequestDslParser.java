@@ -107,7 +107,7 @@ public class ReclassificationRequestDslParser {
         Set<String> result = null;
 
         JsonNode actionNode = singleReclassificationDslJson.get("$action");
-        if (!actionNode.isArray()) {
+        if (null == actionNode || !actionNode.isArray()) {
             throw new InvalidParseOperationException("Expected action array");
         }
         for (JsonNode actionEntry : actionNode) {
@@ -125,7 +125,7 @@ public class ReclassificationRequestDslParser {
             }
         }
 
-        if(result == null) {
+        if (result == null) {
             return SetUtils.emptySet();
         }
         return result;

@@ -146,6 +146,22 @@
           }
         }
       ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_RECLASSIFICATION_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "RECLASSIFICATION_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
     }
   ]
 }
