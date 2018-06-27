@@ -108,7 +108,7 @@
         }
       }
     },
-    "creationDate": {
+    "CreationDate": {
       "description": "pattern: Date",
       "anyOf": [
         {

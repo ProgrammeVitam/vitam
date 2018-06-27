@@ -58,7 +58,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
         "detached": 0,
         "symbolicRemained": 917440
     },
-      "creationDate": "2017-04-12T17:01:11.764",
+      "CreationDate": "2017-04-12T17:01:11.764",
       "_v": 1,
       "_tenant": 0
   }
@@ -138,11 +138,11 @@ On récupère la valeur FRAN_NP_051314.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 
     
-**"creationDate":**  Date d'inscription du service producteur concerné dans le registre des fonds. 
+**"CreationDate":**  Date d'inscription du service producteur concerné dans le registre des fonds. 
 
   * La date est au format ISO 8601
 
-  ``"CreationDate": "2017-04-10T11:30:33.798",``
+  ``"CreationDate": "2017-04-10T11:30:33.798"``
 
   * Cardinalité : 1-1
     

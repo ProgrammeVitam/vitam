@@ -127,7 +127,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -137,7 +137,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -147,7 +147,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -160,7 +160,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -170,7 +170,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -183,7 +183,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }
@@ -193,7 +193,7 @@
                       "unit": {
                         "type": "keyword"
                       },
-                      "value": {
+                      "dValue": {
                         "type": "double"
                       }
                     }

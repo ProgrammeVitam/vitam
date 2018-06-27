@@ -154,11 +154,11 @@ public class SedaConstants {
      * Tag of PhysicalId
      */
     public static final String TAG_PHYSICAL_ID = "PhysicalId";
-
+    
     /**
-     * Tag of value : used for data with an attibute
+     * Tag of dValue : used for data with an attibute
      */
-    public static final String TAG_VALUE = "value";
+    public static final String TAG_D_VALUE = "dValue";
 
     /**
      * Prefix of id element

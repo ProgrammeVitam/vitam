@@ -68,7 +68,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
     /**
      * FileFormat Mime Type
      */
-    public static final String MIME_TYPE = "MIMEType";
+    public static final String MIME_TYPE = "MimeType";
 
     /**
      * FileFormat name
