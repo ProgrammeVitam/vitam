@@ -149,8 +149,9 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            Set<String> unitIds = SetUtils.union(reclassificationOrders.getChildToParentAttachments().keySet(),
-                reclassificationOrders.getChildToParentAttachments().keySet());
+            Set<String> unitIds = SetUtils.union(
+                reclassificationOrders.getChildToParentAttachments().keySet(),
+                reclassificationOrders.getChildToParentDetachments().keySet());
 
             metaDataClient.exportReclassificationChildNodes(
                 unitIds, UNITS_TO_UPDATE_CHAINED_FILE, OG_TO_UPDATE_CHAINED_FILE);

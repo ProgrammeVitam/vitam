@@ -129,6 +129,7 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         attachments.putAll("id2", Arrays.asList("id3", "id4"));
         HashSetValuedHashMap<String, String> detachments = new HashSetValuedHashMap<>();
         detachments.put("id1", "id5");
+        detachments.put("id3", "id5");
         ReclassificationOrders reclassificationOrders = new ReclassificationOrders(attachments, detachments);
         Mockito.doReturn(reclassificationOrders).when(handlerIO).getInput(0);
 
@@ -137,10 +138,13 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(transferredFiles).hasSize(3);
+        assertThat(transferredFiles).hasSize(4);
 
         assertThat(JsonHandler
             .getFromFile(transferredFiles.get("UnitsToDetach/id1"), String[].class))
+            .containsExactlyInAnyOrder("id5");
+        assertThat(JsonHandler
+            .getFromFile(transferredFiles.get("UnitsToDetach/id3"), String[].class))
             .containsExactlyInAnyOrder("id5");
         assertThat(JsonHandler
             .getFromFile(transferredFiles.get("UnitsToAttach/id1"), String[].class))
@@ -150,6 +154,6 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
             .containsExactlyInAnyOrder("id3", "id4");
 
         verify(metaDataClient)
-            .exportReclassificationChildNodes(eq(new HashSet<>(Arrays.asList("id1", "id2"))), anyString(), anyString());
+            .exportReclassificationChildNodes(eq(new HashSet<>(Arrays.asList("id1", "id2", "id3"))), anyString(), anyString());
     }
 }

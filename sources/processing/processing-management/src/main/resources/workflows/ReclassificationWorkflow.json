@@ -71,7 +71,8 @@
         {
           "action": {
             "behavior": "BLOCKING",
-            "actionKey": "UNIT_DETACHMENT"
+            "actionKey": "UNIT_DETACHMENT",
+            "lifecycleLog": "DISABLED"
           }
         },
         {
@@ -97,7 +98,8 @@
         {
           "action": {
             "behavior": "BLOCKING",
-            "actionKey": "UNIT_ATTACHMENT"
+            "actionKey": "UNIT_ATTACHMENT",
+            "lifecycleLog": "DISABLED"
           }
         },
         {
@@ -135,7 +137,8 @@
       "distribution": {
         "kind": "LIST_IN_LINKED_FILE",
         "type": "ObjectGroup",
-        "element": "ObjectGroupsToUpdate/chainedFile.json"
+        "element": "ObjectGroupsToUpdate/chainedFile.json",
+        "statusOnEmptyDistribution": "OK"
       },
       "actions": [
         {

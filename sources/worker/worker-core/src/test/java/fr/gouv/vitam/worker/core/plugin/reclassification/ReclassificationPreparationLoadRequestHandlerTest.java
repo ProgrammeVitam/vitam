@@ -51,6 +51,7 @@ import java.util.List;
 
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.ACCESS_DENIED_OR_MISSING_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.COULD_NOT_PARSE_RECLASSIFICATION_REQUEST;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_ACCESS_CONTRACT_PROVIDED;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_UNITS_TO_UPDATE;
@@ -260,6 +261,42 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
             itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
         assertThat(eventDetails.getError()).isEqualTo(NO_UNITS_TO_UPDATE);
+    }
+
+    @Test
+    public void execute_GivenAttachmentAndDetachmentOfSameParentThenExpectKO() throws Exception {
+
+        // Given
+        AccessContractModel accessContract = givenExistingAccessContract();
+
+        SelectMultiQuery fakeSelectMultiQuery1 = mock(SelectMultiQuery.class);
+        SelectMultiQuery fakeSelectMultiQuery2 = mock(SelectMultiQuery.class);
+        ParsedReclassificationDslRequestEntry entry1 = new ParsedReclassificationDslRequestEntry(
+            fakeSelectMultiQuery1,
+            new HashSet<>(Arrays.asList("id1")),
+            new HashSet<>(Arrays.asList("id3"))
+        );
+        ParsedReclassificationDslRequestEntry entry2 = new ParsedReclassificationDslRequestEntry(
+            fakeSelectMultiQuery2,
+            new HashSet<>(Arrays.asList("id2")),
+            new HashSet<>(Arrays.asList("id1"))
+        );
+        givenDslRequests(entry1, entry2);
+        givenAccessibleParentUnitIds(accessContract, "id1", "id2", "id3");
+
+        doReturn(new HashSet<>(Arrays.asList("id4"))).when(unitGraphInfoLoader)
+            .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery1, accessContract);
+        doReturn(new HashSet<>(Arrays.asList("id4", "id5"))).when(unitGraphInfoLoader)
+            .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery2, accessContract);
+
+        // When
+        ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+        assertThat(eventDetails.getError()).isEqualTo(CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS);
     }
 
     @Test

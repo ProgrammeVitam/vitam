@@ -93,6 +93,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
     static final String ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE = "Access contract not found or not active";
     static final String ACCESS_DENIED_OR_MISSING_UNITS = "Access denied or missing units.";
     static final String NO_UNITS_TO_UPDATE = "No units to update.";
+    static final String CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS = "Cannot attach & detach same parent units";
 
     private final int maxBulkThreshold;
     private final int maxUnitsThreshold;
@@ -353,7 +354,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
 
         Set<String> unitsWithBothAttachmentsAndDetachments = SetUtils.intersection(
             reclassificationOrders.getChildToParentAttachments().keySet(),
-            reclassificationOrders.getChildToParentAttachments().keySet());
+            reclassificationOrders.getChildToParentDetachments().keySet());
 
         for (String unitId : unitsWithBothAttachmentsAndDetachments) {
 
@@ -363,7 +364,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
             SetUtils.SetView<String> duplicateIds = SetUtils.intersection(attachments, detachments);
 
             if (!duplicateIds.isEmpty()) {
-                String error = "Cannot attach & detach same parent units";
+                String error = CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS;
                 throw new ReclassificationException(StatusCode.KO,
                     new ReclassificationEventDetails().setError(error),
                     error);
