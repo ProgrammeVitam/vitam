@@ -83,8 +83,7 @@ public class StorageCRUDUtils {
         JsonNode metadata = information.findValue(offers.get(0));
         if (metadata != null) {
             String digestString = metadata.get("digest").asText();
-            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString,
-                VitamConfiguration.getDefaultDigestType().getName());
+            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString);
         }
         return deleted;
     }

@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -54,6 +56,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -118,6 +121,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
+import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
+import static java.util.Collections.singletonList;
+
 /**
  * StorageDistribution service Implementation process continue if needed)
  */
@@ -177,6 +183,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         "Storage service configuration is mandatory";
     private static final String CAPACITIES = "capacities";
     private static final String ATTEMPT = " attempt ";
+    private static final String OFFERS_LIST_IS_MANDATORY = "Offers List is mandatory";
+    public static final String DIGEST = "digest";
 
     private final String urlWorkspace;
     private final Integer millisecondsPerKB;
@@ -218,6 +226,54 @@ public class StorageDistributionImpl implements StorageDistribution {
         this.storageLogService = storageLogService;
     }
 
+
+    @Override
+    public StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String sourceOffer, String destinationOffer)
+        throws StorageException {
+
+        JsonNode containerInformation =
+            getContainerInformation(STRATEGY_ID, context.getCategory(), context.getObjectId(),
+                Lists.newArrayList(sourceOffer, destinationOffer));
+        //verify source offer
+        boolean existsSourceOffer = containerInformation.get(sourceOffer) != null;
+        existsSourceOffer = existsSourceOffer && (containerInformation.get(sourceOffer).get(DIGEST) != null);
+
+
+
+        if (!existsSourceOffer) {
+            throw new StorageNotFoundException(
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, context.getObjectId()));
+        }
+        Response resp = null;
+        // load the object/file from the given offer
+        resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+            sourceOffer);
+
+        if (resp == null) {
+            throw new StorageTechnicalException(
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+        }
+
+        boolean existsDestinationOffer = containerInformation.get(destinationOffer) != null;
+
+        existsDestinationOffer =
+            existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
+
+        if (existsDestinationOffer) {
+           final String digest = containerInformation.get(destinationOffer).get(DIGEST).textValue();
+            deleteObjectInOffers(STRATEGY_ID, context,
+                digest, singletonList(destinationOffer));
+        }
+        if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
+            return storeDataInOneOffer(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                context.getRequester(), destinationOffer, resp);
+        }
+
+        DefaultClient.staticConsumeAnyEntityAndClose(resp);
+
+        throw new StorageTechnicalException(
+            VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+    }
 
     private StorageLogbookParameters sendDataInOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams,
         ObjectDescription description)
@@ -837,11 +893,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
-    @Override
-    public void deleteContainer(String strategyId) throws UnsupportedOperationException {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
+
 
     @Override
     public RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId)
@@ -998,7 +1050,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         } else {
             // get the storage offer from the given identifier
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
-            storageOffers = Collections.singletonList(offer);
+            storageOffers = singletonList(offer);
         }
 
         final StorageGetResult result =
@@ -1146,6 +1198,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         return true;
     }
 
+    @Deprecated
     private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId,
         Digest digest)
         throws StorageTechnicalException {
@@ -1180,60 +1233,99 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
             } catch (ExecutionException e) {
                 LOGGER.error(ERROR_ON_OFFER_ID + offerId, e);
-                // TODO: review this exception to manage errors correctly
-                // Take into account Exception class
-                // For example, for particular exception do not retry (because
-                // it's useless)
-                // US : #2009
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            } catch (NumberFormatException e) {
-                future.cancel(true);
-                LOGGER.error(WRONG_NUMBER_ON_WAIT_ON_OFFER_ID + offerId, e);
+
                 throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
             }
         }
     }
 
     @Override
-    public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
+    public void deleteObjectInAllOffers(String strategyId, DataContext context, String digest)
         throws StorageException {
 
-        // Check input params
-        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
-        ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, objectId);
+        ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, context.getObjectId());
         ParametersChecker.checkParameter(DIGEST_IS_MANDATORY, digest);
-        ParametersChecker.checkParameter(DIGEST_ALGORITHM_IS_MANDATORY, digestAlgorithm);
 
         HotStrategy hotStrategy = checkStrategy(strategyId);
 
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
 
+        deleteObject(context, digest, offerReferences);
+        //TODO log in log storage bug #4805
 
-        // TODO : Improve this code, use same thread system as used for the
-        // storeDataInOneOffer method see @TrasferThread
+    }
+
+
+
+    @Override
+    public void deleteObjectInOffers(String strategyId, DataContext context, String digest, List<String> offers)
+        throws StorageException {
+
+        // Check input params
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+
+        ParametersChecker.checkParameter(DIGEST_IS_MANDATORY, digest);
+        ParametersChecker.checkParameter(OFFERS_LIST_IS_MANDATORY, offers);
+        if (offers.isEmpty()) {
+            LOGGER.error(OFFERS_LIST_IS_MANDATORY);
+            throw new StorageTechnicalException(OFFERS_LIST_IS_MANDATORY);
+        }
+        HotStrategy hotStrategy = checkStrategy(strategyId);
+
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+
+        final List<OfferReference> offerReferencesToDelete = new ArrayList<>();
+
+        for (String offerId : offers) {
+
+            Optional<OfferReference> found =
+                offerReferences.stream().filter(offerReference -> offerReference.getId().equals(offerId)).findFirst();
+
+            found.ifPresent(offerReferencesToDelete::add);
+
+            if (!found.isPresent()) {
+                throw new StorageTechnicalException(
+                    VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            }
+        }
+
+        deleteObject(context, digest, offerReferencesToDelete);
+    }
+
+
+    private void deleteObject(DataContext context, String digest, List<OfferReference> offerReferences)
+        throws StorageException {
+
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-            try (Connection connection = driver.connect(offer.getId())) {
-                StorageRemoveRequest request =
-                    new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(), objectId,
-                        digestType, digest);
-                StorageRemoveResult result = connection.removeObject(request);
-                if (!result.isObjectDeleted()) {
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
-                    throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
-                }
-            } catch (StorageDriverException | RuntimeException e) {
-                if (e instanceof StorageDriverPreconditionFailedException) {
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_BAD_REQUEST), e);
-                    throw new IllegalArgumentException(e);
-                }
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-                throw new StorageTechnicalException(e);
-            }
+            deleteObject(context.getObjectId(), digest, context.getTenantId(), driver, offer);
         }
     }
+
+    private void deleteObject(String objectId, String digest, Integer tenantId, Driver driver, StorageOffer offer)
+        throws StorageTechnicalException {
+        try (Connection connection = driver.connect(offer.getId())) {
+            StorageRemoveRequest request =
+                new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(), objectId,
+                    digestType, digest);
+            StorageRemoveResult result = connection.removeObject(request);
+            if (!result.isObjectDeleted()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
+                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
+            }
+        } catch (StorageDriverException | RuntimeException e) {
+            if (e instanceof StorageDriverPreconditionFailedException) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_BAD_REQUEST), e);
+                throw new IllegalArgumentException(e);
+            }
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
+            throw new StorageTechnicalException(e);
+        }
+    }
+
 
 
     @Override

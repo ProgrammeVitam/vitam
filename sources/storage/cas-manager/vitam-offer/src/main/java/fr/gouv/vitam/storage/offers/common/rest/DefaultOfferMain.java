@@ -55,8 +55,7 @@ public class DefaultOfferMain {
      * @param configurationFile 
      */
     public DefaultOfferMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+        ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
             BusinessApplication.class,  AdminApplication.class);
     }

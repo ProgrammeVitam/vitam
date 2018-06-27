@@ -125,14 +125,14 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return generateStoredInfoResult(guid);
     }
 
-    @Override
-    public boolean deleteContainer(String strategyId) throws StorageServerClientException {
-        return true;
-    }
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest,
-        String digestAlgorithm)
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest)
+        throws StorageServerClientException {
+        return true;
+    }
+    @Override
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
         throws StorageServerClientException {
         return true;
     }
@@ -215,6 +215,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         } catch (InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
+    }
+
+    @Override
+    public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+        String desination) throws StorageServerClientException, InvalidParseOperationException {
+        throw new  UnsupportedOperationException("Not Implemeted ");
     }
 
     @Override

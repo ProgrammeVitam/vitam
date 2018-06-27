@@ -70,7 +70,6 @@ import org.mockito.Mockito;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -83,7 +82,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -281,7 +279,10 @@ public class StorageDistributionImplTest {
         Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
             VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
-        customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(), DigestType.SHA1);
+
+        DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0);
+
+        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, digest.toString());
 
     }
 
@@ -471,33 +472,31 @@ public class StorageDistributionImplTest {
     @Test
     public void deleteObjectOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        customDistribution.deleteObject(STRATEGY_ID, "0", "digest", DigestType.SHA1);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0);
+
+        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, "digest");
     }
 
     @RunWithCustomExecutor
     @Test
     public void testdeleteObjectIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0);
+
         try {
-            customDistribution.deleteObject(null, null, null, null);
+            customDistribution.deleteObjectInAllOffers(null, context, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            customDistribution.deleteObject(STRATEGY_ID, null, null, null);
+            customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            customDistribution.deleteObject(STRATEGY_ID, "0", null, null);
-            fail("Exception excepted");
-        } catch (final IllegalArgumentException exc) {
-            // nothing, exception needed
-        }
-        try {
-            customDistribution.deleteObject(STRATEGY_ID, "0", "digest", null);
+            customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -540,10 +539,6 @@ public class StorageDistributionImplTest {
         simpleDistribution.createContainer(null);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDeleteContainer() throws Exception {
-        simpleDistribution.deleteContainer(null);
-    }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testGetContainerLogbook() throws Exception {

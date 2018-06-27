@@ -72,4 +72,10 @@ public class DataContext {
     public Integer getTenantId() {
         return tenantId;
     }
+
+    @Override
+    public String toString() {
+        return "DataContext{" +
+            "objectId='" + objectId + '\'' +", category=" + category +", requester='" + requester + '\'' + ", tenantId=" + tenantId +'}';
+    }
 }

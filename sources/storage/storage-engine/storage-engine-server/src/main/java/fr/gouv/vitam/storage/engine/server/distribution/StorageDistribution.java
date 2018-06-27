@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -39,7 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -67,6 +66,19 @@ public interface StorageDistribution extends VitamAutoCloseable {
     // This would be an other US responsibility (not #72)
     StoredInfoResult storeDataInOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester) throws StorageException;
+
+
+    /**
+     * copy object from on offer to an another
+     *
+     * @param context          the context
+     * @param destinationOffer destination Offer
+     * @param sourceOffer      source offer
+     * @return StoredInfoResult Object
+     * @throws StorageException StorageException
+     */
+    StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String sourceOffer, String destinationOffer)
+        throws StorageException;
 
     /**
      * Store data of any type for given tenant on the given storage offer.
@@ -126,18 +138,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
     // deleted or implemented. Vitam
     JsonNode createContainer(String strategyId) throws StorageException;
 
-    /**
-     * Delete a container
-     * <p>
-     * aware of this.
-     *
-     * @param strategyId id of the strategy
-     * @throws StorageTechnicalException Thrown in case of any technical problem
-     * @throws StorageNotFoundException  Thrown in case the Container does not exist
-     */
-    // TODO P1 : container deletion possibility needs to be re-think then
-    // deleted or implemented. Vitam Architects are
-    void deleteContainer(String strategyId) throws StorageTechnicalException, StorageNotFoundException;
+
 
     /**
      * List container objects
@@ -235,17 +236,31 @@ public interface StorageDistribution extends VitamAutoCloseable {
     boolean checkObjectExisting(String strategyId, String objectId, DataCategory category,
         List<String> offerIds) throws StorageException;
 
+
     /**
      * Delete an object
      *
-     * @param strategyId      id of the strategy
-     * @param objectId        id of the object to be deleted
-     * @param digest          the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
+     * @param strategyId id of the strategy
+     * @param digest     the digest to be compared with
      * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
+    void deleteObjectInAllOffers(String strategyId, DataContext context, String digest)
+        throws StorageException;
+
+
+
+    /**
+     * Delete an object in one offer
+     *
+     * @param strategyId id of the strategy
+     * @param context    context
+     * @param digest     the digest to be compared with
+     * @param offers     offers
+     * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+     * @throws StorageTechnicalException thrown if a technical error happened
+     */
+    void deleteObjectInOffers(String strategyId, DataContext context, String digest, List<String> offers)
         throws StorageException;
 
     // TODO P2 see list/count/size API

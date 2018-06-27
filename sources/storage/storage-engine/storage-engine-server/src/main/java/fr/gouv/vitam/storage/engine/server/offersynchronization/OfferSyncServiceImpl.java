@@ -91,10 +91,7 @@ public class OfferSyncServiceImpl implements OfferSyncService {
     }
 
 
-    @Override
-    public Response copyObjectFromOfferToOffer(DataContext context){
-            throw new RuntimeException(NOT_IMPLEMENTED_MSG);
-    }
+
 
     /**
      * Synchronize an offer from anthor using the offset.

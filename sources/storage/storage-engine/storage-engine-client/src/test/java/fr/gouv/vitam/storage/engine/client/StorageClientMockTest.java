@@ -101,7 +101,7 @@ public class StorageClientMockTest {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
         assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "guid", null, null));
-        assertTrue(client.deleteContainer("idStrategy"));
+
     }
 
     @Test

@@ -30,8 +30,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 
-import javax.ws.rs.core.Response;
-
 /**
  * Synchronization service interface.
  */
@@ -52,6 +50,6 @@ public interface OfferSyncService {
         Integer tenantIdToSyn, Long offset)
         throws VitamSyncException;
 
-    Response copyObjectFromOfferToOffer(DataContext context);
+
 
 }

@@ -27,36 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -77,6 +47,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -99,6 +70,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
@@ -107,6 +79,37 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Storage Resource implementation
@@ -120,6 +123,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
     private static final String STRATEGY_ID_IS_REQUIRED = "Strategy ID is required";
 
+    private static final String STRATEGY_ID = "default";
+    public static final String ERROR_WHEN_COPING_CONTEXT = "Error when coping context: ";
+    private static final String DATA_CATEGORY_ID_IS_MANDATORY = "DataCategory is mandatory";
     private final StorageDistribution distribution;
     private final TraceabilityStorageService traceabilityLogbookService;
     private final TimestampGenerator timestampGenerator;
@@ -132,7 +138,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Constructor
      * @param configuration
      */
-    public StorageResource(StorageConfiguration configuration) {
+    StorageResource(StorageConfiguration configuration) {
         try {
             storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
                 Paths.get(configuration.getLoggingDirectory()));
@@ -168,6 +174,49 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             throw new RuntimeException(e);
         }
     }
+
+    @Path("/copy/{id_object}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response copy(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_object") String objectId) {
+        String remoteAddress = httpServletRequest.getRemoteAddr();
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        if (
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_SOURCE) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_DESTINATION) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DATA_CATEGORY)
+
+            ) {
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+        DataCategory category;
+        String source = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_SOURCE).get(0);
+        String destination = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_DESTINATION).get(0);
+        try {
+            category = getDataCategory(headers);
+        } catch (IllegalArgumentException e) {
+
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+
+
+        DataContext context = new DataContext(objectId, category, remoteAddress, tenantId);
+
+        try {
+            StoredInfoResult storedInfoResult = distribution.copyObjectFromOfferToOffer(context, source, destination);
+            return Response.ok().entity(storedInfoResult).build();
+        } catch (Exception e) {
+            LOGGER.error(ERROR_WHEN_COPING_CONTEXT + context, e);
+
+            return Response.serverError().build();
+        }
+    }
+
+
 
     /**
      * Constructor
@@ -248,8 +297,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private Response checkDigestAlgorithmHeader(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST)
+            ) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
@@ -288,11 +337,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Search the header value for 'X-Http-Method-Override' and return an error response id it's value is not 'GET'
+     *
      * @param headers the http headers to check
      * @return OK response if no header is found, NULL if header value is correct, BAD_REQUEST if the header contain an
      * other value than GET
      */
-    public Response checkPostHeader(HttpHeaders headers) {
+    private Response checkPostHeader(HttpHeaders headers) {
         if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
             final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
             wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
@@ -311,6 +361,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Create a container
      * <p>
+     *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
@@ -329,29 +380,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
-    /**
-     * Delete a container
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteContainer(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
 
     /**
      * Get list of object type
-     * @param xcursor the X-Cursor
-     * @param xcursorId the X-Cursor-Id if exists
+     *
+     * @param xcursor    the X-Cursor
+     * @param xcursorId  the X-Cursor-Id if exists
      * @param strategyId the strategy to get offers
      * @param type the object type to list
      * @return a response with listing elements
@@ -492,8 +526,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Get colection data.
-     * @param headers
-     * @param backupfile
+     *
+     * @param headers    headers
+     * @param backupfile backupfile
      * @return
      * @throws IOException
      */
@@ -647,34 +682,62 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+
+
     /**
      * Delete an object
      * @param headers http header
      * @param objectId the id of the object
-     * @return Response NOT_IMPLEMENTED
+     * @return Response
      */
-    @Path("/objects/{id_object}")
+    @Path("/delete/{id_object}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String strategyId, digestAlgorithm, digest;
+    public Response deleteObject(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_object") String objectId) {
+
         Response response = checkTenantStrategyHeader(headers);
         if (response != null) {
             return response;
         }
-        if (!DataCategory.OBJECT.canDelete()) {
-            return Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED, "Cannot be deleted"))
+        DataCategory category;
+
+        try {
+            category = getDataCategory(headers);
+        } catch (IllegalArgumentException e) {
+
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+
+        if (!category.canDelete()) {
+            return Response.status(UNAUTHORIZED).entity(getErrorEntity(UNAUTHORIZED, UNAUTHORIZED.getReasonPhrase()))
                 .build();
         }
+
         response = checkDigestAlgorithmHeader(headers);
+
         if (response == null) {
-            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            digest = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST).get(0);
-            digestAlgorithm = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST_ALGORITHM).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            String digest = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST).get(0);
+
             try {
-                distribution.deleteObject(strategyId, objectId, digest, DigestType.fromValue(digestAlgorithm));
+                DataContext context = new DataContext(objectId, category, httpServletRequest.getRemoteHost(),
+                    ParameterHelper.getTenantParameter());
+
+                List<String> headerValues = headers.getRequestHeader(GlobalDataRest.X_OFFER_IDS);
+
+                if (headerValues == null || headerValues.isEmpty()) {
+                    distribution
+                        .deleteObjectInAllOffers(strategyId, context, digest);
+                } else {
+                    distribution
+                        .deleteObjectInOffers(strategyId, context, digest,
+                            Arrays.asList(headerValues.get(0).split(",")));
+                }
+
                 return Response.status(Status.NO_CONTENT).build();
+
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
@@ -687,6 +750,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             }
         }
         return response;
+    }
+
+    private DataCategory getDataCategory(@Context HttpHeaders headers) {
+        DataCategory category;
+        String dataCategoryString = headers.getHeaderString(GlobalDataRest.X_DATA_CATEGORY);
+
+        if (dataCategoryString == null || dataCategoryString.isEmpty()) {
+            throw new IllegalArgumentException("category connot be empty or null ");
+
+        }
+        category = DataCategory.valueOf(dataCategoryString);
+        return category;
     }
 
     /**
@@ -818,31 +893,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
-    /**
-     * Delete a logbook Note : this is NOT to be handled in item #72.
-     * @param headers http header
-     * @param logbookId the id of the logbook
-     * @return Response UNAUTHORIZED
-     */
-    @Path("/logbooks/{id_logbook}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.LOGBOOK.canDelete()) {
-            status = Status.UNAUTHORIZED;
-        }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
+
 
     /**
      * Check the existence of a logbook Note : this is NOT to be handled in item #72.
-     * @param headers http header
+     *
+     * @param headers   http header
      * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
@@ -881,7 +937,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Get a unit
-     * @param headers http header
+     *
+     * @param headers    http header
      * @param metadataId the id of the unit
      * @return the stream
      */
@@ -949,32 +1006,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         Status status = Status.NOT_IMPLEMENTED;
         if (!DataCategory.UNIT.canUpdate()) {
-            status = Status.UNAUTHORIZED;
+            status = UNAUTHORIZED;
         }
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
-    /**
-     * Delete a unit metadata
-     * @param headers http header
-     * @param metadataId the id of the unit metadata
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/units/{id_md}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.UNIT.canDelete()) {
-            status = Status.UNAUTHORIZED;
-        }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
+
 
     /**
      * Check the existence of a unit metadata
@@ -1089,31 +1126,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         Status status = Status.NOT_IMPLEMENTED;
         if (!DataCategory.OBJECTGROUP.canUpdate()) {
-            status = Status.UNAUTHORIZED;
-        }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-    /**
-     * Delete a Object Group metadata
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     * @param headers http header
-     * @param metadataId the id of the Object Group metadata
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/objectgroups/{id_md}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.OBJECTGROUP.canDelete()) {
-            status = Status.UNAUTHORIZED;
+            status = UNAUTHORIZED;
         }
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
@@ -1877,8 +1890,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            ((message != null) && !message.trim().isEmpty()) ? message
+                : ((status.getReasonPhrase() != null) ? status.getReasonPhrase() : status.name());
 
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
             .setState(CODE_VITAM)

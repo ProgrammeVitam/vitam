@@ -87,6 +87,16 @@ public class GlobalDataRest {
      * The X_OFFER_IDS header, used in requests to give list of offer ids
      */
     public static final String X_OFFER_IDS = "X-Offer-Ids";
+    /**
+     * The X-CONTENT-DESTINATIONnofferId destination for copy
+     */
+    public static final String X_CONTENT_DESTINATION = "X-CONTENT-DESTINATION";
+    /**
+     * The X-CONTENT-SOURCE offerId source for copy
+     */
+    public static final String X_CONTENT_SOURCE = "X-CONTENT-SOURCE";
+
+
 
     /**
      * The X_PLATFORM_ID header
@@ -208,6 +218,12 @@ public class GlobalDataRest {
      * Force update Header
      */
     public static final String FORCE_UPDATE = "Force-Update";
+
+
+    /**
+     * The X_DATA_CATEGORY header, used in requests to give data category
+     */
+    public static final String X_DATA_CATEGORY = "X-Data-Category";
 
     private GlobalDataRest() {
         // empty
