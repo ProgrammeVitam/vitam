@@ -36,6 +36,7 @@ Un Workflow est défini en JSON avec la structure suivante :
     - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin vers un dossier ou un fichier sur le Workspace (LIST, LIST_IN_FILE)
     - type: est-ce une distribution sur des unités archivistiques ou sur des groupes d'objets.
     - statusOnEmptyDistribution: Le statut qu'on attribue au step si jamais la distribution n'a pas eu lieu. Par defaut: WARNING
+    - bulkSize: La taille du bulk : c'est à dire le nombre d'élément qui sera envoyé au worker. Par défaut, la valeur est récupérée depuis la configuration avec la variable `workerBulkSize`.
 
  - une liste d'Actions :
 
