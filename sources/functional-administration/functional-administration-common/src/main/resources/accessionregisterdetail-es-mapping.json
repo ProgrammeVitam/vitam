@@ -9,6 +9,15 @@
     "ArchivalAgreement": {
       "type": "keyword"
     },
+    "AcquisitionInformation": {
+      "type": "keyword"
+    },
+    "Identifier": {
+      "type": "keyword"
+    },
+    "OperationGroup": {
+      "type": "keyword"
+    },
     "EndDate": {
       "type": "date",
       "format": "strict_date_optional_time"

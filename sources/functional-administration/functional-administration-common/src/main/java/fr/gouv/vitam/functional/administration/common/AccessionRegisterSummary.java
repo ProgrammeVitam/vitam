@@ -94,7 +94,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     /**
      * the creationDate field of accession register
      */
-    public static final String CREATION_DATE = "creationDate";
+    public static final String CREATION_DATE = "CreationDate";
     private static final String TENANT = "_tenant";
 
     private static final BasicDBObject[] indexes = {

@@ -409,25 +409,25 @@ export class ArchiveUnitHelper {
       'PhysicalDimensions.NumberOfPage': 'Nombre de pages',
       'PhysicalDimensions.Width': 'Largeur',
       'PhysicalDimensions.Width.unit':'Unité',
-      'PhysicalDimensions.Width.value':'Valeur',
+      'PhysicalDimensions.Width.dValue':'Valeur',
       'PhysicalDimensions.Height': 'Hauteur',
       'PhysicalDimensions.Height.unit':'Unité',
-      'PhysicalDimensions.Height.value':'Valeur',
+      'PhysicalDimensions.Height.dValue':'Valeur',
       'PhysicalDimensions.Depth': 'Profondeur',
       'PhysicalDimensions.Depth.unit':'Unité',
-      'PhysicalDimensions.Depth.value':'Valeur',
+      'PhysicalDimensions.Depth.dValue':'Valeur',
       'PhysicalDimensions.Diameter': 'Diamètre',
       'PhysicalDimensions.Diameter.unit':'Unité',
-      'PhysicalDimensions.Diameter.value':'Valeur',
+      'PhysicalDimensions.Diameter.dValue':'Valeur',
       'PhysicalDimensions.Length': 'Longueur',
       'PhysicalDimensions.Length.unit':'Unité',
-      'PhysicalDimensions.Length.value':'Valeur',
+      'PhysicalDimensions.Length.dValue':'Valeur',
       'PhysicalDimensions.Thickness': 'Epaisseur',
       'PhysicalDimensions.Thickness.unit':'Unité',
-      'PhysicalDimensions.Thickness.value':'Valeur',
+      'PhysicalDimensions.Thickness.dValue':'Valeur',
       'PhysicalDimensions.Weight': 'Poids',
       'PhysicalDimensions.Weight.unit':'Unité',
-      'PhysicalDimensions.Weight.value':'Valeur'
+      'PhysicalDimensions.Weight.dValue':'Valeur'
     };
   }
 }

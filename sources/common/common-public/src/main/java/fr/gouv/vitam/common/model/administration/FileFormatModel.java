@@ -79,7 +79,7 @@ public class FileFormatModel {
     /**
      * mime type
      */
-    @JsonProperty("MIMEType")
+    @JsonProperty("MimeType")
     private String mimeType;
 
     /**

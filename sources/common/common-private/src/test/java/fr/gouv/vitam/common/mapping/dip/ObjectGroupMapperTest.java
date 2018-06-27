@@ -203,7 +203,7 @@ public class ObjectGroupMapperTest {
         MeasurementType measurementType) {
         if (measurementModel != null) {
             assertEquals(measurementModel.getUnit(), measurementType.getUnit());
-            assertEquals(measurementModel.getValue(), measurementType.getValue());
+            assertEquals(measurementModel.getDValue(), measurementType.getValue());
         }
 
     }
@@ -212,7 +212,7 @@ public class ObjectGroupMapperTest {
         MeasurementWeightType measurementWeightType) {
         if (measurementModel != null) {
             assertEquals(measurementModel.getUnit(), measurementWeightType.getUnit().value());
-            assertEquals(measurementModel.getValue(), measurementWeightType.getValue());
+            assertEquals(measurementModel.getDValue(), measurementWeightType.getValue());
         }
     }
 

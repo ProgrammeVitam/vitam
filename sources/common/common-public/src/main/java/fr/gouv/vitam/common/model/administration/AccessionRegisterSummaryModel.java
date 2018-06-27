@@ -89,7 +89,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * creation date
      */
-    @JsonProperty("creationDate")
+    @JsonProperty("CreationDate")
     private String creationDate;
 
     /**

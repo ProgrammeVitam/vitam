@@ -7,7 +7,7 @@
     "PUID": {
       "type": "keyword"
     },
-    "MIMEType": {
+    "MimeType": {
       "type": "text"
     },
     "Extension": {

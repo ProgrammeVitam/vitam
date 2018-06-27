@@ -1,19 +1,19 @@
 [
   {
-    "MIMEType": "application/pdf",
+    "MimeType": "application/pdf",
     "Name": "Acrobat PDF 1.5 - Portable Document Format",
     "PUID": "fmt/19" ,
     "Version": "1.5"
   },
   {
-    "MIMEType":"application/pdf",
+    "MimeType": "application/pdf",
     "Name":"Acrobat PDF 1.4 - Portable Document Format",
     "PUID":"fmt/18",
     "Version":"1.4"
 
   },
   {
-    "MIMEType":"text/csv",
+    "MimeType": "text/csv",
     "Name":"Comma Separated Values",
     "PUID":"x-fmt/18"
   }
