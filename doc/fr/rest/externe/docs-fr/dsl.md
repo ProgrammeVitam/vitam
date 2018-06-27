@@ -300,6 +300,45 @@ Les requêtes DSL de modification contiennent une section **$action**.
 }
 ```
 
+### Requêtes de reclassification
+
+La requête DSL de mise à jour des parents d'unités archivistiques (**RECLASSIFICATION**) permet d'attacher et/ou détacher des unités archivistiques.
+Elle comporte une ou plusieurs requêtes avec pour chacune :
+- Champs **$roots** et **$query** : sélection des unités archivistiques à modifier
+- Champ **$action** : Liste des unités archivistiques parentes à rattacher / détacher via les opérateur "$add" et "$pull" sur le champ "#unitups".  
+
+```JSON
+[
+  {
+    "$roots": [ ... ],
+    "$query": [ ... ],
+    "$action": [
+      {
+        "$add": { "#unitups": [ ... ] },
+        "$pull": { "#unitups": [ ... ] }
+      }
+    ]
+  }
+]
+```
+**Exemple :**
+
+```json
+[
+  {
+    "$roots": [],
+    "$query": [ { "$match": { "Title": "My Title" } } ],
+    "$action": [
+      {
+        "$add": { "#unitups": [ "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca" ] },
+        "$pull": { "#unitups": [ "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc", "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacb" ] }
+      }
+    ]
+  }
+]
+```
+
+
 ## Query
 
 Les commandes de la Query peuvent être :
@@ -731,10 +770,13 @@ Recherche la répartition des résultat pour la présence d'un champ titre en fr
 ## Actions
 Dans le cas d'un update, les opérateurs suivants sont utilisables
 
-| Opérateur | Commentaire                                         |
-|-----------|-----------------------------------------------------|
-| $set      | Crée ou modifie la valeur d'un ou plusieurs champs  |
-| $unset    | Supprime un ou plusieurs champs                     |
+| Opérateur | Commentaire                                                 |
+|-----------|-------------------------------------------------------------|
+| $set      | Crée ou modifie la valeur d'un ou plusieurs champs (requêtes de modification uniquement)              |
+| $unset    | Supprime un ou plusieurs champs (requêtes de modification uniquement)                                 |
+| $add      | Ajout d'une valeur à un champ de type liste non redondante (requêtes de reclassification uniquement)  |
+| $pull     | Supprime une valeur d'un champ de type liste non redondante (requêtes de reclassification uniquement) |
+
 
 # Response
 

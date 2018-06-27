@@ -118,7 +118,8 @@
       "distribution": {
         "kind": "LIST_IN_LINKED_FILE",
         "type": "Units",
-        "element": "UnitsToUpdate/chainedFile.json"
+        "element": "UnitsToUpdate/chainedFile.json",
+        "statusOnEmptyDistribution": "KO"
       },
       "actions": [
         {
