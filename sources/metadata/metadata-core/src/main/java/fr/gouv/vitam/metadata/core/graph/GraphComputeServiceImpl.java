@@ -256,10 +256,10 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         tryInvalidateCache();
 
         Set<String> concernedGots = new HashSet<>();
-        GraphComputeResponse reponse = new GraphComputeResponse();
+        GraphComputeResponse response = new GraphComputeResponse();
 
         if (CollectionUtils.isEmpty(documentsId)) {
-            return reponse;
+            return response;
         }
 
         try {
@@ -272,7 +272,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             List<Document> documents = new ArrayList<>();
 
             while (cursor.hasNext()) {
-                reponse.increment(GraphComputeAction.valueOf(metadataCollections.name()), 1);
+                response.increment(GraphComputeAction.valueOf(metadataCollections.name()), 1);
                 Document doc = cursor.next();
 
                 String got = doc.getString(Unit.OG);
@@ -291,7 +291,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             if (computeObjectGroupGraph && concernedGots.size() > 0) {
                 GraphComputeResponse statsGots =
                     computeGraph(MetadataCollections.OBJECTGROUP, concernedGots, false);
-                reponse.increment(statsGots);
+                response.increment(statsGots);
             }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("End Compute graph of (%s)", metadataCollections.name()));
@@ -301,10 +301,10 @@ public class GraphComputeServiceImpl implements GraphComputeService {
                     .format("[Consistency ERROR] : Error while compute graph of (%s)", metadataCollections.name()),
                 e);
             String msgCause = e.getCause() == null ? "" : e.getCause().getMessage();
-            reponse.setErrorMessage(String.format("Compute graph error (%s) cause (%)", e.getMessage(), msgCause));
+            response.setErrorMessage(String.format("Compute graph error (%s) cause (%s)", e.getMessage(), msgCause));
         }
 
-        return reponse;
+        return response;
     }
 
     private void tryInvalidateCache() {
