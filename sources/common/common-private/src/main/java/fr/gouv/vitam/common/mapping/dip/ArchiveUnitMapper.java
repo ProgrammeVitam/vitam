@@ -32,6 +32,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.mapping.dip.DescriptiveMetadataMapper;
@@ -68,7 +69,7 @@ public class ArchiveUnitMapper {
         }
 
         archiveUnitType.setContent(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel()));
-        ArchiveUnitType.Management management = new ArchiveUnitType.Management();
+        ManagementType management = new ManagementType();
 
         management.setNeedAuthorization(model.getManagement().isNeedAuthorization());
 

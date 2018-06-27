@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
@@ -72,13 +73,13 @@ public interface UnitGotMapper {
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
-        module.addSerializer(KeywordsType.KeywordType.class, new KeywordTypeSerializer());
+        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
 
         module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
         module.addDeserializer(TextType.class, new TextTypeDeSerializer());
-        module.addDeserializer(KeywordsType.KeywordType.class, new KeywordTypeDeserializer());
+        module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 
         objectMapper.registerModule(module);
 

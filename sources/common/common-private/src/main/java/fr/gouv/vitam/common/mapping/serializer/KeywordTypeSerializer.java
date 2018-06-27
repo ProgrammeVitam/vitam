@@ -30,7 +30,7 @@ package fr.gouv.vitam.common.mapping.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ import static java.util.Objects.isNull;
 /**
  * textType serializer
  */
-public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordType> {
+public class KeywordTypeSerializer extends StdSerializer<KeyType> {
 
     /**
      * default constructor
@@ -53,7 +53,7 @@ public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordTyp
      *
      * @param type
      */
-    public KeywordTypeSerializer(Class<KeywordsType.KeywordType> type) {
+    public KeywordTypeSerializer(Class<KeyType> type) {
         super(type);
     }
 
@@ -64,7 +64,7 @@ public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordTyp
      * @throws IOException
      */
     @Override
-    public void serialize(KeywordsType.KeywordType keywordType, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(KeyType keywordType, JsonGenerator jgen, SerializerProvider provider)
         throws IOException {
         if (isNull(keywordType.getValue())) {
             jgen.writeNull();

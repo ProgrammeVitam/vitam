@@ -66,9 +66,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReference
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -360,7 +363,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private void enhanceSignatures(DescriptiveMetadataModel descriptiveMetadataModel) {
 
         if (descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()) {
-            for (DescriptiveMetadataContentType.Signature signature : descriptiveMetadataModel.getSignature()) {
+            for (SignatureType signature : descriptiveMetadataModel.getSignature()) {
 
                 String signedObjectId =
                     signature.getReferencedObject().getSignedObjectId();
@@ -385,7 +388,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         if (descriptiveMetadataModel.getRelatedObjectReference() != null) {
 
-            DescriptiveMetadataContentType.RelatedObjectReference relatedObjReference =
+            RelatedObjectReferenceType relatedObjReference =
                 descriptiveMetadataModel.getRelatedObjectReference();
 
             fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getIsVersionOf());
@@ -990,7 +993,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
-        module.addSerializer(KeywordsType.KeywordType.class, new KeywordTypeSerializer());
+        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
 
         objectMapper.registerModule(module);
         JavaTimeModule module1 = new JavaTimeModule();
