@@ -1,0 +1,19 @@
+[
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$exists": "Title"
+      }
+    ],
+    "$action": [
+      {
+        "$pull": {
+          "#unitups": [
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+          ]
+        }
+      }
+    ]
+  }
+]

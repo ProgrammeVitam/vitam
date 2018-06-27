@@ -195,7 +195,7 @@
             "hint": "Array of units to attach"
           }
         },
-        "optional": false,
+        "optional": true,
         "hint": "Fields to update"
       },
       "$pull": {
@@ -209,7 +209,7 @@
             "hint": "Array of units to detach"
           }
         },
-        "optional": false,
+        "optional": true,
         "hint": "Fields to update"
       }
     },
