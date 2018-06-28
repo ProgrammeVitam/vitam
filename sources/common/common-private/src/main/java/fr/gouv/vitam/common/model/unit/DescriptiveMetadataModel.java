@@ -134,6 +134,10 @@ public class DescriptiveMetadataModel {
 
     private GpsType gps;
 
+    private String sedaVersion;
+
+    private String implementationVersion;
+
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
 
@@ -785,5 +789,32 @@ public class DescriptiveMetadataModel {
         this.any.put(key, value);
     }
 
+    /**
+     * @return sedaVersion
+     */
+    public String getSedaVersion() {
+        return sedaVersion;
+    }
+
+    /**
+     * @param sedaVersion
+     */
+    public void setSedaVersion(String sedaVersion) {
+        this.sedaVersion = sedaVersion;
+    }
+
+    /**
+     * @return implementationVersion
+     */
+    public String getImplementationVersion() {
+        return implementationVersion;
+    }
+
+    /**
+     * @param implementationVersion
+     */
+    public void setImplementationVersion(String implementationVersion) {
+        this.implementationVersion = implementationVersion;
+    }
 
 }
