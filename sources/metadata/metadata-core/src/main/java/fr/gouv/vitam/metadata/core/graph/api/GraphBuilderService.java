@@ -69,6 +69,7 @@ import fr.gouv.vitam.metadata.core.graph.GraphRelation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
 
 /**
@@ -249,12 +250,11 @@ public interface GraphBuilderService extends VitamAutoCloseable {
         throws VitamRuntimeException {
 
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
-        List<String> ups = document.get(Unit.UP, List.class);
+        List<String> up = document.get(Unit.UP, List.class);
         String unitId = document.get(Unit.ID, String.class);
         String originatingAgency = document.get(Unit.ORIGINATING_AGENCY, String.class);
-        if (null != ups) {
-            computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, originatingAgency, ups, START_DEPTH);
-        }
+
+        computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, up, START_DEPTH);
 
         // Calculate other information
         // _graph, _us, _uds, _max, _min, _sps, _us_sps
@@ -264,20 +264,26 @@ public interface GraphBuilderService extends VitamAutoCloseable {
         Map<String, Set<String>> us_sp = new HashMap<>();
         MultiValuedMap<Integer, String> uds = new HashSetValuedHashMap<>();
 
+        if (StringUtils.isNotEmpty(originatingAgency)) {
+            sps.add(originatingAgency);
+        }
+
+
         for (GraphRelation ugr : stackOrderedGraphRels) {
 
             graph.add(GraphUtils.createGraphRelation(ugr.getUnit(), ugr.getParent()));
             us.add(ugr.getParent());
-            sps.add(ugr.getUnitOriginatingAgency());
-            sps.add(ugr.getParentOriginatingAgency());
+            String parentOriginatingAgency = ugr.getParentOriginatingAgency();
+            if (StringUtils.isNotEmpty(parentOriginatingAgency)) {
+                sps.add(parentOriginatingAgency);
+                Set<String> ussp = us_sp.get(parentOriginatingAgency);
+                if (null == ussp) {
+                    ussp = new HashSet<>();
+                    us_sp.put(parentOriginatingAgency, ussp);
+                }
 
-            Set<String> ussp = us_sp.get(ugr.getParentOriginatingAgency());
-            if (null == ussp) {
-                ussp = new HashSet<>();
-                us_sp.put(ugr.getParentOriginatingAgency(), ussp);
+                ussp.add(ugr.getParent());
             }
-
-            ussp.add(ugr.getParent());
 
             /*
              * Parents depth [depth: [guid]]
@@ -289,14 +295,18 @@ public interface GraphBuilderService extends VitamAutoCloseable {
         Map<String, Collection<String>> parentsDepths = new HashMap<>();
         Map<Integer, Collection<String>> udsMap = uds.asMap();
         Integer min = 1;
-        Integer max = 1;
+        Integer max_minus_one = 0;
         for (Integer o : udsMap.keySet()) {
             Collection<String> currentParents = udsMap.get(o);
             if (!currentParents.isEmpty()) {
                 parentsDepths.put(String.valueOf(o), currentParents);
-                max = max < o ? o : max;
+                max_minus_one = max_minus_one < o ? o : max_minus_one;
             }
         }
+
+        // +1 because if no parent _max==1 if one parent _max==2
+        Integer max = max_minus_one + 1;
+
         /*
          * If the current document is present in the cache ?
          * Then two options:
@@ -319,7 +329,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             .append(Unit.ORIGINATING_AGENCIES, sps)
             .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
             .append(Unit.MINDEPTH, min)
-            .append(Unit.MAXDEPTH, max + 1) // +1 because if no parent _max==1 if one parent _max==2
+            .append(Unit.MAXDEPTH, max)
             .append(Unit.GRAPH, graph)
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
@@ -338,14 +348,15 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      */
     default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
         throws VitamRuntimeException {
-
-        Set<String> sps = new HashSet();
+        Set<String> sps = new HashSet<>();
         String gotId = document.get(ObjectGroup.ID, String.class);
-        List<String> ups = document.get(ObjectGroup.UP, List.class);
-        if (null != ups) {
-            computeObjectGroupGraph(sps, ups);
-        }
+        String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
+        List<String> up = document.get(ObjectGroup.UP, List.class);
+        computeObjectGroupGraph(sps, up);
 
+        if (StringUtils.isNotEmpty(originatingAgency)) {
+            sps.add(originatingAgency);
+        }
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
@@ -355,72 +366,86 @@ public interface GraphBuilderService extends VitamAutoCloseable {
 
 
     /**
+     * Recursive method that compute graph using only _up
+     * With global (by reference variable graphRels, we get all needed informations from all parent of the given unit unitId.
+     *
      * @param graphRels
      * @param unitId
-     * @param originatingAgency
-     * @param ups
-     * @param currentDepth      the current depth, initially equals to 1
+     * @param up
+     * @param currentDepth the current depth, initially equals to 1
      * @throws ExecutionException
      */
-    static void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
-        String originatingAgency, List<String> ups, Integer currentDepth)
+    default void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
+        List<String> up, int currentDepth)
         throws VitamRuntimeException {
-        if (null == ups || ups.isEmpty()) {
+        if (null == up || up.isEmpty()) {
             return;
         }
 
-        final ImmutableMap<String, Document> units;
+        final Map<String, Document> units;
         try {
-            units = unitCache.getAll(ups);
+            units = unitCache.getAll(up);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
 
-        final Integer nextDepth = currentDepth + 1;
+        final int nextDepth = currentDepth + 1;
         for (Map.Entry<String, Document> unitParent : units.entrySet()) {
-            Document au = unitParent.getValue();
+            Document parentUnit = unitParent.getValue();
 
-            GraphRelation ugr = new GraphRelation(unitId, originatingAgency, unitParent.getKey(),
+            GraphRelation ugr = new GraphRelation(unitId, unitParent.getKey(),
                 unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
 
             if (graphRels.contains(ugr)) {
+                // Relation (unit_id , unitParent.getKey()) already treated
+                // Means unit_id already visited, then  continue is unnecessary. beak is the best choice for performance
                 break;
             }
 
             graphRels.add(ugr);
 
+            // Recall the same method, but no for each parent unit of the current unit_id
             computeUnitGraphUsingDirectParents(graphRels,
                 unitParent.getKey(),
-                au.get(Unit.ORIGINATING_AGENCY, String.class),
-                au.get(Unit.UP, List.class), nextDepth);
+                parentUnit.get(Unit.UP, List.class), nextDepth);
         }
 
     }
 
 
+
     /**
+     * For ObjectGroup, we only get graph data (sps) from only unit represents (up)
+     * We do not loop over all parent of parent until root units
+     * As not concurrence expected, no problem of inconsistency,
+     * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
+     *
      * @param originatingAgencies
-     * @param ups
-     * @throws ExecutionException
+     * @param up
+     * @throws VitamRuntimeException
      */
-    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> ups)
+    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> up)
         throws VitamRuntimeException {
-        if (null == ups || ups.isEmpty()) {
+        if (null == up || up.isEmpty()) {
             return;
         }
 
-        final ImmutableMap<String, Document> units;
+        final Map<String, Document> units;
         try {
-            units = unitCache.getAll(ups);
+            units = unitCache.getAll(up);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
 
         for (Map.Entry<String, Document> unit : units.entrySet()) {
             Document au = unit.getValue();
-            originatingAgencies.addAll(au.get(Unit.ORIGINATING_AGENCIES, List.class));
+            List agencies = au.get(Unit.ORIGINATING_AGENCIES, List.class);
+            if (CollectionUtils.isNotEmpty(agencies)) {
+                originatingAgencies.addAll(agencies);
+            }
         }
     }
+
 
 
     /**

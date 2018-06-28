@@ -57,7 +57,6 @@ import java.util.Objects;
 public class GraphRelation {
 
     private String unit;
-    private String unitOriginatingAgency;
     private String parent;
     private String parentOriginatingAgency;
     private Integer depth;
@@ -65,15 +64,13 @@ public class GraphRelation {
     /**
      * Constructor
      * @param unit
-     * @param unitOriginatingAgency
      * @param parent
      * @param parentOriginatingAgency
      * @param depth
      */
-    public GraphRelation(String unit, String unitOriginatingAgency, String parent, String parentOriginatingAgency,
+    public GraphRelation(String unit, String parent, String parentOriginatingAgency,
         Integer depth) {
         this.unit = unit;
-        this.unitOriginatingAgency = unitOriginatingAgency;
         this.parent = parent;
         this.parentOriginatingAgency = parentOriginatingAgency;
         this.depth = depth;
@@ -94,22 +91,6 @@ public class GraphRelation {
      */
     public void setUnit(String unit) {
         this.unit = unit;
-    }
-
-    /**
-     * Get unitOriginatingAgency
-     * @return unitOriginatingAgency
-     */
-    public String getUnitOriginatingAgency() {
-        return unitOriginatingAgency;
-    }
-
-    /**
-     * Set unitOriginatingAgency
-     * @param unitOriginatingAgency
-     */
-    public void setUnitOriginatingAgency(String unitOriginatingAgency) {
-        this.unitOriginatingAgency = unitOriginatingAgency;
     }
 
     /**
