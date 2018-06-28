@@ -462,6 +462,7 @@ public class IngestExternalImpl implements IngestExternal {
                                     messageLogbookEngineHelper.getLabelOp(MANIFEST_FILE_NAME_CHECK, StatusCode.KO));
                             ObjectNode msg = JsonHandler.createObjectNode();
                             msg.put("FileName", manifestFileName.getFileName());
+                            msg.put("AllowedCharacters", VitamConstants.MANIFEST_FILE_NAME_REGEX);
                             manifestFileNameCheck.putParameterValue(LogbookParameterName.eventDetailData,JsonHandler.unprettyPrint(msg));
                         }
                     } catch (final ContentAddressableStorageException e) {
