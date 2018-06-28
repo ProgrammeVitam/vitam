@@ -36,6 +36,8 @@ public class AbstractGraphComputePluginTest {
 
         when(abstractGraphComputePlugin.getGraphComputeAction())
             .thenReturn(GraphComputeResponse.GraphComputeAction.UNIT);
+        when(abstractGraphComputePlugin.getPluginKeyName())
+            .thenReturn("PluginName");
     }
 
 
@@ -52,9 +54,9 @@ public class AbstractGraphComputePluginTest {
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c"));
         List<ItemStatus> itemStatuses = abstractGraphComputePlugin.executeList(workerParameters, handlerIO);
         assertThat(itemStatuses).hasSize(1);
-        ItemStatus itemStatuse = itemStatuses.iterator().next();
-        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        List<Integer> statusMeter = itemStatuse.getStatusMeter();
+        ItemStatus itemStatus = itemStatuses.iterator().next();
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        List<Integer> statusMeter = itemStatus.getStatusMeter();
         assertThat(statusMeter.get(3)).isEqualTo(3);
     }
 
@@ -65,9 +67,9 @@ public class AbstractGraphComputePluginTest {
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c", "d"));
         List<ItemStatus> itemStatuses = abstractGraphComputePlugin.executeList(workerParameters, handlerIO);
         assertThat(itemStatuses).hasSize(1);
-        ItemStatus itemStatuse = itemStatuses.iterator().next();
-        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        List<Integer> statusMeter = itemStatuse.getStatusMeter();
+        ItemStatus itemStatus = itemStatuses.iterator().next();
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        List<Integer> statusMeter = itemStatus.getStatusMeter();
         assertThat(statusMeter.get(3)).isEqualTo(3);
         assertThat(statusMeter.get(6)).isEqualTo(1);
     }
