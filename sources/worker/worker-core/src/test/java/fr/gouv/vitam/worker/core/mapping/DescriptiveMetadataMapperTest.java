@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import org.junit.Rule;
 import org.junit.Test;
@@ -119,5 +120,20 @@ public class DescriptiveMetadataMapperTest {
             .contains(tuple("fr", "description"));
     }
 
+    @Test
+    public void shouldFillCurrentSedaVersionAndImplementationVersion() {
+        // Given
+        DescriptiveMetadataContentType metadataContentType = new DescriptiveMetadataContentType();
+        TextType title = new TextType();
+        title.setValue("titre");
+        metadataContentType.getTitle().add(title);
+
+        // When
+        DescriptiveMetadataModel descriptiveMetadataModel = descriptiveMetadataMapper.map(metadataContentType);
+
+        // Then
+        assertThat(descriptiveMetadataModel.getSedaVersion()).isEqualTo(VitamConstants.SEDA_CURRENT_VERSION);
+        assertThat(descriptiveMetadataModel.getImplementationVersion()).isNull();
+    }
 
 }
