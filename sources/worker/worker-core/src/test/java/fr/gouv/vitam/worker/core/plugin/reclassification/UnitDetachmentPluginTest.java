@@ -17,6 +17,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;

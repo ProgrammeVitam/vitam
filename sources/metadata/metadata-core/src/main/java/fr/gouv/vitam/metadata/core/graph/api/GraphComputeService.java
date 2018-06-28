@@ -26,22 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.graph.api;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.Function;
 import com.mongodb.client.model.UpdateOneModel;
@@ -62,7 +46,24 @@ import fr.gouv.vitam.metadata.core.graph.GraphRelation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class get units where calculated data are modified
@@ -89,8 +90,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     /**
      * Compute graph for unit/got from all parents
      *
-     * @param metadataCollections     the collection concerned by the build of the graph
-     * @param unitsId                 the collection of units subject of computing graph
+     * @param metadataCollections the collection concerned by the build of the graph
+     * @param unitsId the collection of units subject of computing graph
      * @param computeObjectGroupGraph true mean compute graph
      * @return The collection of object group treated or to be treated bu an other process.
      * This collection contains got's id of concerning units.
@@ -144,7 +145,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Generic method to calculate graph for unit and object group
      *
      * @param metadataCollections the type the collection (Unit or ObjectGroup)
-     * @param documents           the concerning collection of documents
+     * @param documents the concerning collection of documents
      * @throws MetaDataException
      */
     default void computeGraph(MetadataCollections metadataCollections, List<Document> documents)
@@ -212,14 +213,12 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     default UpdateOneModel<Document> computeUnitGraph(Document document)
         throws VitamRuntimeException {
 
-        // FIXME: Pourquoi l'ordre est important? j'aurais vu plutôt un Set surtout qu'on fait des .contains dessus
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
-        List<String> ups = document.get(Unit.UP, List.class);
+        List<String> up = document.get(Unit.UP, List.class);
         String unitId = document.get(Unit.ID, String.class);
         String originatingAgency = document.get(Unit.ORIGINATING_AGENCY, String.class);
-        if (null != ups) {
-            computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, originatingAgency, ups, START_DEPTH);
-        }
+
+        computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, up, START_DEPTH);
 
         // Calculate other information
         // _graph, _us, _uds, _max, _min, _sps, _us_sps
@@ -229,20 +228,27 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         Map<String, Set<String>> us_sp = new HashMap<>();
         MultiValuedMap<Integer, String> uds = new HashSetValuedHashMap<>();
 
+        if (StringUtils.isNotEmpty(originatingAgency)) {
+            sps.add(originatingAgency);
+        }
+
         for (GraphRelation ugr : stackOrderedGraphRels) {
 
             graph.add(GraphUtils.createGraphRelation(ugr.getUnit(), ugr.getParent()));
             us.add(ugr.getParent());
-            sps.add(ugr.getUnitOriginatingAgency());
-            sps.add(ugr.getParentOriginatingAgency());
 
-            Set<String> ussp = us_sp.get(ugr.getParentOriginatingAgency());
-            if (null == ussp) {
-                ussp = new HashSet<>();
-                us_sp.put(ugr.getParentOriginatingAgency(), ussp);
+            String parentOriginatingAgency = ugr.getParentOriginatingAgency();
+
+            if (StringUtils.isNotEmpty(parentOriginatingAgency)) {
+                sps.add(parentOriginatingAgency);
+                Set<String> ussp = us_sp.get(parentOriginatingAgency);
+                if (null == ussp) {
+                    ussp = new HashSet<>();
+                    us_sp.put(parentOriginatingAgency, ussp);
+                }
+
+                ussp.add(ugr.getParent());
             }
-
-            ussp.add(ugr.getParent());
 
             /*
              * Parents depth [depth: [guid]]
@@ -254,14 +260,17 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         Map<String, Collection<String>> parentsDepths = new HashMap<>();
         Map<Integer, Collection<String>> udsMap = uds.asMap();
         Integer min = 1;
-        Integer max = 1;
+        Integer max_minus_one = 0;
         for (Integer o : udsMap.keySet()) {
             Collection<String> currentParents = udsMap.get(o);
             if (!currentParents.isEmpty()) {
                 parentsDepths.put(String.valueOf(o), currentParents);
-                max = max < o ? o : max;
+                max_minus_one = max_minus_one < o ? o : max_minus_one;
             }
         }
+        // +1 because if no parent _max==1 if one parent _max==2
+        Integer max = max_minus_one + 1;
+
         /*
          * If the current document is present in the cache ?
          * Then two options:
@@ -284,13 +293,12 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             .append(Unit.ORIGINATING_AGENCIES, sps)
             .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
             .append(Unit.MINDEPTH, min)
-            .append(Unit.MAXDEPTH, max + 1) // +1 because if no parent _max==1 if one parent _max==2
+            .append(Unit.MAXDEPTH, max)
             .append(Unit.GRAPH, graph)
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         Document data = new Document($_SET, update);
         return new UpdateOneModel<>(eq(Unit.ID, unitId), data, new UpdateOptions().upsert(false));
-
     }
 
 
@@ -304,12 +312,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
         throws VitamRuntimeException {
 
-        Set<String> sps = new HashSet();
+        Set<String> sps = new HashSet<>();
         String gotId = document.get(ObjectGroup.ID, String.class);
-        List<String> ups = document.get(ObjectGroup.UP, List.class);
-        if (null != ups) {
-            computeObjectGroupGraph(sps, ups);
-        }
+        List<String> up = document.get(ObjectGroup.UP, List.class);
+
+        computeObjectGroupGraph(sps, up);
 
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
@@ -318,27 +325,26 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
     }
 
-
     /**
      * Recursive method that compute graph using only _up
      * With global (by reference variable graphRels, we get all needed informations from all parent of the given unit unitId.
+     *
      * @param graphRels
      * @param unitId
-     * @param originatingAgency
-     * @param ups
-     * @param currentDepth      the current depth, initially equals to 1
+     * @param up
+     * @param currentDepth the current depth, initially equals to 1
      * @throws ExecutionException
      */
     default void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
-        String originatingAgency, List<String> ups, int currentDepth)
+        List<String> up, int currentDepth)
         throws VitamRuntimeException {
-        if (null == ups || ups.isEmpty()) {
+        if (null == up || up.isEmpty()) {
             return;
         }
 
         final Map<String, Document> units;
         try {
-            units = getCache().getAll(ups);
+            units = getCache().getAll(up);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
@@ -347,7 +353,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         for (Map.Entry<String, Document> unitParent : units.entrySet()) {
             Document parentUnit = unitParent.getValue();
 
-            GraphRelation ugr = new GraphRelation(unitId, originatingAgency, unitParent.getKey(),
+            GraphRelation ugr = new GraphRelation(unitId, unitParent.getKey(),
                 unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
 
             if (graphRels.contains(ugr)) {
@@ -361,7 +367,6 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             // Recall the same method, but no for each parent unit of the current unit_id
             computeUnitGraphUsingDirectParents(graphRels,
                 unitParent.getKey(),
-                parentUnit.get(Unit.ORIGINATING_AGENCY, String.class),
                 parentUnit.get(Unit.UP, List.class), nextDepth);
         }
 
@@ -373,19 +378,20 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * We do not loop over all parent of parent until root units
      * As not concurrence expected, no problem of inconsistency,
      * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
+     *
      * @param originatingAgencies
-     * @param ups
-     * @throws ExecutionException
+     * @param up
+     * @throws VitamRuntimeException
      */
-    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> ups)
+    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> up)
         throws VitamRuntimeException {
-        if (null == ups || ups.isEmpty()) {
+        if (null == up || up.isEmpty()) {
             return;
         }
 
         final Map<String, Document> units;
         try {
-            units = getCache().getAll(ups);
+            units = getCache().getAll(up);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
@@ -414,7 +420,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Bulk save in elasticsearch
      *
      * @param metaDaCollection
-     * @param collection       of id of documents
+     * @param collection of id of documents
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
@@ -424,7 +430,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Bulk save in elasticsearch
      *
      * @param metaDaCollection
-     * @param collection       of documents
+     * @param collection of documents
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)

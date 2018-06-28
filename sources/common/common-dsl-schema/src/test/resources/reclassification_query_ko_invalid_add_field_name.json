@@ -1,0 +1,25 @@
+[
+  {
+    "$roots": [],
+    "$query": [
+      {
+        "$exists": "Title"
+      }
+    ],
+    "$action": [
+      {
+        "$add": {
+          "Invalid": [
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+          ]
+        },
+        "$pull": {
+          "#unitups": [
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc",
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacb"
+          ]
+        }
+      }
+    ]
+  }
+]

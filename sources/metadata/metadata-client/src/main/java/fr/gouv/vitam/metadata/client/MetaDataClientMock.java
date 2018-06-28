@@ -172,4 +172,10 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         throws VitamClientException {
         return new GraphComputeResponse(3, 3);
     }
+
+    @Override
+    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
+        String objectGroupsToUpdateChainedFileName) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

@@ -36,6 +36,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-plugin</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.googlecode.java-diff-utils</groupId>
 			<artifactId>diffutils</artifactId>
 		</dependency>

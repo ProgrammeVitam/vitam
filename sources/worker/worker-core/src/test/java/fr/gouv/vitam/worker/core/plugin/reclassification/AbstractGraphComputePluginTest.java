@@ -1,11 +1,5 @@
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -15,13 +9,18 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.reclassification.AbstractGraphComputePlugin;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractGraphComputePluginTest {
@@ -37,6 +36,8 @@ public class AbstractGraphComputePluginTest {
 
         when(abstractGraphComputePlugin.getGraphComputeAction())
             .thenReturn(GraphComputeResponse.GraphComputeAction.UNIT);
+        when(abstractGraphComputePlugin.getPluginKeyName())
+            .thenReturn("PluginName");
     }
 
 
@@ -53,9 +54,9 @@ public class AbstractGraphComputePluginTest {
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c"));
         List<ItemStatus> itemStatuses = abstractGraphComputePlugin.executeList(workerParameters, handlerIO);
         assertThat(itemStatuses).hasSize(1);
-        ItemStatus itemStatuse = itemStatuses.iterator().next();
-        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        List<Integer> statusMeter = itemStatuse.getStatusMeter();
+        ItemStatus itemStatus = itemStatuses.iterator().next();
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        List<Integer> statusMeter = itemStatus.getStatusMeter();
         assertThat(statusMeter.get(3)).isEqualTo(3);
     }
 
@@ -66,9 +67,9 @@ public class AbstractGraphComputePluginTest {
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c", "d"));
         List<ItemStatus> itemStatuses = abstractGraphComputePlugin.executeList(workerParameters, handlerIO);
         assertThat(itemStatuses).hasSize(1);
-        ItemStatus itemStatuse = itemStatuses.iterator().next();
-        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        List<Integer> statusMeter = itemStatuse.getStatusMeter();
+        ItemStatus itemStatus = itemStatuses.iterator().next();
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        List<Integer> statusMeter = itemStatus.getStatusMeter();
         assertThat(statusMeter.get(3)).isEqualTo(3);
         assertThat(statusMeter.get(6)).isEqualTo(1);
     }

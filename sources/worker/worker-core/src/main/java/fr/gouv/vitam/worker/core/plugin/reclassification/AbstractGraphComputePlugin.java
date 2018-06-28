@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -48,6 +43,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Common implementation of compute graph for UNIT and GOT
@@ -91,7 +91,7 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
                     finalSize = graphComputeResponse.getGotCount();
                     break;
                 default:
-                    // Nothing
+                    throw new IllegalStateException("Unexpected graph compute action " + getGraphComputeAction());
             }
 
         } catch (VitamClientException e) {
@@ -100,7 +100,6 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
         } finally {
             handler.setCurrentObjectId(null);
         }
-
 
         int fatal = Math.abs(initialSize - finalSize);
 
@@ -111,15 +110,13 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
             if (null != graphComputeResponse && !Strings.isNullOrEmpty(graphComputeResponse.getErrorMessage())) {
                 ObjectNode infoNode = JsonHandler.createObjectNode();
                 infoNode.put(SedaConstants.EV_DET_TECH_DATA, graphComputeResponse.getErrorMessage());
-                String evdev = JsonHandler.unprettyPrint(infoNode);
-                itemStatus.setEvDetailData(evdev);
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
             }
 
             // When fatal occurs, we have the index from where we restart workflow distribution after resolving FATAL cause
             itemStatus.increment(StatusCode.OK, finalSize).increment(StatusCode.FATAL, fatal);
         }
-        aggregateItemStatus.add(itemStatus);
-
+        aggregateItemStatus.add(new ItemStatus(getPluginKeyName()).setItemsStatus(getPluginKeyName(), itemStatus));
         return aggregateItemStatus;
     }
 

@@ -54,9 +54,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.MetaData;
+import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
+import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
@@ -76,6 +78,7 @@ public class MetadataManagementResource {
     public static final String OBJECTGROUP = "OBJECTGROUP";
     public static final String UNIT = "UNIT";
     public static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
+    private final static String EXPORT_RECLASSIFICATION_CHILD_NODES = "exportReclassificationChildNodes";
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
@@ -98,9 +101,10 @@ public class MetadataManagementResource {
     /**
      * Reconstruction service.
      */
-    private ReconstructionService reconstructionService;
-    private StoreGraphService storeGraphService;
-    private GraphComputeService graphComputeService;
+    private final ReconstructionService reconstructionService;
+    private final StoreGraphService storeGraphService;
+    private final GraphComputeService graphComputeService;
+    private final ReclassificationDistributionService reclassificationDistributionService;
 
     /**
      * Constructor
@@ -112,7 +116,8 @@ public class MetadataManagementResource {
         OffsetRepository offsetRepository, MetaData metadata) {
         this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
             new StoreGraphService(vitamRepositoryProvider),
-            GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata));
+            GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata),
+            new ReclassificationDistributionService(vitamRepositoryProvider));
     }
 
     /**
@@ -125,10 +130,12 @@ public class MetadataManagementResource {
     public MetadataManagementResource(
         ReconstructionService reconstructionService,
         StoreGraphService storeGraphService,
-        GraphComputeService graphComputeService) {
+        GraphComputeService graphComputeService,
+        ReclassificationDistributionService reclassificationDistributionService) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
         this.graphComputeService = graphComputeService;
+        this.reclassificationDistributionService = reclassificationDistributionService;
     }
 
     /**
@@ -280,6 +287,30 @@ public class MetadataManagementResource {
             return Response.ok().entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    /**
+     * Export child nodes of units to reclassify for graph update into workspaces.
+     *
+     * @return the response (200 or KO)
+     */
+    @Path(EXPORT_RECLASSIFICATION_CHILD_NODES)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportReclassificationChildNodes(ReclassificationChildNodeExportRequest request) {
+        try {
+
+            this.reclassificationDistributionService.exportReclassificationChildNodes(
+                request.getUnitIds(),
+                request.getUnitsToUpdateChainedFileName(),
+                request.getObjectGroupsToUpdateChainedFileName());
+
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOGGER.error("Could not export child nodes for reclassification graph update", e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
         }
     }
