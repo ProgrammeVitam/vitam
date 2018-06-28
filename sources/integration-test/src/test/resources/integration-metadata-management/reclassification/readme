@@ -1,0 +1,7 @@
+L'image graph.png est capturé depuis l'outil yEd Graph Editor
+KO case
+Attach arbre -> plan
+Attach plan -> ingest
+Cycle attach id_a_identifier0 -> id_f_identifier1 and id_d_identifier0 -> id_f_identifier1
+Reclassement in //
+AccessContract

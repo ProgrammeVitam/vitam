@@ -26,6 +26,22 @@
  */
 package fr.gouv.vitam.metadata.core.graph.api;
 
+import static com.mongodb.client.model.Filters.eq;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.Function;
 import com.mongodb.client.model.UpdateOneModel;
@@ -48,22 +64,6 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class get units where calculated data are modified
@@ -317,6 +317,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         List<String> up = document.get(ObjectGroup.UP, List.class);
 
         computeObjectGroupGraph(sps, up);
+
+        String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
+        if (StringUtils.isNotEmpty(originatingAgency)) {
+            sps.add(originatingAgency);
+        }
 
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,

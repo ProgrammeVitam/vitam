@@ -349,7 +349,16 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startReclassificationWorkflow(JsonNode reclassificationRequestJson) {
+        return startReclassificationWorkflow(reclassificationRequestJson, ProcessAction.RESUME);
+    }
 
+    /**
+     *
+     * @param reclassificationRequestJson
+     * @param processAction
+     * @return
+     */
+    public Response startReclassificationWorkflow(JsonNode reclassificationRequestJson, ProcessAction processAction) {
         Status status;
 
         try {
@@ -386,7 +395,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.getEventType(),
-                        Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
+                        Contexts.RECLASSIFICATION.name(), processAction.getValue());
                 return jsonNodeRequestResponse.toResponse();
             }
 
@@ -407,14 +416,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
     }
-
-    /**
-     * get Archive Unit list by query based on identifier
-     *
-     * @param queryDsl as JsonNode
-     * @param idUnit identifier
-     * @return an archive unit result list
-     */
+        /**
+         * get Archive Unit list by query based on identifier
+         *
+         * @param queryDsl as JsonNode
+         * @param idUnit identifier
+         * @return an archive unit result list
+         */
     @Override
     @GET
     @Path("/units/{id_unit}")
