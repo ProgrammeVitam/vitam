@@ -421,6 +421,7 @@
                                 <Maven-groupId>${project.groupId}</Maven-groupId>
                                 <Maven-artefactId>${project.artifactId}</Maven-artefactId>
                                 <Maven-version>${project.version}</Maven-version>
+                                <Implementation-Version>${project.version}</Implementation-Version>
                                 <Maven-build-timestamp>${maven.build.timestamp}</Maven-build-timestamp>
                                 <Scm-tags>${git.tags}</Scm-tags>
                                 <Scm-branch>${git.branch}</Scm-branch>
