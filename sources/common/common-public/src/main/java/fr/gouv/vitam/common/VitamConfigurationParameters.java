@@ -69,8 +69,8 @@ public class VitamConfigurationParameters {
     private Integer storeGraphElementsPerFile;
 
     /**
-     * The overlap delay (in seconds) for store graph operation.
-     * Used to do not treat elements in critical state due to clock difference or GC slow down or VM freeze
+     * The overlap delay (in seconds) for store graph operation. Used to do not treat elements in critical state due to
+     * clock difference or GC slow down or VM freeze
      */
     private Integer storeGraphOverlapDelay;
 
@@ -80,8 +80,8 @@ public class VitamConfigurationParameters {
     private Integer migrationBulkSize;
 
     /**
-     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
-     * The unit should contains only graph data and the graph last persisted date should be 30 day older
+     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data
+     * units The unit should contains only graph data and the graph last persisted date should be 30 day older
      */
     private Integer deleteIncompleteReconstructedUnitDelay;
 
@@ -112,8 +112,7 @@ public class VitamConfigurationParameters {
     private List<Integer> tenants;
 
     /**
-     * /**
-     * Default Vitam Config Folder
+     * /** Default Vitam Config Folder
      */
     private String vitamConfigFolderDefault;
     /**
@@ -243,12 +242,17 @@ public class VitamConfigurationParameters {
     private Integer BUFFER_NUMBER;
 
     /**
+     * Allow client and Server Encoding request or response in GZIP format
+     */
+    private Boolean forceChunkModeInputStream;
+
+    /**
      * default originatingAgency for DIP export when multiple originatingAgencies are in conflict in exported AU
      */
     private Map<Integer, String> defaultOriginatingAgencyForExport;
 
     /**
-     * Setter for   vitamCleanPeriod;
+     * Setter for vitamCleanPeriod;
      */
     public void setVitamCleanPeriod(Integer vitamCleanPeriod) {
         this.vitamCleanPeriod = vitamCleanPeriod;
@@ -315,70 +319,70 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   vitamConfigFolderDefault;
+     * Getter for vitamConfigFolderDefault;
      */
     public String getVitamConfigFolderDefault() {
         return vitamConfigFolderDefault;
     }
 
     /**
-     * Setter for   vitamConfigFolderDefault;
+     * Setter for vitamConfigFolderDefault;
      */
     public void setVitamConfigFolderDefault(String vitamConfigFolderDefault) {
         this.vitamConfigFolderDefault = vitamConfigFolderDefault;
     }
 
     /**
-     * Getter for   vitamDataFolderDefault;
+     * Getter for vitamDataFolderDefault;
      */
     public String getVitamDataFolderDefault() {
         return vitamDataFolderDefault;
     }
 
     /**
-     * Setter for   vitamDataFolderDefault;
+     * Setter for vitamDataFolderDefault;
      */
     public void setVitamDataFolderDefault(String vitamDataFolderDefault) {
         this.vitamDataFolderDefault = vitamDataFolderDefault;
     }
 
     /**
-     * Getter for   vitamLogFolderDefault;
+     * Getter for vitamLogFolderDefault;
      */
     public String getVitamLogFolderDefault() {
         return vitamLogFolderDefault;
     }
 
     /**
-     * Setter for   vitamLogFolderDefault;
+     * Setter for vitamLogFolderDefault;
      */
     public void setVitamLogFolderDefault(String vitamLogFolderDefault) {
         this.vitamLogFolderDefault = vitamLogFolderDefault;
     }
 
     /**
-     * Getter for   vitamTmpFolderDefault;
+     * Getter for vitamTmpFolderDefault;
      */
     public String getVitamTmpFolderDefault() {
         return vitamTmpFolderDefault;
     }
 
     /**
-     * Setter for   vitamTmpFolderDefault;
+     * Setter for vitamTmpFolderDefault;
      */
     public void setVitamTmpFolderDefault(String vitamTmpFolderDefault) {
         this.vitamTmpFolderDefault = vitamTmpFolderDefault;
     }
 
     /**
-     * Getter for   CHUNK_SIZE;
+     * Getter for CHUNK_SIZE;
      */
     public Integer getChunkSize() {
         return chunkSize;
     }
 
     /**
-     * Setter for   chunkSize;
+     * Setter for chunkSize;
      */
     public void setChunkSize(Integer chunkSize) {
         this.chunkSize = chunkSize;
@@ -401,266 +405,266 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   recvBufferSize;
+     * Getter for recvBufferSize;
      */
     public Integer getRecvBufferSize() {
         return recvBufferSize;
     }
 
     /**
-     * Setter for   recvBufferSize;
+     * Setter for recvBufferSize;
      */
     public void setRecvBufferSize(Integer recvBufferSize) {
         this.recvBufferSize = recvBufferSize;
     }
 
     /**
-     * Getter for   connectTimeout;
+     * Getter for connectTimeout;
      */
     public Integer getConnectTimeout() {
         return connectTimeout;
     }
 
     /**
-     * Setter for   connectTimeout;
+     * Setter for connectTimeout;
      */
     public void setConnectTimeout(Integer connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
 
     /**
-     * Getter for   readTimeout;
+     * Getter for readTimeout;
      */
     public Integer getReadTimeout() {
         return readTimeout;
     }
 
     /**
-     * Setter for   readTimeout;
+     * Setter for readTimeout;
      */
     public void setReadTimeout(Integer readTimeout) {
         this.readTimeout = readTimeout;
     }
 
     /**
-     * Getter for   maxTotalClient;
+     * Getter for maxTotalClient;
      */
     public Integer getMaxTotalClient() {
         return maxTotalClient;
     }
 
     /**
-     * Setter for   maxTotalClient;
+     * Setter for maxTotalClient;
      */
     public void setMaxTotalClient(Integer maxTotalClient) {
         this.maxTotalClient = maxTotalClient;
     }
 
     /**
-     * Getter for   maxClientPerHost;
+     * Getter for maxClientPerHost;
      */
     public Integer getMaxClientPerHost() {
         return maxClientPerHost;
     }
 
     /**
-     * Setter for   maxClientPerHost;
+     * Setter for maxClientPerHost;
      */
     public void setMaxClientPerHost(Integer maxClientPerHost) {
         this.maxClientPerHost = maxClientPerHost;
     }
 
     /**
-     * Getter for   delayValidationAfterInactivity;
+     * Getter for delayValidationAfterInactivity;
      */
     public Integer getDelayValidationAfterInactivity() {
         return delayValidationAfterInactivity;
     }
 
     /**
-     * Setter for   delayValidationAfterInactivity;
+     * Setter for delayValidationAfterInactivity;
      */
     public void setDelayValidationAfterInactivity(Integer delayValidationAfterInactivity) {
         this.delayValidationAfterInactivity = delayValidationAfterInactivity;
     }
 
     /**
-     * Getter for   delayMultipleInputstream;
+     * Getter for delayMultipleInputstream;
      */
     public Integer getDelayMultipleInputstream() {
         return delayMultipleInputstream;
     }
 
     /**
-     * Setter for   delayMultipleInputstream;
+     * Setter for delayMultipleInputstream;
      */
     public void setDelayMultipleInputstream(Integer delayMultipleInputstream) {
         this.delayMultipleInputstream = delayMultipleInputstream;
     }
 
     /**
-     * Getter for   delayMultipleSubinputstream;
+     * Getter for delayMultipleSubinputstream;
      */
     public Integer getDelayMultipleSubinputstream() {
         return delayMultipleSubinputstream;
     }
 
     /**
-     * Setter for   delayMultipleSubinputstream;
+     * Setter for delayMultipleSubinputstream;
      */
     public void setDelayMultipleSubinputstream(Integer delayMultipleSubinputstream) {
         this.delayMultipleSubinputstream = delayMultipleSubinputstream;
     }
 
     /**
-     * Getter for   minimumThreadPoolSize;
+     * Getter for minimumThreadPoolSize;
      */
     public Integer getMinimumThreadPoolSize() {
         return minimumThreadPoolSize;
     }
 
     /**
-     * Setter for   minimumThreadPoolSize;
+     * Setter for minimumThreadPoolSize;
      */
     public void setMinimumThreadPoolSize(Integer minimumThreadPoolSize) {
         this.minimumThreadPoolSize = minimumThreadPoolSize;
     }
 
     /**
-     * Getter for   noValidationAfterInactivity;
+     * Getter for noValidationAfterInactivity;
      */
     public Integer getNoValidationAfterInactivity() {
         return noValidationAfterInactivity;
     }
 
     /**
-     * Setter for   noValidationAfterInactivity;
+     * Setter for noValidationAfterInactivity;
      */
     public void setNoValidationAfterInactivity(Integer noValidationAfterInactivity) {
         this.noValidationAfterInactivity = noValidationAfterInactivity;
     }
 
     /**
-     * Getter for   delayGetClient;
+     * Getter for delayGetClient;
      */
     public Integer getDelayGetClient() {
         return delayGetClient;
     }
 
     /**
-     * Setter for   delayGetClient;
+     * Setter for delayGetClient;
      */
     public void setDelayGetClient(Integer delayGetClient) {
         this.delayGetClient = delayGetClient;
     }
 
     /**
-     * Getter for   intervalDelayCheckIdle;
+     * Getter for intervalDelayCheckIdle;
      */
     public Integer getIntervalDelayCheckIdle() {
         return intervalDelayCheckIdle;
     }
 
     /**
-     * Setter for   IntegerERVAL_DELAY_CHECK_IDLE;
+     * Setter for IntegerERVAL_DELAY_CHECK_IDLE;
      */
     public void setIntegerervalDelayCheckIdle(Integer IntegerervalDelayCheckIdle) {
         intervalDelayCheckIdle = IntegerervalDelayCheckIdle;
     }
 
     /**
-     * Getter for   maxDelayUnusedConnection;
+     * Getter for maxDelayUnusedConnection;
      */
     public Integer getMaxDelayUnusedConnection() {
         return maxDelayUnusedConnection;
     }
 
     /**
-     * Setter for   maxDelayUnusedConnection;
+     * Setter for maxDelayUnusedConnection;
      */
     public void setMaxDelayUnusedConnection(Integer maxDelayUnusedConnection) {
         this.maxDelayUnusedConnection = maxDelayUnusedConnection;
     }
 
     /**
-     * Getter for   useNewJaxrClient;
+     * Getter for useNewJaxrClient;
      */
     public Boolean isUseNewJaxrClient() {
         return useNewJaxrClient;
     }
 
     /**
-     * Setter for   useNewJaxrClient;
+     * Setter for useNewJaxrClient;
      */
     public void setUseNewJaxrClient(Boolean useNewJaxrClient) {
         this.useNewJaxrClient = useNewJaxrClient;
     }
 
     /**
-     * Getter for   securityDigestType;
+     * Getter for securityDigestType;
      */
     public String getSecurityDigestType() {
         return securityDigestType;
     }
 
     /**
-     * Setter for   securityDigestType;
+     * Setter for securityDigestType;
      */
     public void setSecurityDigestType(String securityDigestType) {
         this.securityDigestType = securityDigestType;
     }
 
     /**
-     * Getter for   defaultDigestType;
+     * Getter for defaultDigestType;
      */
     public String getDefaultDigestType() {
         return defaultDigestType;
     }
 
     /**
-     * Setter for   defaultDigestType;
+     * Setter for defaultDigestType;
      */
     public void setDefaultDigestType(String defaultDigestType) {
         this.defaultDigestType = defaultDigestType;
     }
 
     /**
-     * Getter for   defaultTimestampDigestType;
+     * Getter for defaultTimestampDigestType;
      */
     public String getDefaultTimestampDigestType() {
         return defaultTimestampDigestType;
     }
 
     /**
-     * Setter for   defaultTimestampDigestType;
+     * Setter for defaultTimestampDigestType;
      */
     public void setDefaultTimestampDigestType(String defaultTimestampDigestType) {
         this.defaultTimestampDigestType = defaultTimestampDigestType;
     }
 
     /**
-     * Getter for   acceptableRequestTime;
+     * Getter for acceptableRequestTime;
      */
     public Long getAcceptableRequestTime() {
         return acceptableRequestTime;
     }
 
     /**
-     * Setter for   acceptableRequestTime;
+     * Setter for acceptableRequestTime;
      */
     public void setAcceptableRequestTime(Long acceptableRequestTime) {
         this.acceptableRequestTime = acceptableRequestTime;
     }
 
     /**
-     * Getter for   threadsAllowedToBlockForConnectionMultipliers;
+     * Getter for threadsAllowedToBlockForConnectionMultipliers;
      */
     public Integer getThreadsAllowedToBlockForConnectionMultipliers() {
         return threadsAllowedToBlockForConnectionMultipliers;
     }
 
     /**
-     * Setter for   threadsAllowedToBlockForConnectionMultipliers;
+     * Setter for threadsAllowedToBlockForConnectionMultipliers;
      */
     public void setThreadsAllowedToBlockForConnectionMultipliers(
         Integer threadsAllowedToBlockForConnectionMultipliers) {
@@ -668,84 +672,100 @@ public class VitamConfigurationParameters {
     }
 
     /**
-     * Getter for   retryNumber;
+     * Getter for retryNumber;
      */
     public Integer getRetryNumber() {
         return retryNumber;
     }
 
     /**
-     * Setter for   retryNumber;
+     * Setter for retryNumber;
      */
     public void setRetryNumber(Integer retryNumber) {
         this.retryNumber = retryNumber;
     }
 
     /**
-     * Getter for   retryDelay;
+     * Getter for retryDelay;
      */
     public Integer getRetryDelay() {
         return retryDelay;
     }
 
     /**
-     * Setter for   retryDelay;
+     * Setter for retryDelay;
      */
     public void setRetryDelay(Integer retryDelay) {
         this.retryDelay = retryDelay;
     }
 
     /**
-     * Getter for   waitingDelay;
+     * Getter for waitingDelay;
      */
     public Integer getWaitingDelay() {
         return waitingDelay;
     }
 
     /**
-     * Setter for   waitingDelay;
+     * Setter for waitingDelay;
      */
     public void setWaitingDelay(Integer waitingDelay) {
         this.waitingDelay = waitingDelay;
     }
 
+
+
     /**
-     * Getter for   allowGzipEncoding;
+     * Getter for forceChunkModeInputStream;
+     */
+    public Boolean isForceChunkModeInputStream() {
+        return forceChunkModeInputStream;
+    }
+
+    /**
+     * Setter for forceChunkModeInputStream;
+     */
+    public void setForceChunkModeInputStream(Boolean forceChunkModeInputStream) {
+        this.forceChunkModeInputStream = forceChunkModeInputStream;
+    }
+
+    /**
+     * Getter for allowGzipEncoding;
      */
     public Boolean isAllowGzipEncoding() {
         return allowGzipEncoding;
     }
 
     /**
-     * Setter for   allowGzipEncoding;
+     * Setter for allowGzipEncoding;
      */
     public void setAllowGzipEncoding(Boolean allowGzipEncoding) {
         this.allowGzipEncoding = allowGzipEncoding;
     }
 
     /**
-     * Getter for   allowGzipDecoding;
+     * Getter for allowGzipDecoding;
      */
     public Boolean isAllowGzipDecoding() {
         return allowGzipDecoding;
     }
 
     /**
-     * Setter for   allowGzipDecoding;
+     * Setter for allowGzipDecoding;
      */
     public void setAllowGzipDecoding(Boolean allowGzipDecoding) {
         this.allowGzipDecoding = allowGzipDecoding;
     }
 
     /**
-     * Getter for   BUFFER_NUMBER;
+     * Getter for BUFFER_NUMBER;
      */
     public Integer getBufferNumber() {
         return BUFFER_NUMBER;
     }
 
     /**
-     * Setter for   BUFFER_NUMBER;
+     * Setter for BUFFER_NUMBER;
      */
     public void setBufferNumber(Integer bufferNumber) {
         BUFFER_NUMBER = bufferNumber;
@@ -775,14 +795,14 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   exportScore;
+     * Getter for exportScore;
      */
     public Boolean isExportScore() {
         return exportScore;
     }
 
     /**
-     * Setter for   exportScore;
+     * Setter for exportScore;
      */
     public void setExportScore(boolean exportScore) {
         this.exportScore = exportScore;
@@ -791,14 +811,14 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   distributeurBatchSize;
+     * Getter for distributeurBatchSize;
      */
     public Integer getDistributeurBatchSize() {
         return distributeurBatchSize;
     }
 
     /**
-     * Setter for   distributeurBatchSize;
+     * Setter for distributeurBatchSize;
      */
     public void setDistributeurBatchSize(Integer distributeurBatchSize) {
         this.distributeurBatchSize = distributeurBatchSize;
@@ -954,42 +974,42 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   maxElasticsearchBulk;
+     * Getter for maxElasticsearchBulk;
      */
     public Integer getMaxElasticsearchBulk() {
         return maxElasticsearchBulk;
     }
 
     /**
-     * Setter for   maxElasticsearchBulk;
+     * Setter for maxElasticsearchBulk;
      */
     public void setMaxElasticsearchBulk(Integer maxElasticsearchBulk) {
         this.maxElasticsearchBulk = maxElasticsearchBulk;
     }
 
     /**
-     * Getter for   numberDbClientThread;
+     * Getter for numberDbClientThread;
      */
     public Integer getNumberDbClientThread() {
         return numberDbClientThread;
     }
 
     /**
-     * Setter for   numberDbClientThread;
+     * Setter for numberDbClientThread;
      */
     public void setNumberDbClientThread(Integer numberDbClientThread) {
         this.numberDbClientThread = numberDbClientThread;
     }
 
     /**
-     * Getter for   numberEsQueue;
+     * Getter for numberEsQueue;
      */
     public Integer getNumberEsQueue() {
         return numberEsQueue;
     }
 
     /**
-     * Setter for   numberEsQueue;
+     * Setter for numberEsQueue;
      */
     public void setNumberEsQueue(Integer numberEsQueue) {
         this.numberEsQueue = numberEsQueue;
@@ -998,21 +1018,21 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for   cacheControlDelay;
+     * Getter for cacheControlDelay;
      */
     public Integer getCacheControlDelay() {
         return cacheControlDelay;
     }
 
     /**
-     * Getter for   maxCacheEntries;
+     * Getter for maxCacheEntries;
      */
     public Integer getMaxCacheEntries() {
         return maxCacheEntries;
     }
 
     /**
-     * Setter for   maxCacheEntries;
+     * Setter for maxCacheEntries;
      */
     public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
