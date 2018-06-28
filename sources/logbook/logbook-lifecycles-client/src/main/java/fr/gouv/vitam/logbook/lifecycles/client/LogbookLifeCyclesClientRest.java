@@ -26,7 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -34,12 +44,14 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -52,16 +64,9 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -891,6 +896,43 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
         throws LogbookClientBadRequestException, LogbookClientServerException {
         createRawbulk(logbookLifeCycleRaws, UNIT_LIFECYCLES_RAW_BULK_URL);
+    }
+
+    @Override
+    public void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        bulkLFC(type, logbookLifeCycleParametersBulk, OPERATIONS_URL + "/" + operationId + "/bulklifecycles/%s/temporary");
+    }
+
+    @Override
+    public void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        bulkLFC(type, logbookLifeCycleParametersBulk, OPERATIONS_URL + "/" + operationId + "/bulklifecycles/%s");
+    }
+
+    private void bulkLFC(DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk, String uriPattern) throws VitamClientInternalException {
+        Response response = null;
+        try {
+            switch (type) {
+
+                case Units:
+                    response = performRequest(HttpMethod.POST,  String.format(uriPattern, "unit"), null,
+                        logbookLifeCycleParametersBulk, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    break;
+
+                case ObjectGroup:
+                    response = performRequest(HttpMethod.POST, String.format(uriPattern, "got"), null,
+                        logbookLifeCycleParametersBulk, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    break;
+                default:
+                    response = null;
+            }
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (status.getFamily() != Status.Family.SUCCESSFUL) {
+                throw new VitamRuntimeException("unable to store lifecycle, error code is :" + status.getStatusCode());
+            }
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     private void createRawbulk(List<JsonNode> logbookLifeCycleRaws, String url)

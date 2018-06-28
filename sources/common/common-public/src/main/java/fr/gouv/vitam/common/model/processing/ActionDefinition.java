@@ -157,6 +157,10 @@ public class ActionDefinition {
         return lifecycleState.isEnabled();
     }
 
+    public LifecycleState lifecycleState() {
+        return lifecycleState;
+    }
+
     public void defaultLifecycleLog(LifecycleState defaultLifecycleLog) {
         lifecycleState = MoreObjects.firstNonNull(lifecycleState, defaultLifecycleLog);
     }

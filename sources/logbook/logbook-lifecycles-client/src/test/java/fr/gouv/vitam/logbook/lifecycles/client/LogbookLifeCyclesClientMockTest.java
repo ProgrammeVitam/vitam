@@ -300,8 +300,7 @@ public class LogbookLifeCyclesClientMockTest {
     }
 
     @Test
-    public void testRawbulkLifecycles()
-        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+    public void testRawbulkLifecycles() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =

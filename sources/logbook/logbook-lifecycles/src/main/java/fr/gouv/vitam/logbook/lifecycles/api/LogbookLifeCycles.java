@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
@@ -403,4 +404,6 @@ public interface LogbookLifeCycles {
      */
     JsonNode getRawObjectGroupLifeCycleById(String id)
         throws LogbookNotFoundException, InvalidParseOperationException;
+
+    void updateLogbookLifeCycleBulk(LogbookCollections lifecycleUnitInProcess, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
 }

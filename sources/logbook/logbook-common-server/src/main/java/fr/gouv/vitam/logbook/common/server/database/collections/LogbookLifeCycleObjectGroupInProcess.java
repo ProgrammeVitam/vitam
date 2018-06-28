@@ -90,9 +90,4 @@ public class LogbookLifeCycleObjectGroupInProcess extends LogbookLifeCycle<Logbo
     	return new LogbookLifeCycleObjectGroupInProcess(content);
     }
 
-    @Override
-    protected LogbookLifeCycleObjectGroupParameters getLogbookParameters() {
-        return LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-    }
-
 }

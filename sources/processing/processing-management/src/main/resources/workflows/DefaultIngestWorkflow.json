@@ -394,7 +394,8 @@
         {
           "action": {
             "actionKey": "OBJECT_GROUP_UPDATE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FINAL"
           }
         },
         {

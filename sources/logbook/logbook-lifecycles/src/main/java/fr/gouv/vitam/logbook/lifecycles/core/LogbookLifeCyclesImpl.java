@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
@@ -47,6 +46,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -401,7 +401,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void bulk(LogbookCollections collections, String idOp,
         List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
-        mongoDbAccess.bulk(collections, logbookLifeCycleModels);
+        mongoDbAccess.bulkInsert(collections, logbookLifeCycleModels);
     }
 
     @Override
@@ -450,6 +450,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public JsonNode getRawObjectGroupLifeCycleById(String id)
         throws LogbookNotFoundException, InvalidParseOperationException {
         return getRawLifecycleById(id, LogbookCollections.LIFECYCLE_OBJECTGROUP);
+    }
+
+    @Override
+    public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+        mongoDbAccess.updateLogbookLifeCycle(logbookCollections, logbookLifeCycleParametersBulk);
     }
 
     private JsonNode getRawLifecycleById(String id, LogbookCollections collection)

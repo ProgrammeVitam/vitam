@@ -73,6 +73,7 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
@@ -98,6 +99,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -676,22 +678,66 @@ public class LogbookResource extends ApplicationStatusResource {
 
     }
 
-    /**
-     * Update Unit Life Cycle
-     *
-     * @param operationId the operation id
-     * @param unitLcId the life cycle id
-     * @param evtStatus the operation type : Update or Commit the lifeCycle
-     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
-     * @return the response with a specific HTTP status
-     */
+    @POST
+    @Path("/operations/{id_op}/bulklifecycles/unit/temporary")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
+                                                                 List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+
+        logbookLifeCycle.updateLogbookLifeCycleBulk(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, logbookLifeCycleParametersBulk);
+
+        return Response.status(Response.Status.CREATED).build();
+    }
+    @POST
+    @Path("/operations/{id_op}/bulklifecycles/got/temporary")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitLifeCyclesGOTTemporaryByOperation(@PathParam("id_op") String operationId,
+                                                                List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+
+        logbookLifeCycle.updateLogbookLifeCycleBulk(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, logbookLifeCycleParametersBulk);
+
+        return Response.status(Response.Status.CREATED).build();
+    }
+    @POST
+    @Path("/operations/{id_op}/bulklifecycles/unit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitLifeCyclesUnitByOperation(@PathParam("id_op") String operationId,
+                                                                 List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+
+        logbookLifeCycle.updateLogbookLifeCycleBulk(LogbookCollections.LIFECYCLE_UNIT, logbookLifeCycleParametersBulk);
+
+        return Response.status(Response.Status.CREATED).build();
+    }
+    @POST
+    @Path("/operations/{id_op}/bulklifecycles/got")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitLifeCyclesGOTByOperation(@PathParam("id_op") String operationId,
+                                                                List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+
+        logbookLifeCycle.updateLogbookLifeCycleBulk(LogbookCollections.LIFECYCLE_OBJECTGROUP, logbookLifeCycleParametersBulk);
+
+        return Response.status(Response.Status.CREATED).build();
+    }
+        /**
+         * Update Unit Life Cycle
+         *
+         * @param operationId the operation id
+         * @param unitLcId the life cycle id
+         * @param evtStatus the operation type : Update or Commit the lifeCycle
+         * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+         * @return the response with a specific HTTP status
+         */
     @PUT
     @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
-        @PathParam("id_lc") String unitLcId, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-        LogbookLifeCycleUnitParameters parameters) {
+    public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
+                                                                 @PathParam("id_lc") String unitLcId, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+                                                                 LogbookLifeCycleUnitParameters parameters) {
         Status status;
         try {
 

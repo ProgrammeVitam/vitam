@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
@@ -429,7 +428,7 @@ public class WorkerIT extends VitamRuleRunner {
         descriptionStep.getWorkParams().setObjectName("SIP/manifest.xml");
         descriptionStep.getWorkParams().setObjectNameList(Lists.newArrayList("SIP/manifest.xml"));
         descriptionStep.getWorkParams().setLogbookTypeProcess(LogbookTypeProcess.INGEST);
-        descriptionStep.getStep().defaultLifecycleLog(LifecycleState.ENABLED);
+        descriptionStep.getStep().defaultLifecycleLog(LifecycleState.TEMPORARY);
         return descriptionStep;
     }
 

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -625,6 +626,9 @@ public interface LogbookDbAccess {
      */
     String getInfo();
 
-    void bulk(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+    void bulkInsert(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
         throws DatabaseException;
+
+    void updateLogbookLifeCycle(LogbookCollections collection, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+
 }

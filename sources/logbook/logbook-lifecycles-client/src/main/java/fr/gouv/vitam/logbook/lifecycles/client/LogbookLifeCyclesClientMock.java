@@ -33,12 +33,14 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -49,6 +51,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -365,6 +368,16 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
         throws LogbookClientBadRequestException, LogbookClientServerException {
+    }
+
+    @Override
+    public void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        // do nothing
+    }
+
+    @Override
+    public void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {
+        // do nothing
     }
 
 }

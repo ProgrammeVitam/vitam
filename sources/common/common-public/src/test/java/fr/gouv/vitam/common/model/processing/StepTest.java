@@ -70,7 +70,7 @@ public class StepTest {
         ArrayList<Action> actions = new ArrayList<>();
         actions.add(action);
         Step step = new Step(null, "workerId", "stepName", ProcessBehavior.NOBLOCKING, distribution, actions);
-        step.defaultLifecycleLog(LifecycleState.ENABLED);
+        step.defaultLifecycleLog(LifecycleState.TEMPORARY);
 
         // When
         boolean lifecycleEnabled = action.getActionDefinition().lifecycleEnabled();
