@@ -98,6 +98,11 @@ public enum MetadataCollections {
         return vitamCollection.getClasz();
     }
 
+
+    public VitamCollection getVitamCollection() {
+        return vitamCollection;
+    }
+
     /**
      *
      * @return the associated ES Client

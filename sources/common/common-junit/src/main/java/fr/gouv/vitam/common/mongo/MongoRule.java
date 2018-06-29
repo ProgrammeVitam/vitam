@@ -28,13 +28,20 @@ package fr.gouv.vitam.common.mongo;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
@@ -42,6 +49,8 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
 
@@ -52,12 +61,13 @@ public class MongoRule extends ExternalResource {
 
     private static int dataBasePort;
 
+    private static MongodExecutable mongodExecutable;
     static {
         dataBasePort = JunitHelper.getInstance().findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         try {
-            MongodExecutable mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            mongodExecutable = starter.prepare(new MongodConfigBuilder()
                 .withLaunchArgument("--enableMajorityReadConcern")
                 .version(Version.Main.PRODUCTION)
                 .net(new Net(dataBasePort, Network.localhostIsIPv6()))
@@ -82,12 +92,34 @@ public class MongoRule extends ExternalResource {
         this.collectionNames = Arrays.asList(collectionNames);
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
+
+        // Ensure index unique
+        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
+                new IndexOptions().unique(true));
+
+        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
     }
 
     @Override
     protected void after() {
+        purge(collectionNames);
+
+
+        // Ensure index unique
+       /* mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
+            new IndexOptions().unique(true));
+
+        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+        */
+    }
+
+    private void purge(Collection<String> collectionNames) {
         for (String collectionName : collectionNames) {
-            mongoClient.getDatabase(dataBaseName).getCollection(collectionName).drop();
+            if ("VitamSequence".equals(collectionName)) {
+                mongoClient.getDatabase(dataBaseName).getCollection(collectionName).updateMany(Filters.exists("_id"),
+                    Updates.set("Counter", 0));
+            }
+            mongoClient.getDatabase(dataBaseName).getCollection(collectionName).deleteMany(new Document());
         }
     }
 
@@ -98,7 +130,17 @@ public class MongoRule extends ExternalResource {
         after();
     }
 
+    public void stop() {
+        mongodExecutable.stop();
+    }
 
+    public void start() {
+        try {
+            mongodExecutable.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public static int getDataBasePort() {
         return dataBasePort;
     }
@@ -117,5 +159,13 @@ public class MongoRule extends ExternalResource {
 
     public <TDocument> MongoCollection<TDocument> getMongoCollection(String collectionName, Class<TDocument> clazz) {
         return mongoClient.getDatabase(dataBaseName).getCollection(collectionName, clazz);
+    }
+
+    public void handleAfter(Set<String> collections) {
+        after(collections);
+    }
+
+    private void after(Set<String> collections) {
+        purge(collections);
     }
 }

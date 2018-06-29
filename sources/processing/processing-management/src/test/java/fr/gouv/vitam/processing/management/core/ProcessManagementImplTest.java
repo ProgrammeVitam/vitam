@@ -187,8 +187,6 @@ public class ProcessManagementImplTest {
 
         when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
 
-        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
-
         processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);
 

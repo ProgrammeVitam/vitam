@@ -32,6 +32,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.utils.LifecyclesSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -261,7 +261,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
 
         // get all documents of the logbook operationss
         MongoCursor<Document> cursor =
-            vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION)
+            vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION.getVitamCollection())
                 .findDocuments(VitamConfiguration.getBatchSize(), tenant).iterator();
 
         // converting the results to a list of LogbookOperation.

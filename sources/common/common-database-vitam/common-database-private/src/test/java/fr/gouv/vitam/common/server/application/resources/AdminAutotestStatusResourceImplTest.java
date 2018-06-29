@@ -93,7 +93,6 @@ public class AdminAutotestStatusResourceImplTest {
     private static int dataBasePort;
     private static JunitHelper junitHelper;
 
-    private static int serverPort;
     private static int serverAdminPort;
 
     private static TestApplication application;
@@ -145,7 +144,6 @@ public class AdminAutotestStatusResourceImplTest {
 
         final StartApplicationResponse<TestApplication> response =
             testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
 
         application = response.getApplication();
         factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);

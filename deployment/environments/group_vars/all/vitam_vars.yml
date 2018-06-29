@@ -164,7 +164,6 @@ vitam:
         lifecycleTraceabilityTemporizationDelay: 300
         # Max entries selected per (Unit or Object Group) LFC traceability operation
         lifecycleTraceabilityMaxEntries: 100000
-        disablePurgeForTempLFC: false
         # log_level: "DEBUG"
     metadata:
         vitam_component: metadata

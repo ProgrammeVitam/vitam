@@ -31,11 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -62,7 +58,6 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -80,7 +75,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.io.InputStream;

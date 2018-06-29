@@ -33,6 +33,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
@@ -59,6 +60,7 @@ public class WorkerFamilyManager implements Executor {
         workers.put(workerBean.getWorkerId(), executor);
         for (int i = 0; i < workerBean.getCapacity(); i++) {
             final Thread thread = VitamThreadFactory.getInstance().newThread(executor);
+            thread.setName("WorkerExecutor_"+GUIDFactory.newGUID().getId());
             thread.start();
         }
     }

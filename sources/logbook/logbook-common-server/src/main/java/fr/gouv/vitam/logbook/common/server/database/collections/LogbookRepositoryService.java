@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,9 +62,9 @@ public class LogbookRepositoryService {
     public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
         List<Document> documents = logbookItems.stream()
             .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
-        vitamRepositoryProvider.getVitamMongoRepository(collection).saveOrUpdate(documents);
+        vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).saveOrUpdate(documents);
         if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection).save(documents);
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection()).save(documents);
         }
 
     }

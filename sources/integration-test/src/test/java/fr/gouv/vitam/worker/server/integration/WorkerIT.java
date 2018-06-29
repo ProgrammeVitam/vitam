@@ -31,57 +31,37 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
-import fr.gouv.vitam.common.model.processing.LifecycleState;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.LifecycleState;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -89,6 +69,7 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
@@ -98,33 +79,31 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 /**
  * Worker integration test TODO P1 : do a "worker-integration" module
  */
-public class WorkerIT {
+public class WorkerIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);
-    private static final int DATABASE_PORT = 12346;
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private static int TCP_PORT = 54321;
-    private static int HTTP_PORT = 54320;
-
-    private static final int PORT_SERVICE_WORKER = 8098;
-    private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_METADATA = 8096;
-    private static final int PORT_SERVICE_PROCESSING = 8097;
-    private static final int PORT_SERVICE_LOGBOOK = 8099;
+    public static VitamServerRunner runner =
+        new VitamServerRunner(WorkerIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class
+            ));
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
@@ -132,29 +111,14 @@ public class WorkerIT {
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
 
-    private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKER_CLIENT_PATH = "";
 
-    private static String CONFIG_WORKSPACE_PATH = "";
-    private static String CONFIG_METADATA_PATH = "";
-    private static String CONFIG_PROCESSING_PATH = "";
-    private static String CONFIG_LOGBOOK_PATH = "";
-    private static MetadataMain metadataApplication;
-    private static WorkspaceMain workspaceMain;
-    private static WorkerMain wkrapplication;
-    private static ProcessManagementMain processManagementApplication;
-
     private WorkspaceClient workspaceClient;
-    private static LogbookMain logbookMain;
     private WorkerClient workerClient;
     private WorkerClientConfiguration workerClientConfiguration;
 
     private ProcessingManagementClient processingClient;
-    private static ElasticsearchTestConfiguration config = null;
 
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-    private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
-    private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
     private static final String SIP_FILE_OK_NAME = "integration-worker/SIP.zip";
@@ -167,123 +131,41 @@ public class WorkerIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+        CONFIG_WORKER_CLIENT_PATH = PropertiesUtils.getResourcePath("common/worker-client.conf").toString();
 
-        CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-worker/metadata.conf").toString();
-        CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-worker/worker.conf").toString();
-        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-worker/workspace.conf").toString();
-        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-worker/processing.conf").toString();
-        CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration-worker/logbook.conf").toString();
-        CONFIG_WORKER_CLIENT_PATH = PropertiesUtils.getResourcePath("integration-worker/worker-client.conf").toString();
-
-        // ES
-        config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
-        // launch metadata
-        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_METADATA));
-        metadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
-        metadataApplication.start();
-        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
-
-        // launch logbook
-        SystemPropertyUtil
-            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        logbookMain = new LogbookMain(CONFIG_LOGBOOK_PATH);
-        logbookMain.start();
-        final ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
-        LogbookLifeCyclesClientFactory.changeMode(configuration);
-        LogbookOperationsClientFactory.changeMode(configuration);
-
-        // launch workspace
-        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
-        final fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigurationFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
-        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
-
-        SystemPropertyUtil
-            .set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
-        workspaceMain.start();
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-
-        // launch processing
-        SystemPropertyUtil
-            .set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
-
-        // launch worker
-        SystemPropertyUtil
-            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerMain(CONFIG_WORKER_PATH);
-        wkrapplication.start();
-        WorkerClientFactory.changeMode(getWorkerClientConfiguration());
+        AdminManagementClientFactory instance = AdminManagementClientFactory.getInstance();
+        instance.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        if (mongod != null) {
-            mongod.stop();
-        }
-        if (mongodExecutable != null) {
-            mongodExecutable.stop();
-        }
-        if (workspaceMain != null) {
-            workspaceMain.stop();
-        }
-        if (wkrapplication != null) {
-            wkrapplication.stop();
-        }
-        if (logbookMain != null) {
-            logbookMain.stop();
-        }
-        if (processManagementApplication != null) {
-            processManagementApplication.stop();
-        }
-        if (metadataApplication != null) {
-            metadataApplication.stop();
-        }
+        runAfter();
+        AdminManagementClientFactory instance = AdminManagementClientFactory.getInstance();
+        instance.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+
     }
 
-    private static WorkerClientConfiguration getWorkerClientConfiguration() {
-        final WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration("localhost",
-                PORT_SERVICE_WORKER);
-        return workerClientConfiguration;
+
+    @After
+    public void tearDown() {
+        runAfter();
     }
 
     @Test
     public void testServersStatus() {
-        RestAssured.port = PORT_SERVICE_WORKER;
+        RestAssured.port = runner.PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
 
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.port = runner.PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
 
-        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.port = runner.PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
 
-        RestAssured.port = PORT_SERVICE_METADATA;
+        RestAssured.port = runner.PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
     }
@@ -340,9 +222,6 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
         // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -354,8 +233,6 @@ public class WorkerIT {
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
-        RestAssured.port = PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
         workerClientConfiguration = WorkerClientFactory.changeConfigurationFile("worker-client.conf");
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
@@ -396,9 +273,6 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
         // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -411,8 +285,6 @@ public class WorkerIT {
 
 
         // call processing
-        RestAssured.port = PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
         workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
@@ -456,9 +328,6 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -470,8 +339,6 @@ public class WorkerIT {
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
-        RestAssured.port = PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
         workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
@@ -492,9 +359,6 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -506,8 +370,6 @@ public class WorkerIT {
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
-        RestAssured.port = PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
         workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
@@ -523,7 +385,7 @@ public class WorkerIT {
     public void testRegistration() throws Exception {
         String workerId = String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId());
         final WorkerRemoteConfiguration remoteConfiguration =
-            new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
+            new WorkerRemoteConfiguration("localhost", runner.PORT_SERVICE_WORKER);
         final WorkerBean workerBean =
             new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -562,8 +424,8 @@ public class WorkerIT {
         final DescriptionStep descriptionStep = new DescriptionStep(getStep(stepFilePath), getWorkParams());
         descriptionStep.getWorkParams().setContainerName(CONTAINER_NAME);
         descriptionStep.getWorkParams().setCurrentStep(descriptionStep.getStep().getStepName());
-        descriptionStep.getWorkParams().setUrlMetadata(METADATA_URL);
-        descriptionStep.getWorkParams().setUrlWorkspace(WORKSPACE_URL);
+        descriptionStep.getWorkParams().setUrlMetadata(runner.METADATA_URL);
+        descriptionStep.getWorkParams().setUrlWorkspace(runner.WORKSPACE_URL);
         descriptionStep.getWorkParams().setObjectName("SIP/manifest.xml");
         descriptionStep.getWorkParams().setObjectNameList(Lists.newArrayList("SIP/manifest.xml"));
         descriptionStep.getWorkParams().setLogbookTypeProcess(LogbookTypeProcess.INGEST);

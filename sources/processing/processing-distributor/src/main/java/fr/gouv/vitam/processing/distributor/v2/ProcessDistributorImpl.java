@@ -895,6 +895,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
+
             LOGGER.error("No WorkerFamilyManager found for : " + step.getWorkerGroupId());
             return CompletableFuture.completedFuture(new ItemStatus(step.getStepName()).increment(StatusCode.FATAL));
         }
@@ -906,6 +907,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
                     try {
+                        LOGGER.warn("The worker ("+step.getWorkerGroupId()+") will be unregistered as it is Unreachable", wue.getWorkerId());
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);

@@ -26,93 +26,66 @@
  */
 package fr.gouv.vitam.metadata.management.integration.test;
 
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
+import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
-import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
-import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 
 /**
  * Integration tests for the reconstruction services. <br/>
  */
-public class BackupAndReconstructionFunctionalAdminIT {
+public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
-    /**
-     * Vitam logger.
-     */
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(BackupAndReconstructionFunctionalAdminIT.class);
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(BackupAndReconstructionFunctionalAdminIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                LogbookMain.class,
+                WorkspaceMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class,
+                AdminManagementMain.class
+            ));
 
-    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
-    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
-    private static final String ADMIN_MANAGEMENT_CONF =
-        "integration-metadata-management/functional-administration.conf";
-
-    private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 1;
     private static final String AGENCY_IDENTIFIER_1 = "FR_ORG_AGEN";
@@ -131,179 +104,11 @@ public class BackupAndReconstructionFunctionalAdminIT {
     private static final String SECURITY_PROFILE_IDENTIFIER_1 = "SEC_PROFILE-000001";
     private static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";
 
-    private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
-    private static final int PORT_SERVICE_LOGBOOK = 8099;
-    private static final int PORT_SERVICE_STORAGE = 8193;
-    private static final int PORT_SERVICE_OFFER = 8194;
-
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-
-    private static WorkspaceMain workspaceMain;
-    private static WorkspaceClient workspaceClient;
-
-    private static LogbookMain logbookApplication;
-
-    private static StorageMain storageMain;
-    private static StorageClient storageClient;
-
-    private static DefaultOfferMain defaultOfferApplication;
-
-    private static AdminManagementMain adminManagementMain;
-
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
-            FunctionalAdminCollections.SECURITY_PROFILE.getName(), FunctionalAdminCollections.AGENCIES.getName(),
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(Files.newTemporaryFolder(), FunctionalAdminCollections.SECURITY_PROFILE.getName(),
-            FunctionalAdminCollections.AGENCIES.getName());
-
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @BeforeClass
-    public static void setupBeforeClass() throws Exception {
-
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
-
-        // launch workspace
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
-
-        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
-
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
-
-        writeYaml(workspaceConfigFile, workspaceConfiguration);
-
-        workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
-        workspaceMain.start();
-        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        // launch logbook
-        SystemPropertyUtil
-            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-
-        final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration logbookConfiguration =
-            PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
-        logbookConfiguration.setElasticsearchNodes(nodesEs);
-        logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
-
-        PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
-
-        logbookApplication = new LogbookMain(logbookConfigFile.getAbsolutePath());
-        logbookApplication.start();
-        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
-        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-
-        // prepare functional admin
-        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        realAdminConfig.setDbName(mongoRule.getMongoDatabase().getName());
-        realAdminConfig.setElasticsearchNodes(nodesEs);
-        realAdminConfig.setClusterName(elasticsearchRule.getClusterName());
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
-        PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
-
-        adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
-        adminManagementMain.start();
-
-        AdminManagementClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
-
-        // prepare offer
-        SystemPropertyUtil
-            .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
-        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
-        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
-        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
-        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
-        offerConfiguration.setMongoDbNodes(mongoDbNodes);
-        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
-
-        defaultOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
-        defaultOfferApplication.start();
-        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // storage engine
-        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
-        final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
-        serverConfiguration
-            .setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
-
-        serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
-        serverConfiguration.setLoggingDirectory(tempFolder.newFolder().getAbsolutePath());
-
-        writeYaml(storageConfigurationFile, serverConfiguration);
-
-        // prepare storage
-        SystemPropertyUtil
-            .set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-        storageMain = new StorageMain(STORAGE_CONF);
-        storageMain.start();
-        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
-        StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
-        storageClient = StorageClientFactory.getInstance().getClient();
-    }
-
 
     @AfterClass
     public static void afterClass() throws Exception {
+        runAfter();
 
-        if (workspaceClient != null) {
-            workspaceClient.close();
-        }
-        if (workspaceMain != null) {
-            workspaceMain.stop();
-        }
-        File offerFolder = new File(OFFER_FOLDER);
-        if (offerFolder.exists()) {
-            try {
-                // if clean offer delete did not work
-                FileUtils.cleanDirectory(offerFolder);
-                FileUtils.deleteDirectory(offerFolder);
-            } catch (Exception e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleanning offer:", e);
-            }
-        }
-        if (storageClient != null) {
-            storageClient.close();
-        }
-        if (defaultOfferApplication != null) {
-            defaultOfferApplication.stop();
-        }
-        if (storageMain != null) {
-            storageMain.stop();
-        }
-        if (adminManagementMain != null) {
-            adminManagementMain.stop();
-        }
-        if (logbookApplication != null) {
-            logbookApplication.stop();
-        }
-        elasticsearchRule.afterClass();
     }
 
     @Before
@@ -314,11 +119,7 @@ public class BackupAndReconstructionFunctionalAdminIT {
 
     @After
     public void tearDown() {
-        // clean offers
-        cleanOffers();
-
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        runAfter();
     }
 
     /**
@@ -343,13 +144,13 @@ public class BackupAndReconstructionFunctionalAdminIT {
                 INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV), "agencies_1.csv");
         }
 
-        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         final VitamMongoRepository agenciesMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.AGENCIES);
+            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection());
 
         final VitamElasticsearchRepository agenciesEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES);
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection());
 
         Optional<Document> agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isPresent();
@@ -490,16 +291,17 @@ public class BackupAndReconstructionFunctionalAdminIT {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {});
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    });
             client.importSecurityProfiles(securityProfileModelList);
         }
-        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE);
+            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
 
         final VitamElasticsearchRepository securityProfileEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE);
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
@@ -551,7 +353,8 @@ public class BackupAndReconstructionFunctionalAdminIT {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {});
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    });
             client.importSecurityProfiles(securityProfileModelList);
         }
 
@@ -625,19 +428,4 @@ public class BackupAndReconstructionFunctionalAdminIT {
         assertThat(inMogo22).isEqualTo(inMogo22Reconstructed);
         assertThat(inEs22).isEqualTo(inEs22Reconstructed);
     }
-
-    /**
-     * Clean offers content.
-     */
-    private static void cleanOffers() {
-        // ugly style but we don't have the digest herelo
-        File directory = new File(OFFER_FOLDER);
-        try {
-            FileUtils.cleanDirectory(directory);
-            FileUtils.deleteDirectory(directory);
-        } catch (IOException | IllegalArgumentException e) {
-            LOGGER.error("ERROR: Exception has been thrown when cleaning offers.", e);
-        }
-    }
-
 }

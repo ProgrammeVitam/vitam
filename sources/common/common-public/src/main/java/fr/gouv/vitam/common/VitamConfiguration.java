@@ -387,6 +387,8 @@ public class VitamConfiguration {
 
     private static String secret;
 
+    private static boolean purgeTemporaryLFC = true;
+
     private static Boolean filterActivation;
 
     private Integer connectTimeout = CONNECT_TIMEOUT;
@@ -491,6 +493,14 @@ public class VitamConfiguration {
      */
     public static void setTenants(List<Integer> tenants) {
         TENANTS = tenants;
+    }
+
+    public static boolean isPurgeTemporaryLFC() {
+        return purgeTemporaryLFC;
+    }
+
+    public static void setPurgeTemporaryLFC(boolean purgeTemporaryLFC) {
+        VitamConfiguration.purgeTemporaryLFC = purgeTemporaryLFC;
     }
 
     /**

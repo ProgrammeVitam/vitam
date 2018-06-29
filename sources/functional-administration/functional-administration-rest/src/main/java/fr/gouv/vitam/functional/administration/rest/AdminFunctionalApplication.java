@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +40,18 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -79,7 +83,22 @@ public class AdminFunctionalApplication extends Application {
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
-            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            List<VitamCollection> collections =
+                Lists.newArrayList(FunctionalAdminCollections.FORMATS.getVitamCollection(),
+                    FunctionalAdminCollections.RULES.getVitamCollection(),
+                    FunctionalAdminCollections.AGENCIES.getVitamCollection(),
+                    FunctionalAdminCollections.PROFILE.getVitamCollection(),
+                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getVitamCollection(),
+                    FunctionalAdminCollections.ONTOLOGY.getVitamCollection(),
+                    FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                    FunctionalAdminCollections.INGEST_CONTRACT.getVitamCollection(),
+                    FunctionalAdminCollections.ACCESS_CONTRACT.getVitamCollection(),
+                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
+                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
+                    FunctionalAdminCollections.CONTEXT.getVitamCollection(),
+                    FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
+
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
             singletons.add(new ReindexationResource());

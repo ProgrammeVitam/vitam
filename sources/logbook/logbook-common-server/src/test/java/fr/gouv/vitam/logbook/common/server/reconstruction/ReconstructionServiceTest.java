@@ -38,6 +38,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import org.bson.Document;
 import org.junit.Before;
@@ -64,8 +66,6 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 

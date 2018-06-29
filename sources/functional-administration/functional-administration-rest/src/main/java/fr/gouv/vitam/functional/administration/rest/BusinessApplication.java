@@ -39,14 +39,18 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
 /**
@@ -84,6 +88,9 @@ public class BusinessApplication extends Application {
 
             final ProfileResource profileResource =
                 new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService);
+
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
+
             singletons.add(resource);
             singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,
                 functionalBackupService));
@@ -94,9 +101,9 @@ public class BusinessApplication extends Application {
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
-            singletons.add(new AdminManagementRawResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
             singletons.add(new EvidenceResource());
-            singletons.add(new AdminReconstructionResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
 
             singletons.add(profileResource);
 

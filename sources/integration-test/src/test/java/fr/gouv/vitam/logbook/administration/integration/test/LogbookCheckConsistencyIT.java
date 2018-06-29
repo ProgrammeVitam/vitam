@@ -26,15 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.administration.integration.test;
 
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,16 +42,17 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -68,18 +66,14 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
@@ -90,15 +84,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -108,339 +94,101 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration test of LogbookCheckConsistency services.
  */
-public class LogbookCheckConsistencyIT {
+public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
     /**
      * Vitam logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookCheckConsistencyIT.class);
 
-    private static final String INTEGRATION_LOGBOOK_ACCESS_INTERNAL_CONF = "integration-logbook/access-internal.conf";
-    private static final String DEFAULT_OFFER_CONF = "integration-logbook/storage-default-offer.conf";
-    private static final String ADMIN_MANAGEMENT_CONF = "integration-logbook/functional-administration.conf";
-    private static final String INGEST_INTERNAL_CONF = "integration-logbook/ingest-internal.conf";
-    private static final String STORAGE_CONF = "integration-logbook/storage-engine.conf";
-    private static final String METADATA_CONF = "integration-logbook/metadata.conf";
-    private static final String LOGBOOK_CONF = "integration-logbook/logbook.conf";
-    private static final String WORKSPACE_CONF = "integration-logbook/workspace.conf";
-    private static final String PROCESSING_CONF = "integration-logbook/processing.conf";
-    private static final String CONFIG_WORKER_PATH = "integration-logbook/worker.conf";
-    private static final String JETTY_ACCESS_INTERNAL_PORT = "jetty.access-internal.port";
-    private static final String INTEGRATION_LOGBOOK_FORMAT_IDENTIFIERS_CONF =
-        "integration-logbook/format-identifiers.conf";
-
-    private static final String JETTY_WORKER_PORT = "jetty.worker.port";
-    private static final String HTTP_LOCALHOST = "http://localhost:";
-    private static final String VITAM_TMP_FOLDER = "vitam.tmp.folder";
-    ;
-    private static final String CONTAINER = "checklogbookreports";
-    private static final String OFFER_FOLDER = "offer";
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(LogbookCheckConsistencyIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class,
+                DefaultOfferMain.class,
+                IngestInternalMain.class,
+                AccessInternalMain.class,
+                StorageMain.class
+            ));
     private static final String STRATEGY_ID = "default";
     private static final String OBJECT_ID = "objectId";
-    private static final String LOCALHOST = "localhost";
 
-    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
-    private static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
-    private static final int PORT_SERVICE_ACCESS_INTERNAL = 8092;
-    private static final int PORT_SERVICE_PROCESSING = 8097;
-    private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_METADATA = 8096;
-    private static final int PORT_SERVICE_LOGBOOK = 8099;
-    private static final int PORT_SERVICE_STORAGE = 8193;
-    private static final int PORT_SERVICE_WORKER = 8098;
-    private static final int PORT_SERVICE_OFFER = 8194;
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-    private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
-    private static final String VITAM_TEST = "Vitam-Test";
 
     private static final String CHECK_LOGBOOK_DATA_AGENCIES = "integration-logbook/data/agencies.csv";
     private static final String ACCESS_CONTRATS_JSON = "integration-logbook/data/access_contrats.json";
     private static final String REFERENTIAL_CONTRACTS_OK_JSON =
         "integration-logbook/data/referential_contracts_ok.json";
     private static final String HECK_LOGBOOK_MGT_RULES_REF_CSV = "integration-logbook/data/MGT_RULES_REF.csv";
-    private static final String MGT_RULES_REF_CSV = "MGT_RULES_REF.csv";
+    private static final String MGT_RULES_REF_CSV = "jeu_donnees_OK_regles_CSV_regles.csv";
     private static final String AGENCIES_CSV = "agencies.csv";
     private static final String CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V88_XML =
         "integration-logbook/data/DROID_SignatureFile_V88.xml";
     private static final String DROID_SIGNATURE_FILE_V88_XML = "DROID_SignatureFile_V88.xml";
-    private static final String JETTY_INGEST_INTERNAL_PORT = "jetty.ingest-internal.port";
 
     private static final String SIP_KO_ARBO_RECURSIVE = "integration-logbook/data/KO_ARBO_recursif.zip";
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
 
     private static final String DEFAULT_WORKFLOW_RESUME = "DEFAULT_WORKFLOW_RESUME";
-    private static final String ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANING_OFFERS =
-        "ERROR: Exception has been thrown when cleaning offers.";
-    private static final String ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANNING_WORKSPACE =
-        "ERROR: Exception has been thrown when cleanning workspace:";
 
     private static final int TENANT_0 = 0;
-    private static final long SLEEP_TIME = 100l;
-    private static final long NB_TRY = 9600;
-    
-    private static MetadataMain medtadataApplication;
-    private static WorkerMain workerApplication;
-    private static WorkspaceMain workspaceMain;
+    private static final long SLEEP_TIME = 20l;
+    private static final long NB_TRY = 18000;
+
     private static WorkspaceClient workspaceClient;
-    private static ProcessManagementMain processManagementApplication;
-    private static LogbookMain logbookApplication;
-    private static StorageMain storageMain;
     private static StorageClient storageClient;
-    private static DefaultOfferMain defaultOfferApplication;
-    private static AdminManagementMain adminManagementMain;
-    private static IngestInternalMain ingestInternalApplication;
-    private static AccessInternalMain accessInternalApplication;
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), VITAM_TEST,
-            LogbookCollections.OPERATION.getName(), LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(Files.newTemporaryFolder(), LogbookCollections.OPERATION.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName());
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
 
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set(VITAM_TMP_FOLDER, vitamTempFolder.getAbsolutePath());
+        ProcessingManagementClientFactory.changeConfigurationUrl(runner.PROCESSING_URL);
 
-        // launch functional Admin server
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode(LOCALHOST, elasticsearchRule.getTcpPort()));
-
-        // launch metadata
-        final File metaConfig = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration realMetadataConfig =
-            PropertiesUtils.readYaml(metaConfig, MetaDataConfiguration.class);
-        realMetadataConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realMetadataConfig.setDbName(mongoRule.getMongoDatabase().getName());
-        realMetadataConfig.setElasticsearchNodes(nodesEs);
-        realMetadataConfig.setClusterName(elasticsearchRule.getClusterName());
-        PropertiesUtils.writeYaml(metaConfig, realMetadataConfig);
-
-        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication = new MetadataMain(METADATA_CONF);
-        medtadataApplication.start();
-        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
-
-        // launch workspace
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
-
-        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
-        writeYaml(workspaceConfigFile, workspaceConfiguration);
-
-        // prepare workspace
-        workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
-        workspaceMain.start();
-
-        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-
-        // launch logbook
-        SystemPropertyUtil
-            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-
-        final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration logbookConfiguration =
-            PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
-        logbookConfiguration.setElasticsearchNodes(nodesEs);
-        logbookConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        logbookConfiguration.setWorkspaceUrl(HTTP_LOCALHOST + PORT_SERVICE_WORKSPACE);
-        PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
-
-        logbookApplication = new LogbookMain(logbookConfigFile.getAbsolutePath());
-        logbookApplication.start();
-        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
-        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
-        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_LOGBOOK));
-
-        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementMain(PROCESSING_CONF);
-        processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // launch worker
-        SystemPropertyUtil.set(JETTY_WORKER_PORT, Integer.toString(PORT_SERVICE_WORKER));
-        workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
-        workerApplication.start();
-        SystemPropertyUtil.clear(JETTY_WORKER_PORT);
-
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(INTEGRATION_LOGBOOK_FORMAT_IDENTIFIERS_CONF);
-
-        // launch ingest-internal
-        SystemPropertyUtil.set(JETTY_INGEST_INTERNAL_PORT,
-            Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
-        ingestInternalApplication = new IngestInternalMain(INGEST_INTERNAL_CONF);
-        ingestInternalApplication.start();
-        SystemPropertyUtil.clear(JETTY_INGEST_INTERNAL_PORT);
-
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
-
-        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realAdminConfig.setDbName(mongoRule.getMongoDatabase().getName());
-        realAdminConfig.setElasticsearchNodes(nodesEs);
-        realAdminConfig.setClusterName(elasticsearchRule.getClusterName());
-        realAdminConfig.setWorkspaceUrl(HTTP_LOCALHOST + PORT_SERVICE_WORKSPACE);
-        PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
-
-        // prepare functional admin
-        adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
-        adminManagementMain.start();
-
-        AdminManagementClientFactory
-            .changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_FUNCTIONAL_ADMIN));
-
-        // prepare offer
-        SystemPropertyUtil
-            .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
-        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
-        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
-        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
-        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
-        offerConfiguration.setMongoDbNodes(mongoDbNodes);
-        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
-        defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        defaultOfferApplication.start();
-        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // storage engine
-        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
-        final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
-        serverConfiguration
-            .setUrlWorkspace(HTTP_LOCALHOST + PORT_SERVICE_WORKSPACE);
-
-        serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
-        serverConfiguration.setLoggingDirectory(tempFolder.newFolder().getAbsolutePath());
-
-        writeYaml(storageConfigurationFile, serverConfiguration);
-
-        // prepare storage
-        SystemPropertyUtil
-            .set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-        storageMain = new StorageMain(STORAGE_CONF);
-        storageMain.start();
-        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
-        StorageClientFactory.changeMode(new ClientConfigurationImpl(LOCALHOST, PORT_SERVICE_STORAGE));
         storageClient = StorageClientFactory.getInstance().getClient();
 
-        SystemPropertyUtil.set(JETTY_ACCESS_INTERNAL_PORT, Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
-        accessInternalApplication =
-            new AccessInternalMain(INTEGRATION_LOGBOOK_ACCESS_INTERNAL_CONF);
-        accessInternalApplication.start();
-        SystemPropertyUtil.clear(JETTY_ACCESS_INTERNAL_PORT);
-        AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
+        VitamConfiguration.setPurgeTemporaryLFC(false);
+
+        cleanOffers();
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-
-        // Ugly style but necessary because this is the folder representing the workspace
-        File workspaceFolder = new File(CONTAINER);
-        if (workspaceFolder.exists()) {
-            try {
-                // if clean workspace delete did not work
-                FileUtils.cleanDirectory(workspaceFolder);
-                FileUtils.deleteDirectory(workspaceFolder);
-            } catch (Exception e) {
-                LOGGER.error(ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANNING_WORKSPACE, e);
-            }
-        }
         if (workspaceClient != null) {
             workspaceClient.close();
         }
-        if (workspaceMain != null) {
-            workspaceMain.stop();
-        }
-        File offerFolder = new File(OFFER_FOLDER);
-        if (offerFolder.exists()) {
-            try {
-                // if clean offer delete did not work
-                FileUtils.cleanDirectory(offerFolder);
-                FileUtils.deleteDirectory(offerFolder);
-            } catch (Exception e) {
-                LOGGER.error(ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANING_OFFERS, e);
-            }
-        }
+
         if (storageClient != null) {
             storageClient.close();
         }
-        if (defaultOfferApplication != null) {
-            defaultOfferApplication.stop();
-        }
-        if (storageMain != null) {
-            storageMain.stop();
-        }
-        if (workerApplication != null) {
-            workerApplication.stop();
-        }
-        if (processManagementApplication != null) {
-            processManagementApplication.stop();
-        }
-        if (medtadataApplication != null) {
-            medtadataApplication.stop();
-        }
-        if (adminManagementMain != null) {
-            adminManagementMain.stop();
-        }
-        if (accessInternalApplication != null) {
-            accessInternalApplication.stop();
-        }
-        if (logbookApplication != null) {
-            logbookApplication.stop();
-        }
-        elasticsearchRule.afterClass();
+        VitamConfiguration.setPurgeTemporaryLFC(true);
     }
 
     @Before
@@ -452,11 +200,7 @@ public class LogbookCheckConsistencyIT {
 
     @After
     public void tearDown() {
-        // clean offers
-        cleanOffers();
-
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        runAfter();
     }
 
     /**
@@ -475,15 +219,15 @@ public class LogbookCheckConsistencyIT {
         // Import of the agencies referential.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                    CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
+                CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
         }
 
         // logbook configuration
-        final File logbookConfig = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final File logbookConfig = PropertiesUtils.findFile(runner.LOGBOOK_CONF);
         final LogbookConfiguration configuration = PropertiesUtils.readYaml(logbookConfig, LogbookConfiguration.class);
 
         // get vitamRepository instance.
-        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         // call the logbook coherence check service
         coherenceCheckService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepository);
@@ -491,20 +235,20 @@ public class LogbookCheckConsistencyIT {
 
         // verify offer check logbook report content
         VitamRequestIterator<JsonNode> result =
-                storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
+            storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
 
         Assert.assertTrue(result.hasNext());
         JsonNode node = result.next();
         Assert.assertNotNull(node.get(OBJECT_ID));
 
         Response response =
-                storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                        DataCategory.CHECKLOGBOOKREPORTS);
+            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
+                DataCategory.CHECKLOGBOOKREPORTS);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         final InputStream inputStream =
-                storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
-                        .readEntity(InputStream.class);
+            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
+                .readEntity(InputStream.class);
 
         LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
         assertNotNull(logbookCheckResult);
@@ -517,20 +261,16 @@ public class LogbookCheckConsistencyIT {
         assertNotNull(logbookCheckErrors);
         assertTrue(logbookCheckErrors.isEmpty());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testLogbookCoherenceCheckSIP_KO_withIncoherentLogbook() throws Exception {
         LOGGER.debug("Starting integration tests for logbook coherence checks.");
-
         // Import of data
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         importFiles();
 
-        // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_KO_ARBO_RECURSIVE);
 
@@ -547,7 +287,7 @@ public class LogbookCheckConsistencyIT {
         LOGGER.error(initParameters.toString());
 
         // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
@@ -564,11 +304,11 @@ public class LogbookCheckConsistencyIT {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
 
         // logbook configuration
-        final File logbookConfig = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final File logbookConfig = PropertiesUtils.findFile(runner.LOGBOOK_CONF);
         final LogbookConfiguration configuration = PropertiesUtils.readYaml(logbookConfig, LogbookConfiguration.class);
 
         // get vitamRepository instance.
-        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         // call the logbook coherence check service
         coherenceCheckService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepository);
@@ -602,13 +342,13 @@ public class LogbookCheckConsistencyIT {
         Set<LogbookCheckError> logbookCheckErrors = logbookCheckResult.getCheckErrors();
         assertNotNull(logbookCheckErrors);
         assertFalse(logbookCheckErrors.isEmpty());
-        
-        Set<LogbookCheckError> expectedResults = mapper.readValue(
-            PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON), 
-            new TypeReference<Set<LogbookCheckError>>() {
-        });
 
-        Assert.assertTrue(logbookCheckErrors.containsAll(expectedResults));
+        Set<LogbookCheckError> expectedResults = mapper.readValue(
+            PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON),
+            new TypeReference<Set<LogbookCheckError>>() {
+            });
+
+        Assertions.assertThat(logbookCheckErrors).containsAll(expectedResults);
     }
 
     /**
@@ -617,6 +357,10 @@ public class LogbookCheckConsistencyIT {
     private void importFiles() {
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
+                CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
+
+
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importFormat(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V88_XML),
                 DROID_SIGNATURE_FILE_V88_XML);
@@ -636,7 +380,7 @@ public class LogbookCheckConsistencyIT {
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
-            });
+                });
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat
@@ -644,7 +388,7 @@ public class LogbookCheckConsistencyIT {
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
             List<AccessContractModel> accessContractModelList = JsonHandler
                 .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-            });
+                });
             client.importAccessContracts(accessContractModelList);
 
 
@@ -686,19 +430,6 @@ public class LogbookCheckConsistencyIT {
             if (nbTry == NB_TRY)
                 break;
             nbTry++;
-        }
-    }
-
-    /**
-     * Clean offers content.
-     */
-    private static void cleanOffers() {
-        File directory = new File(OFFER_FOLDER);
-        try {
-            FileUtils.cleanDirectory(directory);
-            FileUtils.deleteDirectory(directory);
-        } catch (IOException | IllegalArgumentException e) {
-            LOGGER.error(ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANING_OFFERS, e);
         }
     }
 }

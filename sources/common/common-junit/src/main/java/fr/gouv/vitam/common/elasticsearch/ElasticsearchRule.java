@@ -33,7 +33,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -67,6 +69,7 @@ public class ElasticsearchRule extends ExternalResource {
     private static int httpPort;
     private File temporaryFolder;
 
+    private NodeWithPlugins node;
     public static final String VITAM_CLUSTER = "vitam-cluster";
 
     synchronized void init() {
@@ -95,7 +98,7 @@ public class ElasticsearchRule extends ExternalResource {
                 .build();
 
             final List<Class<? extends Plugin>> plugins = Arrays.asList(Netty4Plugin.class, AnalysisICUPlugin.class);
-            NodeWithPlugins node =
+            node =
                 new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), plugins);
 
             node.start();
@@ -147,6 +150,10 @@ public class ElasticsearchRule extends ExternalResource {
 
     @Override
     protected void after() {
+        purge(collectionNames);
+    }
+
+    private void purge(Collection<String> collectionNames) {
         for (String collectionName : collectionNames) {
 
             if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
@@ -186,11 +193,35 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+    public void stop() {
+        try {
+            node.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void start() {
+        try {
+            node.start();
+        } catch (NodeValidationException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Used when annotated @ClassRule
      */
     public void handleAfter() {
         after();
+    }
+
+    public void handleAfter(Set<String> collections) {
+        after(collections);
+    }
+
+    private void after(Set<String> collections) {
+        purge(collections);
     }
 
     /**

@@ -57,13 +57,13 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -90,6 +90,7 @@ import java.util.List;
 /**
  * This class aims to help to launch locally the TNR by launching all necessary components
  */
+@Ignore
 public class TnrLaunchAllApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TnrLaunchAllApplication.class);
 

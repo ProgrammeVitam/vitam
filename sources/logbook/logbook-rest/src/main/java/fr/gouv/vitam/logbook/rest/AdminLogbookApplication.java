@@ -38,14 +38,14 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import com.google.common.base.Throwables;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -60,7 +60,7 @@ public class AdminLogbookApplication extends Application {
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig servletConfig
      */
     public AdminLogbookApplication(@Context ServletConfig servletConfig) {
@@ -75,10 +75,12 @@ public class AdminLogbookApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
+            VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
+
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
-            singletons.add(new LogbookAdminResource(VitamRepositoryFactory.getInstance(), logbookConfiguration));
-            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance(), offsetRepository));
+            singletons.add(new LogbookAdminResource(vitamRepositoryProvider, logbookConfiguration));
+            singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository));
             singletons.add(new BasicAuthenticationFilter(logbookConfiguration));
             singletons.add(new AdminRequestIdFilter());
         } catch (IOException e) {

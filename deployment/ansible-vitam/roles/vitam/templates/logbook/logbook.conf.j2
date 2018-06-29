@@ -29,8 +29,6 @@ adminBasicAuth:
   password: {{ admin_basic_auth_password }}
 
 ## Configuration for logbook coherence check
-# disable purge of temporary LifeCycles
-disableTempLfcPurge: {{ vitam.logbook.disablePurgeForTempLFC }}
 # list of operations that generate LFC
 opWithLFC: [
   "PROCESS_SIP_UNITARY",

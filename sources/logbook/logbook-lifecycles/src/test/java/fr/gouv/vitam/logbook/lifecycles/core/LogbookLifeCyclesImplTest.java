@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -226,9 +227,13 @@ public class LogbookLifeCyclesImplTest {
     public void givenDeleteOGLCWhenOGLCNotExistsAndPurgeDisabledThenDoNotThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
                 .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
-
-        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess, true);
-        logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
+        VitamConfiguration.setPurgeTemporaryLFC(false);
+        try {
+            logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+            logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
+        } finally {
+            VitamConfiguration.setPurgeTemporaryLFC(true);
+        }
     }
 
     @Test(expected = LogbookDatabaseException.class)

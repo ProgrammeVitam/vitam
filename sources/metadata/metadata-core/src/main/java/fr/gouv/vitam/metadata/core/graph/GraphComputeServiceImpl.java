@@ -52,6 +52,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.cache.VitamCache;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -75,7 +76,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import joptsimple.internal.Strings;
@@ -264,7 +264,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
 
         try {
             final MongoCursor<Document> cursor = vitamRepositoryProvider
-                .getVitamMongoRepository(metadataCollections)
+                .getVitamMongoRepository(metadataCollections.getVitamCollection())
                 .findDocuments(in(Unit.ID, documentsId), VitamConfiguration.getBatchSize())
                 .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES))
                 .iterator();
@@ -324,7 +324,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public void bulkUpdateMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).update(collection);
+        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).update(collection);
     }
 
     @Override
@@ -336,7 +336,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).findDocuments(collection, null);
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
@@ -351,7 +351,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
     }
 
     @Override

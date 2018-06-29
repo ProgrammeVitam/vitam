@@ -15,6 +15,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.cache.VitamCache;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -24,7 +25,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.Before;
@@ -98,12 +98,12 @@ public class GraphComputeServiceImplTest {
         doNothing().when(unitEsRepository).update(anyObject());
         doNothing().when(gotEsRepository).update(anyObject());
 
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT)).willReturn(unitRepository);
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP))
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitRepository);
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotRepository);
 
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT)).willReturn(unitEsRepository);
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP))
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitEsRepository);
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotEsRepository);
 
 

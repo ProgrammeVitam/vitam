@@ -35,6 +35,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 
 /**
  * Logbook admin Service.

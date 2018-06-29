@@ -118,7 +118,7 @@ public enum FunctionalAdminCollections {
     final private boolean multitenant;
     final private boolean usingScore;
 
-    private FunctionalAdminCollections(final Class<?> clasz, boolean multitenant, boolean usingScore) {
+    FunctionalAdminCollections(final Class<?> clasz, boolean multitenant, boolean usingScore) {
         this.multitenant = multitenant;
         this.usingScore = usingScore;
         vitamCollection = VitamCollectionHelper.getCollection(clasz, multitenant, usingScore);
