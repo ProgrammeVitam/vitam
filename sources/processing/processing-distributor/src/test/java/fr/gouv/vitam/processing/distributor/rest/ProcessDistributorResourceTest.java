@@ -28,6 +28,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+
+import java.io.File;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -58,12 +65,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-
 /**
  *
  */
@@ -85,11 +86,11 @@ public class ProcessDistributorResourceTest {
 
     private final String FAMILY_ID_E = "/error";
 
-    private static final String JSON_REGISTER = "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
-        "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
+    private static final String JSON_REGISTER =
+        "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     private static JunitHelper junitHelper;
-    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -100,7 +101,7 @@ public class ProcessDistributorResourceTest {
     public static void setUpBeforeClass() throws Exception {
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
         // WorkerManager.initialize();
-        
+
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
@@ -122,7 +123,6 @@ public class ProcessDistributorResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        VitamConfiguration.getConfiguration().setData(defautDataFolder);        
         vitamServer.stop();
         junitHelper.releasePort(serverPort);
     }
@@ -182,7 +182,7 @@ public class ProcessDistributorResourceTest {
     @Test
     @RunWithCustomExecutor
     public final void testDeleteFamilyWorkers() {
-    	given().contentType(ContentType.JSON).body("")
+        given().contentType(ContentType.JSON).body("")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when()
             .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());

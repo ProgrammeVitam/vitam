@@ -104,7 +104,7 @@ public class WorkerRegister implements Runnable {
             return true;
         } catch (final WorkerAlreadyExistsException e) {
             LOGGER.warn("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
-            return false;
+            return true;
         } catch (final Exception e) {
             LOGGER.error("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
             return false;
