@@ -39,7 +39,6 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -176,7 +175,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
-        when(logbookOperationClient.selectOperationById(anyObject(), anyObject()))
+        when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
             anyObject(), anyObject())).thenReturn(Response.ok().build());
@@ -239,7 +238,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
-        when(logbookOperationClient.selectOperationById(anyObject(), anyObject()))
+        when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new InternalServerException("InternalServerException"));
@@ -263,7 +262,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
-        when(logbookOperationClient.selectOperationById(anyObject(), anyObject()))
+        when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new WorkflowNotFoundException("Workflow not found"));

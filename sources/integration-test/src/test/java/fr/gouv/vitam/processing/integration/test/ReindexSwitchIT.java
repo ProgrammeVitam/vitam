@@ -209,7 +209,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             ProcessingIT.prepareVitamSession();
             String containerName = launchIngest();
 
-            JsonNode logbookResultBefore = logbookClient.selectOperationById(containerName, null);
+            JsonNode logbookResultBefore = logbookClient.selectOperationById(containerName);
             SelectMultiQuery selectMulti = new SelectMultiQuery();
             selectMulti.addQueries(QueryHelper.in("#operations", containerName));
             JsonNode nodeUnit = metadataClient.selectUnits(selectMulti.getFinalSelect());
@@ -224,7 +224,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             launchReindexationAndSwitchAndCheckValues("Unit", "Unit", client, "0");
             launchReindexationAndSwitchAndCheckValues("ObjectGroup", "ObjectGroup", client, "0");
 
-            JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName, null);
+            JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName);
 
             validateLogbookOperations(logbookResultBefore.get("$results").get(0),
                 logbookResultAfter.get("$results").get(0));

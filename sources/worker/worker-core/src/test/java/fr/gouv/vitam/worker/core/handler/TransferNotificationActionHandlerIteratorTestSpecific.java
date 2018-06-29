@@ -178,7 +178,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
-                .selectOperationById(anyObject(), anyObject());
+                .selectOperationById(anyObject());
             when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
@@ -210,7 +210,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
-                .selectOperationById(anyObject(), anyObject());
+                .selectOperationById(anyObject());
             when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());

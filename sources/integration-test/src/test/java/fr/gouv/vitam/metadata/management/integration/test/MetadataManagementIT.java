@@ -1011,7 +1011,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            JsonNode logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            JsonNode logbook = logbookClient.selectOperationById(operation);
             JsonNode logbookNode = logbook.get("$results").get(0);
             JsonNode preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
@@ -1034,7 +1034,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
             logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
@@ -1058,7 +1058,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
             logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
@@ -1081,7 +1081,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
             logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
@@ -1118,7 +1118,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
             logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            logbook = logbookClient.selectOperationById(operation_parallel, JsonHandler.createObjectNode());
+            logbook = logbookClient.selectOperationById(operation_parallel);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),

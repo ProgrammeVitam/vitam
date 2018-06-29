@@ -197,7 +197,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
                 Select select = new Select();
                 select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, params.getContainerName()));
-                final JsonNode node = client.selectOperationById(params.getContainerName(), select.getFinalSelect());
+                final JsonNode node = client.selectOperationById(params.getContainerName());
                 final JsonNode elmt = node.get("$results").get(0);
                 if (elmt == null) {
                     LOGGER.error("Error while loading logbook operation: no result");

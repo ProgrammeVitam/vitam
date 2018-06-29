@@ -192,7 +192,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         List<String> auditActions)
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException,
         UnsupportedEncodingException {
-        JsonNode result = jopClient.selectOperationById(auditOperationId, null);
+        JsonNode result = jopClient.selectOperationById(auditOperationId);
         JsonNode res = result.get(RequestResponseOK.TAG_RESULTS).get(0);
         report.put("DateTime", res.get("evDateTime").textValue());
 

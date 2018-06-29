@@ -776,7 +776,7 @@ public class EvidenceService {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
-            JsonNode result = client.selectOperationById(id, new Select().getFinalSelect());
+            JsonNode result = client.selectOperationById(id);
 
             String detailData =
                 result.get(TAG_RESULTS).get(0).get(LogbookMongoDbName.eventDetailData.getDbname()).asText();
