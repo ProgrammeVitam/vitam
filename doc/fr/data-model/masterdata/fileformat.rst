@@ -38,7 +38,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
     "HasPriorityOverFileFormatID": [
         "fmt/714"
     ],
-    "MIMEType": "audio/mobile-xmf", 
+    "MimeType": "audio/mobile-xmf", 
     "Group": "",
     "Alert": false,
     "Comment": "",
@@ -109,7 +109,7 @@ L'attribut "version" n'est pas obligatoire dans la balise <fileformat> du fichie
     * Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du fichier de signature.
     * Cardinalité : 1-1
 
-**"MIMEType":** Type MIME correspondant au format de fichier.
+**"MimeType":** Type MIME correspondant au format de fichier.
     
     * Il s'agit d'une chaîne de caractères.
     * Il est renseigné avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.

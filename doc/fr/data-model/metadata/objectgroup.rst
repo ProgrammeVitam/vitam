@@ -82,19 +82,19 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
                       "PhysicalDimensions": {
                           "Height": {
                               "unit": "centimetre",
-                              "value": 10.5
+                              "dValue": 10.5
                           },
                           "Length": {
                               "unit": "centimetre",
-                              "value": 14.8
+                              "dValue": 14.8
                           },
                           "Thickness": {
                               "unit": "micrometre",
-                              "value": 350
+                              "dValue": 350
                           },
                           "Weight": {
                               "unit": "gram",
-                              "value": 3
+                              "dValue": 3
                           }
                       },
                       "Extent": "1 carte imprimée",
@@ -235,8 +235,20 @@ Détail des champs du JSON
           - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
           - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. ``Exemple : 2016-08-19T16:36:07.942+02:00`` Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
           - "Size": taille de l'objet (en octet). Ce champ contient un nombre entier.
-      
+
+      - "PhysicalDimensions" : Ce champ contient les différentes informations concernant un objet physique (DataObjectVersion = PhysicalMaster). Il pourra donner des informations sur la taille, le poids, etc... de l'objet.
+         
+         - "Width" : largeur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Height" : hauteur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Depth" : profondeur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)         
+         - "Diameter" : diamètre de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Length" : longueur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Thickness" : épaisseur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Weight" : poids de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
+         - "Shape" : forme de l'objet. Ce champ contient est de type String      
       - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, de l'une extension du schéma SEDA du message  ArchiveTransfer.
+          
+         
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
 
         Chaîne de caractères
