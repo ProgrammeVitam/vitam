@@ -142,7 +142,7 @@ On récupère la valeur FRAN_NP_051314.
 
   * La date est au format ISO 8601
 
-  ``"CreationDate": "2017-04-10T11:30:33.798",``
+  ``"CreationDate": "2017-04-10T11:30:33.798"``
 
   * Cardinalité : 1-1
     
