@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -154,6 +155,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             return resp;
         }
 
+        @POST
+        @Path("ingests")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response uploadLocal(LocalFile localFile) {
+            Response resp = expectedResponse.post();
+            return resp;
+        }
+
         @GET
         @Path("/ingests/{objectId}/{type}")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -197,6 +206,23 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
     }
 
+
+    @Test
+    public void givenUploadLocalFileThenReturnOK() throws Exception {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+        ObjectNode objectNode = JsonHandler.createObjectNode();
+        objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+        when(mock.post())
+            .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
+
+        RequestResponse<Void> resp =
+            client.ingestLocal(new VitamContext(TENANT_ID), new LocalFile("path"), CONTEXT_ID, EXECUTION_MODE);
+        assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
+    }
+
     @Test
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
         throws VitamClientException {
@@ -216,5 +242,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             fail();
         }
     }
+
+
 
 }

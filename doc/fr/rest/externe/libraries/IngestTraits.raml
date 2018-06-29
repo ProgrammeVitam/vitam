@@ -109,6 +109,9 @@ traits:
         description: Body containing the SIP in TAR.GZ format
       application/x-bzip2:
         description: Body containing the SIP in TAR.BZ2 format
+      application/json:
+        description: Body containing path information to the local SIP
+        example: !include examples/localIngest.json
     responses:
       202:
         description: |
