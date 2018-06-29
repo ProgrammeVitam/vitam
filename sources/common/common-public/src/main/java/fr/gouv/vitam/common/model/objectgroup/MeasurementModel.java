@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 
@@ -36,17 +36,17 @@ import java.math.BigDecimal;
  * Measurement POJO for physical Object
  */
 public class MeasurementModel {
-    @JsonProperty("value")
-    private BigDecimal value;
+    @JsonProperty("dValue")
+    private BigDecimal dValue;
     @JsonProperty("unit")
     private String unit;
 
-    public BigDecimal getValue() {
-        return value;
+    public BigDecimal getDValue() {
+        return dValue;
     }
 
-    public void setValue(BigDecimal value) {
-        this.value = value;
+    public void setDValue(BigDecimal dValue) {
+        this.dValue = dValue;
     }
 
     public String getUnit() {

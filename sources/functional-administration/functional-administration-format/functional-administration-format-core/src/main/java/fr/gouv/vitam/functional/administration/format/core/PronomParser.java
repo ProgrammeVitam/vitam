@@ -82,7 +82,8 @@ public class PronomParser {
     private static final String ATTR_CREATEDDATE = "DateCreated";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
-    public static final String MIME_TYPE = "MIMEType";
+    private static final String EXTERNAL_MIME_TYPE = "MIMEType";
+    private static final String INTERNAL_MIME_TYPE = "MimeType";
 
     private PronomParser() {
         // Empty
@@ -144,10 +145,16 @@ public class PronomParser {
                             while (attributes.hasNext()) {
                                 final Attribute attribute = attributes.next();
                                 String value = attribute.getValue();
-                                if (MIME_TYPE.equals(attribute.getName().getLocalPart()) && value.contains(",")) {
+                                if (EXTERNAL_MIME_TYPE.equals(attribute.getName().getLocalPart()) &&
+                                    value.contains(",")) {
                                     value = value.replace(",", ";");
+
                                 }
-                                attributesMap.put(attribute.getName().toString(), value);
+                                if (EXTERNAL_MIME_TYPE.equals(attribute.getName().getLocalPart())) {
+                                    attributesMap.put(INTERNAL_MIME_TYPE, value);
+                                } else {
+                                    attributesMap.put(attribute.getName().toString(), value);
+                                }
                             }
                             idToPUID.put(attributesMap.get(ATTR_ID).toString(),
                                 attributesMap.get(ATTR_PUID).toString());
@@ -235,7 +242,8 @@ public class PronomParser {
             }
             newFileFormat.putAll(attributes);
         } else {
-            newFileFormat.append(CREATED_DATE, LocalDateUtil.getFormattedDateForMongo(fileFormat.getString(CREATED_DATE)));
+            newFileFormat.append(CREATED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(fileFormat.getString(CREATED_DATE)));
             newFileFormat.append(VERSION_PRONOM, fileFormat.getString(VERSION_PRONOM));
             newFileFormat.putAll(attributes);
         }
@@ -258,7 +266,8 @@ public class PronomParser {
             }
         } else {
             fileFormatDest.clear();
-            fileFormatDest.append(CREATED_DATE, LocalDateUtil.getFormattedDateForMongo(fileFormatSource.getString(CREATED_DATE)));
+            fileFormatDest.append(CREATED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(fileFormatSource.getString(CREATED_DATE)));
             fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
             fileFormatDest.cleanNullValues();
         }

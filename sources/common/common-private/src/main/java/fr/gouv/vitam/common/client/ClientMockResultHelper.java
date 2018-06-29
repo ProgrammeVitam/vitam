@@ -255,7 +255,7 @@ public class ClientMockResultHelper {
         "\"VersionPronom\":\"84\", " +
         "\"Version\":\"1.12\", " +
         "\"HasPriorityOverFileFormatID\":[], " +
-        "\"MIMEType\":[], " +
+        "\"MimeType\":[], " +
         "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
         "\"Alert\":\"false\", " +
         "\"Extension\":[\"wps\"], " +

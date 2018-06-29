@@ -19,19 +19,19 @@
 					"PhysicalDimensions": {
 						"Height": {
 							"unit": "centimetre",
-							"value": 10.5
+							"dValue": 10.5
 						},
 						"Length": {
 							"unit": "centimetre",
-							"value": 14.8
+							"dValue": 14.8
 						},
 						"Thickness": {
 							"unit": "micrometre",
-							"value": 350
+							"dValue": 350
 						},
 						"Weight": {
 							"unit": "gram",
-							"value": 3
+							"dValue": 3
 						}
 					},
 					"Extent": "1 carte imprimée",

@@ -19,27 +19,27 @@
         "PhysicalDimensions" : {
                         "Width": {
                             "unit": "centimetre",
-                            "value": 1.7
+                            "dValue": 1.7
                         },
                         "Height": {
                             "unit": "CMT",
-                            "value": 21
+                            "dValue": 21
                         },
                         "Diameter": {
                             "unit": "FOT",
-                            "value": 22
+                            "dValue": 22
                         },
                         "Length": {
                             "unit": "INH",
-                            "value": 29.7
+                            "dValue": 29.7
                         },
                         "Thickness": {
                             "unit": "centimetre",
-                            "value": 2.1
+                            "dValue": 2.1
                         },
                         "Weight": {
                             "unit": "kilogram",
-                            "value": 1
+                            "dValue": 1
                         },
                         "NumberOfPage": 20
                     },

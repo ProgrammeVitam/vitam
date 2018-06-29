@@ -32,6 +32,9 @@
     "ControlSchema": {
       "enabled": false
     },
+    "Fields": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

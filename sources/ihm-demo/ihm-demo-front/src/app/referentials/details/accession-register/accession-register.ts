@@ -1,7 +1,7 @@
 export class AccessionRegister {
   '#id' : string;
   OriginatingAgency: string;
-  creationDate : string;
+  CreationDate : string;
   '#tenant' : string;
   ObjectSize : Register;
   TotalObjectGroups : Register;

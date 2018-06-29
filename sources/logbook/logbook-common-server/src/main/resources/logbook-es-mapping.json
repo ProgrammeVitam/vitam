@@ -13,72 +13,61 @@
               "enabled": false
             },
             "evDetDataType": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "LogType": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "StartDate": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "EndDate": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "PreviousLogbookTraceabilityDate": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "MinusOneMonthLogbookTraceabilityDate": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "MinusOneYearLogbookTraceabilityDate": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "Hash": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "TimeStampToken": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "NumberOfElements": {
-              "type": "long",
-              "index": "analyzed"
+              "type": "long"
             },
             "Size": {
-              "type": "long",
-              "index": "analyzed"
+              "type": "long"
             },
             "FileName": {
-              "type": "string",
-              "index": "analyzed"
+              "type": "text"
             },
             "EvDetailReq": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "EvDateTimeReq": {
               "type": "date",
-              "index": "analyzed"
+              "format": "strict_date_optional_time"
             },
             "AgIfTrans": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "ArchivalAgreement": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "ServiceLevel": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "diff": {
               "enabled": false
@@ -91,10 +80,10 @@
                 "schema": {
                   "properties": {
                     "loadingURI": {
-                      "type": "string"
+                      "type": "text"
                     },
                     "pointer": {
-                      "type": "string"
+                      "type": "text"
                     }
                   }
                 }
@@ -107,20 +96,16 @@
           "enabled": true,
           "properties": {
             "originatingAgency": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "TransferringAgency": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "ArchivalAgency": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             },
             "submissionAgency": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "keyword"
             }
           }
         },
@@ -129,80 +114,77 @@
           "type": "object",
           "properties": {
             "ArchivalAgreement": {
-              "type": "string",
-              "index": "analyzed"
+              "type": "text"
             }
           }
         },
         "evTypeProc": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "evType": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "outcome": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "outDetail": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "evDateTime": {
           "type": "date",
-          "index": "analyzed"
+          "format": "strict_date_optional_time"
         },
         "outMessg": {
-          "type": "string",
-          "index": "analyzed"
+          "type": "text"
         },
         "agId": {
-          "type": "string",
-          "index": "analyzed"
+          "type": "text"
         },
         "obId": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         }
       }
     },
+    "evId": {
+      "type": "keyword"
+    },
+    "evIdProc": {
+      "type": "keyword"
+    },
+    "evIdReq": {
+      "type": "keyword"
+    },
+    "evParentId": {
+      "type": "keyword"
+    },
     "evTypeProc": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "evType": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "outcome": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "outDetail": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "evDateTime": {
       "type": "date",
-      "index": "analyzed"
+      "format": "strict_date_optional_time"
     },
     "outMessg": {
-      "type": "string",
-      "index": "analyzed"
+      "type": "text"
     },
     "agId": {
-      "type": "string",
-      "index": "analyzed"
+      "type": "text"
     },
     "_score": {
       "type": "object",
       "enabled": false
     },
     "obId": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "_lastPersistedDate": {
       "type": "date",

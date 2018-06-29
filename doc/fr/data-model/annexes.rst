@@ -136,7 +136,7 @@ Type d'indexation dans ElasticSearch par collection et par champ
 	"Extension", "Non analysé"
 	"Group", "Analysé"
 	"HasPriorityOverFileFormatID", "Non analysé"
-	"MIMEType", "Analysé"
+	"MimeType", "Analysé"
 	"Name", "Analysé"
 	"PUID", "Non analysé"
 	"Version", "Non analysé"
