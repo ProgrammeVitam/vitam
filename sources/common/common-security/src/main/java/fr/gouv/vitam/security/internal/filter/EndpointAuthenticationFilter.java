@@ -105,8 +105,6 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
         try {
             byte[] bytes = new BASE64Decoder().decodeBuffer(credentials[1]);
             decodedAuthent = new String(bytes);
-            LOGGER.debug("The decoded authentication informations : ", decodedAuthent);
-
         } catch (IOException ioe) {
             LOGGER.error("ERROR: Exception has been thrown when decoding the basic authentication: ", ioe);
         }

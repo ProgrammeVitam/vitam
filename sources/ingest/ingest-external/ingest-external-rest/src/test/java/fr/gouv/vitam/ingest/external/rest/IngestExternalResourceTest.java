@@ -32,6 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +40,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.LocalFile;
+import org.apache.commons.io.FilenameUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.AfterClass;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -189,31 +191,46 @@ public class IngestExternalResourceTest {
 
     @Test
     public void givenALocalFilePathWhenUploadedThenReturnOK()
-            throws Exception {
+        throws Exception {
         String path = PropertiesUtils.getResourcePath("no-virus.txt").toString();
         LocalFile localFile = new LocalFile(path);
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-                .when().post(INGEST_URI)
-                .then().statusCode(Status.ACCEPTED.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().post(INGEST_URI)
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
+    }
+    
+    @Test
+    public void givenAnIncorrectLocalFilePathWhenUploadedThenReturnBadRequest()
+        throws Exception {
+        // this is incorrect, this will be rejected
+        LocalFile localFile = new LocalFile("../no-virus.txt");
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+
+        given().contentType(ContentType.JSON).body(localFile)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().post(INGEST_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void givenANonExistingPathWhenUploadedThenReturnInternalServerError()
-            throws Exception {
+        throws Exception {
         LocalFile localFileWithNonExistingPath = new LocalFile("NonExistingPath");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFileWithNonExistingPath)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-                .when().post(INGEST_URI)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().post(INGEST_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()
@@ -292,5 +309,4 @@ public class IngestExternalResourceTest {
                 public void describeTo(Description description) {}
             });
     }
-
 }

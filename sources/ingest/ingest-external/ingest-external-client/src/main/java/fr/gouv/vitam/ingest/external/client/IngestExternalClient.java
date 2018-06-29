@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
+import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
@@ -77,5 +78,23 @@ public interface IngestExternalClient extends MockOrRestClient {
         IngestCollection type)
         throws VitamClientException;
 
+    
+    /**
+     * ingest a file that has been uploaded locally on a vitam folder then launch an ingest workflow
+     *
+     *
+     * @param vitamContext the vitam context
+     * @param localFile the localFile information
+     * @param contextId a type of ingest among "DEFAULT_WORKFLOW" (Sip ingest), "HOLDING_SCHEME" (tree) 
+     *        "FILING_SCHEME" (plan) and "BLANK_TEST" (Sip ingest test)
+     * @param action an action as a string among "RESUME" (launch workflow entirely) and "NEXT" (launch ingest in step
+     *        by step mode)
+     * @return response
+     * @throws IngestExternalException
+     */
+    RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
+        String contextId,
+        String action)
+        throws IngestExternalException;
 
 }

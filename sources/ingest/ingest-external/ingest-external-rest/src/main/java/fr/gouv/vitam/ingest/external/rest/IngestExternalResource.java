@@ -51,6 +51,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.FilenameUtils;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -169,7 +171,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ingests:local:create", description = "Envoyer un SIP en local à Vitam afin qu'il en réalise l'entrée")
+    @Secured(permission = "ingests:local:create",
+        description = "Envoyer un SIP en local à Vitam afin qu'il en réalise l'entrée")
     public void uploadLocal(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String action, LocalFile localFile,
         @Suspended final AsyncResponse asyncResponse) {
@@ -179,6 +182,20 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
 
+        String fullNormalizedPath =
+            FilenameUtils.normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.getPath());
+
+        if (fullNormalizedPath == null || !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.BAD_REQUEST)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
+                            "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() +
+                                " could be accessed")))
+                    .build());
+        }
         java.nio.file.Path path = Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.getPath());
         boolean exists = Files.exists(path);
 
@@ -234,6 +251,22 @@ public class IngestExternalResource extends ApplicationStatusResource {
             ingestExternal.upload(preUploadResume, guid);
 
             if (localFile.isPresent()) {
+
+                String fullNormalizedPath =
+                    FilenameUtils.normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.get().getPath());
+                if (fullNormalizedPath == null ||
+                    !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                        Response.status(Status.BAD_REQUEST)
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                            .entity(getErrorStream(
+                                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
+                                    "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() +
+                                        " could be accessed")))
+                            .build());
+                }
+
                 java.nio.file.Path path =
                     Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
 
@@ -245,7 +278,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         if (ingestExternalConfiguration.getSuccessfulUploadDir() != null &&
                             !ingestExternalConfiguration.getSuccessfulUploadDir().isEmpty()) {
                             Files.move(path, Paths
-                                    .get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()),
+                                .get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()),
                                 StandardCopyOption.REPLACE_EXISTING);
                         }
                         break;
@@ -256,9 +289,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (final Exception exc) {
             if (localFile.isPresent()) {
                 try {
-                    if (afterUploadAction.equals(LocalFileAction.MOVE)
-                        && ingestExternalConfiguration.getFailedUploadDir() != null
-                        && !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
+                    if (afterUploadAction.equals(LocalFileAction.MOVE) &&
+                        ingestExternalConfiguration.getFailedUploadDir() != null &&
+                        !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
                         java.nio.file.Path path =
                             Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
                         Files.move(path,
