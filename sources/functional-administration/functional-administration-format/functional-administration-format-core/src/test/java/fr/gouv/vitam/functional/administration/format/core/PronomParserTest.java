@@ -52,7 +52,7 @@ public class PronomParserTest {
         final JsonNode node = jsonFileFormat.get(jsonFileFormat.size() - 1);
         assertTrue(node.get("Name").toString().contains("RDF/XML"));
         assertEquals(node.get("PUID").textValue(), "fmt/875");
-        assertTrue(node.get("MIMEType").toString().contains("application/rdf+xml"));
+        assertTrue(node.get("MimeType").toString().contains("application/rdf+xml"));
         assertFalse(node.get("Alert").asBoolean());
         assertEquals(node.get("Group").textValue(), "");
         assertEquals(node.get("Comment").textValue(), "");

@@ -290,21 +290,21 @@ public class ParserTokens extends BuilderToken {
         "_qualifiers.versions.FormatIdentification.FormatLitteral",
         "_qualifiers.versions.MessageDigest",
         "_qualifiers.versions.PhysicalDimensions.Depth.unit",
-        "_qualifiers.versions.PhysicalDimensions.Depth.value",
+        "_qualifiers.versions.PhysicalDimensions.Depth.dValue",
         "_qualifiers.versions.PhysicalDimensions.Diameter.unit",
-        "_qualifiers.versions.PhysicalDimensions.Diameter.value",
+        "_qualifiers.versions.PhysicalDimensions.Diameter.dValue",
         "_qualifiers.versions.PhysicalDimensions.Height.unit",
-        "_qualifiers.versions.PhysicalDimensions.Height.value",
+        "_qualifiers.versions.PhysicalDimensions.Height.dValue",
         "_qualifiers.versions.PhysicalDimensions.Length.unit",
-        "_qualifiers.versions.PhysicalDimensions.Length.value",
+        "_qualifiers.versions.PhysicalDimensions.Length.dValue",
         "_qualifiers.versions.PhysicalDimensions.NumberOfPage",
         "_qualifiers.versions.PhysicalDimensions.Shape",
         "_qualifiers.versions.PhysicalDimensions.Thickness.unit",
-        "_qualifiers.versions.PhysicalDimensions.Thickness.value",
+        "_qualifiers.versions.PhysicalDimensions.Thickness.dValue",
         "_qualifiers.versions.PhysicalDimensions.Weight.unit",
-        "_qualifiers.versions.PhysicalDimensions.Weight.value",
+        "_qualifiers.versions.PhysicalDimensions.Weight.dValue",
         "_qualifiers.versions.PhysicalDimensions.Width.unit",
-        "_qualifiers.versions.PhysicalDimensions.Width.value",
+        "_qualifiers.versions.PhysicalDimensions.Width.dValue",
         "_qualifiers.versions.PhysicalId",
         "_qualifiers.versions.Size",
         "_qualifiers.versions.Uri",
@@ -468,6 +468,8 @@ public class ParserTokens extends BuilderToken {
         "OriginatingAgency",
         "SubmissionAgency",
         "ArchivalAgreement",
+        "AcquisitionInformation",
+        "OperationGroup",
         "EndDate",
         "StartDate",
         "LastUpdate",
@@ -770,7 +772,7 @@ public class ParserTokens extends BuilderToken {
          * @return the PROJECTIONARGS associated
          * @throws IllegalArgumentException if not found
          */
-        private static PROJECTIONARGS getPROJECTIONARGS(String name) {
+        public static PROJECTIONARGS getPROJECTIONARGS(String name) {
             // TODO Try to find a better way since this is already defined in Metadata
             if (name.charAt(0) == DEFAULT_UNDERSCORE_PREFIX_CHAR) {
                 switch (name) {
@@ -1016,7 +1018,7 @@ public class ParserTokens extends BuilderToken {
             case "PUID":
             case "VersionPronom":
             case "Group":
-            case "MIMEType":
+            case "MimeType":
             case "CreatedDate":
             case "Version":
             case "Alert":

@@ -142,7 +142,7 @@ export class SearchReferentialsComponent extends PageComponent {
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Version', 'Version', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('MIMEType', 'MIME', undefined,
+            ColumnDefinition.makeStaticColumn('MimeType', 'MIME', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Extension', 'Extension(s)', undefined,
               () => ({'width': '125px'}))
@@ -331,7 +331,7 @@ export class SearchReferentialsComponent extends PageComponent {
           this.columns = [
             ColumnDefinition.makeStaticColumn('OriginatingAgency', 'Service producteur', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('creationDate', 'Date de la première opération d\'entrée', DateService.handleDateWithTime,
+            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de la première opération d\'entrée', DateService.handleDateWithTime,
               () => ({'width': '125px'}))
           ];
           this.referentialPath = 'admin/agencies/accessionRegister';

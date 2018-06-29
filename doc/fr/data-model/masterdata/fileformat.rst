@@ -15,7 +15,7 @@ Ci-après, la portion d'un fichier de signature (DROID_SignatureFile_VXX.xml) ut
 
 ::
 
-   <FileFormat ID="105" MIMEType="application/msword" Name="Microsoft Word for Macintosh Document" PUID="x-fmt/64" Version="4.0">
+   <FileFormat ID="105" MimeType="application/msword" Name="Microsoft Word for Macintosh Document" PUID="x-fmt/64" Version="4.0">
      <InternalSignatureID>486</InternalSignatureID>
      <Extension>mcw</Extension>
    </FileFormat>
@@ -38,7 +38,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
     "HasPriorityOverFileFormatID": [
         "fmt/714"
     ],
-    "MIMEType": "audio/mobile-xmf", 
+    "MimeType": "audio/mobile-xmf", 
     "Group": "",
     "Alert": false,
     "Comment": "",
@@ -109,10 +109,10 @@ L'attribut "version" n'est pas obligatoire dans la balise <fileformat> du fichie
     * Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du fichier de signature.
     * Cardinalité : 1-1
 
-**"MIMEType":** Type MIME correspondant au format de fichier.
+**"MimeType":** Type MIME correspondant au format de fichier.
     
     * Il s'agit d'une chaîne de caractères.
-    * Il est renseigné avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.
+    * Il est renseigné avec le contenu de l'attribut "MimeType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.
     * Cardinalité : 0-1
 
 **"HasPriorityOverFileFormatID":** liste des PUID des formats sur lesquels le format a la priorité.

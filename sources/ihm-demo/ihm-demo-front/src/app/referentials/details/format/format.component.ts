@@ -12,7 +12,7 @@ import {ErrorService} from "../../../common/error.service";
 const FORMAT_KEY_TRANSLATION = {
   Name: 'Intitulé',
   HasPriorityOverFileFormatID: 'Priorité sur les versions précédentes',
-  MIMEType: 'MIME types',
+  MimeType: 'MIME types',
   VersionPronom: 'Version de Pronom',
   CreatedDate: "Date de création"
 };

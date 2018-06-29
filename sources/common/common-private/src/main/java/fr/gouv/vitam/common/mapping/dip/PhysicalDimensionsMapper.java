@@ -58,7 +58,7 @@ public class PhysicalDimensionsMapper {
     private MeasurementType mapMeasurementType(MeasurementModel measurementModel) {
         final MeasurementType measurementType = new MeasurementType();
         if (measurementModel != null) {
-            measurementType.setValue(measurementModel.getValue());
+            measurementType.setValue(measurementModel.getDValue());
             measurementType.setUnit(measurementModel.getUnit());
             return measurementType;
         } else {
@@ -70,7 +70,7 @@ public class PhysicalDimensionsMapper {
     private MeasurementWeightType mapMeasurementWeightType(MeasurementModel measurementModel) {
         final MeasurementWeightType measurementWeightType = new MeasurementWeightType();
         if (measurementModel != null) {
-            measurementWeightType.setValue(measurementModel.getValue());
+            measurementWeightType.setValue(measurementModel.getDValue());
             measurementWeightType
                 .setUnit(MeasurementWeightUnitsType.fromValue(measurementModel.getUnit()));
             return measurementWeightType;

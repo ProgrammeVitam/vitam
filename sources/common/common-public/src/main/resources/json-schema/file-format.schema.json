@@ -39,7 +39,7 @@
         "type": "string"
       }
     },
-    "MIMEType": {
+    "MimeType": {
       "type": "string"
     },
     "Name": {

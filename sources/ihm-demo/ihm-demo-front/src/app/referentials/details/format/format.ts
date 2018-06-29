@@ -7,7 +7,7 @@ export class Format {
   Extension : string[];
   Group : string;
   HasPriorityOverFileFormatID : string[];
-  MIMEType : string;
+  MimeType : string;
   PUID : string;
   Version : string;
   VersionPronom : string;

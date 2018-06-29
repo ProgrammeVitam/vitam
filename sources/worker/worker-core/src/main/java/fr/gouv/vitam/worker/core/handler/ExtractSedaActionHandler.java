@@ -1433,7 +1433,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param isRootArchive true if the AU is root
      * @throws InvalidParseOperationException
      */
-    private void updateManagementAndAppendGlobalMgtRule(ObjectNode archiveUnit, Set<String> globalMgtIdExtra, boolean isRootArchive)
+    private void updateManagementAndAppendGlobalMgtRule(ObjectNode archiveUnit, Set<String> globalMgtIdExtra,
+        boolean isRootArchive)
         throws InvalidParseOperationException {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -1541,7 +1542,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
             ruleCategoryModel.setFinalAction(finalAction.asText());
         }
-        
+
         archiveUnitManagementModel.setRuleCategoryModel(ruleCategoryModel, ruleType);
 
     }
@@ -2054,9 +2055,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         writer.add(eventFactory.createCharacters(attribute.getValue()));
                         writer.add(eventFactory.createEndElement("", "", SedaConstants.TAG_ATTRIBUTE_UNIT));
                         event = reader.nextEvent();
-                        writer.add(eventFactory.createStartElement("", "", SedaConstants.TAG_VALUE));
+                        writer.add(eventFactory.createStartElement("", "", SedaConstants.TAG_D_VALUE));
                         writer.add(event.asCharacters());
-                        writer.add(eventFactory.createEndElement("", "", SedaConstants.TAG_VALUE));
+                        writer.add(eventFactory.createEndElement("", "", SedaConstants.TAG_D_VALUE));
                     }
                 }
             } else if (event.isCharacters()) {

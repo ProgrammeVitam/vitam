@@ -15,11 +15,11 @@ Les contextes applicatifs sont importés dans la solution logicielle Vitam sous 
 
   {
       "Name": "My_Context_5",
-      "Status": true,
+      "Status": "ACTIVE",
       "SecurityProfile": "admin-security-profile",
       "Permissions": [
         {
-          "_tenant": 1,
+          "tenant": 1,
           "AccessContracts": [
             "AccessContracts_1",
             "AccessContracts_2"
@@ -30,7 +30,7 @@ Les contextes applicatifs sont importés dans la solution logicielle Vitam sous 
           ]
         },
         {
-          "_tenant": 0,
+          "tenant": 0,
           "AccessContracts": [
             "AccessContracts_5",
             "AccessContracts_6"
@@ -51,57 +51,57 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
   {
       "_id": "aegqaaaaaaevq6lcaamxsak7psqdcmqaaaaq",
       "Name": "admin-context",
-      "Status": true,
+      "Status": "ACTIVE",
       "Identifier": "CT-000001",
       "SecurityProfile": "admin-security-profile",
       "Permissions": [
           {
-              "_tenant": 0,
+              "tenant": 0,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 1,
+              "tenant": 1,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 2,
+              "tenant": 2,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 3,
+              "tenant": 3,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 4,
+              "tenant": 4,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 5,
+              "tenant": 5,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 6,
+              "tenant": 6,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 7,
+              "tenant": 7,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 8,
+              "tenant": 8,
               "AccessContracts": [],
               "IngestContracts": []
           },
           {
-              "_tenant": 9,
+              "tenant": 9,
               "AccessContracts": [],
               "IngestContracts": []
           }
@@ -135,10 +135,8 @@ Détail des champs
 
 **"Status":** statut du contexte applicatif. 
 
-  * Il peut avoir pour valeur "true" ou "false" et a la valeur par défaut : "false".
-  * Il s'agit d'un booléen
-  * "true" : le contexte est actif
-  * "false" : le contexte est inactif
+  * Il s'agit d'une chaîne de caractères.
+  * Peut être ACTIVE ou INACTIVE
   * Cardinalité : 1-1
 
 **"Identifier":** identifiant signifiant donné au contexte applicatif.
@@ -158,7 +156,12 @@ Détail des champs
   * C'est un mot clé qui n'a pas de valeur associée.
   * Il s'agit d'un tableau. 
   * Peut être vide.
-  * Cardinalité : 1-1 
+  * Cardinalité : 1-1
+  
+**"tenant":** tenant sur lequel sont appliquées les permissions 
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 **"AccessContracts":** tableau d'identifiants de contrats d'accès appliqués sur le tenant.
 

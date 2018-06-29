@@ -710,6 +710,9 @@
               "FirstName": {
                 "type": "text"
               },
+              "Fullname": {
+                "type": "text"
+              },
               "Gender": {
                 "type": "text"
               },
@@ -801,6 +804,9 @@
                 "type": "text"
               },
               "FirstName": {
+                "type": "text"
+              },
+              "FullName": {
                 "type": "text"
               },
               "Gender": {

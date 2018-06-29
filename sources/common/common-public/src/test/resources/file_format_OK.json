@@ -11,7 +11,7 @@
 	"HasPriorityOverFileFormatID": [
 		"fmt/714"
 	],
-	"MIMEType": "audio/mobile-xmf",
+	"MimeType": "audio/mobile-xmf",
 	"Group": "",
 	"Alert": false,
 	"Comment": "",
