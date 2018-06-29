@@ -44,6 +44,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
+import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
@@ -80,6 +81,20 @@ public class IngestExternalClientMockTest {
         assertEquals(requestResponse.getHttpCode(), 202);
     }
 
+    @Test
+    public void givenNonEmptyLocalFileThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
+        IngestExternalClientFactory.changeMode(null);
+
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        RequestResponse<Void> requestResponse =
+            client.ingestLocal(new VitamContext(TENANT_ID), new LocalFile("path"), CONTEXT_ID, EXECUTION_MODE);
+
+        assertEquals(requestResponse.getHttpCode(), 202);
+    }
+    
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess()
         throws VitamClientException {

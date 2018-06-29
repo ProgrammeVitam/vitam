@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
+import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -76,5 +77,17 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         IngestCollection type)
         throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
+    }
+
+    @Override
+    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile, String contextId,
+        String action)
+        throws IngestExternalException {
+
+        RequestResponseOK r = new RequestResponseOK<>();
+        r.setHttpCode(Status.ACCEPTED.getStatusCode());
+        r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
+
+        return r;
     }
 }
