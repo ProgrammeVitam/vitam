@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -186,8 +184,6 @@ public class ProcessManagementImplTest {
         when(ProcessDataAccessImpl.getInstance()).thenReturn(processDataAccess);
 
         when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
-
-        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
 
         processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);

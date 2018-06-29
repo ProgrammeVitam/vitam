@@ -610,6 +610,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
                     try {
+                        LOGGER.warn(
+                            "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
+                            wue.getWorkerId());
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);
