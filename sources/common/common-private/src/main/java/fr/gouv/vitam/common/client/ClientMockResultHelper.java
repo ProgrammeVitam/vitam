@@ -208,7 +208,7 @@ public class ClientMockResultHelper {
         "\"Name\":\"Un contrat\", " +
         "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
         "\"Status\":\"ACTIVE\", " +
-        "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\"], " +
+        "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\", \"Identifier0\", \"Identifier1\", \"Identifier2\", \"Identifier3\", \"Identifier4\"], " +
         "\"EveryDataObjectVersion\": false, " +
         "\"CreationDate\":\"2016-11-02\", " +
         "\"LastUpdate\":\"2016-11-02\", " +

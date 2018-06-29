@@ -1,12 +1,16 @@
 package fr.gouv.vitam.metadata.management.integration.test;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Indexes.ascending;
+import static com.mongodb.client.model.Sorts.orderBy;
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,12 +21,20 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import com.mongodb.client.model.Filters;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
+import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
+import fr.gouv.vitam.access.internal.rest.AccessInternalResourceImpl;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -38,11 +50,15 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.graph.GraphUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -52,15 +68,19 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -68,6 +88,10 @@ import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -83,12 +107,16 @@ import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.After;
@@ -154,19 +182,47 @@ public class MetadataManagementIT {
     private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
     private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
     private static final String METADATA_CONF = "integration-metadata-management/metadata.conf";
+    private static final String PROCESSING_CONF = "integration-metadata-management/processing.conf";
+    private static final String WORKER_CONF = "integration-metadata-management/worker.conf";
+
+
+    private static final String reclassification_units = "integration-metadata-management/reclassification/units.json";
+    private static final String reclassification_units_lfc =
+        "integration-metadata-management/reclassification/units_lfc.json";
+    private static final String reclassification_gots = "integration-metadata-management/reclassification/gots.json";
+    private static final String dsl_attach_arbre_ingest_ko =
+        "integration-metadata-management/reclassification/dsl_attach_arbre_ingest_ko.json";
+    private static final String dsl_attach_arbre_plan_ko =
+        "integration-metadata-management/reclassification/dsl_attach_arbre_plan_ko.json";
+    private static final String dsl_attach_plan_ingest_ko =
+        "integration-metadata-management/reclassification/dsl_attach_plan_ingest_ko.json";
+    private static final String dsl_cycle_ko =
+        "integration-metadata-management/reclassification/dsl_cycle_ko.json";
+    private static final String dsl_attach_detach_ok_parallel =
+        "integration-metadata-management/reclassification/dsl_attach_detach_ok_parallel.json";
+    private static final String dsl_attach_detach_ok =
+        "integration-metadata-management/reclassification/dsl_attach_detach_ok.json";
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 1;
+    private static final long SLEEP_TIME = 5000l;
+    private static final long NB_TRY = 180; // equivalent to 15 minutes
+
 
     private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_METADATA = 8098;
+    private static final int PORT_SERVICE_METADATA = 8096;
     private static final int PORT_SERVICE_LOGBOOK = 8099;
     private static final int PORT_SERVICE_STORAGE = 8193;
     private static final int PORT_SERVICE_OFFER = 8194;
+    private static final int PORT_SERVICE_WORKER = 8098;
+    private static final int PORT_SERVICE_PROCESSING = 8097;
+
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
+    private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
+
     public static final String JSON_EXTENTION = ".json";
 
     private static WorkspaceMain workspaceMain;
@@ -182,6 +238,9 @@ public class MetadataManagementIT {
     private static MetadataMain metadataMain;
     private static OffsetRepository offsetRepository;
 
+    private static ProcessManagementMain processManagementMain;
+    private static WorkerMain workerMain;
+
     private MetadataManagementResource metadataManagementResource;
 
     @ClassRule
@@ -191,6 +250,9 @@ public class MetadataManagementIT {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
             MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName(),
+            LogbookCollections.OPERATION.getName(),
+            LogbookCollections.LIFECYCLE_UNIT.getName(),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
             OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION, OffsetRepository.COLLECTION_NAME,
             OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
 
@@ -273,6 +335,21 @@ public class MetadataManagementIT {
         SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
+        // launch processing
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_PROCESSING));
+        processManagementMain = new ProcessManagementMain(PropertiesUtils.getResourceFile(PROCESSING_CONF).toString());
+        processManagementMain.start();
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+
+        // launch worker
+        SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        workerMain = new WorkerMain(PropertiesUtils.getResourceFile(WORKER_CONF).toString());
+        workerMain.start();
+        SystemPropertyUtil.clear("jetty.worker.port");
+
+
         // launch offer
         SystemPropertyUtil
             .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
@@ -342,6 +419,14 @@ public class MetadataManagementIT {
         }
         if (logbookMain != null) {
             logbookMain.stop();
+        }
+
+        if (workerMain != null) {
+            workerMain.stop();
+        }
+
+        if (processManagementMain != null) {
+            processManagementMain.stop();
         }
         elasticsearchRule.afterClass();
     }
@@ -720,44 +805,12 @@ public class MetadataManagementIT {
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
-
-
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
-        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
-
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
-        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
-        assertThat(first.get("DescriptionLevel")).isNull();
-        assertThat(first.get("_storage")).isNull();
-        assertThat(first.get("_tenant")).isNull();
-        assertThat(first.get("_v")).isNull();
+        // Check Unit
+        String expectedUnitJson = "integration-metadata-management/expected/units_1.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        // Check Got
+        String expectedGotJson = "integration-metadata-management/expected/gots_1.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
 
 
         assertThat(offsetRepository.findOffsetBy(1, DataCategory.UNIT_GRAPH.name()))
@@ -771,8 +824,6 @@ public class MetadataManagementIT {
     public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraph_in_one_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
@@ -870,64 +921,12 @@ public class MetadataManagementIT {
 
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
-
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
-        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
-
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
-        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
-        assertThat(first.get("DescriptionLevel")).isNull();
-        assertThat(first.get("_storage")).isNull();
-        assertThat(first.get("_tenant")).isNull();
-        assertThat(first.get("_v")).isNull();
-
-
-        // Check Object Group
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
-        assertThat(first.get("_v").asInt()).isEqualTo(0);
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
-        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
-
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
-        assertThat(first.get("_v").asInt()).isEqualTo(0);
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
-        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
+        // Check Unit
+        String expectedUnitJson = "integration-metadata-management/expected/units_2.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        // Check Got
+        String expectedGotJson = "integration-metadata-management/expected/gots_2.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
     }
 
 
@@ -990,70 +989,11 @@ public class MetadataManagementIT {
 
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
-        assertThat(first.get("DescriptionLevel")).isNull();
-        assertThat(first.get("_storage")).isNull();
-        assertThat(first.get("_tenant")).isNull();
-        assertThat(first.get("_v")).isNull();
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
-        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
-        assertThat(first.get("DescriptionLevel")).isNull();
-        assertThat(first.get("_storage")).isNull();
-        assertThat(first.get("_tenant")).isNull();
-        assertThat(first.get("_v")).isNull();
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
-        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
-        assertThat(first.get("DescriptionLevel")).isNull();
-        assertThat(first.get("_storage")).isNull();
-        assertThat(first.get("_tenant")).isNull();
-        assertThat(first.get("_v")).isNull();
-
-
-        // Check Object Group
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
-        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
-        assertThat(first.get("_v")).isNull();
-        assertThat(first.get("_sp")).isNull();
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
-        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
-        assertThat(first.get("_v")).isNull();
-        assertThat(first.get("_sp")).isNull();
-
+        String expectedUnitJson = "integration-metadata-management/expected/units_3.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        // Check Got
+        String expectedGotJson = "integration-metadata-management/expected/gots_3.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
 
         createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
         createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
@@ -1112,66 +1052,11 @@ public class MetadataManagementIT {
 
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
-
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
-        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
-        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
-        assertThat(first.get("_storage")).isNotNull();
-        assertThat(first.get("_tenant")).isNotNull();
-        assertThat(first.get("_v")).isNotNull();
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_graph").toString())
-            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
-        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
-        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
-
-        // Check Object Group
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
-        assertThat(first.get("_v").asInt()).isEqualTo(0);
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
-        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
-        assertThat(first.get("_qualifiers")).isNotNull();
-        assertThat(first.get("_tenant")).isNotNull();
-        assertThat(first.get("_v")).isNotNull();
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
-        assertThat(first.get("_v").asInt()).isEqualTo(0);
-        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
-        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
-        assertThat(first.get("_qualifiers")).isNotNull();
-        assertThat(first.get("_tenant")).isNotNull();
-        assertThat(first.get("_v")).isNotNull();
+        expectedUnitJson = "integration-metadata-management/expected/units_4.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        // Check Got
+        expectedGotJson = "integration-metadata-management/expected/gots_4.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
     }
 
 
@@ -1198,128 +1083,431 @@ public class MetadataManagementIT {
         select.setQuery(QueryHelper.missing("fakefake"));
         GraphComputeResponse body = metaDataClient.computeGraph(select.getFinalSelect());
 
-        check(body);
+        assertThat(body.getUnitCount()).isEqualTo(4);
+        assertThat(body.getGotCount()).isEqualTo(3);
 
-        Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
-        Document got10 = (Document) MetadataCollections.OBJECTGROUP.getCollection()
-            .find(eq(Unit.ID, "GOT_10"))
-            .first();
-
-        au3.remove(Unit.ORIGINATING_AGENCIES);
-        got10.remove(Unit.ORIGINATING_AGENCIES);
-
-        MetadataCollections.UNIT.getCollection().replaceOne(Filters.eq(Unit.ID, au3.getString(Unit.ID)), au3);
-        MetadataCollections.OBJECTGROUP.getCollection()
-            .replaceOne(Filters.eq(Unit.ID, got10.getString(Unit.ID)), got10);
+        // Check Unit
+        String expectedUnitJson = "integration-metadata-management/expected/units_5.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
+        // Check Got
+        String expectedGotJson = "integration-metadata-management/expected/gots_5.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
 
         body = metaDataClient.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT_OBJECTGROUP,
             Sets.newHashSet("AU_3", "AU_6", "AU_7", "AU_10"));
 
-        check(body);
-
-    }
-
-    private void check(GraphComputeResponse body) {
-        // Check that 4 unit and 4 ObjectGroup are trated
         assertThat(body.getUnitCount()).isEqualTo(4);
         assertThat(body.getGotCount()).isEqualTo(3);
 
-        // Check graph data for unit (AU_3, AU_6, AU_7,AU_9, AU_10)
-        Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
-        Document au6 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_6")).first();
-        Document au7 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_7")).first();
-        Document au10 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_10")).first();
+    }
 
-        // AU3
-        assertThat(au3.get(Unit.UNITUPS, List.class)).contains("AU_1");
-        assertThat(au3.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1");
-        assertThat(au3.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKey("OA1");
-        assertThat(au3.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(2);
-        assertThat(au3.get(Unit.GRAPH, List.class)).contains(GraphUtils.createGraphRelation("AU_3", "AU_1"));
+    @Test
+    @RunWithCustomExecutor
+    public void testComputeUnitAndObjectGroupGraphForTrivialCases() throws Exception {
+        Document au_without_parents = new Document(Unit.ID, "au_without_parents")
+            .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+        Document got_without_unit = new Document(ObjectGroup.ID, "got_without_unit")
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
 
-        //AU 6
-        assertThat(au6.get(Unit.UNITUPS, List.class)).contains("AU_2", "AU_5");
-        assertThat(au6.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA2");
-        assertThat(au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA2");
-        assertThat((List) au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_5");
-        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).hasSize(2);
-        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).containsKeys("2");
-        assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_5", "AU_2");
-        assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_2");
-        assertThat(au6.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(3);
-        assertThat(au6.get(Unit.GRAPH, List.class))
-            .contains(GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"),
-                GraphUtils.createGraphRelation("AU_5", "AU_2"));
+        MetadataCollections.UNIT.getCollection().insertOne(au_without_parents);
+        MetadataCollections.OBJECTGROUP.getCollection().insertOne(got_without_unit);
 
-        //AU 7
-        assertThat(au7.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4");
-        assertThat(au7.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
-        assertThat(au7.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
-        assertThat(au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA1", "OA2", "OA4");
-        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
-        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2");
-        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
-        assertThat(au7.get(Unit.UNITDEPTHS, Map.class)).hasSize(2);
-        assertThat(au7.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2");
-        assertThat((List) au7.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_4");
-        assertThat((List) au7.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_1", "AU_2");
-        assertThat(au7.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(3);
-        assertThat(au7.get(Unit.GRAPH, List.class))
-            .contains(GraphUtils.createGraphRelation("AU_7", "AU_4"), GraphUtils.createGraphRelation("AU_4", "AU_1"),
-                GraphUtils.createGraphRelation("AU_4", "AU_2"));
+        final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
 
-        //AU 10
-        assertThat(au10.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4", "AU_5", "AU_6", "AU_8", "AU_9");
-        assertThat(au10.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
-        assertThat(au10.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
-        assertThat(au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA1", "OA2", "OA4");
-        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
-        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2"))
-            .contains("AU_2", "AU_6", "AU_8", "AU_9");
-        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
-        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).hasSize(4);
-        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2", "3");
-        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_8", "AU_9");
-        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_4", "AU_6", "AU_5");
-        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("3")).contains("AU_1", "AU_2", "AU_5");
-        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("4")).contains("AU_2");
-        assertThat(au10.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(5);
-        assertThat(au10.get(Unit.GRAPH, List.class))
-            .contains(GraphUtils.createGraphRelation("AU_10", "AU_8"), GraphUtils.createGraphRelation("AU_10", "AU_9"),
-                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"),
-                GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_9", "AU_6"),
-                GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"),
-                GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"),
-                GraphUtils.createGraphRelation("AU_4", "AU_1"));
+        // Compute Graph
+        final Select select = new Select();
+        select.setQuery(QueryHelper.missing("fakefake"));
+        GraphComputeResponse body = metaDataClient
+            .computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("au_without_parents"));
+
+        assertThat(body.getUnitCount()).isEqualTo(1);
+        assertThat(body.getGotCount()).isEqualTo(0);
+
+        Document computedUnit =
+            (Document) MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
+                .iterator().next();
+        assertThat(computedUnit.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
+        assertThat(computedUnit.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA4");
+
+        body = metaDataClient
+            .computeGraph(GraphComputeResponse.GraphComputeAction.OBJECTGROUP, Sets.newHashSet("got_without_unit"));
+
+        assertThat(body.getUnitCount()).isEqualTo(0);
+        assertThat(body.getGotCount()).isEqualTo(1);
 
 
-        // Check graph data for ObjectGroup (GOT_4, GOT_6, GOT_8, GOT_9, GOT_10)
-        Document got4 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_4")).first();
-        Document got6 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_6")).first();
-        Document got8 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_8")).first();
+        Document computedGot =
+            (Document) MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_without_unit"))
+                .iterator().next();
+        assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA2");
 
-        Document got10 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_10")).first();
+        // Purge mongo
+        mongoRule.handleAfter();
+        // Re-insert
+        Document got_with_unit_up = got_without_unit
+            .append(ObjectGroup.UP, Lists.newArrayList("au_without_parents"));
+        got_with_unit_up.put(ObjectGroup.ID, "got_with_unit_up");
+        au_without_parents.put(Unit.OG, "got_with_unit_up");
+
+        MetadataCollections.UNIT.getCollection().insertOne(au_without_parents);
+        MetadataCollections.OBJECTGROUP.getCollection().insertOne(got_with_unit_up);
+
+        body = metaDataClient.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT_OBJECTGROUP,
+            Sets.newHashSet("au_without_parents"));
+
+        assertThat(body.getUnitCount()).isEqualTo(1);
+        assertThat(body.getGotCount()).isEqualTo(1);
+
+        computedUnit =
+            (Document) MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
+                .iterator().next();
+        assertThat(computedUnit.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
+        assertThat(computedUnit.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA4");
+
+        computedGot =
+            (Document) MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_with_unit_up"))
+                .iterator().next();
+        assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(2).contains("OA4", "OA2");
+    }
+
+    //@see graph.png
+    @Test
+    @RunWithCustomExecutor
+    public void test_all_case_of_reclassification() throws Exception {
+        try {
+            StorageClientFactory.changeMode(null); // If test storage needed uncomment
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+            VitamThreadUtils.getVitamSession().setContractId("FakeContract");
+            VitamThreadUtils.getVitamSession().setContextId("FakeContext");
+
+            // Given initial unit data
+            final List<Document> unitList =
+                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_units),
+                    new TypeReference<List<Unit>>() {
+                    });
+
+            final List<Document> gotList =
+                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_gots),
+                    new TypeReference<List<Document>>() {
+                    });
+
+            final List<JsonNode> unitsLfcJsonNodes =
+                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_units_lfc),
+                    new TypeReference<List<JsonNode>>() {
+                    });
+
+            List<Document> unitsLfc = unitsLfcJsonNodes.stream()
+                .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
+            // Save units
+            mongoRepository.get(MetadataCollections.UNIT).save(unitList);
+            esRepository.get(MetadataCollections.UNIT).save(unitList);
+
+            // Save gots
+            mongoRepository.get(MetadataCollections.OBJECTGROUP).save(gotList);
+            esRepository.get(MetadataCollections.OBJECTGROUP).save(gotList);
+
+            // Save LFC
+            new VitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getCollection()).save(unitsLfc);
+
+            AccessInternalConfiguration accessInternalConfiguration = new AccessInternalConfiguration();
+            accessInternalConfiguration.setUrlMetaData(METADATA_URL);
+            accessInternalConfiguration.setUrlProcessing(PROCESSING_URL);
+            accessInternalConfiguration.setUrlWorkspace(WORKSPACE_URL);
+            AccessInternalResourceImpl accessInternalResource =
+                new AccessInternalResourceImpl(accessInternalConfiguration);
+
+            // When attach HOLDING_UNIT -> FILING_UNIT then KO
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kaqaaaaq");
+            String operation = VitamThreadUtils.getVitamSession().getRequestId();
+            JsonNode dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_arbre_plan_ko));
+            accessInternalResource.startReclassificationWorkflow(dsl);
+            wait(operation);
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            JsonNode logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            JsonNode logbookNode = logbook.get("$results").get(0);
+            JsonNode preparationEvent = logbookNode.get("events");
+            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
+
+            // When attach HOLDING_UNIT -> INGEST then KO
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kbqaaaaq");
+            operation = VitamThreadUtils.getVitamSession().getRequestId();
+            dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_arbre_ingest_ko));
+            accessInternalResource.startReclassificationWorkflow(dsl);
+            wait(operation);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbookNode = logbook.get("$results").get(0);
+            preparationEvent = logbookNode.get("events");
+            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
 
 
-        // Got 4
-        assertThat(got4.get(ObjectGroup.UP, List.class)).contains("AU_4");
-        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
-        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA4");
+            // When attach FILING_UNIT -> INGEST then KO
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kcqaaaaq");
+            operation = VitamThreadUtils.getVitamSession().getRequestId();
+            dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_plan_ingest_ko));
+            accessInternalResource.startReclassificationWorkflow(dsl);
+            wait(operation);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbookNode = logbook.get("$results").get(0);
+            preparationEvent = logbookNode.get("events");
+            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
 
-        // Got 6
-        assertThat(got6.get(ObjectGroup.UP, List.class)).contains("AU_6");
-        assertThat(got6.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
-        assertThat(got6.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA2");
+            // When cycle exists then KO
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kdqaaaaq");
+            operation = VitamThreadUtils.getVitamSession().getRequestId();
+            dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_cycle_ko));
+            accessInternalResource.startReclassificationWorkflow(dsl);
+            wait(operation);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            logbook = logbookClient.selectOperationById(operation, JsonHandler.createObjectNode());
+            logbookNode = logbook.get("$results").get(0);
+            preparationEvent = logbookNode.get("events");
+            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("Cycle detected");
+            //When access contract restriction then KO
 
-        // Got 8
-        assertThat(got8.get(ObjectGroup.UP, List.class)).contains("AU_8", "AU_3", "AU_7");
-        assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
-        assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+            //When parallel reclassification then KO
+            // 1. Start first reclassification en mode step by step
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64keqaaaaq");
+            operation = VitamThreadUtils.getVitamSession().getRequestId();
+            dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_detach_ok));
+            accessInternalResource.startReclassificationWorkflow(dsl, ProcessAction.NEXT);
+            wait(operation);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            // 2. Start parallel reclassification KO
+            VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kfqaaaaq");
+            String operation_parallel = VitamThreadUtils.getVitamSession().getRequestId();
+            dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_detach_ok_parallel));
+            accessInternalResource.startReclassificationWorkflow(dsl);
+            wait(operation_parallel);
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation_parallel, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
-        // Got 10
-        assertThat(got10.get(ObjectGroup.UP, List.class)).contains("AU_10");
-        assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
-        assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+            logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            logbook = logbookClient.selectOperationById(operation_parallel, JsonHandler.createObjectNode());
+            logbookNode = logbook.get("$results").get(0);
+            preparationEvent = logbookNode.get("events");
+            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.KO");
+            assertThat(preparationEvent.get(2).get("evDetData").asText())
+                .contains("Concurrent reclassification process(es) found");
+
+
+            // 3. Start initial Reclassification en mode continue
+            VitamThreadUtils.getVitamSession().setRequestId(operation);
+            ProcessingManagementClientFactory.getInstance().getClient()
+                .executeOperationProcess(operation, Contexts.RECLASSIFICATION.getEventType(),
+                    Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
+
+            wait(operation);
+
+            processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
+            Assertions.assertThat(processWorkflow).isNotNull();
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            // Get unit (au_d)
+            Optional<Document> optionalUnit =
+                mongoRepository.get(MetadataCollections.UNIT).getByID("aedqaaaaacfnrnfpaao4galeht64zgqaaaaq", TENANT_0);
+            assertThat(optionalUnit).isPresent();
+            Document au = optionalUnit.get();
+            Integer _max = au.get(Unit.MAXDEPTH, Integer.class);
+            assertThat(_max).isEqualTo(4);
+
+            // Check all originating agencies
+            List<String> _sps = au.get(Unit.ORIGINATING_AGENCIES, List.class);
+            assertThat(_sps).contains("Identifier0", "Identifier1", "Identifier2");
+
+            // Check all parent
+            List<String> _us = au.get(Unit.UNITUPS, List.class);
+            assertThat(_us).contains("aedqaaaaacfnrnfpaao4galeht65vjiaaaaq", "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht64kjaaaaaq", "aedqaaaaacfnrnfpaao4galeht64khqaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq");
+
+            // Check all parents depths
+            Map<String, List<String>> _uds = au.get(Unit.UNITDEPTHS, Map.class);
+            assertThat(_uds).hasSize(3);
+            // depth 1 > au_b, au_c
+            assertThat(_uds.get("1"))
+                .contains("aedqaaaaacfnrnfpaao4galeht64zeqaaaaq", "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq");
+            // depth 2 > au_c, au_a, au_g
+            assertThat(_uds.get("2"))
+                .contains("aedqaaaaacfnrnfpaao4galeht64kjaaaaaq", "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
+                    "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq");
+            // depth 3 > au_f
+            assertThat(_uds.get("3")).contains("aedqaaaaacfnrnfpaao4galeht64khqaaaaq");
+
+            // Check parent originating agencies
+            Map<String, List<String>> _us_sp = au.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class);
+            assertThat(_uds).hasSize(3);
+            // au_b, au_c, au_a
+            assertThat(_us_sp.get("Identifier0"))
+                .contains("aedqaaaaacfnrnfpaao4galeht65vjiaaaaq", "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
+                    "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq");
+            // au_f
+            assertThat(_us_sp.get("Identifier1")).contains("aedqaaaaacfnrnfpaao4galeht64khqaaaaq");
+            // au_g
+            assertThat(_us_sp.get("Identifier2")).contains("aedqaaaaacfnrnfpaao4galeht64kjaaaaaq");
+
+
+            // Check graph
+            List<String> _graph = au.get(Unit.GRAPH, List.class);
+            // au_a -> au_f, au_c_-> au_g, au_b -> au_a, au_b -> au_c, au_d -> au_b, au_d -> au_c
+            assertThat(_graph).contains(
+                "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq/aedqaaaaacfnrnfpaao4galeht64kjaaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq/aedqaaaaacfnrnfpaao4galeht65vjiaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq/aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht64zgqaaaaq/aedqaaaaacfnrnfpaao4galeht65zpiaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht64zgqaaaaq/aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
+                "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq/aedqaaaaacfnrnfpaao4galeht64khqaaaaq");
+
+
+            // Get unit (au_e) remove arbre
+            optionalUnit =
+                mongoRepository.get(MetadataCollections.UNIT).getByID("aedqaaaaacfnrnfpaao4galeht64riyaaaaq", TENANT_0);
+            assertThat(optionalUnit).isPresent();
+            au = optionalUnit.get();
+            _max = au.get(Unit.MAXDEPTH, Integer.class);
+            assertThat(_max).isEqualTo(1);
+
+            // Check all originating agencies
+            _sps = au.get(Unit.ORIGINATING_AGENCIES, List.class);
+            assertThat(_sps).contains("Identifier0");
+
+            // Check all parent
+            _us = au.get(Unit.UNITUPS, List.class);
+            assertThat(_us).isEmpty();
+
+            // Check all parents depths
+            _uds = au.get(Unit.UNITDEPTHS, Map.class);
+            assertThat(_uds).isEmpty();
+
+            // Check parent originating agencies
+            _us_sp = au.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class);
+            assertThat(_uds).isEmpty();
+
+            // Check graph
+            _graph = au.get(Unit.GRAPH, List.class);
+            assertThat(_graph).isEmpty();
+
+
+            //Check global Units
+            String expectedJson = "integration-metadata-management/expected/units_6.json";
+            assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedJson);
+
+
+            //Check global Gots
+            expectedJson = "integration-metadata-management/expected/gots_6.json";
+            assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedJson);
+
+        } finally {
+            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
+        }
+    }
+
+
+
+    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
+        throws InvalidParseOperationException, FileNotFoundException {
+
+        ArrayNode unitDataSet = dumpDataSet(mongoCollection);
+
+        String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
+        String expectedUnitDataSet =
+            JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                expectedDataSetFile)));
+
+        JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+    }
+
+    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
+
+        ArrayNode dataSet = JsonHandler.createArrayNode();
+        FindIterable<T> documents = mongoCollection.find()
+            .sort(orderBy(ascending(MetadataDocument.ID)));
+
+        for (T document : documents) {
+            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+
+            // Replace _glpd with marker
+            assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
+            jsonUnit.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
+
+            dataSet.add(jsonUnit);
+        }
+
+        return dataSet;
+    }
+
+    private void wait(String operationId) {
+        int nbTry = 0;
+        while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            if (nbTry == NB_TRY)
+                break;
+            nbTry++;
+        }
     }
 
     // See computegraph.png for more information
@@ -1329,7 +1517,7 @@ public class MetadataManagementIT {
             .append(Unit.MAXDEPTH, 1)
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
@@ -1337,7 +1525,7 @@ public class MetadataManagementIT {
             .append(Unit.MAXDEPTH, 1)
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1347,6 +1535,7 @@ public class MetadataManagementIT {
                 .append(Unit.TENANT_ID, 1)
                 .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_1"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA1"));
 
@@ -1355,7 +1544,7 @@ public class MetadataManagementIT {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_4")
             .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
@@ -1364,7 +1553,7 @@ public class MetadataManagementIT {
             .append(Unit.MAXDEPTH, 1)
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList("AU_2"))
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1374,6 +1563,7 @@ public class MetadataManagementIT {
             .append(Unit.OG, "GOT_6")
             .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
             .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au7 =
@@ -1382,6 +1572,7 @@ public class MetadataManagementIT {
                 .append(Unit.TENANT_ID, 1)
                 .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_4"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1390,7 +1581,7 @@ public class MetadataManagementIT {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
@@ -1400,7 +1591,7 @@ public class MetadataManagementIT {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_9")
             .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
-            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1410,6 +1601,7 @@ public class MetadataManagementIT {
                 .append(Unit.TENANT_ID, 1)
                 .append(Unit.OG, "GOT_10")
                 .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1424,6 +1616,7 @@ public class MetadataManagementIT {
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
 
         // Got 6 have Graph Data
@@ -1438,17 +1631,20 @@ public class MetadataManagementIT {
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got9 = new Document(ObjectGroup.ID, "GOT_9")
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got10 =
             new Document(ObjectGroup.ID, "GOT_10")
                 .append(Unit.TENANT_ID, 1)
                 .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
