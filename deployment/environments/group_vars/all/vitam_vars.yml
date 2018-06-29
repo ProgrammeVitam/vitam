@@ -26,6 +26,8 @@ vitam_defaults:
     #package_version: "*"
     ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false) ###
     vitam_ssl_user_header: true
+    ### Force chunk mode : set true if chunk header should be checked
+    vitam_force_chunk_mode: false
     # syslog_facility
     syslog_facility: local0
 

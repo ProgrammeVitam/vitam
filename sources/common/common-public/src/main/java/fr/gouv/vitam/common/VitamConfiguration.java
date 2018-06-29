@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
@@ -325,8 +326,8 @@ public class VitamConfiguration {
      */
     private static int storeGraphElementsPerFile = 10000;
     /**
-     * The overlap delay (in seconds) for store graph operation.
-     * Used to do not treat elements in critical state due to clock difference or GC slow down or VM freeze
+     * The overlap delay (in seconds) for store graph operation. Used to do not treat elements in critical state due to
+     * clock difference or GC slow down or VM freeze
      */
     private static int storeGraphOverlapDelay = 300;
 
@@ -336,8 +337,8 @@ public class VitamConfiguration {
     private static int migrationBulkSize = 10000;
 
     /**
-     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
-     * The unit should contains only graph data and the graph last persisted date should be 30 day older
+     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data
+     * units The unit should contains only graph data and the graph last persisted date should be 30 day older
      */
     private static int deleteIncompleteReconstructedUnitDelay = 2592000;
 
@@ -391,6 +392,11 @@ public class VitamConfiguration {
     private Integer connectTimeout = CONNECT_TIMEOUT;
 
     private static int asyncWorkspaceQueueSize = 10;
+
+    /**
+     * Force chunked mode
+     */
+    private static Boolean forceChunkModeInputStream = false;
 
 
     /*
@@ -792,6 +798,9 @@ public class VitamConfiguration {
             setOptimisticLockSleepTime(parameters.getOptimisticLockSleepTime());
         }
 
+        if (null != parameters.isForceChunkModeInputStream()) {
+            setForceChunkModeInputStream(parameters.isForceChunkModeInputStream());
+        }
     }
 
     /**
@@ -1479,6 +1488,25 @@ public class VitamConfiguration {
      */
     private static void setAllowGzipEncoding(Boolean allowGzipEncoding) {
         VitamConfiguration.allowGzipEncoding = allowGzipEncoding;
+    }
+
+
+    /**
+     * getter for forceChunkModeInputStream
+     *
+     * @return forceChunkModeInputStream
+     */
+    public static Boolean isForceChunkModeInputStream() {
+        return forceChunkModeInputStream;
+    }
+
+    /**
+     * setter for forceChunkModeInputStream
+     *
+     * @param forceChunkModeInputStream
+     */
+    private static void setForceChunkModeInputStream(Boolean forceChunkModeInputStream) {
+        VitamConfiguration.forceChunkModeInputStream = forceChunkModeInputStream;
     }
 
     /**
