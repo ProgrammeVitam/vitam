@@ -50,20 +50,20 @@ public interface IWorkerManager {
     /**
      * Path to database
      */
-    String WORKKER_DB_PATH = "worker.db";
+    String WORKER_DB_PATH = "worker.db";
     /**
      * Database file
      */
-    File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKKER_DB_PATH);
+    File WORKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKER_DB_PATH);
 
     /**
      * Do the initialization Load worker from worker.db
      */
     default void initialize() {
-        if (WORKKER_DB_FILE.exists()) {
-            loadWorkerList(WORKKER_DB_FILE);
+        if (WORKER_DB_FILE.exists()) {
+            loadWorkerList(WORKER_DB_FILE);
         } else {
-            LOGGER.warn("No worker list serialization file : " + WORKKER_DB_FILE.getName());
+            LOGGER.warn("No worker list serialization file : " + WORKER_DB_FILE.getName());
         }
     }
 

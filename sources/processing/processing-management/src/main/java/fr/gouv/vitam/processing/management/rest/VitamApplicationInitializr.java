@@ -18,6 +18,11 @@
 
 package fr.gouv.vitam.processing.management.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.server.VitamServerLifeCycle;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
@@ -29,11 +34,6 @@ import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
 
 // FIXME:To facilitate some initialization, this Factory is used "only if needed" to prepare resources and classes.
 
@@ -75,6 +75,8 @@ public class VitamApplicationInitializr {
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
 
             workerManager = new WorkerManager();
+            workerManager.initialize();
+
             processDistributor = new ProcessDistributorImpl(workerManager);
 
             ProcessManagementResource processManagementResource =
@@ -84,7 +86,6 @@ public class VitamApplicationInitializr {
             vitamServerLifeCycle =
                 new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
 
-            workerManager.initialize();
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
