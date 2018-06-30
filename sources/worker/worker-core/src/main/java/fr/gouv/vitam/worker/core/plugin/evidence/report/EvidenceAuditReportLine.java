@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.ArrayList;
@@ -35,12 +36,22 @@ import java.util.List;
  * EvidenceAuditReportLine class
  */
 public class EvidenceAuditReportLine {
+
+    @JsonProperty("identifier")
     private String identifier ;
+    @JsonProperty("status")
     private EvidenceStatus evidenceStatus;
+
+    @JsonProperty("message")
     private String message;
+
+    @JsonProperty("objectType")
     private String objectType;
+
+    @JsonProperty("objectsReports")
     private ArrayList<EvidenceAuditReportObject> objectsReports;
-    EvidenceAuditReportLine (){
+
+    public EvidenceAuditReportLine (){
 
     }
     public EvidenceAuditReportLine (String id ){

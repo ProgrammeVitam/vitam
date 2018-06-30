@@ -13,8 +13,8 @@ export class LoadStorageService {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${category}/${fileName}`, null, 'blob');
   }
 
-  uploadFile(newFile, fileName, category): Observable<any> {
-    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${fileName}`, null, newFile)
+  uploadFile(newFile, fileName, size,category,offerId): Observable<any> {
+    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${offerId}/${fileName}/${size}`, null, newFile)
   }
 
 }

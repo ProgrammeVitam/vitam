@@ -57,6 +57,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -523,7 +524,36 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             headers.add(GlobalDataRest.X_DATA_CATEGORY, category.name());
 
             response = performRequest(HttpMethod.POST, COPY + objectId, headers, MediaType.APPLICATION_JSON_TYPE);
-           return getRequestResponseOK(response);
+            return getRequestResponseOK(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize,
+        List<String> offerIds)
+        throws StorageServerClientException, InvalidParseOperationException {
+
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            for (String offerId : offerIds) {
+                headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
+            }
+            headers.add(GlobalDataRest.X_CONTENT_LENGTH, inputStreamSize);
+
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_DATA_CATEGORY, category.name());
+
+            response = performRequest(HttpMethod.POST, "/create/" + objectId, headers, inputStream,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return getRequestResponseOK(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error:", e);
             throw new StorageServerClientException("Internal Server Error", e);

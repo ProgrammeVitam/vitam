@@ -27,39 +27,26 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -68,25 +55,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
@@ -105,48 +85,37 @@ public class StorageTwoOffersIT {
      */
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(StorageTwoOffersIT.class);
-    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
-    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
-
-    private static final String DEFAULT_SECOND_CONF = "storage-test/storage-default-offer2-ssl.conf";
-
-    private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
-
-
+    static final String WORKSPACE_CONF = "storage-test/workspace.conf";
+    static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
+    static final String DEFAULT_SECOND_CONF = "storage-test/storage-default-offer2-ssl.conf";
+    static final String STORAGE_CONF = "storage-test/storage-engine.conf";
+    static final int PORT_SERVICE_WORKSPACE = 8987;
+    static final int PORT_SERVICE_STORAGE = 8583;
+    static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
 
     private static final int TENANT_0 = 0;
-
-    private static final int PORT_SERVICE_WORKSPACE = 8987;
-    private static final int PORT_SERVICE_STORAGE = 8583;
-
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-
     private static final String DIGEST = "digest";
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
-
     private static final String STRATEGY_ID = "default";
 
-    private static WorkspaceMain workspaceMain;
-
-    private static StorageMain storageMain;
-    private static StorageClient storageClient;
-    private static DefaultOfferMain firstOfferApplication;
-    private static WorkspaceClient workspaceClient;
-    private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
-
+    static WorkspaceMain workspaceMain;
+    static StorageMain storageMain;
+    static StorageClient storageClient;
+    static DefaultOfferMain firstOfferApplication;
+    static WorkspaceClient workspaceClient;
+    static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
     private static final String OFFER_FOLDER = "offer";
     private static final String SECOND_FOLDER = "offer2";
+
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam-Test",
         OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
-
-
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -154,116 +123,7 @@ public class StorageTwoOffersIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-
-
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-
-        // launch workspace
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
-
-        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
-
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
-
-        writeYaml(workspaceConfigFile, workspaceConfiguration);
-
-        workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
-        workspaceMain.start();
-        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-
-        // First  offer
-        // Sorry Hack
-        //Force offer 1 to have her own folder
-        File file = PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME);
-        try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: ./offer", outputStream, CharsetUtils.UTF_8);
-        }
-
-        SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, 8757);
-        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
-        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
-        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
-        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
-        offerConfiguration.setMongoDbNodes(mongoDbNodes);
-
-
-        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
-
-        firstOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
-        firstOfferApplication.start();
-        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
-
-
-        // Second offer
-        // Sorry Hack
-        //Force offer 2 to have her own folder
-        file = PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME);
-        try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: ./offer2", outputStream, CharsetUtils.UTF_8);
-        }
-
-        //
-        SystemPropertyUtil.set("jetty.offer2.port", 8758);
-        final File secondOfferConfig = PropertiesUtils.findFile(DEFAULT_SECOND_CONF);
-        final OfferConfiguration secondOfferConfiguration =
-            PropertiesUtils.readYaml(secondOfferConfig, OfferConfiguration.class);
-
-        List<MongoDbNode> mongoDbNodesSecond = secondOfferConfiguration.getMongoDbNodes();
-        mongoDbNodesSecond.get(0).setDbPort(MongoRule.getDataBasePort());
-        secondOfferConfiguration.setMongoDbNodes(mongoDbNodesSecond);
-        PropertiesUtils.writeYaml(secondOfferConfig, secondOfferConfiguration);
-
-        DefaultOfferMain secondOfferApplication = new DefaultOfferMain(secondOfferConfig.getAbsolutePath());
-        secondOfferApplication.start();
-        SystemPropertyUtil.clear("jetty.offer2.port");
-
-
-        // launch engine
-        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
-
-        final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
-
-        final Pattern compiledPattern = Pattern.compile(":(\\d+)");
-        final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
-        if (matcher.find()) {
-            final String[] seg = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
-            serverConfiguration.setUrlWorkspace(seg[0]);
-        }
-        serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(PORT_SERVICE_WORKSPACE));
-
-        tempFolder.create();
-        serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
-        serverConfiguration.setLoggingDirectory(tempFolder.newFolder().getAbsolutePath());
-
-        writeYaml(storageConfigurationFile, serverConfiguration);
-
-        SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-        storageMain = new StorageMain(STORAGE_CONF);
-        storageMain.start();
-        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
-        //configure client
-        StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
-        storageClient = StorageClientFactory.getInstance().getClient();
-
-
-        // launch storage
-        int storageEnginePort = JunitHelper.getInstance().findAvailablePort();
-        SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
-        storageMain = new StorageMain(STORAGE_CONF);
-        storageMain.start();
-        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
-        StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
-        StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);
-        storageClient = StorageClientFactory.getInstance().getClient();
+        SetupStorageAndOffers.setupStorageAndTwoOffer();
     }
 
     private void storeObjectInAllOffers(String id, DataCategory category, InputStream inputStream) throws Exception {
@@ -283,7 +143,9 @@ public class StorageTwoOffersIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         //Given
         String id = GUIDFactory.newGUID().getId();
-        storeObjectInAllOffers(id, OBJECT, new ByteArrayInputStream(id.getBytes()));
+        //storeObjectInAllOffers(id, OBJECT, new ByteArrayInputStream(id.getBytes()));
+        ArrayList<String> offerIds = Lists.newArrayList(OFFER_ID, SECOND_OFFER_ID);
+        storageClient.create(id,OBJECT,new ByteArrayInputStream(id.getBytes()), (long) id.getBytes().length,  offerIds);
         //When
         JsonNode information =
             storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID,
@@ -385,18 +247,7 @@ public class StorageTwoOffersIT {
     @AfterClass
     public static void afterClass() throws Exception {
 
-        if (workspaceMain != null) {
-            workspaceMain.stop();
-        }
-        if (storageClient != null) {
-            storageClient.close();
-        }
-        if (firstOfferApplication != null) {
-            firstOfferApplication.stop();
-        }
-        if (storageMain != null) {
-            storageMain.stop();
-        }
+        SetupStorageAndOffers.close();
 
         cleanOffer(new File(OFFER_FOLDER));
         cleanOffer(new File(SECOND_FOLDER));
@@ -413,6 +264,4 @@ public class StorageTwoOffersIT {
 
         }
     }
-
-
 }

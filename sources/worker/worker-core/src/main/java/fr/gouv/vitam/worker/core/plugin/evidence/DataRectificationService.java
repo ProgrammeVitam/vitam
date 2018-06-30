@@ -24,44 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.distribution.impl;
+package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.worker.core.plugin.evidence.exception.DataRectificationException;
+
+import java.util.List;
 
 /**
- * StreamAndInfo class
+ * DataCorrectionService class
  */
-public class StreamAndInfo{
-    private InputStream stream;
-    private Long size;
-    private Response response;
+public class DataRectificationService {
 
-     public StreamAndInfo(InputStream stream, Long size, Response response) {
-        this.stream = stream;
-        this.size = size;
-        this.response = response;
+    private StorageClient storageClient;
+
+    /**
+     * Constructor
+     */
+    public DataRectificationService() {
+        this(StorageClientFactory.getInstance().getClient());
     }
 
     /**
-     * getter for stream
-     **/
-    public Object getStream() {
-        return stream;
+     * @param storageClient storageClient
+     */
+    private DataRectificationService(StorageClient storageClient) {
+        this.storageClient = storageClient;
     }
 
     /**
-     * getter for size
-     **/
-    public Long getSize() {
-        return size;
-    }
+     * @param id                binary identifier
+     * @param category          the category
+     * @param offerSourceId     offerSourceId
+     * @param offersDestination offeDestination
+     * @throws DataRectificationException throw {@link DataRectificationException if something happen }
+     */
+    public void correctOffers(String id, DataCategory category, String offerSourceId,
+        List<String> offersDestination)
+        throws
+        DataRectificationException {
 
-    /**
-     * getter for response
-     **/
-    public Response getResponse() {
-        return response;
-    }
+        for (String offerId : offersDestination) {
 
+            try {
+                storageClient.copyObjectToOneOfferAnother(id, category, offerSourceId, offerSourceId);
+            } catch (StorageServerClientException | InvalidParseOperationException e) {
+                throw new DataRectificationException(e);
+            }
+
+        }
+    }
 }

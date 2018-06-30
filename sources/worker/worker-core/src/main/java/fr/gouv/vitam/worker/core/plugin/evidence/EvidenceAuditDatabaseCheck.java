@@ -89,6 +89,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                 newLocalFile, true, false);
 
             if (!parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
+
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                 evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());

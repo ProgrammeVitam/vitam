@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -102,14 +105,14 @@ public class EvidenceAuditFinalize extends ActionHandler {
                 for (URI uri : uriListObjectsWorkspace) {
 
                     File file = handlerIO.getFileFromWorkspace(REPORTS + "/" + uri.getPath());
+
                     EvidenceAuditReportLine reportLine = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
-                    if (reportLine.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
-                        evidenceStatusWarn = EvidenceStatus.WARN;
+
+                    if (!reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
+                        continue;
                     }
-                    if (reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
-                        evidenceStatusKo = EvidenceStatus.KO;
-                    }
-                    jsonGenerator.writeFieldName(reportLine.getIdentifier());
+
+                    evidenceStatusKo = EvidenceStatus.KO;
                     jsonGenerator.writeRawValue(unprettyPrint(reportLine));
                 }
                 jsonGenerator.writeEndObject();

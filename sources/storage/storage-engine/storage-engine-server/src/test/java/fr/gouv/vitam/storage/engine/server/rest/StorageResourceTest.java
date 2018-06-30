@@ -32,7 +32,6 @@ import static com.jayway.restassured.RestAssured.given;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -52,6 +51,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -1000,20 +1000,7 @@ public class StorageResourceTest {
 
     public static class StorageDistributionInnerClass implements StorageDistribution {
 
-        @Override
-        public StoredInfoResult storeDataInOffers(String strategyId, String objectId,
-            ObjectDescription createObjectDescription, DataCategory category, String requester)
-            throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
-            } else if (TENANT_ID_A_E.equals(tenantId)) {
-                throw new StorageTechnicalException("Technical error");
-            } else if (TENANT_ID_Ardyexist.equals(tenantId)) {
-                throw new StorageAlreadyExistsException("Already Exists Exception");
-            }
-            return null;
-        }
+
 
         @Override
         public StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String destinationOffer,
@@ -1043,11 +1030,6 @@ public class StorageResourceTest {
         }
 
         @Override
-        public InputStream getStorageContainer(String strategyId) {
-            return null;
-        }
-
-        @Override
         public JsonNode createContainer(String strategyId) throws UnsupportedOperationException {
             return null;
         }
@@ -1070,9 +1052,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public StoredInfoResult storeDataInOneOffer(String strategyId, String objectId, DataCategory category,
-            String requester,
-            String offerId, Response response)
+        public StoredInfoResult storeDataInAllOffers(String strategyId, String objectId,
+            ObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
@@ -1083,6 +1064,28 @@ public class StorageResourceTest {
                 throw new StorageAlreadyExistsException("Already Exists Exception");
             }
             return null;
+        }
+
+        @Override
+        public StoredInfoResult storeDataInOffers(String strategyId, String objectId, DataCategory category,
+            String requester,
+            List<String> offerIds, Response response)
+            throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            if (TENANT_ID_E.equals(tenantId)) {
+                throw new StorageNotFoundException("Not Found");
+            } else if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical error");
+            } else if (TENANT_ID_Ardyexist.equals(tenantId)) {
+                throw new StorageAlreadyExistsException("Already Exists Exception");
+            }
+            return null;
+        }
+
+        @Override
+        public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
+            DataCategory category, String requester, List<String> offerIds) throws StorageException {
+            throw  new UnsupportedOperationException("Not implemented");
         }
 
         /**
@@ -1157,89 +1160,6 @@ public class StorageResourceTest {
         @Override
         public void deleteObjectInOffers(String strategyId, DataContext context, String digest, List <String> offerId) {
             throw new UnsupportedOperationException("UnsupportedOperationException");
-        }
-
-        @Override
-        public JsonNode getContainerLogbooks(String strategyId) throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public JsonNode getContainerLogbook(String strategyId, String logbookId)
-            throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public void deleteLogbook(String strategyId, String logbookId)
-            throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-        }
-
-        @Override
-        public JsonNode getContainerUnits(String strategyId) throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public JsonNode getContainerUnit(String strategyId, String unitId)
-            throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public void deleteUnit(String strategyId, String unitId) throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-        }
-
-        @Override
-        public JsonNode getContainerObjectGroups(String strategyId) throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
-            throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
-            return null;
-        }
-
-        @Override
-        public void deleteObjectGroup(String strategyId, String objectGroupId)
-            throws UnsupportedOperationException {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            if (TENANT_ID_E.equals(tenantId)) {
-                throw new UnsupportedOperationException("UnsupportedOperationException");
-            }
         }
 
         @Override

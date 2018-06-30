@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
 import com.google.common.collect.Iterables;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import org.apache.commons.lang3.StringUtils;
@@ -196,8 +194,8 @@ public class OfferSyncServiceImpl implements OfferSyncService {
                                     if (resp != null &&
                                         resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-                                        distribution.storeDataInOneOffer(STRATEGY_ID, offerLog.getFileName(),
-                                            category, null, destinationOffer, resp);
+                                        distribution.storeDataInOffers(STRATEGY_ID, offerLog.getFileName(),
+                                            category, null, Collections.singletonList(destinationOffer), resp);
                                     }
                                 }
                                 continue;

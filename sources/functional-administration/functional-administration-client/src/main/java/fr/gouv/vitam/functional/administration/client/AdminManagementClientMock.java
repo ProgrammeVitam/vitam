@@ -560,6 +560,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         return new RequestResponseOK();
     }
 
+    @Override
+    public RequestResponse<JsonNode> rectificationAudit(String operationId) {
+        return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+    }
+
     @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());

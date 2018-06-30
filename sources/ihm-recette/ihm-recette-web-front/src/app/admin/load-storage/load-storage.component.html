@@ -8,6 +8,12 @@
       </div>
     </div>
     <div class="ui-g-12">
+      <div class="ui-g-4">Sur quel Offre: </div>
+      <div class="ui-g-4 ui-g-nopad">
+        <input id="offerId" class="fs-1-1em" size="45" pInputText [(ngModel)]="offerId" placeholder="Identifiant de l'offre"/>
+      </div>
+    </div>
+    <div class="ui-g-12">
       <div class="ui-g-4">Catégorie: </div>
       <div class="ui-g-4">
         <p-dropdown id="category" [options]="categoryOptions" [(ngModel)]="category"

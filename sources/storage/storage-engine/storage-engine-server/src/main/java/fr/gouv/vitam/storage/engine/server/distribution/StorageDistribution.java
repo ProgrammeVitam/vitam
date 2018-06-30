@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.server.distribution;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -39,9 +38,9 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -49,23 +48,7 @@ import java.util.List;
  */
 public interface StorageDistribution extends VitamAutoCloseable {
 
-    /**
-     * Store data of any type for given tenant on storage offers associated to
-     * given strategy
-     *
-     * @param strategyId              id of the strategy
-     * @param objectId                the workspace URI of the data to be retrieve (and stored in
-     *                                offer)
-     * @param createObjectDescription object additional informations
-     * @param category                the category of the data to store (unit, object...)
-     * @param requester               the requester information
-     * @return a StoredInfoResult containing informations about the created Data
-     * @throws StorageException
-     */
-    // TODO P1 : maybe the logbook object should be an inputstream as well.
-    // This would be an other US responsibility (not #72)
-    StoredInfoResult storeDataInOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
-        DataCategory category, String requester) throws StorageException;
+
 
 
     /**
@@ -79,7 +62,21 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String sourceOffer, String destinationOffer)
         throws StorageException;
-
+    /**
+     * Store data of any type for given tenant on storage offers associated to
+     * given strategy
+     *
+     * @param strategyId              id of the strategy
+     * @param objectId                the workspace URI of the data to be retrieve (and stored in
+     *                                offer)
+     * @param createObjectDescription object additional informations
+     * @param category                the category of the data to store (unit, object...)
+     * @param requester               the requester information
+     * @return a StoredInfoResult containing informations about the created Data
+     * @throws StorageException StorageException
+     */
+    StoredInfoResult storeDataInAllOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
+        DataCategory category, String requester) throws StorageException;
     /**
      * Store data of any type for given tenant on the given storage offer.
      *
@@ -87,14 +84,29 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @param objectId   the workspace URI of the data to be retrieve (and stored in
      * @param category   the category of the data to store (unit, object...)
      * @param requester  the requester information
-     * @param offerId    offer identfier
+     * @param offerIds    offer identfier
      * @param response   the response
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageException StorageException
      */
-    StoredInfoResult storeDataInOneOffer(String strategyId, String objectId,
-        DataCategory category, String requester, String offerId, Response response) throws StorageException;
+    StoredInfoResult storeDataInOffers(String strategyId, String objectId,
+        DataCategory category, String requester, List<String> offerIds, Response response) throws StorageException;
 
+    /**
+     *
+     * @param strategyId id of the strategy
+     * @param streamAndInfo streamAndInfo
+     * @param objectId id of the object
+     * @param category the object type to list
+     * @param requester  the requester information
+     * @param offerIds offer identfiers
+     * @return StoredInfoResult
+     * @throws StorageException StorageException
+     */
+    StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
+        DataCategory category, String requester,
+        List<String> offerIds)
+        throws StorageException;
     /**
      * get  offer ids list
      *
@@ -113,19 +125,6 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageTechnicalException Thrown in case of any technical problem
      */
     JsonNode getContainerInformation(String strategyId) throws StorageException;
-
-    /**
-     * Get Storage Container full content as an InputStream
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @return the content of the container as an InputStream
-     * @throws StorageNotFoundException  Thrown if the Storage Container does not exist
-     * @throws StorageTechnicalException Thrown if a technical exception is encountered
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to
-    // review this code then
-    InputStream getStorageContainer(String strategyId) throws StorageNotFoundException, StorageTechnicalException;
 
     /**
      * Create a container Architects are aware of this.
@@ -201,8 +200,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *
      * @param strategyId id of the strategy
      * @param objectId   id of the object
-     * @param category
-     * @param offerId
+     * @param category category
+     * @param offerId offer identfier
      * @return an object as a Response with an InputStream
      * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
@@ -230,8 +229,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @param strategyId id of the strategy
      * @param objectId   id of the object
      * @param offerIds   list id of offers
-     * @return
-     * @throws StorageException
+     * @return boolean
+     * @throws StorageException  StorageException
      */
     boolean checkObjectExisting(String strategyId, String objectId, DataCategory category,
         List<String> offerIds) throws StorageException;
@@ -249,9 +248,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
         throws StorageException;
 
 
-
     /**
-     * Delete an object in one offer
+     * Delete an object in  offers
      *
      * @param strategyId id of the strategy
      * @param context    context
@@ -262,119 +260,6 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     void deleteObjectInOffers(String strategyId, DataContext context, String digest, List<String> offers)
         throws StorageException;
-
-    // TODO P2 see list/count/size API
-
-    /**
-     * Retrieve a list of logbook ids associated to a given tenant
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about logbooks of the
-     * requested container
-     * @throws StorageNotFoundException Thrown if the Container does not exist
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to
-    // review this code then
-    JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException;
-
-    /**
-     * Get a specific Logbook as a JsonNode
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @param logbookId  id of the logbook
-     * @return a logbook as a JsonNode
-     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to
-    // review this code then
-    JsonNode getContainerLogbook(String strategyId, String logbookId) throws StorageNotFoundException;
-
-    // FIXME P1 missing digest which is mandatory for a delete
-
-    /**
-     * Delete a logbook
-     *
-     * @param strategyId id of the strategy
-     * @param logbookId  id of the logbook to be deleted
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    void deleteLogbook(String strategyId, String logbookId) throws UnsupportedOperationException;
-
-    // TODO P2 see list/count/size API
-
-    /**
-     * Get Container Units Information
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about units of the requested container
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    JsonNode getContainerUnits(String strategyId) throws UnsupportedOperationException;
-
-    /**
-     * Get a specific Unit as a JsonNode
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @param unitId     id of the unit
-     * @return a unit as a JsonNode
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    JsonNode getContainerUnit(String strategyId, String unitId) throws UnsupportedOperationException;
-
-    // FIXME P1 missing digest which is mandatory for a delete
-
-    /**
-     * Delete an unit
-     *
-     * @param strategyId id of the strategy
-     * @param unitId     id of the Unit to be deleted
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    void deleteUnit(String strategyId, String unitId)
-        throws UnsupportedOperationException;
-
-    // TODO P2 see list/count/size API
-
-    /**
-     * Get Container ObjectGroups Information
-     * <p>
-     *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about objectGroups of the requested container
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    JsonNode getContainerObjectGroups(String strategyId)
-        throws UnsupportedOperationException;
-
-    /**
-     * Get a specific ObjectGroup as a JsonNode
-     * <p>
-     *
-     * @param strategyId    id of the strategy
-     * @param objectGroupId id of the ObjectGroup
-     * @return an objectGroup as a JsonNode
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
-        throws UnsupportedOperationException;
-
-    /**
-     * Delete an ObjectGroup
-     *
-     * @param strategyId    id of the strategy
-     * @param objectGroupId id of the ObjectGroup to be deleted
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    void deleteObjectGroup(String strategyId, String objectGroupId)
-        throws UnsupportedOperationException;
 
 
     /**

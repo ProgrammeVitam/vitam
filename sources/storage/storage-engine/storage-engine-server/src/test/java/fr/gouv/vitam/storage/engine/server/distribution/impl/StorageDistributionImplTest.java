@@ -131,7 +131,7 @@ public class StorageDistributionImplTest {
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
         throws StorageException, StorageAlreadyExistsException {
-        // storeDataInOneOffer(String tenantId, String strategyId, String objectId,
+        // storeDataInOffers(String tenantId, String strategyId, String objectId,
         // CreateObjectDescription createObjectDescription, DataCategory
         // category,
         // JsonNode jsonData)
@@ -174,7 +174,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             storedInfoResult =
-                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -204,7 +204,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
+                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -225,7 +225,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
+                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -246,7 +246,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
+                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -265,7 +265,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult = customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -310,7 +310,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             customDistribution
-                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
@@ -331,7 +331,7 @@ public class StorageDistributionImplTest {
             .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
             customDistribution
-                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -362,7 +362,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         // Store object
         customDistribution
-            .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+            .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
     }
 
     @Test
@@ -379,7 +379,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageException exc) {
             // Expection
@@ -390,7 +390,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -404,7 +404,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             customDistribution
-                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -415,7 +415,7 @@ public class StorageDistributionImplTest {
         ObjectDescription createObjectDescription, DataCategory category)
         throws StorageException, StorageAlreadyExistsException {
         try {
-            simpleDistribution.storeDataInOffers(strategyId, objectId, createObjectDescription, category, "testRequester");
+            simpleDistribution.storeDataInAllOffers(strategyId, objectId, createObjectDescription, category, "testRequester");
             fail("Parameter should be considered invalid");
         } catch (final IllegalArgumentException exc) {
             // test OK
@@ -521,7 +521,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             TransferThread.setJunitMode(true);
-            customDistribution.storeDataInOffers(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
+            customDistribution.storeDataInAllOffers(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
             TransferThread.setJunitMode(false);
         } finally {
@@ -529,10 +529,7 @@ public class StorageDistributionImplTest {
         }
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetStorageContainer() throws Exception {
-        simpleDistribution.getStorageContainer(null);
-    }
+
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCreateContainer() throws Exception {
@@ -540,51 +537,7 @@ public class StorageDistributionImplTest {
     }
 
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerLogbook() throws Exception {
-        simpleDistribution.getContainerLogbook(null, null);
-    }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerLogbooks() throws Exception {
-        simpleDistribution.getContainerLogbooks(null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDeleteLogbook() throws Exception {
-        simpleDistribution.deleteLogbook(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerUnits() throws Exception {
-        simpleDistribution.getContainerUnits(null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerUnit() throws Exception {
-        simpleDistribution.getContainerUnit(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDeleteUnit() throws Exception {
-        simpleDistribution.deleteUnit(null, null);
-
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerByCategoryGroups() throws Exception {
-        simpleDistribution.getContainerObjectGroups(null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerByCategoryGroup() throws Exception {
-        simpleDistribution.getContainerObjectGroup(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDeleteObjectGroup() throws Exception {
-        simpleDistribution.deleteObjectGroup(null, null);
-    }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testStatus() throws Exception {

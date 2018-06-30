@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -90,27 +92,33 @@ public class StorageCRUDUtils {
 
     /**
      * Create file or erase it if exists
-     *
-     * @param dataCategory dataCategory
+     *  @param dataCategory dataCategory
+     * @param offerId offerID
      * @param uid          uid
      * @param stream       stream
      */
-    public void createOrErase(DataCategory dataCategory, String uid, InputStream stream)
+    public void storeInoffer(DataCategory dataCategory, String uid, String offerId,Long size, InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
         try {
-
+            //storageClient.stor
             delete = deleteFile(dataCategory, uid);
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
 
-        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+            storageClient.create(uid,dataCategory,stream,size, Collections.singletonList(offerId));
+        } catch (StorageNotFoundClientException | StorageServerClientException | InvalidParseOperationException e) {
             LOGGER.error("error when deleting file ", e);
         }
+        try {
+            storageClient.create(uid,dataCategory,stream,size, Collections.singletonList(offerId));
+        } catch (StorageServerClientException | InvalidParseOperationException e) {
+            LOGGER.error("error when deleting file ", e);
+            throw new BackupServiceException("fail to create");
+        }
 
-        backupService.backup(stream, dataCategory, uid);
     }
 
 

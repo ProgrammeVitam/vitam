@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -72,6 +71,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
@@ -100,6 +100,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -214,6 +215,58 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             return Response.serverError().build();
         }
+    }
+
+    /**
+     * Post a new backup operation
+     *
+     * @param httpServletRequest http servlet request to get requester
+     * @param headers            http header
+     * @param operationId        the id of the operation
+     * @param inputStream        inputStream
+     * @return Response
+     */
+    @Path("/create/{id_operation}")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response create(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("id_operation") String operationId, InputStream inputStream) {
+
+        String remoteAddress = httpServletRequest.getRemoteAddr();
+
+        if (
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_LENGTH) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DATA_CATEGORY) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)
+
+            ) {
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+        DataCategory category;
+        Long size = Long.valueOf(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_LENGTH).get(0));
+
+        try {
+            category = getDataCategory(headers);
+        } catch (IllegalArgumentException e) {
+
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+        StreamAndInfo streamAndInfo = new StreamAndInfo(inputStream, size, null);
+
+        String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+        List<String> offerIds = Arrays.asList(listOffer.split(","));
+        try {
+            StoredInfoResult storedInfoResult = distribution
+                .storeDataInOffers(STRATEGY_ID, streamAndInfo, operationId, category, remoteAddress, offerIds);
+            return Response.ok().entity(storedInfoResult).build();
+        } catch (final StorageException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+        }
+
     }
 
 
@@ -614,8 +667,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
 
+
     /**
-     * @param strategyId
+     * @param strategyId the strategy to get offers
      * @return
      */
     @Path("/offers")
@@ -1235,7 +1289,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 final StoredInfoResult result =
-                    distribution.storeDataInOffers(strategyId, objectId, createObjectDescription, category,
+                    distribution.storeDataInAllOffers(strategyId, objectId, createObjectDescription, category,
                         requester);
                 return Response.status(Status.CREATED).entity(result).build();
             } catch (final StorageNotFoundException exc) {

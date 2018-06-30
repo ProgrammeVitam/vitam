@@ -185,11 +185,21 @@ public final class JsonHandler {
      * Creates a JSON generator for low-level json stream creation
      *
      * @param os the output stream
-     * @return
-     * @throws IOException
+     * @return JsonGenerator
+     * @throws IOException IOException
      */
     public static final JsonGenerator createJsonGenerator(OutputStream os) throws IOException {
         return JSONFACTORY.createGenerator(os);
+    }
+
+    /**
+     *
+     * @param in the inputStream
+     * @return createJsonParser
+     * @throws IOException IOException
+     */
+    public static  JsonParser createJsonParser (InputStream in ) throws IOException {
+      return   JSONFACTORY.createParser(in);
     }
     /**
      *

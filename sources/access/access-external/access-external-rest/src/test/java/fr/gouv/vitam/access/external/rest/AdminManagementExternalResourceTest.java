@@ -96,6 +96,9 @@ public class AdminManagementExternalResourceTest {
     private static final String AGENCIES_URI = "/" + AdminCollections.AGENCIES.getName();
     private static final String AGENCIES_CHECK_URI = "/" + AdminCollections.AGENCIES.getCheckURI();
 
+    private static final String EVIDENCE_AUDIT = "evidenceaudit";
+    private static final String RECTIFICATION_AUDIT = "rectificationaudit";
+
 
     private static final String DOCUMENT_ID = "/1";
 
@@ -166,6 +169,26 @@ public class AdminManagementExternalResourceTest {
     }
 
     @Test
+    public void testRectificationAudit() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        given().contentType(ContentType.JSON).body("id")
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(RECTIFICATION_AUDIT)
+            .then().statusCode(Status.OK.getStatusCode());
+
+    }
+    @Test
+    public void evidenceAudit() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        given().contentType(ContentType.JSON).body( new SelectMultiQuery().getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(EVIDENCE_AUDIT)
+            .then().statusCode(Status.OK.getStatusCode());
+
+    }
+        @Test
     public void testCheckDocument() throws FileNotFoundException {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");

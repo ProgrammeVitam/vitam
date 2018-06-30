@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,11 +45,19 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -61,14 +70,17 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     private static final String EVIDENCE_AUDIT_LIST_OBJECT = "EVIDENCE_AUDIT_LIST_OBJECT";
     private static final String FIELDS_KEY = "$fields";
+    public static final String STRATEGY_ID = "default";
+    public static final String OPERATION = "operation";
     private MetaDataClientFactory metaDataClientFactory;
+    private StorageClientFactory storageClientFactory;
 
     public EvidenceAuditPrepare() {
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();
+        this.storageClientFactory = StorageClientFactory.getInstance();
     }
 
-    @VisibleForTesting
-    EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
@@ -76,6 +88,35 @@ public class EvidenceAuditPrepare extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT);
+        JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
+        boolean correctiveAudit = options.get("correctiveOption").booleanValue();
+
+        if (!correctiveAudit) {
+            return handleEvidenceAudit(handlerIO, itemStatus);
+        }
+
+        String operationId = options.get(OPERATION).textValue();
+
+        return handleRectificationAudit(handlerIO,itemStatus,operationId);
+    }
+
+    private ItemStatus handleRectificationAudit(HandlerIO handlerIO, ItemStatus itemStatus, String operationId) throws ProcessingException {
+
+        try (StorageClient client = storageClientFactory.getClient()) {
+
+            InputStream inputStream = (InputStream) client.getContainerAsync(STRATEGY_ID, operationId, DataCategory.REPORT).getEntity();
+
+            final JsonParser jsonParser = JsonHandler.createJsonParser(inputStream);
+
+        } catch (StorageServerClientException | StorageNotFoundException  |IOException e ) {
+            LOGGER.error(e);
+            return itemStatus.increment(StatusCode.FATAL);
+        }
+        itemStatus.increment(StatusCode.OK);
+        return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
+
+    }
+    private ItemStatus handleEvidenceAudit(HandlerIO handlerIO, ItemStatus itemStatus) throws ProcessingException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
             JsonNode queryNode = handlerIO.getJsonFromWorkspace("query.json");
@@ -139,5 +180,5 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     }
 
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing todo */  }
+    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing todo */ }
 }

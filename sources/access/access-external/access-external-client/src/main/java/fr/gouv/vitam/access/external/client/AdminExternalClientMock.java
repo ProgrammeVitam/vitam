@@ -431,6 +431,11 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getEvidenceAudit(Status.OK.getStatusCode());
     }
 
+    @Override
+    public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId) {
+        throw new UnsupportedOperationException("Will not Implemeted");
+    }
+
 
 
     @Override

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -211,6 +212,20 @@ public interface StorageClient extends BasicClient {
      */
     RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
         String desination)
+        throws StorageServerClientException, InvalidParseOperationException;
+
+    /**
+     *
+     * @param objectId objectId
+     * @param category category
+     * @param inputStream inputStream
+     * @param inputStreamSize inputStreamSize
+     * @param offerIds offers ids
+     * @return RequestResponseOK
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws InvalidParseOperationException InvalidParseOperationException
+     */
+    RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException;
 
     /**

@@ -33,7 +33,6 @@ import java.security.DigestInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -265,8 +263,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 digest, singletonList(destinationOffer));
         }
         if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-            return storeDataInOneOffer(STRATEGY_ID, context.getObjectId(), context.getCategory(),
-                context.getRequester(), destinationOffer, resp);
+
+            return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                context.getRequester(), singletonList(destinationOffer), resp);
         }
 
         DefaultClient.staticConsumeAnyEntityAndClose(resp);
@@ -296,9 +295,21 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public StoredInfoResult storeDataInOneOffer(String strategyId, String objectId, DataCategory category,
+    public StoredInfoResult storeDataInOffers(String strategyId, String objectId, DataCategory category,
         String requester,
-        String offerId, Response response)
+        List<String> offerIds, Response response)
+        throws StorageException {
+
+
+        Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+
+        StreamAndInfo streamAndInfo = new StreamAndInfo((InputStream) response.getEntity(), size, response);
+       return this.storeDataInOffers(strategyId,streamAndInfo,objectId,category,requester,offerIds);
+    }
+
+    @Override
+    public StoredInfoResult storeDataInOffers( String strategyId, StreamAndInfo streamAndInfo,String objectId, DataCategory category, String requester,
+        List<String> offerIds)
         throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -310,14 +321,13 @@ public class StorageDistributionImpl implements StorageDistribution {
         // Retrieve strategy offersToCopyIn
         checkStrategy(strategyId);
 
-        // get the storage offer from the given identifier
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
+        List <StorageOffer>offers = new ArrayList<>();
 
-        OffersToCopyIn offersToCopyIn = new OffersToCopyIn(offer);
+        for (String o : offerIds) {
+            offers.add(OFFER_PROVIDER.getStorageOffer(o));
+        }
 
-        Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
-
-        StreamAndInfo streamAndInfo = new StreamAndInfo((InputStream) response.getEntity(), size, response);
+        OffersToCopyIn offersToCopyIn = new OffersToCopyIn(offers);
 
         final DataContext dataContext = new DataContext(objectId, category, requester, tenantId);
 
@@ -391,7 +401,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     // TODO P1 : refactor me !
     // FIXME SHOULD not be synchronized but instability needs it
     @Override
-    public StoredInfoResult storeDataInOffers(String strategyId, String objectId,
+    public StoredInfoResult storeDataInAllOffers(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException {
 
@@ -824,13 +834,6 @@ public class StorageDistributionImpl implements StorageDistribution {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageTechnicalException(e);
         }
-    }
-
-    @Override
-    public InputStream getStorageContainer(String strategyId)
-        throws StorageNotFoundException, StorageTechnicalException {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     private List<OfferReference> getOfferListFromHotStrategy(HotStrategy hotStrategy) throws StorageTechnicalException {
@@ -1327,60 +1330,6 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
 
-
-    @Override
-    public JsonNode getContainerLogbooks(String strategyId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerLogbook(String strategyId, String logbookId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public void deleteLogbook(String strategyId, String logbookId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerUnits(String strategyId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerUnit(String strategyId, String unitId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public void deleteUnit(String strategyId, String unitId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerObjectGroups(String strategyId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public void deleteObjectGroup(String strategyId, String objectGroupId) {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
 
     @Override
     public JsonNode status() {

@@ -1185,6 +1185,9 @@ public class ProcessingIT extends VitamRuleRunner {
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
+        ObjectNode options =
+            JsonHandler.createObjectNode().put("correctiveOption", false);
+        workspaceClient.putObject(containerName, "evidenceOptions", JsonHandler.writeToInpustream(options));
 
         workspaceClient
             .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));

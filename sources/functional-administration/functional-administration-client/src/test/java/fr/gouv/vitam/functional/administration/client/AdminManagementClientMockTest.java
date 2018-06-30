@@ -443,12 +443,4 @@ public class AdminManagementClientMockTest {
         assertTrue(resp.isOk());
     }
 
-    @Test
-    public void evidenceAuditTest() throws Exception {
-        RequestResponse<JsonNode> resp = client.evidenceAudit(new Select().getFinalSelect());
-        assertTrue(resp.isOk());
-    }
-
-
-
 }

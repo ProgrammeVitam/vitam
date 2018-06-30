@@ -87,10 +87,10 @@ public interface LogbookOperationsClient extends BasicClient {
     JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * @param id
+     * @param id identifier
      * @return logbook operation as String
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
+     * @throws LogbookClientException LogbookClientException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     JsonNode selectOperationById(String id) throws LogbookClientException, InvalidParseOperationException;
 

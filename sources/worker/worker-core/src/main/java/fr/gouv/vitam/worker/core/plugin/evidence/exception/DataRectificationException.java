@@ -24,44 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.distribution.impl;
+package fr.gouv.vitam.worker.core.plugin.evidence.exception;
 
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * StreamAndInfo class
+ * DataRectificationException class
  */
-public class StreamAndInfo{
-    private InputStream stream;
-    private Long size;
-    private Response response;
-
-     public StreamAndInfo(InputStream stream, Long size, Response response) {
-        this.stream = stream;
-        this.size = size;
-        this.response = response;
+public class DataRectificationException extends VitamException {
+    public DataRectificationException(VitamError vitamError) {
+        super(vitamError);
     }
 
-    /**
-     * getter for stream
-     **/
-    public Object getStream() {
-        return stream;
+    public DataRectificationException(String message) {
+        super(message);
     }
 
-    /**
-     * getter for size
-     **/
-    public Long getSize() {
-        return size;
+    public DataRectificationException(Throwable cause) {
+        super(cause);
     }
 
-    /**
-     * getter for response
-     **/
-    public Response getResponse() {
-        return response;
+    public DataRectificationException(String message, Throwable cause) {
+        super(message, cause);
     }
-
 }

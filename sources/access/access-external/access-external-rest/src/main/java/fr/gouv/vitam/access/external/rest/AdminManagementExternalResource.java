@@ -129,6 +129,8 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
+
 /**
  * Admin Management External Resource
  */
@@ -2393,6 +2395,32 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.evidenceAudit(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (AdminManagementClientServerException e) {
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
+            return Response.serverError()
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
+                    e.getLocalizedMessage()))
+                .build();
+        }
+    }
+
+    /**
+     * launch a traceability audit for the query
+     *
+     * @param operationId the query select
+     * @return Response response
+     */
+    @Path(RECTIFICATION_AUDIT)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "rectificationaudit:check", description = "rectification de données suite a un audit")
+    public Response rectificationAudit(String  operationId) {
+        ParametersChecker.checkParameter("mandatory parameter", operationId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> result = client.rectificationAudit(operationId);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {

@@ -60,7 +60,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -190,12 +189,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return
      */
     @POST
-    @Path("/replaceObject/{dataType}/{uid}")
+    @Path("/replaceObject/{dataType}/{offerId}/{uid}/{size}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
-        @PathParam("dataType") String dataType, InputStream input) {
+        @PathParam("dataType") String dataType,@PathParam("offerId") String offerId, @PathParam("size") Long size,InputStream input) {
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
@@ -203,7 +202,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             StorageCRUDUtils storageCRUDUtils = new StorageCRUDUtils();
 
             DataCategory dataCategory = DataCategory.valueOf(dataType);
-            storageCRUDUtils.createOrErase(dataCategory, uid, input);
+
+            storageCRUDUtils.storeInoffer(dataCategory, uid, offerId, size, input);
+
             return Response.status(Status.OK).build();
         } catch (BackupServiceException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);

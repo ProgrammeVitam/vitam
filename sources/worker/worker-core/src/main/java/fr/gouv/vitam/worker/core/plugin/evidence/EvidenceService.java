@@ -124,7 +124,7 @@ public class EvidenceService {
     private static final String LOGBOOK_UNIT_LFC_TRACEABILITY = Contexts.UNIT_LFC_TRACEABILITY.getEventType();
     private static final String LOGBOOK_UNIT_LFC_TRACEABILITY_OK = LOGBOOK_UNIT_LFC_TRACEABILITY + ".OK";
     private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY = Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType();
-    public static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + ".OK";
+    private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + ".OK";
     public static final String OK = ".OK";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -158,7 +158,7 @@ public class EvidenceService {
      * @param id           idendifier
      * @return EvidenceAuditReportLine
      */
-    public EvidenceAuditReportLine auditAndGenerateReport(EvidenceAuditParameters parameters, List<String> securedlines,
+    public EvidenceAuditReportLine auditAndGenerateReportIfKo(EvidenceAuditParameters parameters, List<String> securedlines,
         String id) {
         EvidenceAuditReportLine evidenceAuditReportLine = new EvidenceAuditReportLine(id);
         LifeCycleTraceabilitySecureFileObject securedObject;
@@ -195,6 +195,7 @@ public class EvidenceService {
                             JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadataResult.class);
 
                     } catch (InvalidParseOperationException e) {
+
                         throw new EvidenceAuditException(EvidenceStatus.FATAL,
                             "An error occurred during last traceability operation retrieval", e);
                     }
@@ -235,9 +236,10 @@ public class EvidenceService {
         List<String> errorsMessage,
         EvidenceAuditReportLine evidenceAuditReportLine) throws InvalidParseOperationException {
         Map<String, JsonNode> objectStorageMetadataResultMap = parameters.getObjectStorageMetadataResultMap();
+
         List<String> errorsObjectMessages = new ArrayList<>();
-        final List<ObjectGroupDocumentHash> objectGroupDocumentHashList =
-            securedObject.getObjectGroupDocumentHashList();
+        final List<ObjectGroupDocumentHash> objectGroupDocumentHashList = securedObject.getObjectGroupDocumentHashList();
+
         ArrayList<EvidenceAuditReportObject> reportList = new ArrayList<>();
         for (ObjectGroupDocumentHash objectGroupDocumentHash : objectGroupDocumentHashList) {
 

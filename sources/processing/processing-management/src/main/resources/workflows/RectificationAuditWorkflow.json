@@ -1,0 +1,119 @@
+{
+  "id": "RectificationAuditWorkflow",
+  "name": "export archive unit ",
+  "identifier": "RECTIFICATION_AUDIT",
+  "typeProc": "AUDIT",
+  "comment": "Evidence Audit for",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_PREPARE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_LIST_OBJECT",
+            "behavior": "BLOCKING"
+
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_CHECK_DATABASE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "Object"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_CHECK_DATABASE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "listZipFileNames",
+                "uri": "WORKSPACE:listZipFileNames.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_EXTRACT_ZIP_FILE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "fileNames"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_EXTRACT_ZIP_FILE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "fileNames"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_FINALIZE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_FINALIZE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

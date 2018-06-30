@@ -87,7 +87,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
 
                 if (parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
                     evidenceAuditReportLine =
-                        evidenceService.auditAndGenerateReport(parameters, securisedLines, objectToAuditId);
+                        evidenceService.auditAndGenerateReportIfKo(parameters, securisedLines, objectToAuditId);
                 }
                 else {
 

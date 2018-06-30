@@ -609,7 +609,12 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<JsonNode> evidenceAudit(JsonNode queryDsl)
         throws AdminManagementClientServerException;
 
-
+    /**
+     * Launch rectification Audit
+     * @param operationId operation Id
+     * @return RequestResponse
+     */
+    RequestResponse rectificationAudit(String operationId) throws AdminManagementClientServerException;
 
     /**
      * Import a set of archive unit profile metadata. </BR>

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -220,6 +221,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     @Override
     public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
         String desination) throws StorageServerClientException, InvalidParseOperationException {
+        throw new  UnsupportedOperationException("Not Implemeted ");
+    }
+
+    @Override public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize, List<String> offerIds)
+        throws StorageServerClientException, InvalidParseOperationException {
         throw new  UnsupportedOperationException("Not Implemeted ");
     }
 
