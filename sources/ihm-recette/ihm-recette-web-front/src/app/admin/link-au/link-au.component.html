@@ -1,0 +1,74 @@
+<p-panel [header]="'Ajout et suppression d\'un parent'">
+  <div class="ui-g">
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <span class="ui-g-12">Identifiant de l'unité archivistique parent</span>
+      </div>
+      <div class="ui-g-5">
+        <input pInputText class="ui-g-12" [(ngModel)]="request.parentId">
+      </div>
+    </div>
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <span class="ui-g-12">Identifiant de l'unité archivistique enfant</span>
+      </div>
+      <div class="ui-g-5">
+        <input pInputText class="ui-g-12" [(ngModel)]="request.childId">
+      </div>
+    </div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <span class="ui-g-12">Opération</span>
+      </div>
+      <div class="ui-g-4">
+        <div class="ui-g-12" style="padding: 0.25em">
+          <p-dropdown [options]="linkOptions" [(ngModel)]="request.action" placeholder="Sélectionner une action"></p-dropdown>
+        </div>
+      </div>
+    </div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-4">Tenant: </div>
+      <div class="ui-g-4">
+        {{tenant ? tenant : 'Veuillez choisir un tenant'}}
+      </div>
+    </div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-4">Contrat: </div>
+      <div class="ui-g-4">
+        <p-dropdown id="contract" [options]="contractsList" [(ngModel)]="selectedContract"
+                    placeholder="Sélectionner un contrat"></p-dropdown>
+      </div>
+    </div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-offset-4 ui-g-4">
+        <button pButton type="button" [disabled]="!tenant" label="Effectuer l'opération" (click)="launchOperation()"></button>
+      </div>
+    </div>
+  </div>
+</p-panel>
+
+<p-dialog header="Erreur de saisie" [(visible)]="displayFormError" modal="modal" [responsive]="true">
+  <p>Tous les champs du formulaire sont obligatoires, veuillez vérifier les informations saisies</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayFormError=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Opération en cours" [(visible)]="displaySuccess" modal="modal" [responsive]="true">
+  <p>Succès du lancement de l'opération de rattachement/détachement.</p>
+  <p>L'opération peut être suivie dans le journal des opérations</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displaySuccess=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Erreur" [(visible)]="displayError" modal="modal" [responsive]="true">
+  <p>Erreur lors de l'opération de rattachement/détachement de l'unité archivistique</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayError=false" label="OK"></button>
+  </p-footer>
+</p-dialog>

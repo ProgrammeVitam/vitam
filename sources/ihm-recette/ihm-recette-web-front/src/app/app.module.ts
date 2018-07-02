@@ -39,6 +39,8 @@ import { VisNetworkService } from 'ng2-vis';
 import { HttpClientModule } from '@angular/common/http';
 import { LoadStorageComponent } from './admin/load-storage/load-storage.component';
 import { LoadStorageService } from './admin/load-storage/load-storage.service';
+import { LinkAuComponent } from './admin/link-au/link-au.component';
+import { LinkAuService } from './admin/link-au/link-au.service';
 
 const appRoutes: Routes = [
   {
@@ -46,6 +48,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/load-storage', component: LoadStorageComponent
+  },
+  {
+    path: 'admin/link-au', component: LinkAuComponent
   },
   {
     path: 'login', component: AuthenticationComponent
@@ -90,7 +95,8 @@ const appRoutes: Routes = [
     AuthenticationComponent,
     DagVisualizationComponent,
     VisNetworkDirective,
-    LoadStorageComponent
+    LoadStorageComponent,
+    LinkAuComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -126,7 +132,8 @@ const appRoutes: Routes = [
     AuthenticationService,
     TenantService,
     VisNetworkService,
-    LoadStorageService
+    LoadStorageService,
+    LinkAuService
   ],
   bootstrap: [AppComponent]
 })

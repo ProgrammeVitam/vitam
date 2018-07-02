@@ -56,6 +56,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -466,7 +467,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param request the request
+     * @param request       the request
      * @param xhttpOverride the use of http override POST method
      * @param sessionId     the id of session
      * @param options       the option for creating query to find logbook
@@ -488,6 +489,41 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         return findLogbookBy(request, sessionId, options);
     }
+
+    /**
+     * Update link between 2 AU send in the select request
+     *
+     * @param request the HTTP request and all its context
+     * @param select select query with the following structure: {parentId: 'id', childId: 'id', action: 'ADD/DELETE'}
+     */
+    @POST
+    @Path("/updateLinks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateLinksBetweenAU(@Context HttpServletRequest request, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSelectAndUpdateDSLQuery(optionsMap);
+
+            try (final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance()
+                .getClient()) {
+                 RequestResponse response =
+                    accessExternalClient.reclassification(getVitamContext(request), query);
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
     /**
      * this method is used to request logbook with the Vitam DSL

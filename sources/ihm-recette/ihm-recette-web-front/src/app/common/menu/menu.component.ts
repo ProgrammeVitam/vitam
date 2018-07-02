@@ -51,7 +51,8 @@ export class MenuComponent implements OnInit, OnDestroy {
             label: 'Admin',
             items: [
               {label: 'Administration des collections', routerLink: ['admin/collection']},
-              {label: 'Recherche et Modification d\'un fichier', routerLink: ['admin/load-storage']}
+              {label: 'Recherche et Modification d\'un fichier', routerLink: ['admin/load-storage']},
+              {label: 'Ajout et suppression d\'un parent', routerLink: ['admin/link-au']}
             ],
             size: 2
           },
