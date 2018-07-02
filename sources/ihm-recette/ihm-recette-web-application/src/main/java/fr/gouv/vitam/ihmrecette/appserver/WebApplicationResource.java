@@ -214,6 +214,36 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    @POST
+    @Path("/launchAudit/{operationId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
+    public Response launchAudi(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @PathParam("operationId") String operationId) {
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()){
+            VitamContext context = new VitamContext(TENANT_ID);
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
+
+            RequestResponse requestResponse = client.rectificationAudit(context, operationId);
+
+            if (requestResponse != null && requestResponse instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+            if (requestResponse != null && requestResponse instanceof VitamError) {
+                LOGGER.error(requestResponse.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+        } catch ( VitamClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+        }
+    }
+
     /**
      * Retrieve an Object data as an input stream. Download by access.
      */

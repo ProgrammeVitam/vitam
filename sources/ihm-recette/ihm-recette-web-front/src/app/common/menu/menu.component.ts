@@ -52,7 +52,9 @@ export class MenuComponent implements OnInit, OnDestroy {
             items: [
               {label: 'Administration des collections', routerLink: ['admin/collection']},
               {label: 'Recherche et Modification d\'un fichier', routerLink: ['admin/load-storage']},
-              {label: 'Ajout et suppression d\'un parent', routerLink: ['admin/link-au']}
+                {label: 'Ajout et suppression d\'un parent', routerLink: ['admin/link-au']},
+                {label: 'Test audit correctif', routerLink: ['admin/test-audit-correction']}
+
             ],
             size: 2
           },
