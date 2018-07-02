@@ -26,13 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -46,7 +41,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -55,13 +49,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 
 
@@ -74,13 +66,13 @@ public class EvidenceAuditFinalize extends ActionHandler {
     private static final String EVIDENCE_AUDIT_FINALIZE = "EVIDENCE_AUDIT_FINALIZE";
     public static final String REPORTS = "reports";
     BackupService backupService = new BackupService();
+    static final int PATH_RANK = 0;
 
     @VisibleForTesting EvidenceAuditFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
-    public EvidenceAuditFinalize() {
-    }
+    public EvidenceAuditFinalize() {/*nothing to do */   }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
@@ -94,14 +86,11 @@ public class EvidenceAuditFinalize extends ActionHandler {
             File reportFile = handlerIO.getNewLocalFile("report.json");
             List<URI> uriListObjectsWorkspace =
                 handlerIO.getUriList(handlerIO.getContainerName(), REPORTS);
+
             try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
                 BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             ) {
 
-
-                JsonGenerator jsonGenerator = createJsonGenerator(buffOut);
-
-                jsonGenerator.writeStartObject();
                 for (URI uri : uriListObjectsWorkspace) {
 
                     File file = handlerIO.getFileFromWorkspace(REPORTS + "/" + uri.getPath());
@@ -111,14 +100,14 @@ public class EvidenceAuditFinalize extends ActionHandler {
                     if (!reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
                         continue;
                     }
-
                     evidenceStatusKo = EvidenceStatus.KO;
-                    jsonGenerator.writeRawValue(unprettyPrint(reportLine));
+
+                    buffOut.write(unprettyPrint(reportLine).getBytes());
+                    buffOut.write(System.lineSeparator().getBytes());
+
                 }
-                jsonGenerator.writeEndObject();
 
-                jsonGenerator.flush();
-
+                buffOut.close();
                 backupService
                     .backup(new FileInputStream(reportFile), DataCategory.REPORT,
                         handlerIO.getContainerName() + ".json");
@@ -144,8 +133,7 @@ public class EvidenceAuditFinalize extends ActionHandler {
             infoNode.put("Message", "There are some objects not securised yet see the report for more details ");
             itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
 
-        }
-        else {
+        } else {
 
             itemStatus.increment(StatusCode.OK);
         }

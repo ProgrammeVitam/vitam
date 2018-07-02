@@ -160,10 +160,12 @@ public class EvidenceService {
      */
     public EvidenceAuditReportLine auditAndGenerateReportIfKo(EvidenceAuditParameters parameters, List<String> securedlines,
         String id) {
+
         EvidenceAuditReportLine evidenceAuditReportLine = new EvidenceAuditReportLine(id);
         LifeCycleTraceabilitySecureFileObject securedObject;
-        List<String> errorsMessage = new ArrayList<>();
-        evidenceAuditReportLine.setObjectType(parameters.getMetadataType().getName());
+        List<String> errorsMessage = new ArrayList<>()
+            ;
+        evidenceAuditReportLine.setObjectType(parameters.getMetadataType());
         try {
             securedObject =
                 loadInformationFromFile(securedlines, parameters.getMetadataType(), id);
@@ -182,7 +184,9 @@ public class EvidenceService {
 
             String securedGlobalHash = securedObject.getHashGlobalFromStorage();
             StoredInfoResult mdOptimisticStorageInfo = parameters.getMdOptimisticStorageInfo();
-
+           // set hash for rectification
+            evidenceAuditReportLine.setSecuredHash(securedGlobalHash);
+            Map<String,String>  offerHashes = new HashMap<>();
             for (String offerId : mdOptimisticStorageInfo.getOfferIds()) {
 
                 JsonNode metadataResultJsonNode = parameters.getStorageMetadataResultListJsonNode().get(offerId);
@@ -204,6 +208,9 @@ public class EvidenceService {
                         errorsMessage
                             .add(String.format(" OfferId %s : Storage hash '%s' mismatch secured lfc hash '%s' ",
                                 offerId, storageMetadataResult.getDigest(), securedGlobalHash));
+                        offerHashes.put(offerId,storageMetadataResult.getDigest());
+                        evidenceAuditReportLine.setOffersHashes(offerHashes);
+
                     }
 
                 } else {
@@ -235,6 +242,7 @@ public class EvidenceService {
     private void auditObjects(EvidenceAuditParameters parameters, LifeCycleTraceabilitySecureFileObject securedObject,
         List<String> errorsMessage,
         EvidenceAuditReportLine evidenceAuditReportLine) throws InvalidParseOperationException {
+
         Map<String, JsonNode> objectStorageMetadataResultMap = parameters.getObjectStorageMetadataResultMap();
 
         List<String> errorsObjectMessages = new ArrayList<>();
@@ -253,7 +261,7 @@ public class EvidenceService {
             final StoredInfoResult storedInfoResult =
                 parameters.getMdOptimisticStorageInfoMap().get(objectVersionId);
             List<String> errorsObjectMessage = new ArrayList<>();
-
+            Map<String,String>  offerHashes = new HashMap<>();
             for (String offerId : storedInfoResult.getOfferIds()) {
                 final JsonNode objectVersionResultJsonNode = objectVersionStorageMetadataResult.get(offerId);
 
@@ -267,8 +275,11 @@ public class EvidenceService {
                         objectVersionHash, offerId, digestForOffer);
                     errorsObjectMessage
                         .add(message);
+                    offerHashes.put(offerId,storageMetadataResult.getDigest());
+                    evidenceAuditReportObject.setSecuredHash(objectVersionHash);
                 }
             }
+            evidenceAuditReportObject.setOffersHashes(offerHashes);
 
             if (!errorsObjectMessage.isEmpty()) {
 

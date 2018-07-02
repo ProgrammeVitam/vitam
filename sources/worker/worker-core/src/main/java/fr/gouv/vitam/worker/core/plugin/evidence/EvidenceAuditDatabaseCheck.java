@@ -109,5 +109,6 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        //nothing to do
     }
 }

@@ -111,7 +111,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     /**
      * Constructor with local root path
-     *  @param containerName the container name
+     *
+     * @param containerName the container name
      * @param workerId      the worker id
      * @param objectIds
      */
@@ -121,13 +122,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     /**
      * Constructor with workspaceClient, local root path he is used for test purpose
-     *  @param workspaceClient
+     *
+     * @param workspaceClient
      * @param containerName   the container name
      * @param workerId        the worker id
      * @param objectIds
      */
     @VisibleForTesting
-    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId, List<String> objectIds) {
+    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId,
+        List<String> objectIds) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
@@ -338,16 +341,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
         try {
             transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
-                Paths.get(sourceFile.toURI()), asyncIO);
+                toDelete,Paths.get(sourceFile.toURI()), asyncIO);
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
         }
     }
 
-    @Override
-    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
-        boolean asyncIO)
-        throws ProcessingException {
+
+    private void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, boolean todele,
+        Path filePath,
+        boolean asyncIO) throws ProcessingException {
         if (!asyncIO) {
             try {
                 workspaceCient.putObject(containerName, workspacePath, inputStream);
@@ -355,7 +358,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
             } finally {
                 try {
-                    if (filePath != null) {
+                    if (filePath != null && todele ) {
                         Files.delete(filePath);
                     }
                 } catch (IOException e) {
@@ -379,12 +382,19 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
     }
 
+    @Override
+    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
+        boolean asyncIO)
+        throws ProcessingException {
+         transferInputStreamToWorkspace(workspacePath,inputStream,true,filePath,asyncIO);
+    }
+
     /**
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
      *
      * @param objectName object name
-     * @param optional if file is optional
+     * @param optional   if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */

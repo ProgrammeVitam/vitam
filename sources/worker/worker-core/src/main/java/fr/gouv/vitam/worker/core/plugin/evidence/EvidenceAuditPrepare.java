@@ -53,11 +53,15 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 
 import javax.ws.rs.core.Response;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -70,8 +74,11 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     private static final String EVIDENCE_AUDIT_LIST_OBJECT = "EVIDENCE_AUDIT_LIST_OBJECT";
     private static final String FIELDS_KEY = "$fields";
-    public static final String STRATEGY_ID = "default";
-    public static final String OPERATION = "operation";
+    private static final String STRATEGY_ID = "default";
+    private static final String OPERATION = "operation";
+    private static final String METADA_TYPE = "metadaType";
+    private static final String OBJECT = "#object";
+    private static final String ID = "id";
     private MetaDataClientFactory metaDataClientFactory;
     private StorageClientFactory storageClientFactory;
 
@@ -97,25 +104,40 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
         String operationId = options.get(OPERATION).textValue();
 
-        return handleRectificationAudit(handlerIO,itemStatus,operationId);
+        return handleRectificationAudit(handlerIO, itemStatus, operationId);
     }
 
-    private ItemStatus handleRectificationAudit(HandlerIO handlerIO, ItemStatus itemStatus, String operationId) throws ProcessingException {
+    private ItemStatus handleRectificationAudit(HandlerIO handlerIO, ItemStatus itemStatus, String operationId)
+        throws ProcessingException {
 
         try (StorageClient client = storageClientFactory.getClient()) {
 
-            InputStream inputStream = (InputStream) client.getContainerAsync(STRATEGY_ID, operationId, DataCategory.REPORT).getEntity();
+            InputStream inputStream =
+                (InputStream) client.getContainerAsync(STRATEGY_ID, operationId, DataCategory.REPORT).getEntity();
 
-            final JsonParser jsonParser = JsonHandler.createJsonParser(inputStream);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-        } catch (StorageServerClientException | StorageNotFoundException  |IOException e ) {
+            while (reader.ready()) {
+                String line = reader.readLine();
+                EvidenceAuditReportLine pojo = JsonHandler.getFromString(line, EvidenceAuditReportLine.class);
+                ObjectNode item = createObjectNode();
+                item.put(ID, pojo.getIdentifier());
+                item.put(METADA_TYPE,pojo.getObjectType().name());
+                saveItemToWorkSpace(item, handlerIO);
+            }
+            reader.close();
+        } catch (StorageServerClientException | StorageNotFoundException | IOException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return itemStatus.increment(StatusCode.KO);
         }
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
 
     }
+
     private ItemStatus handleEvidenceAudit(HandlerIO handlerIO, ItemStatus itemStatus) throws ProcessingException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
@@ -138,13 +160,13 @@ public class EvidenceAuditPrepare extends ActionHandler {
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {
                     ObjectNode itemUnit = createObjectNode();
-                    itemUnit.put("id", item.get("#id").textValue());
-                    itemUnit.put("metadaType", MetadataType.UNIT.name());
+                    itemUnit.put(ID, item.get("#id").textValue());
+                    itemUnit.put(METADA_TYPE, MetadataType.UNIT.name());
 
-                    if (item.get("#object") != null) {
+                    if (item.get(OBJECT) != null) {
                         ObjectNode itemGot = createObjectNode();
-                        itemGot.put("id", item.get("#object").textValue());
-                        itemGot.put("metadaType", MetadataType.OBJECTGROUP.name());
+                        itemGot.put(ID, item.get(OBJECT).textValue());
+                        itemGot.put(METADA_TYPE, MetadataType.OBJECTGROUP.name());
                         saveItemToWorkSpace(itemGot, handlerIO);
                     }
                     saveItemToWorkSpace(itemUnit, handlerIO);
@@ -167,7 +189,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
         File file = null;
         try {
 
-            String identifier = item.get("id").asText();
+            String identifier = item.get(ID).asText();
             file = handlerIO.getNewLocalFile(identifier);
             JsonHandler.writeAsFile(item, file);
 
@@ -180,5 +202,6 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     }
 
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing todo */ }
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing todo */ }
 }

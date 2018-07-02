@@ -220,7 +220,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
     @Override
     public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
-        String desination) throws StorageServerClientException, InvalidParseOperationException {
+        String destination) throws StorageServerClientException, InvalidParseOperationException {
         throw new  UnsupportedOperationException("Not Implemeted ");
     }
 

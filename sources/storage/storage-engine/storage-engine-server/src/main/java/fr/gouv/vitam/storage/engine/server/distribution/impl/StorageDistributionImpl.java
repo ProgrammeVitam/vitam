@@ -1304,15 +1304,16 @@ public class StorageDistributionImpl implements StorageDistribution {
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-            deleteObject(context.getObjectId(), digest, context.getTenantId(), driver, offer);
+            deleteObject(context.getObjectId(), digest, context.getTenantId(), driver, offer,context.getCategory());
         }
     }
 
-    private void deleteObject(String objectId, String digest, Integer tenantId, Driver driver, StorageOffer offer)
+    private void deleteObject(String objectId, String digest, Integer tenantId, Driver driver, StorageOffer offer,
+        DataCategory category)
         throws StorageTechnicalException {
         try (Connection connection = driver.connect(offer.getId())) {
             StorageRemoveRequest request =
-                new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(), objectId,
+                new StorageRemoveRequest(tenantId, category.getFolder(), objectId,
                     digestType, digest);
             StorageRemoveResult result = connection.removeObject(request);
             if (!result.isObjectDeleted()) {

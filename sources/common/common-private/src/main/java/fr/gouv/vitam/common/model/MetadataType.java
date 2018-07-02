@@ -42,4 +42,11 @@ public enum MetadataType {
     public String getName() {
         return name;
     }
+
+    /**
+     * setter for name
+     **/
+    public void setName(String name) {
+        this.name = name;
+    }
 }

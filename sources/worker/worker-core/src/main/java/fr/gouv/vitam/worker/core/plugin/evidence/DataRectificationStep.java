@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -35,6 +34,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
@@ -45,86 +45,64 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * EvidenceAuditGenerateReports class
+ * DataRectificationStep class
  */
-public class EvidenceAuditGenerateReports extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditGenerateReports.class);
+public class DataRectificationStep extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataRectificationStep.class);
 
-    private static final String EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS = "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS";
-    private static final String DATA = "data";
-    private static final String FILE_NAMES = "fileNames";
     public static final String ZIP = "zip";
     private static final String REPORTS = "reports";
+    private static final String CORRECTIVE_AUDIT = "CORRECTIVE_AUDIT";
+    private DataRectificationService dataRectificationService;
     private static final String ALTER = "alter";
 
+    private DataRectificationStep(
+        DataRectificationService dataRectificationService) {
+        this.dataRectificationService = dataRectificationService;
+    }
+
+    public DataRectificationStep() {
+        this(new DataRectificationService());
+    }
+
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS);
+
+        ItemStatus itemStatus = new ItemStatus(CORRECTIVE_AUDIT);
 
         try {
-            JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
-            boolean correctiveAudit = options.get("correctiveOption").booleanValue();
+            List<URI> uriListObjectsWorkspace =
+                handler.getUriList(handler.getContainerName(), ALTER);
 
+            for (URI element : uriListObjectsWorkspace) {
+                File file = handler.getFileFromWorkspace(ALTER + "/" + element.getPath());
 
-            File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
-            File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
+                EvidenceAuditReportLine evidenceAuditReportLine =
+                    JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
 
-            List<String> securisedLines = Files.readAllLines(securedDataFile.toPath(),
-                Charset.defaultCharset());
-            ArrayList<String> listIds = JsonHandler.getFromFile(listOfObjectByFile, ArrayList.class);
-
-            EvidenceService evidenceService = new EvidenceService();
-            for (String objectToAuditId : listIds) {
-
-                File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + "/" + objectToAuditId);
-
-                EvidenceAuditParameters parameters =
-                    JsonHandler.getFromFile(infoFromDatabase, EvidenceAuditParameters.class);
-
-                EvidenceAuditReportLine evidenceAuditReportLine = null;
-
-                File file = handlerIO.getNewLocalFile(objectToAuditId);
-
-                if (parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
-                    evidenceAuditReportLine =
-                        evidenceService.auditAndGenerateReportIfKo(parameters, securisedLines, objectToAuditId);
-
-                JsonHandler.writeAsFile(evidenceAuditReportLine, file);
-
-                handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
-                    file, !correctiveAudit, false);
-
-                }
-
-                // corrective audit
-                if (correctiveAudit) {
-                    handlerIO.transferFileToWorkspace(ALTER + "/" + objectToAuditId + ".json",
-                        file, true, false);
-                }
-
+                final boolean correct = dataRectificationService.correct(evidenceAuditReportLine);
             }
 
             itemStatus.increment(StatusCode.OK);
 
-        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException e) {
+        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException | StorageServerClientException e) {
 
             LOGGER.error(e);
 
             return itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS)
-            .setItemsStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS, itemStatus);
+        return new ItemStatus(CORRECTIVE_AUDIT)
+            .setItemsStatus(CORRECTIVE_AUDIT, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        //nothing to do
     }
-
 }

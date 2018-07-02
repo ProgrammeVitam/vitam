@@ -27,14 +27,19 @@
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.DataRectificationException;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * DataCorrectionService class
@@ -46,7 +51,7 @@ public class DataRectificationService {
     /**
      * Constructor
      */
-    public DataRectificationService() {
+    DataRectificationService() {
         this(StorageClientFactory.getInstance().getClient());
     }
 
@@ -57,6 +62,106 @@ public class DataRectificationService {
         this.storageClient = storageClient;
     }
 
+
+    /**
+     * @param line EvidenceAuditReportLine
+     * @return true | false  if  correction is done
+     * @throws InvalidParseOperationException InvalidParseOperationException
+     * @throws StorageServerClientException   StorageServerClientException
+     */
+    public boolean correct(EvidenceAuditReportLine line)
+        throws InvalidParseOperationException, StorageServerClientException {
+
+        MetadataType objectType = line.getObjectType();
+        switch (objectType) {
+            case OBJECTGROUP:
+                return correctObjectGroups(line);
+            case UNIT:
+                return correctUnits(line);
+            default:
+                throw new IllegalStateException(objectType.getName());
+        }
+
+    }
+
+    private boolean correctUnits(EvidenceAuditReportLine line)
+        throws InvalidParseOperationException, StorageServerClientException {
+        String securedHash = line.getSecuredHash();
+        List<String> goodOffers = new ArrayList<>();
+        List<String> badOffers = new ArrayList<>();
+
+        if (!doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+            return false;
+        }
+
+        storageClient
+            .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
+                badOffers.get(0));
+        return true;
+
+
+    }
+
+    private boolean correctObjectGroups(EvidenceAuditReportLine line)
+        throws InvalidParseOperationException, StorageServerClientException {
+
+        int nbObjectsCorrected = 0;
+        String securedHash = line.getSecuredHash();
+
+        List<String> goodOffers = new ArrayList<>();
+        List<String> badOffers = new ArrayList<>();
+        // nothing
+        if (doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+
+            storageClient
+                .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
+                    goodOffers.get(0),
+                    badOffers.get(0));
+
+            nbObjectsCorrected++;
+        }
+
+        for (EvidenceAuditReportObject object : line.getObjectsReports()) {
+            goodOffers.clear();
+            badOffers.clear();
+            securedHash = object.getSecuredHash();
+
+            if (!doCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+                continue;
+            }
+            storageClient.copyObjectToOneOfferAnother(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
+                badOffers.get(0));
+
+            nbObjectsCorrected++;
+        }
+        return nbObjectsCorrected > 0;
+    }
+
+
+    private boolean doCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
+        List<String> badOffers) {
+        if (offers.isEmpty()) {
+            return false;
+        }
+        if (offers.size() == 1) {
+            return false;
+        }
+
+        for (Map.Entry<String, String> currentOffer : offers.entrySet()) {
+
+            if (securedHash.equals(currentOffer.getValue())) {
+
+                goodOffers.add(currentOffer.getKey());
+            } else {
+                badOffers.add(currentOffer.getKey());
+            }
+        }
+
+        return goodOffers.isEmpty() || badOffers.isEmpty() || badOffers.size() > 1;
+    }
+
+
+
     /**
      * @param id                binary identifier
      * @param category          the category
@@ -64,8 +169,7 @@ public class DataRectificationService {
      * @param offersDestination offeDestination
      * @throws DataRectificationException throw {@link DataRectificationException if something happen }
      */
-    public void correctOffers(String id, DataCategory category, String offerSourceId,
-        List<String> offersDestination)
+    public void correctOffers(String id, DataCategory category, String offerSourceId, List<String> offersDestination)
         throws
         DataRectificationException {
 

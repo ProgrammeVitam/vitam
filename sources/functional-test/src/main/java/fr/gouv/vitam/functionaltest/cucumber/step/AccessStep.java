@@ -949,26 +949,26 @@ public class AccessStep {
         world.setOperationId(operationId);
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
 
-//        boolean process_timeout = vitamPoolingClient
-//            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
-//        if (!process_timeout) {
-//            fail("Sip processing not finished. Timeout exceeded.");
-//        }
-//    }
-//    @When("^creer un audit coorectif$")
-//    public void rectificationAudit() throws Throwable {
-//
-//
-//        // Run unit traceability audit
-//        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-//            .setApplicationSessionId(world.getApplicationSessionId());
-//        RequestResponse requestResponse = world.getAdminClient().rectificationAudit(vitamContext, "aeeaaaaaacgcr4vlaaog6alejsyy2oqaaaaq.json");
-//
-//
-//        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-//
-//        world.setOperationId(operationId);
-//        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Sip processing not finished. Timeout exceeded.");
+        }
+    }
+    @When("^creer un audit coorectif$")
+    public void rectificationAudit() throws Throwable {
+
+
+        // Run unit traceability audit
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse requestResponse = world.getAdminClient().rectificationAudit(vitamContext, "aeeaaaaaacgokqxcaa3jialelligusiaaaaq.json");
+
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        world.setOperationId(operationId);
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
 
         boolean process_timeout = vitamPoolingClient
             .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);

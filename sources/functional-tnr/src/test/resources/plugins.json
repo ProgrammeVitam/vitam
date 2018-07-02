@@ -103,6 +103,9 @@
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditFinalize",
 		"propertiesFile":"evidence_audit_finalize.properties"
 	},
+	"CORRECTIVE_AUDIT":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationStep"
+	},
 	"MIGRATION_UNITS_LIST":{
 		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare"
 	},

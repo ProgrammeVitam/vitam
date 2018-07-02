@@ -100,16 +100,16 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_EVIDENCE_AUDIT_FINALIZE",
+      "stepName": "CORRECTIVE_AUDIT",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "REF",
-        "element": ""
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "alter"
       },
       "actions": [
         {
           "action": {
-            "actionKey": "EVIDENCE_AUDIT_FINALIZE",
+            "actionKey": "CORRECTIVE_AUDIT",
             "behavior": "BLOCKING"
           }
         }
