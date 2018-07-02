@@ -64,7 +64,7 @@ public class StorageLogServiceTest {
 
     private static final int TENANTS = 3;
 
-    private StorageLogProvider storageLogService;
+    private StorageLog storageLogService;
 
     private List<Integer> tenants;
 

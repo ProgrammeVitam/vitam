@@ -54,7 +54,7 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -167,7 +167,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * Access contract
      */
-    public static final String ACCESS_CONTRACT = "AccessContract";
+    private static final String ACCESS_CONTRACT = "AccessContract";
 
     private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
     private final LogbookOperationsClient logbookOperationClientMock;
@@ -178,6 +178,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
     private static final String STP_UPDATE_UNIT_DESC = "STP_UPDATE_UNIT_DESC";
+    private static final String STP_MASS_UPDATE = "STP_MASS_UPDATE";
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
     private static final String UNIT_CHECK_PERMISSION = "UNIT_METADATA_UPDATE_CHECK_PERMISSION";
     private static final String UNIT_CHECK_RULES = "UNIT_METADATA_UPDATE_CHECK_RULES";
@@ -496,7 +497,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, IllegalArgumentException, InvalidParseOperationException,
-        AccessInternalExecutionException, AccessInternalPermissionException, AccessInternalRuleExecutionException {
+        AccessInternalExecutionException, UpdatePermissionException, AccessInternalRuleExecutionException {
         LogbookOperationParameters logbookOpStpParamStart;
         LogbookLifeCycleUnitParameters logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
@@ -529,7 +530,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
         LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCycleClientMock;
         Boolean requestUpdateManagment = updateContainsManagmentFields(queryJson);
+
         String masterStpOperation = requestUpdateManagment ? STP_UPDATE_UNIT : STP_UPDATE_UNIT_DESC;
+
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             if (logbookOperationClient == null) {
                 logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -607,7 +610,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             stepLFCCommit = false;
             logbookLifeCycleClient.update(logbookLCParamEnd, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
             stepLFCCommit = true;
-
 
             /** Update: Storage task **/
             // update stored Metadata
@@ -714,7 +716,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(ERROR_CHECK_RULES, e);
             throw e;
-        } catch (final AccessInternalPermissionException e) {
+        } catch (final UpdatePermissionException e) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, e.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
@@ -744,16 +746,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return jsonNode;
     }
 
-
-    private void checkPermissions(Boolean managementUpdate) throws AccessInternalPermissionException {
+    private void checkPermissions(Boolean managementUpdate) throws UpdatePermissionException {
         AccessContractModel accessContract = VitamThreadUtils.getVitamSession().getContract();
         if (!accessContract.getWritingPermission()) {
-            throw new AccessInternalPermissionException(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION.name());
+            throw new UpdatePermissionException(VitamCode.UPDATE_UNIT_PERMISSION.name());
         }
 
         // Check if update query contains management fields and if the accessContract allow those modifications
         if (managementUpdate && BooleanUtils.isTrue(accessContract.getWritingRestrictedDesc())) {
-            throw new AccessInternalPermissionException(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_DESC_PERMISSION.name());
+            throw new UpdatePermissionException(VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
         }
     }
 

@@ -82,6 +82,14 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
+    @Override public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        NoWritingPermissionException, AccessUnauthorizedException {
+        return new RequestResponseOK().addResult(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+
+    }
+
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -146,8 +154,9 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit) throws AccessInternalClientServerException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")){
+    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
+        throws AccessInternalClientServerException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);
             return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
@@ -159,7 +168,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     @Override public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")){
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);
             return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
@@ -172,7 +181,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")){
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);
             return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();

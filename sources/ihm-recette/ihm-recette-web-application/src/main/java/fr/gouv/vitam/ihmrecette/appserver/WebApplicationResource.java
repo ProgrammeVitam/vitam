@@ -838,8 +838,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         break;
                                     case HTTP_PUT:
                                         if (StringUtils.isBlank(objectID)) {
-                                            throw new InvalidParseOperationException(
-                                                "Unit ID should be filled.");
+                                            result = client.massUpdateUnits(getVitamContext(request), criteria);
                                         } else {
                                             result = client
                                                 .updateUnitbyId(getVitamContext(request),

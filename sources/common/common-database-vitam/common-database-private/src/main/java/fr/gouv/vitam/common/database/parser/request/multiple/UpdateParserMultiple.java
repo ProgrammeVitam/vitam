@@ -98,6 +98,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
     private void internalParseUpdate() throws InvalidParseOperationException {
         // { $roots: root, $query : query, $filter : filter, $action : action }
         actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
+        thresholdParse(rootNode.get(GLOBAL.THRESOLD.exactToken()));
     }
 
     /**
@@ -126,6 +127,26 @@ public class UpdateParserMultiple extends RequestParserMultiple {
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
                 "Parse in error for Action: " + rootNode, e);
+        }
+    }
+
+    /**
+     * {$"threshold" : arg}
+     *
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
+     */
+    protected void thresholdParse(final JsonNode rootNode)
+            throws InvalidParseOperationException {
+        if (rootNode == null) {
+            return;
+        }
+        
+        try {
+            ((UpdateMultiQuery) request).setThreshold(rootNode.asLong());
+        } catch (final Exception e) {
+            throw new InvalidParseOperationException(
+                    "Parse in error for Action: " + rootNode, e);
         }
     }
 

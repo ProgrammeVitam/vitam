@@ -217,7 +217,6 @@ public class ProcessManagementImpl implements ProcessManagement {
             throw new ProcessingException(e);
         }
 
-
         workerParameters.setLogbookTypeProcess(logbookTypeProcess);
         WorkspaceClientFactory.changeMode(config.getUrlWorkspace());
 

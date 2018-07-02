@@ -145,5 +145,22 @@
 	"OBJECT_GROUP_GRAPH_COMPUTE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ObjectGroupGraphComputePlugin",
 		"propertiesFile": "reclassification_object_group_compute.properties"
+	},
+	"UNIT_METADATA_UPDATE_CHECK_PERMISSION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.massprocessing.UnitMetadataUpdateCheckPermission",
+		"propertiesFile": "check_update_request_permissions.properties"
+	},
+	"CHECK_DISTRIBUTION_THRESHOLD": {
+		"className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold",
+		"propertiesFile": "check_distribution_threshold.properties"
+	},
+	"PREPARE_UPDATE_UNIT_LIST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.massprocessing.PrepareUpdateUnits"
+	},
+	"MASS_UPDATE_UNITS": {
+		"className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess"
+	},
+	"MASS_UPDATE_FINALIZE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize"
 	}
 }

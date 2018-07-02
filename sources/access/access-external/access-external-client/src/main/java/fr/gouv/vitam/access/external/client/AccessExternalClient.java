@@ -50,7 +50,6 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnits /units
      *
-     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation
@@ -61,7 +60,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
-     *
      *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
@@ -75,7 +73,6 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * updateUnitbyId UPDATE /units/{id}
      *
-     *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @param unitId the unit id to update
@@ -87,7 +84,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectById
-     *
      *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
@@ -103,7 +99,6 @@ public interface AccessExternalClient extends BasicClient {
      * getObjectAsInputStream<br>
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
      *
      * @param vitamContext the vitam context
      * @param unitId the unit id for getting the object
@@ -122,7 +117,6 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperation
      *
-     *
      * @param vitamContext the vitam context
      * @param select the select query
      * @return logbookOperation representation
@@ -137,7 +131,6 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperationbyId
      *
-     *
      * @param vitamContext the vitam context
      * @param operationId the operation id
      * @param select the select query
@@ -151,8 +144,7 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycleById
      *
-     *
-     * @param vitamContext the vitam context
+     * @param vitamContext    the vitam context
      * @param unitLifeCycleId the unit LFC id
      * @param select the select query
      * @return logbooklifecycle representation
@@ -208,6 +200,19 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
         throws VitamClientException;
+
+
+    /**
+     * Mass update of archive units.
+     *
+     * @param vitamContext the vitam context
+     * @param updateQuery  the update query
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
+        throws VitamClientException;
+
 }
 
 

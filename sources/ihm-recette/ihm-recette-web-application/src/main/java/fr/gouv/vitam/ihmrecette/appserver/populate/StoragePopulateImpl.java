@@ -401,6 +401,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             case OBJECTGROUP_GRAPH:
                 description.append("OBJECTGROUP_GRAPH ");
                 break;
+            case DISTRIBUTIONREPORTS:
+                description.append("DISTRIBUTIONREPORTS ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }

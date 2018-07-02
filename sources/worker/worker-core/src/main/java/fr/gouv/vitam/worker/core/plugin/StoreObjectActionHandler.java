@@ -53,7 +53,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
-    private static final String DEFAULT_STRATEGY = "default";
+    protected static final String DEFAULT_STRATEGY = "default";
 
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";

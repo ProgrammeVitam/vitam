@@ -126,7 +126,12 @@ public enum DataCategory {
     /**
      * Object group graph
      */
-    OBJECTGROUP_GRAPH("objectgroupgraph", "objectgroupgraph", false, true);
+    OBJECTGROUP_GRAPH("objectgroupgraph", "objectgroupgraph", false, true),
+
+    /**
+     * distribution_reports files
+     */
+    DISTRIBUTIONREPORTS("distributionreports", "distribution_reports", true, true);
 
     /**
      * Collection name

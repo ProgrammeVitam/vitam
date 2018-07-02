@@ -147,11 +147,10 @@ public class WorkerResource extends ApplicationStatusResource {
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
         } catch (final IllegalArgumentException | ProcessingException | ContentAddressableStorageServerException exc) {
-            LOGGER.error(exc);
+                LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }
     }
-
 
     /**
      * Get the status of a step

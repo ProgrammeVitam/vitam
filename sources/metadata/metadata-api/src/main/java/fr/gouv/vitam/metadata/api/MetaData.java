@@ -71,7 +71,7 @@ public interface MetaData {
 
     /**
      * Select an Accession Register linked to an Operation
-     * 
+     *
      * @param operationId the operation identifier
      * @return the list of documents
      */
@@ -157,11 +157,33 @@ public interface MetaData {
      * @throws MetaDataNotFoundException Thrown if no objectGroup is found
      * @throws BadRequestException if a bad request is being used
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
-     * 
+     *
      */
     RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataNotFoundException, BadRequestException, VitamDBException;
+
+
+    /**
+     * Update UNITs by Ids {@link UpdateMultiQuery}Query <br>
+     * for this method, the roots will be filled<br>
+     * for example request :{
+     * <h3>$roots:[{id:"id1"}, {id:"id2"}]</h3>,<br>
+     * $query{}, ..}
+     *
+     * @param updateQuery the update query as JsonNode containing unitIds in root parts
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * @throws MetaDataNotFoundException Throw if unit does not exist
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
+     */
+    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException, VitamDBException;
 
     /**
      * Update UNITs by Id {@link UpdateMultiQuery}Query <br>
@@ -188,7 +210,7 @@ public interface MetaData {
 
     /**
      * Insert an objectGroup
-     * 
+     *
      * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
@@ -202,7 +224,7 @@ public interface MetaData {
 
     /**
      * find the number of archive unit per originating agency for a operationId
-     * 
+     *
      * @param operationId operation id
      * @return the list of documents
      */
@@ -211,7 +233,7 @@ public interface MetaData {
 
     /**
      * Update an object group
-     * 
+     *
      * @param updateRequest the request as a json
      * @param objectId the id of the object to be updated
      * @throws InvalidParseOperationException Thrown when json format is not correct
@@ -223,7 +245,7 @@ public interface MetaData {
 
     /**
      * Flush Unit Index
-     * 
+     *
      * @throws IllegalArgumentException if tenant is wrong
      * @throws VitamThreadAccessException if tenant is wrong
      */

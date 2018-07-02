@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response.Status;
  * error, there is one HTTP status and one configurable message (String.format style).
  *
  * Use the CodeTest unit test when you add an entry to validate it (avoid duplicate error code or wrong error code)
- *
+ * 
  * Do not remove the TEST error.
  */
 @SuppressWarnings("javadoc")
@@ -229,6 +229,44 @@ public enum VitamCode {
         Status.INTERNAL_SERVER_ERROR,
         "Access external client not found."),
 
+
+    // MASS UPDATE units
+    ACCESS_EXTERNAL_MASS_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "40",
+        Status.BAD_REQUEST,
+        "Access external client error in the mass update units method."),
+
+    ACCESS_EXTERNAL_MASS_UPDATE_UNITS_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "41",
+        Status.NOT_FOUND,
+        "Access external client error mass update units not found."),
+
+    ACCESS_INTERNAL_MASS_UPDATE_UNITS_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "42",
+        Status.BAD_REQUEST,
+        "Access internal error while check mass update units on rules"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_AUTHORIZATION_REJECTED(ServiceName.VITAM, DomainName.SECURITY, "43",
+        Status.UNAUTHORIZED,
+        "Internal Security Filter Mass Update of units Unauthorized"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_MANAGEMENT_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "44",
+        Status.UNAUTHORIZED,
+        "Update management data is Unauthorized"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_GRAPH_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "45", Status.UNAUTHORIZED,
+        "Update graph is Unauthorized"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_INTERNAL_DATA_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "46",
+        Status.UNAUTHORIZED,
+        "Update internal data is Unauthorized"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_EXCEDEED(ServiceName.VITAM, DomainName.SECURITY, "47", Status.UNAUTHORIZED,
+        "Update threshold excedeed"),
+
+    INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_OVERCOME_EXCEDEED(ServiceName.VITAM, DomainName.SECURITY, "48",
+        Status.UNAUTHORIZED,
+        "Update threshold overcome excedeed"),
+
+
+
     ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "14",
         Status.BAD_REQUEST,
         "Admin external client error in findDocuments method."),
@@ -308,7 +346,7 @@ public enum VitamCode {
     ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "34",
         Status.BAD_REQUEST, "Access external client error. Object group traceability audit service "),
 
-   	ACCESS_EXTERNAL_INVALID_JSON(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "35",
+    ACCESS_EXTERNAL_INVALID_JSON(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "35",
         Status.BAD_REQUEST, "Access external client error. JSON is invalid"),
 
     ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "36",
@@ -357,10 +395,11 @@ public enum VitamCode {
     ACCESS_INTERNAL_DIP_ERROR(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "13",
         Status.BAD_REQUEST,
         "Access internal client error in DIP service"),
-    ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "14", Status.UNAUTHORIZED,
-        "Unauthorized to update archive unit"),
-    ACCESS_INTERNAL_UPDATE_UNIT_DESC_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "15", Status.UNAUTHORIZED,
-        "Unauthorized to update other than descriptive metadata in archive unit"),
+
+    UPDATE_UNIT_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "14", Status.UNAUTHORIZED,
+        "Unauthorized to update archive units"),
+    UPDATE_UNIT_DESC_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "15", Status.UNAUTHORIZED,
+        "Unauthorized to update other than descriptive metadata in archive units"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

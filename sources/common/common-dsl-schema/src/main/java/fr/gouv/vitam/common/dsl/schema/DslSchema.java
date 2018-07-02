@@ -35,6 +35,7 @@ public enum DslSchema {
     SELECT_ONLY_QUERY_MULTIPLE("select-only-query-multiple-dsl-schema.json"),
     GET_BY_ID("get-by-id-query-dsl-schema.json"),
     UPDATE_BY_ID("update-by-id-query-dsl-schema.json"),
+    MASS_UPDATE("update-mass-query-dsl-schema.json"),
     RECLASSIFICATION_QUERY("reclassification-query-dsl-schema.json");
 
     private String filename;

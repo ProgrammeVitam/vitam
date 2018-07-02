@@ -1,0 +1,60 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 0,
+    "size": 4,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabb"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabc"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabd"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabe"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabf"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabg"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabh"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabi"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabj"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabk"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabl"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabm"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabn"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabo"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaabp"
+    }
+  ]
+}

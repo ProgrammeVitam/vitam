@@ -46,7 +46,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -116,7 +116,7 @@ public class StorageDistributionImplTest {
         list.add(1);
 
         folder.create();
-        StorageLogProvider storageLogService =
+        StorageLog storageLogService =
             StorageLogFactory.getInstance(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService);

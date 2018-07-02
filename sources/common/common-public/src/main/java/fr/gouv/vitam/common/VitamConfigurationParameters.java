@@ -100,6 +100,12 @@ public class VitamConfigurationParameters {
      */
     private Integer numberEsQueue;
     private Integer maxCacheEntries;
+
+    /**
+     * Max entries allowed for mass distribution
+     */
+    private Long distributionThreshold;
+    
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)
      */
@@ -1028,7 +1034,23 @@ public class VitamConfigurationParameters {
         this.numberEsQueue = numberEsQueue;
     }
 
+    /**
+     * Getter for distributionThreshold;
+     *
+     * @return distributionThreshold
+     */
+    public Long getDistributionThreshold() {
+        return distributionThreshold;
+    }
 
+    /**
+     * Setter for distributionThreshold;
+     *
+     * @param distributionThreshold
+     */
+    public void setDistributionThreshold(Long distributionThreshold) {
+        this.distributionThreshold = distributionThreshold;
+    }
 
     /**
      * Getter for cacheControlDelay;

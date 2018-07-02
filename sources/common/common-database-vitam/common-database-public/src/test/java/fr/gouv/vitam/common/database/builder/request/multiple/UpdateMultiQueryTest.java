@@ -119,7 +119,7 @@ public class UpdateMultiQueryTest {
             update.setMult(true);
             update.addActions(new IncAction("mavar"));
             final ObjectNode node = update.getFinalUpdate();
-            assertEquals(4, node.size());
+            assertEquals(5, node.size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -136,7 +136,7 @@ public class UpdateMultiQueryTest {
             update.setMult(true);
             update.addActions(new IncAction("mavar"));
             final ObjectNode node = update.getFinalUpdateById();
-            assertEquals(1, node.size());
+            assertEquals(2, node.size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());

@@ -47,7 +47,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -540,8 +540,8 @@ public class AccessInternalModuleImplTest {
             String query = QUERY_MULTIPLE_STRING.replace("managementRulesUpdate", id);
             accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(query), id, REQUEST_ID);
             fail("Should throw exception");
-        } catch (AccessInternalPermissionException e){
-            assertEquals("ACCESS_INTERNAL_UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
+        } catch (UpdatePermissionException e){
+            assertEquals("UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
         }
     }
 
@@ -596,8 +596,8 @@ public class AccessInternalModuleImplTest {
         try {
             accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_DESCRIPTION), id, REQUEST_ID);
             fail("Should throw exception");
-        } catch (AccessInternalPermissionException e){
-            assertEquals("ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION", e.getMessage());
+        } catch (UpdatePermissionException e){
+            assertEquals("UPDATE_UNIT_PERMISSION", e.getMessage());
         }
     }
 

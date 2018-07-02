@@ -58,7 +58,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * @param insertQuery as JsonNode <br>
-     *        null is not allowed
+     * null is not allowed
      * @return the result as JsonNode
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
@@ -78,10 +78,9 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by select query (DSL)
-     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
-     *        as String <br>
-     *        Null is not allowed
+     * as String <br>
+     * Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
@@ -94,12 +93,11 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by query (DSL) and path unit id
-     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
-     *        <br>
-     *        Null is not allowed
+     * <br>
+     * Null is not allowed
      * @param unitId : unit id <br>
-     *        null and blank is not allowed
+     * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
@@ -112,12 +110,11 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search Object Group by query (DSL) and path objectGroup id
-     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
-     *        <br>
-     *        Null is not allowed
+     * <br>
+     * Null is not allowed
      * @param objectGroupId : objectGroup id <br>
-     *        null and blank is not allowed
+     * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException thrown when the Query is badly formatted or objectGroupId is empty
@@ -132,12 +129,11 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update units by query (DSL) and path unit id
-     *
      * @param updateQuery update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
-     *        <br>
-     *        Null is not allowed
+     * <br>
+     * Null is not allowed
      * @param unitId unit id <br>
-     *        null and blank is not allowed
+     * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
@@ -166,7 +162,6 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update ObjectGroup
-     *
      * @param updateQuery
      * @param objectGroupId
      * @throws InvalidParseOperationException
@@ -180,7 +175,6 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 
     /**
-     *
      * @param operationId
      * @return the list of UnitsPerOriginatingAgency
      * @throws MetaDataClientServerException
@@ -189,7 +183,6 @@ public interface MetaDataClient extends BasicClient {
         throws MetaDataClientServerException;
 
     /**
-     *
      * @param operationId
      * @return the list of ObjectGroupPerOriginatingAgency
      * @throws MetaDataClientServerException
@@ -199,10 +192,9 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search objectgroups by select query (DSL)
-     *
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
-     *        as String <br>
-     *        Null is not allowed
+     * as String <br>
+     * Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
@@ -214,23 +206,19 @@ public interface MetaDataClient extends BasicClient {
         MetaDataClientServerException;
 
     /**
-     *
      * @return True if the Units index is flushed
      * @throws MetaDataClientServerException
      */
     boolean flushUnits() throws MetaDataClientServerException;
 
     /**
-     *
      * @return True if the ObjectGroups index is flushed
      * @throws MetaDataClientServerException
      */
     boolean flushObjectGroups() throws MetaDataClientServerException;
 
     /**
-     *
      * Reindex a collection with parameters
-     *
      * @param indexParam reindexation parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -241,9 +229,7 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
 
     /**
-     *
      * Switch indexes
-     *
      * @param switchIndexParam switch index parameters
      * @return JsonObject containing information about the newly created index
      * @throws MetaDataClientServerException
@@ -255,23 +241,19 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Search units by path unit id
-     *
      * @param unitId : unit id <br>
-     *        null and blank is not allowed
+     * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
      */
-    RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException ;
+    RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException;
 
     /**
      * Search object group by path unit id
-     *
      * @param objectGroupId : objectGroup id <br>
-     *        null and blank is not allowed
+     * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
      */
-    RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException ;
-
-
+    RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException;
 
     /**
      * Compute graph of all Units/Got that match the given query dsl
@@ -280,8 +262,7 @@ public interface MetaDataClient extends BasicClient {
      * @return GraphComputeResponse
      * @throws VitamClientException
      */
-    GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException ;
-
+    GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException;
 
     /**
      * Compute graph of all document match ids.
@@ -293,12 +274,23 @@ public interface MetaDataClient extends BasicClient {
      * @return GraphComputeResponse
      * @throws VitamClientException
      */
-    GraphComputeResponse computeGraph(GraphComputeAction action, Set<String> ids) throws VitamClientException ;
+    GraphComputeResponse computeGraph(GraphComputeAction action, Set<String> ids) throws VitamClientException;
+
+    /**
+     * Update units Bulk.
+     * @param updateQuery
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
 
     /**
      * Export all units and object groups that are a descendants of the provided units to workspace for graph update.
-     *
      * @param ids the unit ids for which all descendant nodes (units and object groups) are to be updated.
      * @throws VitamClientException
      */

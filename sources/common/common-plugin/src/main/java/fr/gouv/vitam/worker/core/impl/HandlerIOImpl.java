@@ -94,13 +94,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     private static final String HANDLER_INPUT_NOT_FOUND = "Handler input not found exception: ";
 
     private final ListMultimap<String, Object> input = ArrayListMultimap.create();
-    //private final List<Object> input = new ArrayList<>();
     private final List<ProcessingUri> output = new ArrayList<>();
     private final String containerName;
     private final String workerId;
     private final File localDirectory;
     private final Map<String, Object> memoryMap = new HashMap<>();
-    private final WorkspaceClient client;
+    private final WorkspaceClient workspaceCient;
     private final LogbookLifeCyclesClient lifecyclesClient;
     private final LogbookLifeCyclesClientHelper helper;
 
@@ -133,7 +132,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
-        client = workspaceClient;
+        workspaceCient = workspaceClient;
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
         this.objectIds = objectIds;
@@ -214,7 +213,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         } catch (WorkerspaceQueueException e) {
             throw new RuntimeException(e);
         } finally {
-            client.close();
+            workspaceCient.close();
             lifecyclesClient.close();
             partialClose();
         }
@@ -351,7 +350,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         throws ProcessingException {
         if (!asyncIO) {
             try {
-                client.putObject(containerName, workspacePath, inputStream);
+                workspaceCient.putObject(containerName, workspacePath, inputStream);
             } catch (final ContentAddressableStorageServerException e) {
                 throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
             } finally {
@@ -428,14 +427,14 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         if (!file.exists()) {
             Response response = null;
             try {
-                response = client.getObject(containerName, objectName);
+                response = workspaceCient.getObject(containerName, objectName);
                 if (response != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                         StreamUtils.copy((InputStream) response.getEntity(), fileOutputStream);
                     }
                 }
             } finally {
-                client.consumeAnyEntityAndClose(response);
+                workspaceCient.consumeAnyEntityAndClose(response);
             }
         }
         return file;
@@ -452,12 +451,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public Response getInputStreamNoCachedFromWorkspace(String objectName)
         throws ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        return client.getObject(containerName, objectName);
+        return workspaceCient.getObject(containerName, objectName);
     }
 
     @Override
     public void consumeAnyEntityAndClose(Response response) {
-        client.consumeAnyEntityAndClose(response);
+        workspaceCient.consumeAnyEntityAndClose(response);
     }
 
     @Override
@@ -467,7 +466,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         try {
             final File file = getNewLocalFile(jsonFilePath);
             if (!file.exists()) {
-                response = client.getObject(containerName, jsonFilePath);
+                response = workspaceCient.getObject(containerName, jsonFilePath);
                 is = (InputStream) response.getEntity();
                 if (is != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -506,7 +505,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try {
             return JsonHandler
-                .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
+                .getFromStringAsTypeRefence(workspaceCient.getListUriDigitalObjectFromFolder(containerName, folderName)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.debug("Workspace Server Error", e);
@@ -546,9 +545,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
         if (!asyncIO) {
             // call workspace
-            if (!client.isExistingContainer(container)) {
-                client.createContainer(container);
-                client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
+            if (!workspaceCient.isExistingContainer(container)) {
+                workspaceCient.createContainer(container);
+                workspaceCient.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
             } else {
                 LOGGER.error(container + "already exist");
                 throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
@@ -573,11 +572,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         LOGGER.debug("Try to push stream to workspace...");
 
         // call workspace
-        if (client.isExistingContainer(containerName)) {
+        if (workspaceCient.isExistingContainer(containerName)) {
             CompressInformation compressInformation = new CompressInformation();
             Collections.addAll(compressInformation.getFiles(), inputFiles);
             compressInformation.setOutputFile(outputFile);
-            client.compress(containerName, compressInformation);
+            workspaceCient.compress(containerName, compressInformation);
         } else {
             LOGGER.error(containerName + "already exist");
             throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");

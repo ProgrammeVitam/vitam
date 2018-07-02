@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
-public class StorageLogFactory implements StorageLogProvider {
+public class StorageLogFactory implements StorageLog {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogFactory.class);
 
@@ -61,7 +61,7 @@ public class StorageLogFactory implements StorageLogProvider {
     public static final String STORAGE_LOG_DIR = "storage-log";
     private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
 
-    private static StorageLogProvider instance;
+    private static StorageLog instance;
     private final List<Integer> tenants;
     private Path storageLogPath;
     private final Map<Integer, StorageLogAppender> storageLogAppenders;
@@ -87,7 +87,7 @@ public class StorageLogFactory implements StorageLogProvider {
      *
      * @return the instance.
      */
-    public static synchronized StorageLogProvider getInstance(List<Integer> tenants, Path basePath) throws IOException {
+    public static synchronized StorageLog getInstance(List<Integer> tenants, Path basePath) throws IOException {
         if (instance == null) {
             instance = new StorageLogFactory(tenants, basePath);
         }

@@ -24,9 +24,14 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.common.exception;
+package fr.gouv.vitam.common.exception;
 
-public class AccessInternalPermissionException extends Exception {
+import javax.ws.rs.ProcessingException;
+
+/**
+ * Description of AccessInternal permissions exception class.
+ */
+public class UpdatePermissionException extends ProcessingException {
 
 	private static final long serialVersionUID = 3507862590422500648L;
 
@@ -35,7 +40,7 @@ public class AccessInternalPermissionException extends Exception {
      *
      * @param message message to associate with the exception
      */
-    public AccessInternalPermissionException(String message) {
+    public UpdatePermissionException(String message) {
         super(message);
     }
 
@@ -44,7 +49,7 @@ public class AccessInternalPermissionException extends Exception {
      *
      * @param cause cause to associate with the exception
      */
-    public AccessInternalPermissionException(Throwable cause) {
+    public UpdatePermissionException(Throwable cause) {
         super(cause);
     }
 
@@ -54,7 +59,7 @@ public class AccessInternalPermissionException extends Exception {
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
-    public AccessInternalPermissionException(String message, Throwable cause) {
+    public UpdatePermissionException(String message, Throwable cause) {
         super(message, cause);
     }
 

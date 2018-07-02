@@ -303,11 +303,13 @@ public class WorkerImpl implements Worker {
                     // If not, this is an handler of Vitam
                 } else {
                     final ActionHandler actionHandler = getActionHandler(handlerName);
-                    LOGGER.debug("START handler {} in step {}", actionDefinition.getActionKey(),
-                        step.getStepName());
                     if (actionHandler == null) {
                         throw new HandlerNotFoundException(actionDefinition.getActionKey() + HANDLER_NOT_FOUND);
                     }
+
+                    LOGGER.debug("START handler {} in step {}", actionDefinition.getActionKey(),
+                        step.getStepName());
+
                     pluginResponse = actionHandler.executeList(workParams, handlerIO);
 
                     for (ItemStatus itemStatus : pluginResponse) {

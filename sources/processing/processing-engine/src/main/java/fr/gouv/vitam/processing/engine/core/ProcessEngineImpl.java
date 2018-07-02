@@ -147,12 +147,14 @@ public class ProcessEngineImpl implements ProcessEngine {
             LOGGER.debug("Start Workflow: " + step.getId() + " Step:" + step.getStepName());
         }
         final int tenantId = ParameterHelper.getTenantParameter();
+
         final LogbookTypeProcess logbookTypeProcess = this.workerParameters.getLogbookTypeProcess();
 
         // Prepare the logbook operation
         LogbookOperationParameters parameters;
         try {
             parameters = logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
+
         } catch (Exception e) {
             LOGGER.error("Logbook error while process workflow, do retry", e);
             try {
@@ -293,6 +295,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             startedParameters.putParameterValue(
                 LogbookParameterName.outcomeDetail,
                 messageLogbookEngineHelper.getOutcomeDetail(eventType, StatusCode.OK));
+
             // update logbook op
             logbookClient.update(startedParameters);
         }

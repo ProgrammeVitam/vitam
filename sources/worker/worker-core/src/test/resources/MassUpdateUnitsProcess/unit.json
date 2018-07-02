@@ -1,0 +1,21 @@
+{
+  "httpCode":200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 1,
+    "size": 1
+  },
+  "$results": [
+    {
+      "Title": "monSip 6",
+      "_tenant": 0
+    }
+  ],
+  "$context": {
+    "$roots": [],
+    "$query": [],
+    "$filter": {},
+    "$projection": {}
+  }
+}

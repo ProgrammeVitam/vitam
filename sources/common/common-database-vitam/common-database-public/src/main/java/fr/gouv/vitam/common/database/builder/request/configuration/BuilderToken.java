@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.builder.request.configuration;
 
 /**
  * Main language definition
- *
  */
 public abstract class BuilderToken {
 
@@ -68,7 +67,6 @@ public abstract class BuilderToken {
      */
     /**
      * Global model
-     *
      */
     public static enum GLOBAL {
 
@@ -97,6 +95,13 @@ public abstract class BuilderToken {
          */
         ACTION("action"),
         /**
+         * Threshold part (in case of update)
+         *
+         * the client uses the re-defined threshold function to further
+         * limit the potential impact of the change as does the instance parameter
+         */
+        THRESOLD("threshold"),
+        /**
          * Action part (in case of update)
          */
         RULES("rules"),
@@ -123,9 +128,9 @@ public abstract class BuilderToken {
 
     }
 
+
     /**
      * Query model
-     *
      */
     public static enum QUERY {
         /**
@@ -326,9 +331,9 @@ public abstract class BuilderToken {
 
     }
 
+
     /**
      * SelectFilter model
-     *
      */
     public static enum SELECTFILTER {
         /**
@@ -377,9 +382,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * Projection model
-     *
      */
     public static enum PROJECTION {
         /**
@@ -408,9 +413,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * FACET model
-     *
      */
     public static enum FACET {
 
@@ -436,9 +441,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * Query args model
-     *
      */
     public static enum QUERYARGS {
         /**
@@ -479,9 +484,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * FACET args model
-     *
      */
     public static enum FACETARGS {
         /**
@@ -544,9 +549,7 @@ public abstract class BuilderToken {
 
 
     /**
-     *
      * Range args model
-     *
      */
     public static enum RANGEARGS {
         /**
@@ -582,6 +585,7 @@ public abstract class BuilderToken {
             return exactToken;
         }
     }
+
 
     /**
      * Projection args model <br>
@@ -737,9 +741,9 @@ public abstract class BuilderToken {
 
     }
 
+
     /**
      * Specific values for Filter arguments
-     *
      */
     public static enum FILTERARGS {
         /**
@@ -815,7 +819,6 @@ public abstract class BuilderToken {
 
     /**
      * Update model
-     *
      */
     public static enum UPDATEACTION {
         /**
@@ -884,9 +887,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * Update Args model
-     *
      */
     public static enum UPDATEACTIONARGS {
         /**
@@ -910,9 +913,9 @@ public abstract class BuilderToken {
         }
     }
 
+
     /**
      * Action Filter model
-     *
      */
     public static enum MULTIFILTER {
         /**

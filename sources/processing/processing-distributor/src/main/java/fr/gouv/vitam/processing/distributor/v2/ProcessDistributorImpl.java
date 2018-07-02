@@ -716,7 +716,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                          * do not recalculate them after restart
                          */
                         updateElementToProcess = false;
-                        if (distributorIndex.getRemainingElements() != null && !distributorIndex.getRemainingElements().isEmpty()) {
+                        if (distributorIndex.getRemainingElements() != null &&
+                            !distributorIndex.getRemainingElements().isEmpty()) {
                             remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
                         }
                     }
@@ -740,9 +741,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         boolean finishedStream = false;
 
         int bulkSize = findBulkSize(step.getDistribution());
-
         int globalBatchSize = VitamConfiguration.getDistributeurBatchSize() * bulkSize;
-
         while (!finishedStream && !fatalOccurred) {
             int nextOffset = offset + globalBatchSize;
             List<String> subList = new ArrayList<>();
