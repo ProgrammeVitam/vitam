@@ -26,31 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import java.io.File;
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.lang3.BooleanUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -77,6 +56,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -156,6 +136,24 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.BooleanUtils;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -724,7 +722,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(ERROR_CHECK_PERMISSIONS, e);
             throw e;
-        } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException aupnfe) {
+        } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException aupnfe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, aupnfe.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
@@ -1663,7 +1661,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String idUnit)
         throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
         InvalidCreateOperationException, InvalidParseOperationException,
-        AdminManagementClientServerException, AccessInternalExecutionException {
+        AdminManagementClientServerException, AccessInternalExecutionException,
+        ArchiveUnitProfileEmptyControlSchemaException {
         boolean updateAupValue = false;
         String originalAupIdentifier = null;
         // first get aup information for the unit
@@ -1707,7 +1706,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         UpdateMultiQuery request)
         throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
         InvalidCreateOperationException, InvalidParseOperationException,
-        AdminManagementClientServerException {
+        AdminManagementClientServerException, ArchiveUnitProfileEmptyControlSchemaException {
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
@@ -1717,10 +1716,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (response.isOk() && ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().size() > 0) {
                 archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().get(0);
                 if (ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
-                    Action action =
-                        new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
-                            archiveUnitProfile.getControlSchema());
-                    request.addActions(action);
+                    if (controlSchemaIsEmpty(archiveUnitProfile)) {
+                        throw new ArchiveUnitProfileEmptyControlSchemaException("Archive unit profile does not have a controlSchema");
+                    } else {
+                        Action action =
+                                new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
+                                        archiveUnitProfile.getControlSchema());
+                        request.addActions(action);
+                    }
                 } else {
                     throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
                 }
@@ -1732,6 +1735,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // AUP select could not be executed
             LOGGER.error(e);
             throw e;
+        }
+    }
+
+    private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile) {
+        try {
+            return archiveUnitProfile.getControlSchema() == null || JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+        } catch (InvalidParseOperationException e) {
+            return false;
         }
     }
 

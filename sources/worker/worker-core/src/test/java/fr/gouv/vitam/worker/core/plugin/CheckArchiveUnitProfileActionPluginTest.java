@@ -27,25 +27,7 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -57,6 +39,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -80,6 +63,23 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -320,4 +320,73 @@ public class CheckArchiveUnitProfileActionPluginTest {
         return ClientMockResultHelper.createReponse(archiveUnitProfileModel);
     }
 
+    @Test
+    public void givenInactiveOrEmptySchemaControlAUProfileInArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
+
+
+
+        // archive unit has no description when schema requires one
+        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        //Inactive Status
+        when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
+            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchema, ArchiveUnitProfileStatus.INACTIVE, CtrlSchemaValueSetterFlagEnum.NOT_SET));
+
+        ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertThat(response.getGlobalOutcomeDetailSubcode())
+            .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INACTIVE_STATUS.name());
+
+        //Empty control schema
+        when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
+            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchema, ArchiveUnitProfileStatus.ACTIVE, CtrlSchemaValueSetterFlagEnum.NOT_SET));
+
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertThat(response.getGlobalOutcomeDetailSubcode())
+            .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.EMPTY_CONTROL_SCHEMA.name());
+
+        //JSon Empty control schema
+        InputStream archiveUnitSchemaBis = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
+        when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
+           .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchemaBis, ArchiveUnitProfileStatus.ACTIVE, CtrlSchemaValueSetterFlagEnum.SET_AS_EMPTY_JSON));
+
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertThat(response.getGlobalOutcomeDetailSubcode())
+            .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.EMPTY_CONTROL_SCHEMA.name());
+
+        //All OK
+        archiveUnitSchemaBis = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
+        when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
+            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchemaBis, ArchiveUnitProfileStatus.ACTIVE, CtrlSchemaValueSetterFlagEnum.SET));
+
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    private RequestResponse createCustomArchiveUnitProfile(InputStream schema, ArchiveUnitProfileStatus aupStatus, CtrlSchemaValueSetterFlagEnum ctrlSchemaSetterFlag)
+        throws InvalidParseOperationException, IOException {
+        ArchiveUnitProfileModel archiveUnitProfileModel = new ArchiveUnitProfileModel();
+        archiveUnitProfileModel.setIdentifier("AUP_0001");
+        archiveUnitProfileModel.setId(GUIDFactory.newProfileGUID(0).toString());
+        archiveUnitProfileModel.setStatus(aupStatus);
+
+        if(ctrlSchemaSetterFlag.SET.equals(ctrlSchemaSetterFlag)) {
+            JsonNode node = JsonHandler.getFromInputStream(schema);
+            archiveUnitProfileModel.setControlSchema(JsonHandler.unprettyPrint(node));
+        }
+
+        if(ctrlSchemaSetterFlag.SET_AS_EMPTY_JSON.equals(ctrlSchemaSetterFlag)) {
+            archiveUnitProfileModel.setControlSchema(new String("{}"));
+        }
+
+        return ClientMockResultHelper.createReponse(archiveUnitProfileModel);
+    }
+
+    private enum  CtrlSchemaValueSetterFlagEnum {
+        SET,
+        NOT_SET,
+        SET_AS_EMPTY_JSON
+    };
 }
