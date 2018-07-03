@@ -51,7 +51,7 @@ public class StorageCRUDUtilsTest {
 
         storageCRUDUtils = new StorageCRUDUtils(backupService, storageClient);
 
-        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json");
+        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json","offer-fs-1.service.consul");
 
         assertThat(result).isFalse();
 

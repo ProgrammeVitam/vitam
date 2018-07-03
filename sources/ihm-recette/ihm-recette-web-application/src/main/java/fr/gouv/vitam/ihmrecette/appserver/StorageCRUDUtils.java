@@ -76,16 +76,16 @@ public class StorageCRUDUtils {
      * @param dataCategory category
      * @param uid          uid of file
      */
-    public boolean deleteFile(DataCategory dataCategory, String uid)
+    public boolean deleteFile(DataCategory dataCategory, String uid, String offerId)
         throws StorageNotFoundClientException, StorageServerClientException {
         boolean deleted = false;
         List<String> offers = null;
         offers = storageClient.getOffers(DEFAULT_STRATEGY);
         JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, uid, offers);
-        JsonNode metadata = information.findValue(offers.get(0));
+        JsonNode metadata = information.findValue(offerId);
         if (metadata != null) {
             String digestString = metadata.get("digest").asText();
-            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString);
+            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString,Collections.singletonList(offerId));
         }
         return deleted;
     }
@@ -97,23 +97,23 @@ public class StorageCRUDUtils {
      * @param uid          uid
      * @param stream       stream
      */
-    public void storeInoffer(DataCategory dataCategory, String uid, String offerId,Long size, InputStream stream)
+    public void storeInoffer(DataCategory dataCategory, String uid, String offerId, Long size, InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
         try {
             //storageClient.stor
-            delete = deleteFile(dataCategory, uid);
+            delete = deleteFile(dataCategory, uid,offerId);
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
 
-            storageClient.create(uid,dataCategory,stream,size, Collections.singletonList(offerId));
-        } catch (StorageNotFoundClientException | StorageServerClientException | InvalidParseOperationException e) {
+        } catch (StorageNotFoundClientException | StorageServerClientException  e) {
             LOGGER.error("error when deleting file ", e);
         }
+
         try {
-            storageClient.create(uid,dataCategory,stream,size, Collections.singletonList(offerId));
+            storageClient.create(uid, dataCategory, stream, size, Collections.singletonList(offerId));
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             LOGGER.error("error when deleting file ", e);
             throw new BackupServiceException("fail to create");

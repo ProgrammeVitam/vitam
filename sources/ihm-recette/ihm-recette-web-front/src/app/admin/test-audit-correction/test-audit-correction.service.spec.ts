@@ -1,8 +1,8 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { LoadStorageService } from './load-storage.service';
 import {ResourcesService} from '../../common/resources.service';
 import {Observable} from 'rxjs/Observable';
+import {TestAuditCorrectionService} from "./test-audit-correction.service";
 
 const cookies = {};
 const ResourcesServiceStub = {
@@ -13,10 +13,10 @@ const ResourcesServiceStub = {
   getTenant: () => cookies['tenant']
 };
 
-describe('LoadStorageService', () => {
+describe('TestAuditCorrectionService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [LoadStorageService,
+      providers: [TestAuditCorrectionService,
         {
           provide: ResourcesService, useValue: ResourcesServiceStub
         }
@@ -24,7 +24,7 @@ describe('LoadStorageService', () => {
     });
   });
 
-  it('should be created', inject([LoadStorageService], (service: LoadStorageService) => {
+  it('should be created', inject([TestAuditCorrectionService], (service: TestAuditCorrectionService) => {
     expect(service).toBeTruthy();
   }));
 });

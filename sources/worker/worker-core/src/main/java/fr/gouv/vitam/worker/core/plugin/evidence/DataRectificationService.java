@@ -162,25 +162,5 @@ public class DataRectificationService {
 
 
 
-    /**
-     * @param id                binary identifier
-     * @param category          the category
-     * @param offerSourceId     offerSourceId
-     * @param offersDestination offeDestination
-     * @throws DataRectificationException throw {@link DataRectificationException if something happen }
-     */
-    public void correctOffers(String id, DataCategory category, String offerSourceId, List<String> offersDestination)
-        throws
-        DataRectificationException {
 
-        for (String offerId : offersDestination) {
-
-            try {
-                storageClient.copyObjectToOneOfferAnother(id, category, offerSourceId, offerSourceId);
-            } catch (StorageServerClientException | InvalidParseOperationException e) {
-                throw new DataRectificationException(e);
-            }
-
-        }
-    }
 }
