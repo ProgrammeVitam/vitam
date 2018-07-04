@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class UpdateMultiQuery extends RequestMultiple {
     protected List<Action> actions = new ArrayList<>();
+
     protected Long threshold;
 
     /**
@@ -161,8 +162,9 @@ public class UpdateMultiQuery extends RequestMultiple {
         } else {
             node.putArray(GLOBAL.ACTION.exactToken());
         }
-        
-        node.put(GLOBAL.THRESOLD.exactToken(), threshold);
+        if(threshold != null) {
+            node.put(GLOBAL.THRESOLD.exactToken(), threshold);
+        }
         
         return node;
     }

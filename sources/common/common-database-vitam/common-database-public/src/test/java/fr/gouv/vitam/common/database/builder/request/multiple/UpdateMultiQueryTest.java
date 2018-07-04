@@ -33,7 +33,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
@@ -110,37 +109,39 @@ public class UpdateMultiQueryTest {
     }
 
     @Test
-    public void testGetFinalUpdate() {
+    public void testGetFinalUpdate_updateById() throws Exception {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.queries.isEmpty());
-        try {
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(1, update.queries.size());
-            update.setMult(true);
-            update.addActions(new IncAction("mavar"));
-            final ObjectNode node = update.getFinalUpdate();
-            assertEquals(5, node.size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        update.addQueries(new PathQuery("path3"));
+        assertEquals(1, update.queries.size());
+        update.setMult(true);
+        update.addActions(new IncAction("mavar"));
+        final ObjectNode node = update.getFinalUpdate();
+        assertEquals(4, node.size());
     }
 
     @Test
-    public void testGetFinalUpdateById() {
+    public void testGetFinalUpdate_batchUpdate() throws Exception {
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+        update.addQueries(new PathQuery("path3"));
+        update.setThreshold(1L);
+        assertEquals(1, update.queries.size());
+        update.setMult(true);
+        update.addActions(new IncAction("mavar"));
+        final ObjectNode node = update.getFinalUpdate();
+        assertEquals(5, node.size());
+    }
+
+    @Test
+    public void testGetFinalUpdateById() throws Exception {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.queries.isEmpty());
-        try {
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(1, update.queries.size());
-            update.setMult(true);
-            update.addActions(new IncAction("mavar"));
-            final ObjectNode node = update.getFinalUpdateById();
-            assertEquals(2, node.size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        update.addQueries(new PathQuery("path3"));
+        assertEquals(1, update.queries.size());
+        update.setMult(true);
+        update.addActions(new IncAction("mavar"));
+        final ObjectNode node = update.getFinalUpdateById();
+        assertEquals(1, node.size());
     }
 
     @Test
