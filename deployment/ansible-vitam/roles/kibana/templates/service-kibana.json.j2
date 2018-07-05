@@ -3,6 +3,7 @@
     "name": "{{ kibana_service_name }}",
     "port": {{ composant.port }},
     "address": "{{ ip_service }}",
+    "tags": ["kibana","{{ kibana_service_name }}"],
     "enable_tag_override": false,
     "checks": [
       {
