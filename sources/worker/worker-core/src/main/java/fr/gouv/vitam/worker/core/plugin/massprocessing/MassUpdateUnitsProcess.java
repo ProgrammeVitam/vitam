@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
@@ -79,7 +78,6 @@ import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -180,7 +178,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         // Bulk update units && local reports generation
         try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient();) {
+            StorageClient storageClient = storageClientFactory.getClient()) {
 
             // get initial query string
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
@@ -195,7 +193,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
             // set the units to update
             List<String> units = workerParameters.getObjectNameList();
-            multiQuery.resetRoots().addRoots(units.toArray(new String[units.size()]));
+            multiQuery.resetRoots().addRoots(units.stream().toArray(String[]::new));
 
             // call update BULK service
             RequestResponse<JsonNode> requestResponse = mdClient.updateUnitBulk(multiQuery.getFinalUpdate());

@@ -27,17 +27,12 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -58,8 +53,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 
 /**
  * Check distribution threshold.
@@ -87,26 +80,23 @@ public class CheckDistributionThreshold extends ActionHandler {
 
     /**
      * Constructor.
-     *
      * @param metaDataClientFactory
      */
-    @VisibleForTesting
-    CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
     /**
      * Execute an action
-     *
-     * @param param   {@link WorkerParameters}
+     * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
-     * @throws ProcessingException                      if an error is encountered when executing the action
+     * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ProcessingException, ContentAddressableStorageServerException {
+        throws ProcessingException, ContentAddressableStorageServerException {
 
         final ItemStatus itemStatus = new ItemStatus(CHECK_DISTRIBUTION_THRESHOLD);
 
@@ -119,17 +109,17 @@ public class CheckDistributionThreshold extends ActionHandler {
 
             // get threshold 
             Long threshold = multiQuery.getThreshold();
-            Long defaultThreashold = VitamConfiguration.getDistributionThreshold(); 
-            
+            Long defaultThreashold = VitamConfiguration.getDistributionThreshold();
+
             // compute min and max
             long min, max;
-            if(threshold != null) {
+            if (threshold != null) {
                 max = Math.max(threshold, defaultThreashold);
                 min = Math.min(threshold, defaultThreashold);
             } else {
                 min = max = defaultThreashold;
             }
-            
+
             // count elements
             SelectMultiQuery selectMulti = getSelectCountQueryFromUpdateQuery(multiQuery);
             JsonNode response = client.selectUnits(selectMulti.getFinalSelect());
@@ -137,7 +127,7 @@ public class CheckDistributionThreshold extends ActionHandler {
             if (responseOK.isOk()) {
                 // get total 
                 long total = responseOK.getHits().getTotal();
-                
+
                 // check against client threshold if exists
                 if (total <= min) {
                     // OK : total <= default_threshold && overcome_threshold
@@ -158,24 +148,16 @@ public class CheckDistributionThreshold extends ActionHandler {
                 // not able to get count
                 itemStatus.increment(StatusCode.FATAL);
             }
-            
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            // bad DSL query
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (VitamDBException | MetaDataExecutionException | 
-                MetaDataDocumentSizeException | MetaDataClientServerException e) {
-            // metadata error
+        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        
+
         return new ItemStatus(CHECK_DISTRIBUTION_THRESHOLD).setItemsStatus(CHECK_DISTRIBUTION_THRESHOLD, itemStatus);
     }
 
     /**
      * getUpdateQueryFromJson
-     * 
      * @param queryNode
      * @return
      * @throws InvalidParseOperationException
@@ -184,35 +166,34 @@ public class CheckDistributionThreshold extends ActionHandler {
         // parse multi query
         UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(queryNode);
-        
-        return  parser.getRequest();
+
+        return parser.getRequest();
     }
 
     /**
      * getSelectCountQueryFromUpdateQuery
-     * 
      * @param multiQuery
      * @return
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     @VisibleForTesting
-    public SelectMultiQuery getSelectCountQueryFromUpdateQuery(UpdateMultiQuery multiQuery) 
-            throws InvalidCreateOperationException, InvalidParseOperationException {
+    public SelectMultiQuery getSelectCountQueryFromUpdateQuery(UpdateMultiQuery multiQuery)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
         // create multi select with same queries
         SelectMultiQuery selectMulti = new SelectMultiQuery();
+        selectMulti.addRoots(multiQuery.getRoots().stream().toArray(String[]::new));
         selectMulti.addQueries(multiQuery.getQueries().stream().toArray(Query[]::new));
         // to get only the count add filter.limit = 1
         selectMulti.setLimitFilter(0, 1);
         // get only the id, no need to get full document
         selectMulti.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
-        
+
         return selectMulti;
     }
 
     /**
      * Check mandatory parameter
-     *
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */

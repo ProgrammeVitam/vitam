@@ -270,9 +270,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-
-        System.err.println("===============  Before Class =======================");
-
         new DataLoader("integration-processing").prepareData();
 
     }
@@ -392,6 +389,120 @@ public class ProcessingIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
+        prepareVitamSession();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client unzip SIP in workspace
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_BUG_2721);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            metaDataClient.insertUnit(
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
+
+            metaDataClient.insertUnit(
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
+
+            metaDataClient.flushUnits();
+            // import contract
+            File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
+            List<IngestContractModel> IngestContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
+
+            functionalClient.importIngestContracts(IngestContractModelList);
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
+            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+
+            // as logbookClient.selectOperation returns last two events and after removing STARTED from events
+            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
+            // "STP_INGEST_FINALISATION.OK"
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
+                "ROLL_BACK.OK");
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
+                "PROCESS_SIP_UNITARY.WARNING");
+
+            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+                "bug2721_2racines_meme_rattachement");
+
+            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
+            assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
+
+            // lets check the accession register
+            Select query = new Select();
+            query.setLimitFilter(0, 1);
+            RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
+            assertThat(resp).isInstanceOf(RequestResponseOK.class);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
+
+            // check if unit is valid
+            MongoIterable<Document> resultCheckUnits = MetadataCollections.UNIT.getCollection().find();
+            Document unitCheck = resultCheckUnits.first();
+            assertThat(unitCheck.get("_storage")).isNotNull();
+            Document storageUnit = (Document) unitCheck.get("_storage");
+            assertThat(storageUnit.get("_nbc")).isNotNull();
+            assertThat(storageUnit.get("_nbc")).isEqualTo(2);
+
+            // check if units are valid
+            MongoIterable<Document> resultCheckObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
+            Document objectGroupCheck = resultCheckObjectGroups.first();
+            assertThat(objectGroupCheck.get("_storage")).isNotNull();
+            Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
+            assertThat(storageObjectGroup.get("_nbc")).isNotNull();
+            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(2);
+
+            List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
+            assertThat(qualifiers.size()).isEqualTo(3);
+            Document binaryMaster = qualifiers.get(0);
+            assertThat(binaryMaster.get("_nbc")).isNotNull();
+            assertThat(binaryMaster.get("_nbc")).isEqualTo(1);
+
+            List<Document> versions = (List<Document>) binaryMaster.get("versions");
+            assertThat(versions.size()).isEqualTo(1);
+            Document version = versions.get(0);
+            Document storageVersion = (Document) version.get("_storage");
+            assertThat(storageVersion.get("_nbc")).isNotNull();
+            assertThat(storageVersion.get("_nbc")).isEqualTo(1);
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowMassUpdate() throws Exception {
         prepareVitamSession();
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
@@ -1899,18 +2010,14 @@ public class ProcessingIT extends VitamRuleRunner {
             .collect(Collectors.toList());
         assertThat(Iterables.getOnlyElement(lifeCycles).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
 
-
-
         ArrayList<Document> logbookLifeCycleGOTs =
             Lists.newArrayList(LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().find().iterator());
-
 
         List<Document> currentLogbookLifeCycleGots =
             logbookLifeCycleGOTs.stream().filter(t -> t.get("evIdProc").equals(containerName))
                 .collect(Collectors.toList());
 
         events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleGots).get("events");
-
 
         lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
             .collect(Collectors.toList());

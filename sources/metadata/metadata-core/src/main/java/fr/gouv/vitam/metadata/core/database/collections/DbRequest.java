@@ -823,7 +823,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
         Result<MetadataDocument<?>> last,
         RequestParserMultiple requestParser)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetadataInvalidUpdateException {
+        throws InvalidParseOperationException, MetaDataExecutionException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final FILTERARGS model = requestToMongodb.model();
