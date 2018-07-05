@@ -270,7 +270,7 @@ public class AccessContractModel extends AbstractContractModel {
         writingRestrictedDesc = firstNonNull(writingRestrictedDesc, false);
         everyOriginatingAgency = firstNonNull(everyOriginatingAgency, false);
         everyDataObjectVersion = firstNonNull(everyDataObjectVersion, false);
-        accessLog = firstNonNull(accessLog, ActivationStatus.ACTIVE);
+        accessLog = firstNonNull(accessLog, ActivationStatus.INACTIVE);
     }
 
 }

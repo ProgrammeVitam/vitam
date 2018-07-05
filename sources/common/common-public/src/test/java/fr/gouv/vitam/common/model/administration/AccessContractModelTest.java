@@ -100,7 +100,7 @@ public class AccessContractModelTest {
         assertThat(accessContractModel.getWritingPermission()).isFalse();
         assertThat(accessContractModel.isEveryDataObjectVersion()).isFalse();
         assertThat(accessContractModel.getWritingRestrictedDesc()).isFalse();
-        assertEquals(ActivationStatus.ACTIVE, accessContractModel.getAccessLog());
+        assertEquals(ActivationStatus.INACTIVE, accessContractModel.getAccessLog());
     }
 
     @Test
