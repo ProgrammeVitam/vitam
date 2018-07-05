@@ -15,6 +15,7 @@
     "port": {{ vitam_struct.port_service }},
 {% endif %}
     "enable_tag_override": false,
+    "tags": ["vitam","{{ vitam_struct.vitam_component }}"],
     "checks": [
       {
          "name": "{{ vitam_struct.vitam_component }}: business service check",

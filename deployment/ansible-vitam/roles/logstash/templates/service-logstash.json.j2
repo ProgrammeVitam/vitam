@@ -4,6 +4,7 @@
     "port": {{ logstash.port }},
     "address": "{{ ip_admin }}",
     "enable_tag_override": false,
+    "tags": ["logstash"],
     "checks": [
       {
         "notes": "Syslog tcp port opened",
