@@ -47,6 +47,27 @@ Contrôle du format du conteneur du SIP CHECK_CONTAINER (IngestExternalImpl.java
   - FATAL : une erreur fatale est survenue lors de la vérification du format du conteneur du SIP, liée à l'outil d'identification des formats (CHECK_CONTAINER.FATAL = Erreur fatale lors du contrôle du format du conteneur du SIP)
 
 
+Contrôle du nom du bordereau de transfert MANIFEST_FILE_NAME_CHECK (IngestExternalImpl.java)
+--------------------------------------------------------------------------------------------
+
++ **Règle** : Vérification du nom du bordereau de transfert. Le nom du bordereau doit être conforme avec l'expression régulière suivante :
+
+^(([a-zA-Z0-9]{1,56}[_-]{1}){0,1}|_{0,1})(manifest.xml)\\b"}
+
+A savoir : une chaîne de caractères débutant par des caractères alphanumériques sans accent, jusqu'à 56 caractères, suivi d'un "-" ou d'un "_" puis suivi de "manifest.xml". Exemples valides : "MonNouveau-manifest.xml", "UnAutreBordereau_manifest.xml". "manifest.xml" tout court est également valide. Un SIP ne possédant pas du tout de bordereau de transfert verra également son entrée terminer en KO à cette tâche.
+
++ **Type** : bloquant
+
++ **Statuts** :
+
+  - OK : le nom du bordereau de transfert est conforme (MANIFEST_FILE_NAME_CHECK.OK = Succès du contrôle du nom du bordereau de transfert : nom du fichier conforme)
+
+  - KO : le nom du bordereau de transfert n'est pas conforme (MANIFEST_FILE_NAME_CHECK.KO = Échec du contrôle du nom du bordereau de transfert : nom du fichier conforme)
+
+  - FATAL : une erreur fatale est survenue lors de la vérification du nom du bordereau de transfert (MANIFEST_FILE_NAME_CHECK.FATAL = Erreur fatale lors du contrôle du nom du bordereau de transfert)
+
+
+
 Processus de réception du SIP dans Vitam STP_UPLOAD_SIP (IngestInternalResource.java)
 =====================================================================================
 
@@ -323,20 +344,21 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationAction
 
 + **Statuts** :
 
-  - OK : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne et les informations sont cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.OK = Succès de la vérification des formats)
+  - OK : l'identification s'est bien passée, les formats ont tous été identifiés, sont référencés dans le référentiel interne et sont soit dans la liste des formats autorisés du contrat d'entrée, soit ce contrat autorise tous les formats. De plus les informations de formats trouvées par la solution logicelle Vitam sont cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.OK = Succès de la vérification des formats)
 
   - KO :
 
 		- Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé et le contrat d'entrée utilisé interdit le versement d'objets aux formats non identifiés (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
 		- Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (OG_OBJECTS_FORMAT_CHECK.UNCHARTED.KO=Échec lors de l'identification des formats, le format de ou des objet(s) est identifié mais est inconnu du référentiel des formats)
 		- Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
-
-  - FATAL : une erreur fatale est survenue lors de l'indentification des formats (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de l'identification des formats)
+    - Cas 4 : au moins objet reçu possède un format qui n'est pas indiqué dans la liste des formats autorisés du contrat d'entrée du SIP (OG_OBJECTS_FORMAT_CHECK.REJECTED_FORMAT.KO=Échec de l''identification des formats : le contrat d''entrée interdit le versement d''objet au format inconnu et le SIP versé contient au moins un objet au format inconnu, ou bien le SIP contient un format interdit par le contrat d'entrée)
 
   - WARNING :
 
     - Cas 1 : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne mais les informations ne sont pas cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
     - Cas 2 : au moins un objet reçu a un format qui n'a pas été trouvé mais le contrat d'entrée utilisé autorise le versement d'objets aux formats non identifiés. Dans ce cas Vitam remplace le champ "FormatId" du manifest.xml par le mot "unknown" (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
+
+  - FATAL : une erreur fatale est survenue lors de l'identification des formats (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de l'identification des formats)
 
 
 Processus de contrôle et traitement des unités archivistiques (STP_UNIT_CHECK_AND_PROCESS)
@@ -368,13 +390,13 @@ Vérification globale de l'unité archivistique CHECK_UNIT_SCHEMA (CheckArchiveU
 Vérification du profil d'unité archivistique - si celui-ci est déclaré CHECK_ARCHIVE_UNIT_PROFILE (CheckArchiveUnitProfileActionPlugin.java)
 --------------------------------------------------------------------------------------------------------------------------------------------
 
-+ **Règle** : Vérification de la conformité au niveau des unités archivistiques: si celles ci font référence à un profil d'unité archivistique, présent dans la balise "ArchiveUnitProfile"
++ **Règle** : Vérification de la conformité au niveau des unités archivistiques: si celles ci font référence à un profil d'unité archivistique, présent dans la balise "ArchiveUnitProfile". Les profils référencés doivent être en état "Actif" et ne pas avoir un schéma de contrôle vide
 
 + **Type** : non bloquant
 
 + **Statuts** :
 
-  - OK : les unités archivistiques versées et ayant un profil d'unité archivistique de référence bien conformes au schéma décrit dans le profil d'unité archivistique, et ceux ci existent bien dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.OK = Succès de la vérification de la conformité aux profils d'unité archivistique )
+  - OK : les unités archivistiques versées et ayant un profil d'unité archivistique de référence bien conformes au schéma décrit dans le profil d'unité archivistique, et ceux ci existent bien dans le système en état actif ( CHECK_ARCHIVE_UNIT_PROFILE.OK = Succès de la vérification de la conformité aux profils d'unité archivistique )
 
   - KO : au moins une unité archivistique n'est pas conforme au schéma décrit dans le profil d'unité archivistique associé ( CHECK_ARCHIVE_UNIT_PROFILE.KO = Echec de la vérification de la conformité au profil d'unité archivistique)
 
@@ -383,6 +405,11 @@ Vérification du profil d'unité archivistique - si celui-ci est déclaré CHECK
   - INVALID UNIT : au moins une unité archivistique n'est pas conforme au schéma décrit dans le profil d'unité archivistique associé ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_UNIT.KO = Échec de la vérification de la conformité au profil d'unité archivistique : champs non conformes)
 
   - INVALID AU: le profil d'unité archivistique cité dans le référentiel est mal formaté ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_AU_PROFILE.KO=Échec de la vérification de la conformité aux documents type : document type non conforme)
+
+  - INACTIVE_STATUS : le profil d'unité archivistique est dans l'état "inactif" (CHECK_ARCHIVE_UNIT_PROFILE.INACTIVE_STATUS.KO = Échec de la vérification de la conformité aux documents type : document type non actif)
+
+  - EMPTY_CONTROL_SCHEMA : le profil d'unité archivistique possède un schéma de contrôle qui est vide (CHECK_ARCHIVE_UNIT_PROFILE.EMPTY_CONTROL_SCHEMA.KO = Échec de la vérification de la conformité aux documents type : schéma de contrôle du document type vide)
+
 
 
 

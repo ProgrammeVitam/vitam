@@ -32,24 +32,26 @@ Détail des champs du JSON stocké dans la collection
 **"SubjectDN":** Identifiant unique (Distinguished Name) du certificat personnel
 
   * Il s'agit d'une chaîne de caractères
-  * Cadinalité : 1-1
+  * Cardinalité : 1-1
 
 **"SerialNumber":** Numéro de série du certificat
 
   * Il s'agit d'un entier
-  * Cadinalité : 1-1
+  * Cardinalité : 1-1
 
 **"IssuerDN":** Identifiant unique (Distinguished Name) de l'autorité de certification
 
   * Il s'agit d'une chaîne de caractères
-  * Cadinalité : 1-1
+  * Cardinalité : 1-1
 
-**"Certificate":** Certificat au format DER encodé en Base64.
+**"Certificate":** Certificat
 
+  * Le certificat est au format DER encodé en Base64.
   * Il s'agit d'une chaîne de caractères
-  * Cadinalité : 1-1
+  * Cardinalité : 1-1
 
-**"Hash":** Hash (SHA256) du certificat
+**"Hash":** empreinte du certificat
 
+  * le hash utilise l'algorithme SHA256
   * Il s'agit d'une chaîne de caractères
-  * Cadinalité : 1-1
+  * Cardinalité : 1-1

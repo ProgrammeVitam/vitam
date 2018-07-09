@@ -418,6 +418,10 @@ Pour enregistrer un nouvel identifiant dans la liste des formats, il est nécess
 
 Si dans cette liste l'utilisateur ne saisit pas un identifiant de format valide, c'est un dire un identifiant qui n'est pas un PUID du référentiel des formats de la solution logicielle Vitam, alors les modifications seront rejetées au moment de cliquer sur "Sauvegarder".
 
+* Log des accès
+
+Lorsque ce que ce paramètre est activé, chaque téléchargement d'un objet ou export d'un objet pour un DIP fera l'objet d'un enregistrement dans un fichier dédié (fichier de log). Ce fichier contiendra un certain nombre d'informations a propos des téléchargements effectués : application qui accède à l'objet, identifiant de la requête d'accès, volumétrie des objets communiqués, date et heure de l'accès, etc.
+
 Contrats d'accès
 =================
 
@@ -497,11 +501,10 @@ Détail d'un contrat d'accès
 
 Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhaitée. La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
-Identifiant, Intitulé, Description, Statut, Tous les services producteurs, Liste blanche des services producteurs (permet de restreindre l'accès à certains producteurs), Date de création, Dernière modification, Droit d'écriture, Tous les usages, Liste blanche des usages (permet de restreindre l'accès à certains usages), Nœuds de consultation, Tenant, Noeuds inaccessibles
+Identifiant, Intitulé, Description, Statut, Tous les services producteurs, Liste blanche des services producteurs (permet de restreindre l'accès à certains producteurs), Date de création, Dernière modification, Droit d'écriture, Tous les usages, Liste blanche des usages (permet de restreindre l'accès à certains usages), Nœuds de consultation, Tenant, Noeuds inaccessibles, Log des accès
 
 
 .. image:: images/detail_ca.png
-
 
 
 Modifier un contrat d'accès
@@ -551,7 +554,9 @@ Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet d
 
 Un contrat peut restreindre l'accès à la consultation à partir de certains noeuds, grâce à l'option "Noeud inaccessible". Pour cela il faut déclarer l'identifiant de l'unité archivistique dans le champs, et toutes les unités archivistiques de la descendance ne seront pas disponibles à la consultation.
 
+* Log des accès
 
+Si le log des accès est activé, alors à chaque fois qu'un utilisateur télécharge avec succès un objet depuis la solution logicielle Vitam, une trace de cette action est enregistrée dans un journal des accès (le "log des accès") renseignant des informations sur cette action.
 
 Contextes applicatifs
 =======================
@@ -634,7 +639,7 @@ Il s'accompagne dans la solution logicielle Vitam d'une notice descriptive au fo
 Pour plus d'information se référer à la documentation "Profil d'archivage"
 
 
-Import d'notice descriptive de profil d'archivage
+Import de notice descriptive de profil d'archivage
 -----------------------------------------------------
 
 L'import de notice détaillant les profils d'archivage est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.

@@ -69,13 +69,14 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
     "WritingRestrictedDesc": false,
     "EveryOriginatingAgency": false,
     "EveryDataObjectVersion": true,
+    "AccessLog": "INACTIVE",
     "_tenant": 0,
     "_v": 0,
     "RootUnits": [
         "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
         "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
     ]
-     "ExcludedRootUnits": ["aeaqaaaaaagbcaacaaceoalde3yowuaaaaoq"],
+     "ExcludedRootUnits": ["aeaqaaaaaagbcaacaaceoalde3yowuaaaaoq"]
     }
 
 Détail des champs
@@ -162,7 +163,7 @@ Détail des champs
   * Peut être vide
   * Cardinalité : 0-1
 
-**"WritingPermission":** droit d'écriture. 
+**"WritingPermission":** droit d'écriture.
 
   * Il s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour.
   * Cardinalité : 1-1
@@ -172,7 +173,6 @@ Détail des champs
   * Il s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour seulement sur les métadonnées descriptives.
     Si la valeur est à false, le détenteur du contrat peut effectuer des mises à jour sur les métadonnées descriptives, ainsi que sur les métadonnées de gestion.
   * Cardinalité : 0-1
-
 
 **"EveryOriginatingAgency":** droit de consultation sur tous les services producteurs.
 
@@ -186,10 +186,16 @@ Détail des champs
   * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
   * Cardinalité : 1-1
 
+**"AccessLog":** enregistrement des accès
+
+  * Peut être ACTIVE ou INACTIVE
+  * Si la valeur est à ACTIVE, alors les téléchargements des objets sont enregistrés dans un fichier de log
+  * Cardinalité : 1-1  
+
 **"_tenant":** identifiant du tenant.
 
     * Il s'agit d'un entier.
-    * Cardinalité : 1-1 
+    * Cardinalité : 1-1
 
 **"_v":**  version de l'enregistrement décrit
 
@@ -209,7 +215,3 @@ Détail des champs
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
   * Cardinalité : 0-1
-
-
-
-
