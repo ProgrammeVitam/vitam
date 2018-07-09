@@ -76,11 +76,12 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
             File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
 
-            List<String> securisedLines = Files.readAllLines(securedDataFile.toPath(),
+            List<String> securedLines = Files.readAllLines(securedDataFile.toPath(),
                 Charset.defaultCharset());
             ArrayList<String> listIds = JsonHandler.getFromFile(listOfObjectByFile, ArrayList.class);
 
             EvidenceService evidenceService = new EvidenceService();
+
             for (String objectToAuditId : listIds) {
 
                 File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + "/" + objectToAuditId);
@@ -88,20 +89,27 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                 EvidenceAuditParameters parameters =
                     JsonHandler.getFromFile(infoFromDatabase, EvidenceAuditParameters.class);
 
-                EvidenceAuditReportLine evidenceAuditReportLine = null;
+                EvidenceAuditReportLine evidenceAuditReportLine;
 
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
                 if (parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
-                    evidenceAuditReportLine =
-                        evidenceService.auditAndGenerateReportIfKo(parameters, securisedLines, objectToAuditId);
 
+                    evidenceAuditReportLine =
+                        evidenceService.auditAndGenerateReportIfKo(parameters, securedLines, objectToAuditId);
+
+
+                }
+                else {
+
+                    evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
+                    evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
+                    evidenceAuditReportLine.setMessage(parameters.getAuditMessage());
+                }
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
 
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, !correctiveAudit, false);
-
-                }
 
                 // corrective audit
                 if (correctiveAudit) {

@@ -258,7 +258,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
 
         if (existsDestinationOffer) {
-           final String digest = containerInformation.get(destinationOffer).get(DIGEST).textValue();
+            final String digest = containerInformation.get(destinationOffer).get(DIGEST).textValue();
             deleteObjectInOffers(STRATEGY_ID, context,
                 digest, singletonList(destinationOffer));
         }
@@ -304,11 +304,12 @@ public class StorageDistributionImpl implements StorageDistribution {
         Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
 
         StreamAndInfo streamAndInfo = new StreamAndInfo((InputStream) response.getEntity(), size, response);
-       return this.storeDataInOffers(strategyId,streamAndInfo,objectId,category,requester,offerIds);
+        return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
     }
 
     @Override
-    public StoredInfoResult storeDataInOffers( String strategyId, StreamAndInfo streamAndInfo,String objectId, DataCategory category, String requester,
+    public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
+        DataCategory category, String requester,
         List<String> offerIds)
         throws StorageException {
         // Check input params
@@ -321,7 +322,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // Retrieve strategy offersToCopyIn
         checkStrategy(strategyId);
 
-        List <StorageOffer>offers = new ArrayList<>();
+        List<StorageOffer> offers = new ArrayList<>();
 
         for (String o : offerIds) {
             offers.add(OFFER_PROVIDER.getStorageOffer(o));
@@ -1304,7 +1305,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-            deleteObject(context.getObjectId(), digest, context.getTenantId(), driver, offer,context.getCategory());
+            deleteObject(context.getObjectId(), digest, context.getTenantId(), driver, offer, context.getCategory());
         }
     }
 

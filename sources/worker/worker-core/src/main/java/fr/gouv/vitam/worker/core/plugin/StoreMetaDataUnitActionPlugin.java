@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -40,9 +39,6 @@ import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -64,30 +60,24 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
     private static final String JSON = ".json";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
-    private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     /**
      * Empty parameter Constructor
      */
-    public StoreMetaDataUnitActionPlugin() {
-    }
+    public StoreMetaDataUnitActionPlugin() {/*   nothing to do */ }
 
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
         throws ProcessingException {
         checkMandatoryParameters(params);
-        handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(UNIT_METADATA_STORAGE);
-        final String guid = StringUtils.substringBeforeLast(params.getObjectName(), ".");
-        final String fileName = guid + JSON;
 
-        checkMandatoryIOParameter(actionDefinition);
+        final String guid = StringUtils.substringBeforeLast(params.getObjectName(), ".");
 
         try {
             // create metadata-lfc file in workspace
-            saveDocumentWithLfcInStorage(params, guid, fileName, itemStatus);
+            saveDocumentWithLfcInStorage(guid, handlerIO, params.getContainerName(), itemStatus);
 
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
@@ -107,14 +97,14 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
     /**
      * saveDocumentWithLfcInStorage
      *
-     * @param params
-     * @param guid
-     * @param fileName
-     * @param itemStatus
-     * @throws VitamException
+     * @param guid          guid
+     * @param handlerIO     then handler
+     * @param containerName container name
+     * @param itemStatus    itemStatus
+     * @throws VitamException VitamException
      */
-    private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName,
-        ItemStatus itemStatus) throws VitamException {
+    public void saveDocumentWithLfcInStorage(String guid,
+        HandlerIO handlerIO, String containerName, ItemStatus itemStatus) throws VitamException {
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
@@ -130,20 +120,21 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
 
             // transfer json to workspace
+            final String fileName = guid + JSON;
             try {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
-                        null, asyncIO);
+                        null, false);
             } catch (ProcessingException e) {
-                LOGGER.error(params.getObjectName(), e);
+                LOGGER.error("Could not backup file for " + guid, e);
                 throw new WorkspaceClientServerException(e);
             }
 
             //// call storage (save in offers)
             // object Description
             final ObjectDescription description =
-                new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
+                new ObjectDescription(DataCategory.UNIT, containerName,
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             storeObject(description, itemStatus);

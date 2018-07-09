@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -38,8 +37,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -172,7 +169,7 @@ public class StorageTwoOffersIT {
         information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID));
         assertThat(information.get(OFFER_ID).get(DIGEST)).isEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
-        alterFile(id);
+        alterFileInSecondOffer(id);
         //verify that offer2 is modified
         information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID));
         assertThat(information.get(OFFER_ID).get(DIGEST)).isNotEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
@@ -187,7 +184,7 @@ public class StorageTwoOffersIT {
     }
 
     // write directly in file of second offer
-    private void alterFile(String id) throws IOException {
+    private void alterFileInSecondOffer(String id) throws IOException {
         String path = SECOND_FOLDER + File.separator + "0_object" + File.separator + id;
         Writer writer = new BufferedWriter(new FileWriter(path));
         writer.write(id + "test");
@@ -210,21 +207,22 @@ public class StorageTwoOffersIT {
         JsonNode informationObject2 =
             storageClient.getInformation(STRATEGY_ID, OBJECT, object2, newArrayList(OFFER_ID,
                 SECOND_OFFER_ID));
-        //just verify the two object are stored and equal
+
+        //just verify the  object  stored and equal
         assertThat(informationObject1.get(OFFER_ID).get(DIGEST))
             .isEqualTo(informationObject1.get(SECOND_OFFER_ID).get(DIGEST));
 
-        String digestSecondOffer = informationObject1.get(SECOND_OFFER_ID).get(DIGEST).textValue();
-        String digestObject2 = informationObject2.get(SECOND_OFFER_ID).get(DIGEST).textValue();
+        String digestObject1SecondOffer = informationObject1.get(SECOND_OFFER_ID).get(DIGEST).textValue();
+        String digestObject2SecondOffer = informationObject2.get(SECOND_OFFER_ID).get(DIGEST).textValue();
 
 
         //WHEN
         //delete object1 in second offer
         storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object, digestSecondOffer, singletonList(SECOND_OFFER_ID));
+            .delete(STRATEGY_ID, DataCategory.OBJECT, object, digestObject1SecondOffer, singletonList(SECOND_OFFER_ID));
 
         storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object2, digestObject2, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+            .delete(STRATEGY_ID, DataCategory.OBJECT, object2, digestObject2SecondOffer, newArrayList(OFFER_ID, SECOND_OFFER_ID));
 
 
         //THEN

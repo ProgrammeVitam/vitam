@@ -433,7 +433,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
     @Override
     public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId) {
-        throw new UnsupportedOperationException("Will not Implemeted");
+        throw new UnsupportedOperationException("Will not Implemented");
     }
 
 

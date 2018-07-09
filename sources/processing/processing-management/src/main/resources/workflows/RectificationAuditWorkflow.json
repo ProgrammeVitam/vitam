@@ -114,6 +114,24 @@
           }
         }
       ]
+    }, {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_CORRECTION_FINALIZE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "correct"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CORRECTION_FINALIZE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
     }
+
+
   ]
 }

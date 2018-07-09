@@ -64,15 +64,14 @@ public class EvidenceAuditFinalize extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditFinalize.class);
 
     private static final String EVIDENCE_AUDIT_FINALIZE = "EVIDENCE_AUDIT_FINALIZE";
-    public static final String REPORTS = "reports";
     BackupService backupService = new BackupService();
-    static final int PATH_RANK = 0;
+
 
     @VisibleForTesting EvidenceAuditFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
-    public EvidenceAuditFinalize() {/*nothing to do */   }
+    public EvidenceAuditFinalize() { /*nothing to do */ }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
@@ -83,9 +82,11 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
         try {
 
+
+
             File reportFile = handlerIO.getNewLocalFile("report.json");
             List<URI> uriListObjectsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), REPORTS);
+                handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
                 BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
@@ -93,10 +94,12 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
                 for (URI uri : uriListObjectsWorkspace) {
 
-                    File file = handlerIO.getFileFromWorkspace(REPORTS + "/" + uri.getPath());
+                    File file = handlerIO.getFileFromWorkspace(param.getObjectName() + File.separator + uri.getPath());
 
                     EvidenceAuditReportLine reportLine = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
-
+                    if (reportLine.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
+                        evidenceStatusWarn = EvidenceStatus.WARN;
+                    }
                     if (!reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
                         continue;
                     }
@@ -107,7 +110,7 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
                 }
 
-                buffOut.close();
+                buffOut.flush();
                 backupService
                     .backup(new FileInputStream(reportFile), DataCategory.REPORT,
                         handlerIO.getContainerName() + ".json");
@@ -117,7 +120,6 @@ public class EvidenceAuditFinalize extends ActionHandler {
             throw new ProcessingException(e);
 
         }
-
 
         if (evidenceStatusKo.equals(EvidenceStatus.KO)) {
             itemStatus.increment(StatusCode.KO);
@@ -133,7 +135,8 @@ public class EvidenceAuditFinalize extends ActionHandler {
             infoNode.put("Message", "There are some objects not securised yet see the report for more details ");
             itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
 
-        } else {
+        }
+        else {
 
             itemStatus.increment(StatusCode.OK);
         }
@@ -142,7 +145,7 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
+        //nothing
     }
 
 }

@@ -252,7 +252,7 @@ public class EvidenceResource {
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
-                    "RECTIFICATION_AUDIT",
+                    RECTIFICATION_AUDIT,
                     GUIDReader.getGUID(operationId),
                     LogbookTypeProcess.AUDIT,
                     StatusCode.STARTED,

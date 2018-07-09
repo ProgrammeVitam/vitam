@@ -35,6 +35,8 @@ export class LoadStorageComponent extends PageComponent {
 
   displayErrorInitImport = false;
   displayGetError = false;
+  displayDeleteError =false;
+  displayMessageDelete = false ;
   displayErrorImport = false;
   displaySuccessImport = false;
 
@@ -83,6 +85,24 @@ export class LoadStorageComponent extends PageComponent {
         delete this.savedData;
         this.dataState = 'KO';
         this.displayGetError = true;
+      }
+    );
+  }
+  deleteObject() {
+
+    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
+      this.error = true;
+      return;
+    }
+
+    this.loadStorageService.delete(this.fileName, this.category,this.offerId).subscribe(
+      (response) => {
+
+          this.displayMessageDelete = true;
+
+      }, () => {
+        delete this.savedData;
+        this.displayDeleteError = true;
       }
     );
   }

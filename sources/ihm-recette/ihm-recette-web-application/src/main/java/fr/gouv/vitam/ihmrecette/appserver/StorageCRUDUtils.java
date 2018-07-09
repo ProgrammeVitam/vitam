@@ -85,7 +85,8 @@ public class StorageCRUDUtils {
         JsonNode metadata = information.findValue(offerId);
         if (metadata != null) {
             String digestString = metadata.get("digest").asText();
-            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString,Collections.singletonList(offerId));
+            deleted = storageClient
+                .delete(DEFAULT_STRATEGY, dataCategory, uid, digestString, Collections.singletonList(offerId));
         }
         return deleted;
     }
@@ -118,8 +119,5 @@ public class StorageCRUDUtils {
             LOGGER.error("error when deleting file ", e);
             throw new BackupServiceException("fail to create");
         }
-
     }
-
-
 }

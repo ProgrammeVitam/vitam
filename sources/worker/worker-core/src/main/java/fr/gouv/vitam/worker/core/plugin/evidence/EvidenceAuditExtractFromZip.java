@@ -67,7 +67,7 @@ public class EvidenceAuditExtractFromZip extends ActionHandler {
         try {
             file = evidenceService.downloadAndExtractDataFromStorage(securisedDataFileName);
 
-            handlerIO.transferFileToWorkspace(ZIP + "/" + securisedDataFileName,
+            handlerIO.transferFileToWorkspace(ZIP + File.separator + securisedDataFileName,
                 file, true, false);
             itemStatus.increment(StatusCode.OK);
             return new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE)

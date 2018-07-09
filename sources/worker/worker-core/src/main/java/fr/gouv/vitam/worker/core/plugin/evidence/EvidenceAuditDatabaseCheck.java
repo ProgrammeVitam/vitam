@@ -58,8 +58,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final String REPORTS = "reports";
 
 
-    @VisibleForTesting
-    EvidenceAuditDatabaseCheck(EvidenceService evidenceService) {
+    @VisibleForTesting EvidenceAuditDatabaseCheck(EvidenceService evidenceService) {
         this.evidenceService = evidenceService;
     }
 

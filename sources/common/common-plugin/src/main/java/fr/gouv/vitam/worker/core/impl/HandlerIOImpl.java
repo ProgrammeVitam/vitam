@@ -341,14 +341,14 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
         try {
             transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
-                toDelete,Paths.get(sourceFile.toURI()), asyncIO);
+                toDelete, Paths.get(sourceFile.toURI()), asyncIO);
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
         }
     }
 
 
-    private void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, boolean todele,
+    private void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, boolean toDelete,
         Path filePath,
         boolean asyncIO) throws ProcessingException {
         if (!asyncIO) {
@@ -358,7 +358,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
             } finally {
                 try {
-                    if (filePath != null && todele ) {
+                    if (filePath != null && toDelete) {
                         Files.delete(filePath);
                     }
                 } catch (IOException e) {
@@ -386,7 +386,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
         boolean asyncIO)
         throws ProcessingException {
-         transferInputStreamToWorkspace(workspacePath,inputStream,true,filePath,asyncIO);
+        transferInputStreamToWorkspace(workspacePath, inputStream, true, filePath, asyncIO);
     }
 
     /**
@@ -516,7 +516,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         try {
             return JsonHandler
                 .getFromStringAsTypeRefence(workspaceCient.getListUriDigitalObjectFromFolder(containerName, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);

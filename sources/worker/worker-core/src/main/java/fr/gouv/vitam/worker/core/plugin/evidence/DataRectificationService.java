@@ -26,14 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.MetadataType;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.DataRectificationException;
+import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject;
 
@@ -41,84 +61,75 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleUnitParameters;
+
 /**
  * DataCorrectionService class
  */
 public class DataRectificationService {
 
-    private StorageClient storageClient;
+    final private StorageClientFactory storageClientFactory;
+    final private MetaDataClientFactory metaDataClientFactory;
+    final private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
+    private String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
+    private String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
-    /**
-     * Constructor
-     */
+    @VisibleForTesting DataRectificationService(StorageClientFactory storageClientFactory,
+        MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+        this.metaDataClientFactory = metaDataClientFactory;
+        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
+    }
+
     DataRectificationService() {
-        this(StorageClientFactory.getInstance().getClient());
+        this(StorageClientFactory.getInstance(), MetaDataClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    /**
-     * @param storageClient storageClient
-     */
-    private DataRectificationService(StorageClient storageClient) {
-        this.storageClient = storageClient;
-    }
-
-
-    /**
-     * @param line EvidenceAuditReportLine
-     * @return true | false  if  correction is done
-     * @throws InvalidParseOperationException InvalidParseOperationException
-     * @throws StorageServerClientException   StorageServerClientException
-     */
-    public boolean correct(EvidenceAuditReportLine line)
-        throws InvalidParseOperationException, StorageServerClientException {
-
-        MetadataType objectType = line.getObjectType();
-        switch (objectType) {
-            case OBJECTGROUP:
-                return correctObjectGroups(line);
-            case UNIT:
-                return correctUnits(line);
-            default:
-                throw new IllegalStateException(objectType.getName());
-        }
-
-    }
-
-    private boolean correctUnits(EvidenceAuditReportLine line)
-        throws InvalidParseOperationException, StorageServerClientException {
+    public IdentifierType correctUnits(EvidenceAuditReportLine line, String containerName)
+        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
+        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException {
         String securedHash = line.getSecuredHash();
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
 
         if (!doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
-            return false;
+            return null;
         }
-
-        storageClient
+        String message =
+            String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
+        storageClientFactory.getClient()
             .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
                 badOffers.get(0));
-        return true;
+        updateLifecycleUnit(containerName, line.getIdentifier(), UNIT_CORRECTIVE_AUDIT, message);
 
-
+        return new IdentifierType(line.getIdentifier(), DataCategory.UNIT.name());
     }
 
-    private boolean correctObjectGroups(EvidenceAuditReportLine line)
-        throws InvalidParseOperationException, StorageServerClientException {
+    public List<IdentifierType> correctObjectGroups(EvidenceAuditReportLine line, String containerName)
+        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
+        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException {
 
-        int nbObjectsCorrected = 0;
         String securedHash = line.getSecuredHash();
-
+        List<IdentifierType> listCorrections = new ArrayList<>();
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
-        // nothing
-        if (doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
 
-            storageClient
+
+        if (doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
+            String message =
+                String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
+            storageClientFactory.getClient()
                 .copyObjectToOneOfferAnother(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
                     goodOffers.get(0),
                     badOffers.get(0));
 
-            nbObjectsCorrected++;
+            updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_GROUP_CORRECTIVE_AUDIT, message);
+
+            listCorrections.add(new IdentifierType(line.getIdentifier(), DataCategory.OBJECTGROUP.name()));
         }
 
         for (EvidenceAuditReportObject object : line.getObjectsReports()) {
@@ -126,16 +137,88 @@ public class DataRectificationService {
             badOffers.clear();
             securedHash = object.getSecuredHash();
 
+            if (object.getEvidenceStatus() == EvidenceStatus.OK) {
+                continue;
+            }
             if (!doCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
                 continue;
             }
-            storageClient.copyObjectToOneOfferAnother(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
-                badOffers.get(0));
+            String message =
+                String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
+                    goodOffers.get(0), object.getIdentifier());
+            storageClientFactory.getClient()
+                .copyObjectToOneOfferAnother(object.getIdentifier() , DataCategory.OBJECT, goodOffers.get(0),
+                    badOffers.get(0));
 
-            nbObjectsCorrected++;
+            updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT,
+                message);
+
+            listCorrections.add(new IdentifierType(line.getIdentifier(), DataCategory.OBJECT.name()));
+
         }
-        return nbObjectsCorrected > 0;
+        return listCorrections;
     }
+
+
+    private void updateLifecycleObject(String containerName, String identifier, String detail, String message)
+
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
+        InvalidGuidOperationException {
+
+        final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
+
+        final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        StatusCode logbookOutcome = StatusCode.OK;
+        LogbookLifeCycleObjectGroupParameters parameters =
+            newLogbookLifeCycleObjectGroupParameters(updateGuid,
+                VitamLogbookMessages.getEventTypeLfc(detail),
+                GUIDReader.getGUID(containerName), eventTypeProcess, logbookOutcome,
+                VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
+                VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
+                GUIDReader.getGUID(identifier));
+
+        final ObjectNode object = JsonHandler.createObjectNode();
+        object.put("Information", message);
+
+        final String wellFormedJson = JsonHandler.unprettyPrint(object);
+
+        parameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+
+        logbookLifeCyclesClientFactory.getClient().update(parameters, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
+
+    }
+
+
+    private void updateLifecycleUnit(String containerName, String identifier, String detail, String message) throws
+        LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
+        InvalidGuidOperationException {
+        final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
+
+        final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+
+        StatusCode logbookOutcome = StatusCode.OK;
+        LogbookLifeCycleUnitParameters parameters =
+            newLogbookLifeCycleUnitParameters(updateGuid,
+                VitamLogbookMessages.getEventTypeLfc(detail),
+                GUIDReader.getGUID(containerName),
+                eventTypeProcess, logbookOutcome,
+                VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
+                VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
+                GUIDReader.getGUID(identifier)
+            );
+
+        final ObjectNode object = JsonHandler.createObjectNode();
+
+        object.put("Information", message);
+
+        final String wellFormedJson = JsonHandler.unprettyPrint(object);
+
+        parameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+
+        logbookLifeCyclesClientFactory.getClient().update(parameters, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
+
+    }
+
 
 
     private boolean doCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
@@ -157,9 +240,8 @@ public class DataRectificationService {
             }
         }
 
-        return goodOffers.isEmpty() || badOffers.isEmpty() || badOffers.size() > 1;
+        return !goodOffers.isEmpty() && !badOffers.isEmpty() && badOffers.size() == 1;
     }
-
 
 
 

@@ -104,7 +104,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
-        "element": ""
+        "element": "reports"
       },
       "actions": [
         {

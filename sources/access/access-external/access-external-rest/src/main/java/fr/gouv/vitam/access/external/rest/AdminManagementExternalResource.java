@@ -2407,9 +2407,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * launch a traceability audit for the query
+     * launch a rectification  audit for the operation
      *
-     * @param operationId the query select
+     * @param operationId the operation id
      * @return Response response
      */
     @Path(RECTIFICATION_AUDIT)

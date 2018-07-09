@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -60,6 +61,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -194,7 +196,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
-        @PathParam("dataType") String dataType,@PathParam("offerId") String offerId, @PathParam("size") Long size,InputStream input) {
+        @PathParam("dataType") String dataType, @PathParam("offerId") String offerId, @PathParam("size") Long size,
+        InputStream input) {
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
@@ -214,15 +217,49 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * @param xTenantId xtenant
+     * @param uid       uid
+     * @param dataType  data
+     * @return
+     */
+    @DELETE
+    @Path("/deleteObject/{dataType}/{offerId}/{uid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType, @PathParam("offerId") String offerId) {
+
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+            StorageCRUDUtils storageCRUDUtils = new StorageCRUDUtils();
+
+            DataCategory dataCategory = DataCategory.valueOf(dataType);
+
+            boolean deleted = storageCRUDUtils.deleteFile(dataCategory, uid, offerId);
+            if (deleted) {
+                return Response.status(Status.OK).build();
+            }
+
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+        } catch (StorageServerClientException | StorageNotFoundClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @POST
     @Path("/launchAudit/{operationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
-    public Response launchAudi(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @PathParam("operationId") String operationId) {
+    public Response launchAudi(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("operationId") String operationId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()){
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             VitamContext context = new VitamContext(TENANT_ID);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
 
@@ -237,7 +274,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
-        } catch ( VitamClientException e) {
+        } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
@@ -525,7 +562,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update link between 2 AU send in the select request
      *
      * @param request the HTTP request and all its context
-     * @param select select query with the following structure: {parentId: 'id', childId: 'id', action: 'ADD/DELETE'}
+     * @param select  select query with the following structure: {parentId: 'id', childId: 'id', action: 'ADD/DELETE'}
      */
     @POST
     @Path("/updateLinks")
@@ -538,7 +575,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance()
                 .getClient()) {
-                 RequestResponse response =
+                RequestResponse response =
                     accessExternalClient.reclassification(getVitamContext(request), query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();

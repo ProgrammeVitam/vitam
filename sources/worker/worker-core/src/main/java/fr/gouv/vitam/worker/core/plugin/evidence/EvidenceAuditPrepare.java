@@ -111,9 +111,9 @@ public class EvidenceAuditPrepare extends ActionHandler {
         throws ProcessingException {
 
         try (StorageClient client = storageClientFactory.getClient()) {
-
+            String name = operationId + ".json";
             InputStream inputStream =
-                (InputStream) client.getContainerAsync(STRATEGY_ID, operationId, DataCategory.REPORT).getEntity();
+                (InputStream) client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT) .getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -122,7 +122,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
                 EvidenceAuditReportLine pojo = JsonHandler.getFromString(line, EvidenceAuditReportLine.class);
                 ObjectNode item = createObjectNode();
                 item.put(ID, pojo.getIdentifier());
-                item.put(METADA_TYPE,pojo.getObjectType().name());
+                item.put(METADA_TYPE, pojo.getObjectType().name());
                 saveItemToWorkSpace(item, handlerIO);
             }
             reader.close();

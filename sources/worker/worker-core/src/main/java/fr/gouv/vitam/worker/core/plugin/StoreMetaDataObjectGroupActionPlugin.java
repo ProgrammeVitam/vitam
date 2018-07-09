@@ -64,7 +64,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
     private static final String JSON = ".json";
     private static final String OG_METADATA_STORAGE = "OG_METADATA_STORAGE";
-    private HandlerIO handlerIO;
+
     private boolean asyncIO = false;
 
     /**
@@ -76,19 +76,18 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
         throws ProcessingException {
-        checkMandatoryParameters(params);
-        handlerIO = actionDefinition;
+
+
         final ItemStatus itemStatus = new ItemStatus(OG_METADATA_STORAGE);
         final String guid = StringUtils.substringBeforeLast(params.getObjectName(), ".");
-        final String fileName = guid + JSON;
 
-        checkMandatoryIOParameter(actionDefinition);
 
         try {
             // create metadata-lfc file in workspace
-            saveDocumentWithLfcInStorage(params, guid, fileName, itemStatus);
+            saveDocumentWithLfcInStorage(guid, actionDefinition, params.getContainerName(), itemStatus);
 
             itemStatus.increment(StatusCode.OK);
+
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -106,14 +105,11 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
     /**
      * saveDocumentWithLfcInStorage
      *
-     * @param params
      * @param guid
-     * @param fileName
      * @param itemStatus
      * @throws VitamException
      */
-    private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName,
-        ItemStatus itemStatus)
+    public void saveDocumentWithLfcInStorage( String guid, HandlerIO handlerIO, String containerName,  ItemStatus itemStatus)
         throws VitamException {
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
@@ -129,20 +125,22 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);
             // transfer json to workspace
+            final String fileName = guid + JSON;
+
             try {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is,
                         null, asyncIO);
             } catch (ProcessingException e) {
-                LOGGER.error(params.getObjectName(), e);
+                LOGGER.error("Could not backup file for " + guid, e);
                 throw new WorkspaceClientServerException(e);
             }
 
             //// call storage (save in offers)
             // object Description
             final ObjectDescription description =
-                new ObjectDescription(DataCategory.OBJECTGROUP, params.getContainerName(),
+                new ObjectDescription(DataCategory.OBJECTGROUP, containerName,
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             storeObject(description, itemStatus);
