@@ -59,8 +59,17 @@ export class ArchiveUnitComponent extends PageComponent {
         ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
             (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({ 'width': '100px' }), null, null, false),
         ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item),
-            () => true, () => ({ 'width': '50px' }), null, false)
+            () => true, () => ({ 'width': '50px' }), null, false),
+        ColumnDefinition.makeSpecialIconColumn('Ajout au panier', this.getIcons, () => {}, this.updateIcon, null, false)
     ];
+
+    updateIcon(item, service, icons) {
+        item.selected = !item.selected;
+    }
+
+    getIcons(item, icons: string[]): string[] {
+        return item.selected ? ['fa-check'] : ['fa-times'];
+    }
 
     public extraColumns = [];
 
