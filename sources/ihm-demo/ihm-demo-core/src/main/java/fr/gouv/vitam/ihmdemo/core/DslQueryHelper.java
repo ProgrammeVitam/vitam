@@ -95,6 +95,9 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
+    private static final String APPRAISAL_DATE_INF = "AppDateInf";
+    private static final String APPRAISAL_DATE_SUP = "AppDateSupp";
+    private static final String APPRAISAL_FINAL_ACTION = "AppFinalAction";
     private static final String ONTOLOGY_TYPE = "OntologyType";
     private static final String ONTOLOGY_NAME = "OntologyName";
     private static final String ONTOLOGY_ID = "OntologyID";
@@ -639,6 +642,22 @@ public final class DslQueryHelper {
                 andQuery.add(eq(VitamFieldsHelper.originatingAgencies(), (String) searchValue));
                 continue;
             }
+
+            if (searchKeys.equalsIgnoreCase(APPRAISAL_DATE_INF)) {
+                andQuery.add(gte(VitamFieldsHelper.management() + ".AppraisalRule.Rules.EndDate", (String) searchValue));
+                continue;
+            }
+
+            if (searchKeys.equalsIgnoreCase(APPRAISAL_DATE_SUP)) {
+                andQuery.add(lte(VitamFieldsHelper.management() + ".AppraisalRule.Rules.EndDate", (String) searchValue));
+                continue;
+            }
+
+            if (searchKeys.equalsIgnoreCase(APPRAISAL_FINAL_ACTION)) {
+                andQuery.add(eq(VitamFieldsHelper.management() + ".AppraisalRule.FinalAction", (String) searchValue));
+                continue;
+            }
+
             if (searchKeys.startsWith(START_PREFIX)) {
                 startDate = (String) searchValue;
                 continue;
@@ -651,6 +670,8 @@ public final class DslQueryHelper {
                 advancedSearchFlag = (String) searchValue;
                 continue;
             }
+
+
             if (searchKeys.equalsIgnoreCase(REQUEST_FACET_PREFIX)) {
                 RequestFacetItem requestFacetItem = JsonHandler
                     .getFromString(JsonHandler.writeAsString(searchValue), RequestFacetItem.class);

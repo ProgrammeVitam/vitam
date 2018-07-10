@@ -36,7 +36,11 @@ export class ArchiveUnitComponent extends PageComponent {
         FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
         FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
         FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
-        new FieldDefinition('originatingagencies', 'Service producteur de l\'entrée', 4, 12)
+        new FieldDefinition('originatingagencies', 'Service producteur de l\'entrée', 4, 12),
+        FieldDefinition.createDateField('appDateInf', 'Borne inferieur de la Date d\'échéance de la règle de communicabilité', 4, 12),
+      FieldDefinition.createDateField('appDateSup', 'Borne superieur de la Date d\'échéance de la règle de communicabilité', 4, 12),
+        FieldDefinition.createSelectField('appFinalAction', 'Sort final de la règle de communicabilité',
+            'Sort Final', this.archiveUnitHelper.finalActionSelector.AppraisalRule, 4, 12)
     ];
 
     public columns = [
@@ -124,8 +128,8 @@ export class ArchiveUnitComponent extends PageComponent {
                 if (request.description) { criteriaSearch.Description = request.description; }
                 if (request.originatingagencies) { criteriaSearch.originatingagencies = request.originatingagencies; }
 
-                const isStartDate = request.startDate;
-                const isEndDate = request.endDate;
+                let isStartDate = request.startDate;
+                let isEndDate = request.endDate;
                 if (isStartDate && isEndDate) {
                     if (request.startDate > request.endDate) {
                         preResult.searchProcessError = 'La date de début doit être antérieure à la date de fin.';
@@ -138,10 +142,30 @@ export class ArchiveUnitComponent extends PageComponent {
                     preResult.searchProcessError = 'Une date de début et une date de fin doivent être indiquées.';
                     return preResult;
                 }
+
+                isStartDate = request.appDateInf;
+                isEndDate = request.appDateSup;
+                if (isStartDate || isEndDate) {
+                    if (isStartDate && isEndDate && request.appDateInf > request.appDateSup) {
+                      preResult.searchProcessError = 'La borne inferieur doit être antérieure à la borne supperieur.';
+                      return preResult;
+                    }
+                    if (request.appDateInf) { criteriaSearch.AppDateInf = request.appDateInf; }
+                    if (request.appDateSup) {
+                        criteriaSearch.AppDateSupp = request.appDateSup;
+                        criteriaSearch.AppDateSupp.setDate(criteriaSearch.AppDateSupp.getDate() + 1)
+                    }
+
+                }
+
+                if (request.appFinalAction) {
+                    criteriaSearch.AppFinalAction = request.appFinalAction;
+                }
             }
 
             if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate
-                || criteriaSearch.EndDate || criteriaSearch.originatingagencies) {
+                || criteriaSearch.EndDate || criteriaSearch.originatingagencies
+                || criteriaSearch.AppDateInf || criteriaSearch.AppDateSupp || criteriaSearch.AppFinalAction) {
                 if (!!request.facets) {
                     criteriaSearch.facets = request.facets;
                 }
