@@ -37,6 +37,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 
+import javax.ws.rs.core.Response;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 
@@ -218,10 +220,9 @@ public class StreamUtils {
     }
 
     /**
-     *
      * @param inputStream
      * @return the corresponding String from InputStream
-     * @throws IOException 
+     * @throws IOException
      */
     public static final String toString(InputStream inputStream) throws IOException {
         try (InputStreamReader isr = new InputStreamReader(inputStream, Charsets.UTF_8);) {
@@ -235,7 +236,6 @@ public class StreamUtils {
     }
 
     /**
-     *
      * @param source
      * @return the corresponding InputStream
      */
@@ -276,6 +276,32 @@ public class StreamUtils {
         } finally {
             consumeInputStream(is1);
             consumeInputStream(is2);
+        }
+    }
+
+    /**
+     * This method consume everything (in particular InpuStream) and close the response.
+     *
+     * @param response
+     */
+    public static final void consumeAnyEntityAndClose(Response response) {
+        try {
+            if (response != null && response.hasEntity()) {
+                final Object object = response.getEntity();
+                if (object instanceof InputStream) {
+                    StreamUtils.closeSilently((InputStream) object);
+                }
+            }
+        } catch (final Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        } finally {
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (final Exception e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+            }
         }
     }
 }
