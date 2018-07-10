@@ -867,8 +867,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+        final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());

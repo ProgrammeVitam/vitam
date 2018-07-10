@@ -28,14 +28,16 @@ package fr.gouv.vitam.metadata.core.migration;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.GraphService;
+import fr.gouv.vitam.metadata.core.database.collections.UnitGraphModel;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -68,14 +70,14 @@ public class DataMigrationService {
 
     private final AtomicBoolean isRunning = new AtomicBoolean();
 
-    private final GraphService graphService;
+    private final GraphLoader graphLoader;
 
     /**
      * Constructor
      */
     public DataMigrationService() {
         this(new DataMigrationRepository(),
-            new GraphService(
+            new GraphLoader(
                 new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())
             ));
     }
@@ -84,9 +86,9 @@ public class DataMigrationService {
      * Constructor for testing
      */
     @VisibleForTesting
-    DataMigrationService(DataMigrationRepository dataMigrationRepository, GraphService graphService) {
+    DataMigrationService(DataMigrationRepository dataMigrationRepository, GraphLoader graphLoader) {
         this.dataMigrationRepository = dataMigrationRepository;
-        this.graphService = graphService;
+        this.graphLoader = graphLoader;
     }
 
     public boolean isMongoDataUpdateInProgress() {
@@ -160,14 +162,19 @@ public class DataMigrationService {
         Set<String> directParentIds = new HashSet<>();
         unitsToUpdate.forEach(unit -> directParentIds.addAll(unit.getCollectionOrEmpty(Unit.UP)));
 
-        Map<String, Unit> directParentById = this.dataMigrationRepository.getUnitGraphByIds(directParentIds);
+        Map<String, UnitGraphModel> directParentById;
+        try {
+            directParentById = graphLoader.loadGraphInfo(directParentIds);
+        } catch (MetaDataNotFoundException e) {
+            throw new VitamRuntimeException(e);
+        }
 
         List<Unit> updatedUnits = ListUtils.synchronizedList(new ArrayList<>());
 
         CompletableFuture[] futures =
             unitsToUpdate.stream().map(unit -> CompletableFuture.runAsync(() -> {
                 try {
-                    processDocument(unit);
+                    processDocument(unit, directParentById);
                     updatedUnits.add(unit);
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during unit migration: " + unit.getId(), e);
@@ -186,18 +193,20 @@ public class DataMigrationService {
             sw.getTime(TimeUnit.SECONDS), updatedUnitCount.get(), unitsWithErrorsCount.get()));
     }
 
-    private void processDocument(Unit unit) throws
-        MetaDataNotFoundException {
+    private void processDocument(Unit unit, Map<String, UnitGraphModel> directParentById)  {
 
-        buildParentGraph(unit);
+        buildParentGraph(unit, directParentById);
         updateUnitSedaModel(unit);
     }
 
-    private void buildParentGraph(Unit unit) throws
-        MetaDataNotFoundException {
+    private void buildParentGraph(Unit unit, Map<String, UnitGraphModel> directParentById) {
 
         Collection<String> directParentIds = unit.getCollectionOrEmpty(Unit.UP);
-        graphService.compute(unit, directParentIds);
+        UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
+        directParentIds.forEach( parentId -> {
+            unitGraphModel.addParent(directParentById.get(parentId));
+        });
+        unit.mergeWith(unitGraphModel);
     }
 
     private void processObjectGroups() {

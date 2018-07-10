@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -117,7 +118,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.metadata.core.graph.GraphService;
 
 /**
  * DB Request using MongoDB only
@@ -1202,16 +1202,13 @@ public class DbRequest {
 
         try (GraphLoader graphLoader = new GraphLoader(mongoDbUnitRepository)) {
 
-            GraphService graphService = new GraphService(graphLoader);
-
             List<String> allRoots = new ArrayList<>();
             for (InsertParserMultiple requestParser : requestParsers) {
                 allRoots.addAll(requestParser.getRequest().getRoots());
             }
 
-
             Stopwatch loadParentAU = Stopwatch.createStarted();
-            graphLoader.loadGraphs(allRoots);
+            Map<String, UnitGraphModel> parentGraphs = graphLoader.loadGraphInfo(allRoots);
             PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "loadParentAU", loadParentAU.elapsed(TimeUnit.MILLISECONDS));
 
             Stopwatch computeAU = Stopwatch.createStarted();
@@ -1223,7 +1220,14 @@ public class DbRequest {
                 String unitId = unit.getId();
 
                 Set<String> roots = requestParser.getRequest().getRoots();
-                graphService.compute(unit, roots);
+
+                UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
+                roots.forEach(parentId -> {
+                    UnitGraphModel parentGraphModel = parentGraphs.get(parentId);
+                    unitGraphModel.addParent(parentGraphModel);
+                });
+
+                unit.mergeWith(unitGraphModel);
 
                 // save mongo
                 unitToSave.add(unit);
