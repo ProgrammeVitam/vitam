@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -109,11 +111,12 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     private ItemStatus handleRectificationAudit(HandlerIO handlerIO, ItemStatus itemStatus, String operationId)
         throws ProcessingException {
-
+        InputStream inputStream = null;
+        Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
             String name = operationId + ".json";
-            InputStream inputStream =
-                (InputStream) client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT) .getEntity();
+            response = client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT);
+            inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -126,12 +129,15 @@ public class EvidenceAuditPrepare extends ActionHandler {
                 saveItemToWorkSpace(item, handlerIO);
             }
             reader.close();
+            client.consumeAnyEntityAndClose(response);
         } catch (StorageServerClientException | StorageNotFoundException | IOException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.KO);
+        } finally {
+            StreamUtils.closeSilently(inputStream);
         }
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);

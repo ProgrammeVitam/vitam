@@ -57,7 +57,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -206,7 +205,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             DataCategory dataCategory = DataCategory.valueOf(dataType);
 
-            storageCRUDUtils.storeInoffer(dataCategory, uid, offerId, size, input);
+            storageCRUDUtils.storeInOffer(dataCategory, uid, offerId, size, input);
 
             return Response.status(Status.OK).build();
         } catch (BackupServiceException e) {
@@ -250,12 +249,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * launch Rectification audit from recette
+     * @param xTenantId xTenantId
+     * @param operationId operationId
+     * @return
+     */
     @POST
     @Path("/launchAudit/{operationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
-    public Response launchAudi(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response launchAudit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("operationId") String operationId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
@@ -265,10 +270,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse = client.rectificationAudit(context, operationId);
 
-            if (requestResponse != null && requestResponse instanceof RequestResponseOK) {
+            if (requestResponse instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
-            if (requestResponse != null && requestResponse instanceof VitamError) {
+            if (requestResponse instanceof VitamError) {
                 LOGGER.error(requestResponse.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
             }

@@ -60,6 +60,7 @@ import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObjec
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleUnitParameters;
@@ -89,7 +90,7 @@ public class DataRectificationService {
             LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    public IdentifierType correctUnits(EvidenceAuditReportLine line, String containerName)
+    public Optional<IdentifierType> correctUnits(EvidenceAuditReportLine line, String containerName)
         throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException {
         String securedHash = line.getSecuredHash();
@@ -97,7 +98,7 @@ public class DataRectificationService {
         List<String> badOffers = new ArrayList<>();
 
         if (!doCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
-            return null;
+            return Optional.empty();
         }
         String message =
             String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
@@ -106,7 +107,7 @@ public class DataRectificationService {
                 badOffers.get(0));
         updateLifecycleUnit(containerName, line.getIdentifier(), UNIT_CORRECTIVE_AUDIT, message);
 
-        return new IdentifierType(line.getIdentifier(), DataCategory.UNIT.name());
+        return Optional.of(new IdentifierType(line.getIdentifier(), DataCategory.UNIT.name()));
     }
 
     public List<IdentifierType> correctObjectGroups(EvidenceAuditReportLine line, String containerName)

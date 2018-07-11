@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {SelectItem} from 'primeng/api';
 import {ResourcesService} from '../../common/resources.service';
 import {TestAuditCorrectionService} from './test-audit-correction.service';
@@ -9,7 +9,8 @@ import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.serv
 import {Title} from '@angular/platform-browser';
 
 class FileData {
-  constructor(public file: string, public category: string,offerId:String ) { }
+  constructor(public file: string, public category: string, offerId: String) {
+  }
 }
 
 const breadcrumb: BreadcrumbElement[] = [
@@ -27,6 +28,9 @@ export class TestAuditCorrectionComponent extends PageComponent {
 
   tenant: string;
   operationId: string;
+
+  auditKo = false;
+  auditOk = false;
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, private resourcesService: ResourcesService,
               private testAuditCorrectionService: TestAuditCorrectionService, private tenantService: TenantService) {
@@ -48,11 +52,12 @@ export class TestAuditCorrectionComponent extends PageComponent {
 
     this.testAuditCorrectionService.launch(this.operationId).subscribe(
       (response) => {
-// TODO
-          console.log(response);
-      }, (error) => {
-// TODO
-            console.error(error);
+
+        this.auditOk = true;
+      },
+      (error) => {
+        this.auditKo = true;
+
       }
     );
   }

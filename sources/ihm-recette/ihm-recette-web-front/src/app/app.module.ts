@@ -51,9 +51,9 @@ const appRoutes: Routes = [
   {
     path: 'admin/load-storage', component: LoadStorageComponent
   },
-    {
-        path: 'admin/test-audit-correction', component: TestAuditCorrectionComponent
-    },
+  {
+    path: 'admin/test-audit-correction', component: TestAuditCorrectionComponent
+  },
   {
     path: 'admin/link-au', component: LinkAuComponent
   },

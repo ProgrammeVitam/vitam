@@ -1,27 +1,42 @@
 <p-panel [header]="'Recherche et Modification d\'un fichier'">
-  <div class="ui-g">
+    <div class="ui-g">
 
-    <div class="ui-g-12">
-      <div class="ui-g-4">Operation ID: </div>
-      <div class="ui-g-4 ui-g-nopad">
-        <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="operationId" placeholder="Identifiant d'opération"/>
-      </div>
-    </div>
-    <div class="ui-g-12">
-      <div class="ui-g-4">Tenant: </div>
-      <div class="ui-g-4">
-        {{tenant ? tenant : 'Veuillez choisir un tenant'}}
-      </div>
-    </div>
+        <div class="ui-g-12">
+            <div class="ui-g-4">Operation ID:</div>
+            <div class="ui-g-4 ui-g-nopad">
+                <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="operationId"
+                       placeholder="Identifiant d'opération"/>
+            </div>
+        </div>
+        <div class="ui-g-12">
+            <div class="ui-g-4">Tenant:</div>
+            <div class="ui-g-4">
+                {{tenant ? tenant : 'Veuillez choisir un tenant'}}
+            </div>
+        </div>
 
-    <div class="ui-g-12" *ngIf="error" (click)="error = false">Un des champs est mal renseigné</div>
+        <div class="ui-g-12" *ngIf="error" (click)="error = false">Un des champs est mal renseigné</div>
 
-    <div class="ui-g-12">
-      <div class="ui-g-4"></div>
-      <div class="ui-g-4">
-        <button pButton type="button" (click)="getObject()" label="Lancer la correction"></button>
-      </div>
+        <div class="ui-g-12">
+            <div class="ui-g-4"></div>
+            <div class="ui-g-4">
+                <button pButton type="button" (click)="getObject()" label="Lancer la correction"></button>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="clearfix"></div>
+    <div class="clearfix"></div>
+
+    <p-dialog header="Audit correctif " [(visible)]="auditKo" modal="modal" [responsive]="true">
+        <p>Erreur lors ddu lancement de l'operation </p>
+        <p-footer>
+            <button type="button" pButton icon="fa-check" (click)="auditKo=false" label="OK"></button>
+        </p-footer>
+    </p-dialog>
+    <p-dialog header="Audit correctif " [(visible)]="auditOk" modal="modal" [responsive]="true">
+        <p>L'operation a bien été lancé </p>
+        <p-footer>
+            <button type="button" pButton icon="fa-check" (click)="auditOk=false" label="OK"></button>
+        </p-footer>
+    </p-dialog>
+
 </p-panel>

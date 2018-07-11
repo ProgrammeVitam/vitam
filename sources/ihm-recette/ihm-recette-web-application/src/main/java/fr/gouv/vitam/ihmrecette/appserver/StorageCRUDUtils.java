@@ -56,17 +56,15 @@ public class StorageCRUDUtils {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageCRUDUtils.class);
 
     private static final String DEFAULT_STRATEGY = "default";
-    BackupService backupService;
     StorageClient storageClient;
 
     StorageCRUDUtils() {
-        this.backupService = new BackupService();
         this.storageClient = StorageClientFactory.getInstance().getClient();
     }
 
     @VisibleForTesting
-    public StorageCRUDUtils(BackupService backupService, StorageClient storageClient) {
-        this.backupService = backupService;
+    public StorageCRUDUtils(StorageClient storageClient) {
+
         this.storageClient = storageClient;
     }
 
@@ -98,12 +96,11 @@ public class StorageCRUDUtils {
      * @param uid          uid
      * @param stream       stream
      */
-    public void storeInoffer(DataCategory dataCategory, String uid, String offerId, Long size, InputStream stream)
+    public void storeInOffer(DataCategory dataCategory, String uid, String offerId, Long size, InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
         try {
-            //storageClient.stor
             delete = deleteFile(dataCategory, uid,offerId);
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");

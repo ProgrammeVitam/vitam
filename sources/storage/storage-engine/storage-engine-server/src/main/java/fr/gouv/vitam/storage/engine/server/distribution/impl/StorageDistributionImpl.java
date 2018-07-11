@@ -274,7 +274,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
     }
 
-    private StorageLogbookParameters sendDataInOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams,
+    private StorageLogbookParameters sendDataToOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams,
         ObjectDescription description)
         throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
         StorageLogbookParameters parameters = null;
@@ -289,7 +289,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description);
 
-            parameters = sendDataInOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+            parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
         }
         return parameters;
     }
@@ -334,7 +334,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         //try only once
         StorageLogbookParameters parameters =
-            sendDataInOffers(streamAndInfo, dataContext, offersToCopyIn, 1, new AtomicBoolean(false));
+            sendDataToOffers(streamAndInfo, dataContext, offersToCopyIn, 1, new AtomicBoolean(false));
 
         try {
             logStorage(tenantId, parameters);
@@ -430,7 +430,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         final DataContext dataContext = new DataContext(objectId, category, requester, tenantId);
 
         StorageLogbookParameters parameters =
-            sendDataInOffersWithRetries(dataContext, offersToCopyIn, createObjectDescription);
+            sendDataToOffersWithRetries(dataContext, offersToCopyIn, createObjectDescription);
         ///logging
         try {
             logStorage(tenantId, parameters);
@@ -456,7 +456,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
 
 
-    private StorageLogbookParameters sendDataInOffers(StreamAndInfo streamAndInfo,
+    private StorageLogbookParameters sendDataToOffers(StreamAndInfo streamAndInfo,
         DataContext dataContext, OffersToCopyIn offersParams, final int attempt,
         AtomicBoolean needToRetry)
         throws StorageTechnicalException {

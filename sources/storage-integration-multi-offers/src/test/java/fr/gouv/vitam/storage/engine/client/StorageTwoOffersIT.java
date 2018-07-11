@@ -96,10 +96,7 @@ public class StorageTwoOffersIT {
     private static final String OFFER_ID = "default";
     private static final String STRATEGY_ID = "default";
 
-    static WorkspaceMain workspaceMain;
-    static StorageMain storageMain;
     static StorageClient storageClient;
-    static DefaultOfferMain firstOfferApplication;
     static WorkspaceClient workspaceClient;
     static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
     private static final String OFFER_FOLDER = "offer";

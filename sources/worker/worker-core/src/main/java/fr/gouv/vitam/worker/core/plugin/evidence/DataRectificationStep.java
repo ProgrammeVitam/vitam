@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * DataRectificationStep class
@@ -101,19 +102,14 @@ public class DataRectificationStep extends ActionHandler {
                     dataRectificationService.correctObjectGroups(evidenceAuditReportLine, param.getContainerName());
                 identifierTypes.addAll(objectGroups);
             }
-            IdentifierType identifierType = null;
+            Optional<IdentifierType> identifierType = Optional.empty();
 
             if (evidenceAuditReportLine.getObjectType().equals(MetadataType.UNIT)) {
 
                 identifierType =
                     dataRectificationService.correctUnits(evidenceAuditReportLine, param.getContainerName());
             }
-
-            if (identifierType != null) {
-                identifierTypes.add(identifierType);
-            }
-
-
+            identifierType.ifPresent(identifierTypes::add);
 
             file = handler.getNewLocalFile(param.getObjectName());
 

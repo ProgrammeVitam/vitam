@@ -72,7 +72,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
             boolean correctiveAudit = options.get("correctiveOption").booleanValue();
 
-
+            //Fixme verify if if file is not toobig for memory
             File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
             File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
 
@@ -132,7 +132,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {//nothing
     }
 
 }

@@ -54,10 +54,13 @@ import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
 /**
+ * just litle class for  setuping StorageTwoOffersIT test
  * SetupStorageAndOffers class
  */
-public class SetupStorageAndOffers {
-
+ class SetupStorageAndOffers {
+    static WorkspaceMain workspaceMain;
+    static DefaultOfferMain firstOfferApplication;
+    static StorageMain storageMain;
     static void setupStorageAndTwoOffer() throws IOException, VitamApplicationServerException {
         File vitamTempFolder = StorageTwoOffersIT.tempFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
@@ -74,8 +77,8 @@ public class SetupStorageAndOffers {
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
 
-        StorageTwoOffersIT.workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
-        StorageTwoOffersIT.workspaceMain.start();
+        workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
+        workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
         WorkspaceClientFactory.changeMode(StorageTwoOffersIT.WORKSPACE_URL);
         StorageTwoOffersIT.workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -98,8 +101,8 @@ public class SetupStorageAndOffers {
 
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
 
-        StorageTwoOffersIT.firstOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
-        StorageTwoOffersIT.firstOfferApplication.start();
+        firstOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
+        firstOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
 
 
@@ -150,8 +153,8 @@ public class SetupStorageAndOffers {
 
         SystemPropertyUtil.set(
             StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(StorageTwoOffersIT.PORT_SERVICE_STORAGE));
-        StorageTwoOffersIT.storageMain = new StorageMain(StorageTwoOffersIT.STORAGE_CONF);
-        StorageTwoOffersIT.storageMain.start();
+        storageMain = new StorageMain(StorageTwoOffersIT.STORAGE_CONF);
+        storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
         //configure client
@@ -162,8 +165,8 @@ public class SetupStorageAndOffers {
         // launch storage
         int storageEnginePort = JunitHelper.getInstance().findAvailablePort();
         SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
-        StorageTwoOffersIT.storageMain = new StorageMain(StorageTwoOffersIT.STORAGE_CONF);
-        StorageTwoOffersIT.storageMain.start();
+        storageMain = new StorageMain(StorageTwoOffersIT.STORAGE_CONF);
+        storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
@@ -172,17 +175,17 @@ public class SetupStorageAndOffers {
     }
 
     static void close() throws VitamApplicationServerException {
-        if (StorageTwoOffersIT.workspaceMain != null) {
-            StorageTwoOffersIT.workspaceMain.stop();
+        if (workspaceMain != null) {
+            workspaceMain.stop();
         }
         if (StorageTwoOffersIT.storageClient != null) {
             StorageTwoOffersIT.storageClient.close();
         }
-        if (StorageTwoOffersIT.firstOfferApplication != null) {
-            StorageTwoOffersIT.firstOfferApplication.stop();
+        if (firstOfferApplication != null) {
+            firstOfferApplication.stop();
         }
-        if (StorageTwoOffersIT.storageMain != null) {
-            StorageTwoOffersIT.storageMain.stop();
+        if (storageMain != null) {
+            storageMain.stop();
         }
     }
 }

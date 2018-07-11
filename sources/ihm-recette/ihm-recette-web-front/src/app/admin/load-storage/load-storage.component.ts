@@ -125,10 +125,6 @@ export class LoadStorageComponent extends PageComponent {
   }
 
   uploadFile() {
-      // if (!this.savedData) {
-      //     this.displayErrorInitImport = true;
-      //     return;
-      // }
 
     this.loadStorageService.uploadFile(this.fileUpload, this.fileName,this.fileUpload.size, this.category, this.offerId).subscribe(
       (response) => {

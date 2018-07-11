@@ -1,8 +1,8 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {TestBed, inject} from '@angular/core/testing';
 
 import {ResourcesService} from '../../common/resources.service';
 import {Observable} from 'rxjs/Observable';
-import {TestAuditCorrectionService} from "./test-audit-correction.service";
+import {TestAuditCorrectionService} from './test-audit-correction.service';
 
 const cookies = {};
 const ResourcesServiceStub = {
