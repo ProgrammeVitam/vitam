@@ -95,7 +95,6 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
-    private static final String APPRAISAL_DATE_INF = "AppDateInf";
     private static final String APPRAISAL_DATE_SUP = "AppDateSupp";
     private static final String APPRAISAL_FINAL_ACTION = "AppFinalAction";
     private static final String ONTOLOGY_TYPE = "OntologyType";
@@ -640,11 +639,6 @@ public final class DslQueryHelper {
             }
             if (searchKeys.equalsIgnoreCase(ORIGINATING_AGENCIES)) {
                 andQuery.add(eq(VitamFieldsHelper.originatingAgencies(), (String) searchValue));
-                continue;
-            }
-
-            if (searchKeys.equalsIgnoreCase(APPRAISAL_DATE_INF)) {
-                andQuery.add(gte(VitamFieldsHelper.management() + ".AppraisalRule.Rules.EndDate", (String) searchValue));
                 continue;
             }
 

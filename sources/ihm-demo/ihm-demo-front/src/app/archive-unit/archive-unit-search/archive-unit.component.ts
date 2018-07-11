@@ -10,6 +10,8 @@ import { VitamResponse } from '../../common/utils/response';
 import { ArchiveUnitHelper } from '../archive-unit.helper';
 import { Router } from '@angular/router';
 import { DateService } from '../../common/utils/date.service';
+import {MySelectionService} from "../../my-selection/my-selection.service";
+import {ResourcesService} from "../../common/resources.service";
 
 const breadcrumb: BreadcrumbElement[] = [
     { label: 'Recherche', routerLink: '' },
@@ -37,8 +39,7 @@ export class ArchiveUnitComponent extends PageComponent {
         FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
         FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
         new FieldDefinition('originatingagencies', 'Service producteur de l\'entrée', 4, 12),
-        FieldDefinition.createDateField('appDateInf', 'Borne inferieur de la Date d\'échéance de la règle de communicabilité', 4, 12),
-      FieldDefinition.createDateField('appDateSup', 'Borne superieur de la Date d\'échéance de la règle de communicabilité', 4, 12),
+        FieldDefinition.createDateField('appDateSup', 'Date d\'échéance de la règle de communicabilité', 4, 12),
         FieldDefinition.createSelectField('appFinalAction', 'Sort final de la règle de communicabilité',
             'Sort Final', this.archiveUnitHelper.finalActionSelector.AppraisalRule, 4, 12)
     ];
@@ -60,15 +61,50 @@ export class ArchiveUnitComponent extends PageComponent {
             (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({ 'width': '100px' }), null, null, false),
         ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item),
             () => true, () => ({ 'width': '50px' }), null, false),
-        ColumnDefinition.makeSpecialIconColumn('Ajout au panier', this.getIcons, () => {}, this.updateIcon, null, false)
+        ColumnDefinition.makeSpecialIconColumn('Ajout au panier', ArchiveUnitComponent.getBasketIcons, () => {},
+          (item, service, icon) => {
+            switch(icon) {
+            case 'fa-file':
+              // TODO (add services)
+              this.selectionService.addToSelection(false, [item['#id']], this.resourceService.getTenant());
+              break;
+            case 'fa-sitemap':
+              this.selectionService.addToSelection(true, [item['#id']], this.resourceService.getTenant());
+              break;
+            case 'fa-archive':
+              // FIXME: Think about change that in order to set opi and not all ids
+              this.selectionService.getIdsToSelect(true, item['#opi']).subscribe(
+                (response) => {
+                  const ids: string[] = response.$results.reduce(
+                    (x, y) => {
+                      x.push(y['#id']);
+                      return x;
+                    }, []);
+                  this.selectionService.addToSelection(false, ids, this.resourceService.getTenant());
+                }, () => {
+                  console.log('Error while get archive from opi')
+                }
+              );
+
+              this.selectionService.addToSelection(false, [item['#id']], this.resourceService.getTenant());
+              break;
+            default:
+              console.log('Error ? ');
+            }
+      }, null, false, null, ArchiveUnitComponent.getBasketIconsLabel)
     ];
 
-    updateIcon(item, service, icons) {
-        item.selected = !item.selected;
+    static getBasketIconsLabel(icon): string {
+        switch(icon) {
+          case 'fa-file': return 'Unité archivistique seule';
+          case 'fa-sitemap': return 'Unitié archivistique et sa déscendance';
+          case 'fa-archive': return 'Unité archivistique et son entrée';
+          default: return '';
+        }
     }
 
-    getIcons(item, icons: string[]): string[] {
-        return item.selected ? ['fa-check'] : ['fa-times'];
+    static getBasketIcons(): string[] {
+        return ['fa-file', 'fa-sitemap', 'fa-archive'];
     }
 
     public extraColumns = [];
@@ -85,6 +121,7 @@ export class ArchiveUnitComponent extends PageComponent {
         criteriaSearch.projection_descriptionlevel = 'DescriptionLevel';
         criteriaSearch.projection_originatingagencies = '#originating_agency';
         criteriaSearch.projection_id = '#id';
+        criteriaSearch.projection_opi = '#opi';
         criteriaSearch.projection_unitType = '#unittype';
         criteriaSearch.projection_title = 'Title';
         criteriaSearch.projection_titlefr = 'Title_.fr';
@@ -95,7 +132,8 @@ export class ArchiveUnitComponent extends PageComponent {
     }
 
     constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public service: ArchiveUnitService,
-                public archiveUnitHelper: ArchiveUnitHelper, private router: Router) {
+                public archiveUnitHelper: ArchiveUnitHelper, private router: Router, private selectionService: MySelectionService,
+                private resourceService: ResourcesService) {
         super('Recherche d\'archives', breadcrumb, titleService, breadcrumbService);
     }
 
@@ -152,19 +190,9 @@ export class ArchiveUnitComponent extends PageComponent {
                     return preResult;
                 }
 
-                isStartDate = request.appDateInf;
-                isEndDate = request.appDateSup;
-                if (isStartDate || isEndDate) {
-                    if (isStartDate && isEndDate && request.appDateInf > request.appDateSup) {
-                      preResult.searchProcessError = 'La borne inferieur doit être antérieure à la borne supperieur.';
-                      return preResult;
-                    }
-                    if (request.appDateInf) { criteriaSearch.AppDateInf = request.appDateInf; }
-                    if (request.appDateSup) {
-                        criteriaSearch.AppDateSupp = request.appDateSup;
-                        criteriaSearch.AppDateSupp.setDate(criteriaSearch.AppDateSupp.getDate() + 1)
-                    }
-
+                if (request.appDateSup) {
+                    criteriaSearch.AppDateSupp = request.appDateSup;
+                    criteriaSearch.AppDateSupp.setDate(criteriaSearch.AppDateSupp.getDate() + 1)
                 }
 
                 if (request.appFinalAction) {
@@ -174,7 +202,7 @@ export class ArchiveUnitComponent extends PageComponent {
 
             if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate
                 || criteriaSearch.EndDate || criteriaSearch.originatingagencies
-                || criteriaSearch.AppDateInf || criteriaSearch.AppDateSupp || criteriaSearch.AppFinalAction) {
+                || criteriaSearch.AppDateSupp || criteriaSearch.AppFinalAction) {
                 if (!!request.facets) {
                     criteriaSearch.facets = request.facets;
                 }

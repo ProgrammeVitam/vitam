@@ -20,10 +20,6 @@
     <p-paginator [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
     <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [path]="path" [getClass]="getClass"
                          [identifier]="identifier" [specificRowCss]="specificRowCss"></vitam-generic-table>
-
-    <div style="padding-top: 10px"></div>
-    <button pButton class="secondaryButton" [icon]="'fa-chart'" (click)="addToBasket(false)" [label]="'Ajouter la sélection au panier'" *ngIf="addToBasketAllowed"></button>
-    <button pButton class="secondaryButton" [icon]="'fa-chart'" (click)="addToBasket(true)" [label]="'Ajouter les résultats au panier'" *ngIf="addToBasketAllowed"></button>
 </p-panel>
 <p-panel header="Résultats" *ngIf="errorOnResults">
     <vitam-generic-table [items]="[]" [selectedCols]="selectedCols"></vitam-generic-table>

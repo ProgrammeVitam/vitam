@@ -105,20 +105,6 @@ export class ResultsComponent implements OnInit {
     );
   }
 
-  addToBasket(addAll: boolean) {
-
-    let selectedItems: any[];
-    if (addAll) {
-      selectedItems = this.items;
-    } else {
-      selectedItems = this.items.filter(x => x.selected);
-    }
-
-    let ids: string[] = selectedItems.map(x => x['#id']);
-
-    this.selectionService.addToSelection(false, ids, this.resourceService.getTenant());
-  }
-
   onRowSelect() {
     this.changeDetectorRef.detectChanges();
     this.selectedCols = this.cols.concat(this.extraSelectedCols);
