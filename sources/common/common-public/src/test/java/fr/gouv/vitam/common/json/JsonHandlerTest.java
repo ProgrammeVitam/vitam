@@ -26,10 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.ResourcesPublicUtilTest;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.Assume;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -39,19 +46,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.junit.Assume;
-import org.junit.Test;
-
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import fr.gouv.vitam.common.ResourcesPublicUtilTest;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JsonHandlerTest {
     private static final VitamLogger LOGGER =
@@ -420,5 +419,21 @@ public class JsonHandlerTest {
         } catch (final IllegalArgumentException e) {
             // Ignore
         }
+    }
+
+    @Test
+    public void testIsEmptyJsonStringOK() throws InvalidParseOperationException {
+        assertTrue(JsonHandler.isEmpty("{}"));
+        assertTrue(JsonHandler.isEmpty("[]"));
+    }
+
+    @Test
+    public void testIsEmptyJsonStringNotEmpty() throws InvalidParseOperationException {
+        assertFalse(JsonHandler.isEmpty("{\"test\":\"test\"}"));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void testIsEmptyJsonStringInvalid() throws InvalidParseOperationException {
+        JsonHandler.isEmpty("");
     }
 }

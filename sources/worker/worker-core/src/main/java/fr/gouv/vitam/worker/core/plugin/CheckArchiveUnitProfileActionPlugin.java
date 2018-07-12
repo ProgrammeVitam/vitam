@@ -26,24 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
@@ -56,6 +49,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -71,6 +65,15 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * CheckArchiveUnitProfile Plugin.<br>
@@ -124,6 +127,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID);
         ObjectNode infoNode = JsonHandler.createObjectNode();
         String archiveUnitProfileIdentifier = "";
+        String unitId = "";
         try (InputStream archiveUnitToJson =
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
                 File.separator + objectName)) {
@@ -137,7 +141,6 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                     guidMapTmpFile = new FileInputStream(file);
                 }
 
-                String unitId = "";
                 if (guidMapTmpFile != null) {
                     guidSystemArchiveUnit = JsonHandler.getMapFromInputStream(guidMapTmpFile);
                     unitId = (String) guidSystemArchiveUnit.get(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT)
@@ -165,21 +168,21 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                         itemStatus.setGlobalOutcomeDetailSubcode(
                             CheckArchiveUnitProfileSchemaStatus.INVALID_AU_PROFILE.name());
                         fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
-                            schemaValidationStatus);
+                            schemaValidationStatus.getValidationMessage());
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                             itemStatus);
                     case NOT_AU_JSON_VALID:
                         itemStatus
                             .setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
                         fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
-                            schemaValidationStatus);
+                            schemaValidationStatus.getValidationMessage());
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                             itemStatus);
                     case NOT_FOUND:
                         itemStatus.setGlobalOutcomeDetailSubcode(
                             CheckArchiveUnitProfileSchemaStatus.PROFILE_NOT_FOUND.name());
                         fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
-                            schemaValidationStatus);
+                            schemaValidationStatus.getValidationMessage());
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                             itemStatus);
                 }
@@ -203,22 +206,54 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             IOException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR);
             itemStatus.increment(StatusCode.FATAL);
+        } catch (ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException aupException) {
+            itemStatus.setGlobalOutcomeDetailSubcode(aupException instanceof ArchiveUnitProfileInactiveException ?
+                CheckArchiveUnitProfileSchemaStatus.INACTIVE_STATUS.name() :
+                CheckArchiveUnitProfileSchemaStatus.EMPTY_CONTROL_SCHEMA.name());
+            fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, aupException.getMessage());
+            return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                itemStatus);
         }
+
         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, itemStatus);
     }
 
     private void fillItemStatus(ItemStatus itemStatus, ObjectNode infoNode, String archiveUnitProfileIdentifier,
-        String unitId, SchemaValidationStatus schemaValidationStatus) {
+        String unitId, String schemaValidationStatusMessage) {
         infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
         infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier);
-        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
+        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatusMessage);
         itemStatus.increment(StatusCode.KO);
         itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
     }
 
+    private void checkAUProfileStatusAndControlSchema(ArchiveUnitProfileModel archiveUnitProfile)
+        throws ArchiveUnitProfileInactiveException, ArchiveUnitProfileEmptyControlSchemaException {
+
+        if(ArchiveUnitProfileStatus.INACTIVE.equals(archiveUnitProfile.getStatus())) {
+            String errMsg = "The declared manifest "+ archiveUnitProfile.getName() + " ArchiveUnitProfile status is not active";
+            LOGGER.error(errMsg);
+            throw new ArchiveUnitProfileInactiveException(errMsg);
+        } else {
+            if (controlSchemaIsEmpty(archiveUnitProfile)) {
+                String errMsg = "The declared manifest "+ archiveUnitProfile.getName() + " ArchiveUnitProfile does not have a controlSchema";
+                LOGGER.error(errMsg, archiveUnitProfile.getName());
+                throw new ArchiveUnitProfileEmptyControlSchemaException(errMsg);
+            }
+        }
+    }
+
+    private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile) {
+        try {
+            return archiveUnitProfile.getControlSchema() == null || JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+        } catch (InvalidParseOperationException e) {
+            return false;
+        }
+    }
+
     private SchemaValidationStatus checkAUAgainstAUProfileSchema(ItemStatus itemStatus, ObjectNode infoNode,
         JsonNode archiveUnit, String archiveUnitProfileIdentifier)
-        throws ProcessingException {
+        throws ProcessingException, ArchiveUnitProfileEmptyControlSchemaException, ArchiveUnitProfileInactiveException {
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
@@ -226,7 +261,10 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                 adminClient.findArchiveUnitProfiles(select.getFinalSelect());
             ArchiveUnitProfileModel archiveUnitProfile = null;
             if (response.isOk() && ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().size() > 0) {
+
                 archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().get(0);
+
+                checkAUProfileStatusAndControlSchema(archiveUnitProfile);
 
                 SchemaValidationUtils validator =
                     new SchemaValidationUtils(archiveUnitProfile.getControlSchema(), true);
@@ -255,6 +293,9 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             infoNode.put(SedaConstants.EV_DET_TECH_DATA, CAN_NOT_SEARCH_PROFILE + " " + archiveUnitProfileIdentifier);
             return new SchemaValidationStatus("File is not a valid json file",
                 SchemaValidationStatus.SchemaValidationStatusEnum.NOT_JSON_FILE);
+        } catch(ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException auExcep) {
+            throw auExcep;
+
         } catch (Exception e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
@@ -341,7 +382,15 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         /**
          * Archive unit profile not found
          */
-        PROFILE_NOT_FOUND;
+        PROFILE_NOT_FOUND,
+        /**
+         * inactive archive unit profile status
+         */
+        INACTIVE_STATUS,
+        /**
+         * Empty control schema
+         */
+        EMPTY_CONTROL_SCHEMA
     }
 
 }
