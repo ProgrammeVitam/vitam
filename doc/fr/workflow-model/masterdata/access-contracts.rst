@@ -37,6 +37,7 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
     * Le champ "EveryOriginatingAgency" doit être à "true" ou "false"
     * Le champ "EveryDataObjectVersion" doit être à "true" ou "false"
     * Le champ "RootUnit" est soit vide, soit peuplé avec un tableau d'une ou plusieurs chaînes de caractère. Chacune des chaînes de caractère doit correspondre au GUID d'une unité archivistique prise en charge dans la solution logicielle Vitam.
+    * Le champ "AccessLog"
 
 
   + **Type** : bloquant
@@ -53,11 +54,11 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
 
     - DUPLICATION: l'identifiant du contrat est déjà utilisé ( STP_IMPORT_ACCESS_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé )
 
-    - EMPTY REQUIRED FIELD : au moins un des champs obligatoires n'est pas renseigné ( STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+    - EMPTY REQUIRED FIELD : au moins un des champs obligatoires n'est pas renseigné ( STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné )
 
-    - AGENCY NOT FOUND : Service producteur inconnu ( STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO=Échec de l'import : au moins un service producteur est inconnu ) 
+    - AGENCY NOT FOUND : Service producteur inconnu ( STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO=Échec de l'import : au moins un service producteur est inconnu )
 
-    - VALIDATION ERROR : Erreur de validation du contrat ( STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO=Échec de l'import : erreur de validation du contrat ) 
+    - VALIDATION ERROR : Erreur de validation du contrat ( STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO=Échec de l'import : erreur de validation du contrat )
 
 
 

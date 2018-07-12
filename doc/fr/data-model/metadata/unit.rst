@@ -72,6 +72,8 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
       },
       "StartDate": "2017-04-05T08:11:56",
       "EndDate": "2017-04-05T08:11:56",
+      "SedaVersion": "2.1",
+      "ImplementationVersion": "1.7.0-SNAPSHOT",
       "_storage": {
           "_nbc": 2,
           "strategyId": "default",
@@ -276,6 +278,18 @@ Cette transposition se fait comme suit :
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+**"SedaVersion":** version du SEDA utilisé lors de l'entrée de cette unité archivistique.
+
+    * Champ peuplé par la solution logicielle Vitam.
+    * Cardinalité : 1-1
+    * Exemple de valeur : "2.1"
+
+**"ImplementationVersion":** version du modèle de donnée actuellement utilisé par l'unité archivistique.
+
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+  * Exemple de valeur : "1.7.0-SNAPSHOT"
 
 **"_max":** profondeur maximale de l'unité archivistique par rapport à une racine.
 
