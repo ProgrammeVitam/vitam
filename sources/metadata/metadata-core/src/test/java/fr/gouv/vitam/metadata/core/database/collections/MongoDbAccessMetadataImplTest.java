@@ -71,17 +71,17 @@ public class MongoDbAccessMetadataImplTest {
 
     private static final String DEFAULT_MONGO =
         "AccessionRegisterDetail\n" + "AccessionRegisterSummary\n" + "Unit\n" + "ObjectGroup\n" +
-            "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-Test.Unit}}\n" +
-            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-Test.Unit}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-Test.ObjectGroup}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-Test.ObjectGroup}}\n";
+            "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.Unit}}\n" +
+            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.Unit}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.ObjectGroup}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.ObjectGroup}}\n";
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-DB",
             MetadataCollections.UNIT.getName(),
             MetadataCollections.OBJECTGROUP.getName());
 

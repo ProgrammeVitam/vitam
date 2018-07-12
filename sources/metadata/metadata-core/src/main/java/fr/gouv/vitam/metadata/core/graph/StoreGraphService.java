@@ -99,7 +99,6 @@ public class StoreGraphService {
     public static final String ZIP_PREFIX_NAME = "store_graph_";
     public static final String $_GTE = "$gte";
     public static final String $_LT = "$lt";
-    public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private RestoreBackupService restoreBackupService;

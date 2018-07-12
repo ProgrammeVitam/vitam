@@ -50,6 +50,9 @@ public class ObjectGroupResponse {
     @JsonProperty("#unitups")
     private List<String> up;
 
+    @JsonProperty("#allunitups")
+    private List<String> us;
+
     @JsonProperty("#nbobjects")
     private int nbc;
 
@@ -122,6 +125,15 @@ public class ObjectGroupResponse {
         this.up = up;
     }
 
+
+    public List<String> getUs() {
+        return us;
+    }
+
+    public void setUs(List<String> us) {
+        this.us = us;
+    }
+
     public int getNbc() {
         return nbc;
     }
@@ -172,7 +184,7 @@ public class ObjectGroupResponse {
 
     /**
      * Get Opi
-     * 
+     *
      * @return opi
      */
     public String getOpi() {
@@ -181,7 +193,7 @@ public class ObjectGroupResponse {
 
     /**
      * Set the opi
-     * 
+     *
      * @param opi
      */
     public void setOpi(String opi) {
