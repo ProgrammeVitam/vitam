@@ -26,11 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,7 +41,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -58,7 +54,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 
 
@@ -69,15 +64,14 @@ public class EvidenceAuditFinalize extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditFinalize.class);
 
     private static final String EVIDENCE_AUDIT_FINALIZE = "EVIDENCE_AUDIT_FINALIZE";
-    public static final String REPORTS = "reports";
     BackupService backupService = new BackupService();
+
 
     @VisibleForTesting EvidenceAuditFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
-    public EvidenceAuditFinalize() {
-    }
+    public EvidenceAuditFinalize() { /*nothing to do */ }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
@@ -88,34 +82,35 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
         try {
 
+
+
             File reportFile = handlerIO.getNewLocalFile("report.json");
             List<URI> uriListObjectsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), REPORTS);
+                handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
+
             try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
                 BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             ) {
 
-
-                JsonGenerator jsonGenerator = createJsonGenerator(buffOut);
-
-                jsonGenerator.writeStartObject();
                 for (URI uri : uriListObjectsWorkspace) {
 
-                    File file = handlerIO.getFileFromWorkspace(REPORTS + "/" + uri.getPath());
+                    File file = handlerIO.getFileFromWorkspace(param.getObjectName() + File.separator + uri.getPath());
+
                     EvidenceAuditReportLine reportLine = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
                     if (reportLine.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
                         evidenceStatusWarn = EvidenceStatus.WARN;
                     }
-                    if (reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
-                        evidenceStatusKo = EvidenceStatus.KO;
+                    if (!reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
+                        continue;
                     }
-                    jsonGenerator.writeFieldName(reportLine.getIdentifier());
-                    jsonGenerator.writeRawValue(unprettyPrint(reportLine));
+                    evidenceStatusKo = EvidenceStatus.KO;
+
+                    buffOut.write(unprettyPrint(reportLine).getBytes());
+                    buffOut.write(System.lineSeparator().getBytes());
+
                 }
-                jsonGenerator.writeEndObject();
 
-                jsonGenerator.flush();
-
+                buffOut.flush();
                 backupService
                     .backup(new FileInputStream(reportFile), DataCategory.REPORT,
                         handlerIO.getContainerName() + ".json");
@@ -125,7 +120,6 @@ public class EvidenceAuditFinalize extends ActionHandler {
             throw new ProcessingException(e);
 
         }
-
 
         if (evidenceStatusKo.equals(EvidenceStatus.KO)) {
             itemStatus.increment(StatusCode.KO);
@@ -151,7 +145,7 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
+        //nothing
     }
 
 }

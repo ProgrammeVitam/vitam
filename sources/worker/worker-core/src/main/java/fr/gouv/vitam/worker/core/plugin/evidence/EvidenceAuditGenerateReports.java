@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,6 +61,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     private static final String FILE_NAMES = "fileNames";
     public static final String ZIP = "zip";
     private static final String REPORTS = "reports";
+    private static final String ALTER = "alter";
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
@@ -67,27 +69,36 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS);
 
         try {
+            JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
+            boolean correctiveAudit = options.get("correctiveOption").booleanValue();
 
+            //Fixme verify if if file is not toobig for memory
             File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
             File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
 
-            List<String> securisedLines = Files.readAllLines(securedDataFile.toPath(),
+            List<String> securedLines = Files.readAllLines(securedDataFile.toPath(),
                 Charset.defaultCharset());
             ArrayList<String> listIds = JsonHandler.getFromFile(listOfObjectByFile, ArrayList.class);
 
             EvidenceService evidenceService = new EvidenceService();
+
             for (String objectToAuditId : listIds) {
 
                 File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + "/" + objectToAuditId);
 
                 EvidenceAuditParameters parameters =
                     JsonHandler.getFromFile(infoFromDatabase, EvidenceAuditParameters.class);
-                EvidenceAuditReportLine evidenceAuditReportLine = null;
+
+                EvidenceAuditReportLine evidenceAuditReportLine;
+
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
                 if (parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
+
                     evidenceAuditReportLine =
-                        evidenceService.auditAndGenerateReport(parameters, securisedLines, objectToAuditId);
+                        evidenceService.auditAndGenerateReportIfKo(parameters, securedLines, objectToAuditId);
+
+
                 }
                 else {
 
@@ -95,10 +106,16 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                     evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
                     evidenceAuditReportLine.setMessage(parameters.getAuditMessage());
                 }
-
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
+
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
-                    file, true, false);
+                    file, !correctiveAudit, false);
+
+                // corrective audit
+                if (correctiveAudit) {
+                    handlerIO.transferFileToWorkspace(ALTER + "/" + objectToAuditId + ".json",
+                        file, true, false);
+                }
 
             }
 
@@ -115,7 +132,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {//nothing
     }
 
 }

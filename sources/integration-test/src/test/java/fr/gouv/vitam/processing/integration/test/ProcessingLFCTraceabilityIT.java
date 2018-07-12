@@ -793,7 +793,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         throws LogbookClientException, InvalidParseOperationException {
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         Select select = new Select();
-        JsonNode response = logbookClient.selectOperationById(containerName, select.getFinalSelectById());
+        JsonNode response = logbookClient.selectOperationById(containerName);
         JsonNode jsonNode = response.get("$results").get(0);
         JsonNode evDetData = jsonNode.get("evDetData");
         if (evDetData == null || evDetData.isNull())

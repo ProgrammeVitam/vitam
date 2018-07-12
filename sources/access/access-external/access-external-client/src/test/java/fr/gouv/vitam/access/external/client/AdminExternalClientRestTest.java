@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -291,6 +292,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response evidenceAudit(String query) {
             return expectedResponse.post();
         }
+
+        @Path(RECTIFICATION_AUDIT)
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response rectificationAudit(String query) {
+            return expectedResponse.post();
+        }
+
 
     }
 
@@ -1153,6 +1163,17 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
         RequestResponse<ItemStatus> result = client.evidenceAudit(new VitamContext(TENANT_ID), dsl);
+        assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void rectificationAuditTest()
+        throws VitamClientException, InvalidParseOperationException {
+
+        String operationId ="id";
+        when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result = client.rectificationAudit(new VitamContext(TENANT_ID), operationId);
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
     }
 

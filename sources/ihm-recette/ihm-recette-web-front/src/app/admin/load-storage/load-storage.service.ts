@@ -6,6 +6,7 @@ import {Observable} from 'rxjs/Observable';
 export class LoadStorageService {
   DOWNLOAD_API = 'download';
   UPLOAD_API = 'replaceObject';
+  DELETE_API = 'deleteObject';
 
   constructor(public resourcesService: ResourcesService) { }
 
@@ -13,8 +14,12 @@ export class LoadStorageService {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${category}/${fileName}`, null, 'blob');
   }
 
-  uploadFile(newFile, fileName, category): Observable<any> {
-    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${fileName}`, null, newFile)
+  uploadFile(newFile, fileName, size,category,offerId): Observable<any> {
+    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${offerId}/${fileName}/${size}`, null, newFile)
+  }
+
+  delete(fileName, category, offerId): Observable<any> {
+    return this.resourcesService.delete(`${this.DELETE_API}/${category}/${offerId}/${fileName}`, null)
   }
 
 }

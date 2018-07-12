@@ -242,7 +242,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
             .deleteMany(new Document());
 
         assertThatCode(() -> {
-            client.selectOperationById(LOGBOOK_0_GUID, getQueryDslId(LOGBOOK_0_GUID));
+            client.selectOperationById(LOGBOOK_0_GUID);
         }).isInstanceOf(LogbookClientNotFoundException.class);
 
 
@@ -292,7 +292,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID, getQueryDslId(LOGBOOK_0_GUID));
+        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID);
         RequestResponseOK<JsonNode> logbookOK = new RequestResponseOK<JsonNode>().getFromJsonNode(logbookResponse);
         assertThat((logbookOK).getResults().size()).isEqualTo(1);
         assertThat((logbookOK).getFirstResult().get("_id").asText()).isEqualTo(LOGBOOK_0_GUID);
@@ -353,13 +353,13 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(6L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID, getQueryDslId(LOGBOOK_0_GUID));
+        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID);
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
         assertThatCode(() -> {
-            JsonNode localeResponse = client.selectOperationById(LOGBOOK_1_GUID, getQueryDslId(LOGBOOK_1_GUID));
+            JsonNode localeResponse = client.selectOperationById(LOGBOOK_1_GUID);
             System.out.println(JsonHandler.prettyPrint(localeResponse));
         }).isInstanceOf(LogbookClientNotFoundException.class);
-        logbookResponse = client.selectOperationById(LOGBOOK_2_GUID, getQueryDslId(LOGBOOK_2_GUID));
+        logbookResponse = client.selectOperationById(LOGBOOK_2_GUID);
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
 
         accessionRegisterSummaryRsp =

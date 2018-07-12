@@ -81,7 +81,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -195,7 +195,7 @@ public class CreateUnitSecureFileActionPluginTest {
         JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNIT_MD_FILE));
         final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(mdWithLfc);
 
-        final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidUnit, "",
+        final StorageMetadataResult storageMDResult = new StorageMetadataResult(guidUnit, "",
             expectedMDLFCGlobalHashFromStorage, 7082, "file_owner",
             LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now()));
 

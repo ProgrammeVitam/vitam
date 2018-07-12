@@ -25,7 +25,7 @@ public class StorageCRUDUtilsTest {
 
     public @Rule MockitoRule rule = MockitoJUnit.rule();
 
-    @Mock BackupService backupService;
+
     @Mock StorageClient storageClient;
 
     private StorageCRUDUtils storageCRUDUtils;
@@ -48,10 +48,10 @@ public class StorageCRUDUtilsTest {
                 JsonHandler.getFromString(information));
 
         given(storageClient.getOffers("default")).willReturn(offers);
+        storageCRUDUtils = new StorageCRUDUtils(storageClient);
 
-        storageCRUDUtils = new StorageCRUDUtils(backupService, storageClient);
 
-        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json");
+        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json","offer-fs-1.service.consul");
 
         assertThat(result).isFalse();
 

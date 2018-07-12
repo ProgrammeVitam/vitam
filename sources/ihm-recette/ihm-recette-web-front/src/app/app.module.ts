@@ -41,6 +41,8 @@ import { LoadStorageComponent } from './admin/load-storage/load-storage.componen
 import { LoadStorageService } from './admin/load-storage/load-storage.service';
 import { LinkAuComponent } from './admin/link-au/link-au.component';
 import { LinkAuService } from './admin/link-au/link-au.service';
+import { TestAuditCorrectionComponent } from './admin/test-audit-correction/test-audit-correction.component';
+import { TestAuditCorrectionService } from './admin/test-audit-correction/test-audit-correction.service';
 
 const appRoutes: Routes = [
   {
@@ -48,6 +50,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/load-storage', component: LoadStorageComponent
+  },
+  {
+    path: 'admin/test-audit-correction', component: TestAuditCorrectionComponent
   },
   {
     path: 'admin/link-au', component: LinkAuComponent
@@ -96,7 +101,8 @@ const appRoutes: Routes = [
     DagVisualizationComponent,
     VisNetworkDirective,
     LoadStorageComponent,
-    LinkAuComponent
+    LinkAuComponent,
+    TestAuditCorrectionComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -133,7 +139,8 @@ const appRoutes: Routes = [
     TenantService,
     VisNetworkService,
     LoadStorageService,
-    LinkAuService
+    LinkAuService,
+    TestAuditCorrectionService
   ],
   bootstrap: [AppComponent]
 })

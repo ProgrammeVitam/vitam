@@ -178,7 +178,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode selectOperationById(String processId, JsonNode queryDsl)
+    public JsonNode selectOperationById(String processId)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {

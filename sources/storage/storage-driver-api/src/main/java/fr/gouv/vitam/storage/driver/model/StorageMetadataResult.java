@@ -30,9 +30,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.model.MetadatasObject;
 
-public class StorageMetadatasResult extends MetadatasObject {
+public class StorageMetadataResult extends MetadatasObject {
 
-    public StorageMetadatasResult(MetadatasObject object) {
+    public StorageMetadataResult(MetadatasObject object) {
         this.setObjectName(object.getObjectName());
         this.setType(object.getType());
         this.setDigest(object.getDigest());
@@ -53,7 +53,7 @@ public class StorageMetadatasResult extends MetadatasObject {
      * @param last_access_date
      * @param last_modified_date
      */
-    public StorageMetadatasResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
+    public StorageMetadataResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
             @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
             @JsonProperty("file_owner") String file_owner, @JsonProperty("last_access_date") String last_access_date,
             @JsonProperty("last_modified_date") String last_modified_date) {

@@ -57,6 +57,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,7 +79,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
     private static final String STORAGE_LOG_BACKUP_URI = "/storage/backup";
     private static final String STORAGE_LOG_TRACEABILITY_URI = "/storage/traceability";
+    private static final String COPY = "/copy/";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
+    public static final String DIGEST_MUST_HAVE_A_VALID_VALUE = "Digest must have a valid value";
 
     StorageClientRest(StorageClientFactory factory) {
         super(factory);
@@ -235,42 +238,42 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
     }
 
-    @Override
-    public boolean deleteContainer(String strategyId) throws StorageServerClientException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE, "/", getDefaultHeaders(tenantId, strategyId, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
-            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
-        } catch (final VitamClientInternalException e) {
-            final String errorMessage =
-                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
-            throw new StorageServerClientException(errorMessage, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest, String digestAlgorithm)
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest)
+        throws StorageServerClientException {
+        return delete(strategyId, type, guid, digest, new ArrayList<>());
+    }
+
+
+    @Override
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        ParametersChecker.checkParameter("Digest must have a valid value", digest);
-        ParametersChecker.checkParameter("Digest Algorithm must have a valid value", digestAlgorithm);
+        ParametersChecker.checkParameter(DIGEST_MUST_HAVE_A_VALID_VALUE, digest);
         if (DataCategory.CONTAINER.equals(type)) {
             throw new IllegalArgumentException(
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.DELETE, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId, digest, digestAlgorithm), MediaType.APPLICATION_JSON_TYPE);
+
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
+            if (digest != null) {
+                headers.add(GlobalDataRest.X_DIGEST, digest);
+            }
+            headers.add(GlobalDataRest.X_DATA_CATEGORY, type.name());
+
+            if (offerIds != null && !offerIds.isEmpty()) {
+                offerIds.forEach(id -> headers.add(GlobalDataRest.X_OFFER_IDS, id));
+            }
+            response = performRequest(HttpMethod.DELETE, "/" + "delete" + "/" + guid, headers,
+                MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -310,9 +313,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     /**
      * Generate the default header map
      *
-     * @param tenantId the tenant id
-     * @param strategyId the storage strategy id
-     * @param digest the digest
+     * @param tenantId        the tenant id
+     * @param strategyId      the storage strategy id
+     * @param digest          the digest
      * @param digestAlgorithm the digest Algorithm
      * @return header map
      */
@@ -453,23 +456,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public RequestResponseOK storageLogBackup()
-        throws StorageServerClientException ,InvalidParseOperationException {
+        throws StorageServerClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
             response =
                 performRequest(HttpMethod.POST, STORAGE_LOG_BACKUP_URI, headers, MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
-                    break;
-                default:
-                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
-                    throw new StorageServerClientException("Internal Server Error");
-            }
-            return RequestResponse.parseRequestResponseOk(response);
+            return getRequestResponseOK(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error:", e);
             throw new StorageServerClientException("Internal Server Error", e);
@@ -477,6 +471,20 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    private RequestResponseOK getRequestResponseOK(Response response)
+        throws StorageServerClientException, InvalidParseOperationException {
+        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        switch (status) {
+            case OK:
+                LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                break;
+            default:
+                LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                throw new StorageServerClientException("Internal Server Error");
+        }
+        return RequestResponse.parseRequestResponseOk(response);
     }
 
     @Override
@@ -489,16 +497,63 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
             response = performRequest(HttpMethod.POST, STORAGE_LOG_TRACEABILITY_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
-                    break;
-                default:
-                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
-                    throw new StorageServerClientException("Internal Server Error");
-            }
+
+            getRequestResponseOK(response);
+
             return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+        String destination)
+        throws StorageServerClientException, InvalidParseOperationException {
+
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_CONTENT_DESTINATION, destination);
+            headers.add(GlobalDataRest.X_CONTENT_SOURCE, source);
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_DATA_CATEGORY, category.name());
+
+            response = performRequest(HttpMethod.POST, COPY + objectId, headers, MediaType.APPLICATION_JSON_TYPE);
+            return getRequestResponseOK(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize,
+        List<String> offerIds)
+        throws StorageServerClientException, InvalidParseOperationException {
+
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            for (String offerId : offerIds) {
+                headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
+            }
+            headers.add(GlobalDataRest.X_CONTENT_LENGTH, inputStreamSize);
+
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_DATA_CATEGORY, category.name());
+
+            response = performRequest(HttpMethod.POST, "/create/" + objectId, headers, inputStream,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return getRequestResponseOK(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error:", e);
             throw new StorageServerClientException("Internal Server Error", e);

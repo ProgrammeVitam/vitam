@@ -88,7 +88,24 @@ public enum VitamHttpHeader {
      * stepBuStep or not </br>
      */
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
-    CONTEXT_ID(GlobalDataRest.X_CONTEXT_ID, ".+");
+    CONTEXT_ID(GlobalDataRest.X_CONTEXT_ID, ".+"),
+
+
+    /**
+     * The X_Content source (offerId )
+     */
+    X_CONTENT_SOURCE(GlobalDataRest.X_CONTENT_SOURCE, ".+"),
+    /**
+     * The DataCategory source (offerId )
+     */
+    X_DATA_CATEGORY(GlobalDataRest.X_DATA_CATEGORY, ".+"),
+
+    /**
+     * The X_Destination destination (offerId )
+     *
+     */
+    X_CONTENT_DESTINATION(GlobalDataRest.X_CONTENT_DESTINATION, ".+")
+    ;
 
 
     private String name;

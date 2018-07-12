@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import javax.ws.rs.core.Response;
@@ -39,59 +38,60 @@ import java.util.Map;
 /**
  * manage list ok and ko for retry storage feature
  */
-public class TryAndRetryData {
+public class OffersToCopyIn {
     /**
      * Offers transfer OK
      */
-    private List<String> okList;
+    private final List<String> okOffers;
     /**
      * Offers transfer KO
      */
-    private List<String> koList;
-
+    private final List<String> koOffers;
     /**
      * Result
      */
-    private Map<String, Response.Status> globalOfferResult;
+    private final Map<String, Response.Status> globalOfferResult;
+
+
 
     /**
-     * Populate KO offer with offer list to start a new object
-     * transfer
+     * create  OffersToCopyIn with one
+     *
+     * @param storageOffer storageOfferStorageOffer
+     */
+    OffersToCopyIn(final StorageOffer storageOffer) {
+        globalOfferResult = new HashMap<>();
+        this.okOffers = new ArrayList<>();
+        this.koOffers = new ArrayList<>();
+        koOffers.add(storageOffer.getId());
+        globalOfferResult.put(storageOffer.getId(), Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * * create  OffersToCopyIn lists
+     *
      *
      * @param storageOffers
-     *            list of offer reference
      */
-    public void populateFromOffers(List<StorageOffer> storageOffers) {
+    public OffersToCopyIn(final List<StorageOffer> storageOffers) {
         globalOfferResult = new HashMap<>();
-        if (okList == null) {
-            okList = new ArrayList<>();
-        }
-        if (koList == null) {
-            koList = new ArrayList<>();
-        }
+        okOffers = new ArrayList<>();
+        koOffers = new ArrayList<>();
         for (StorageOffer storageOffer : storageOffers) {
-            koList.add(storageOffer.getId());
+            koOffers.add(storageOffer.getId());
             globalOfferResult.put(storageOffer.getId(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     /**
      * Get OK offers list
      *
      * @return the ok offers list
      */
-    public List<String> getOkList() {
-        return okList;
-    }
-
-    /**
-     * Set Ok offers list
-     *
-     * @param okList
-     *            the ok offer list
-     */
-    public void setOkList(List<String> okList) {
-        this.okList = okList;
+    public List<String> getOkOffers() {
+        return okOffers;
     }
 
     /**
@@ -99,19 +99,10 @@ public class TryAndRetryData {
      *
      * @return the KO offers list
      */
-    public List<String> getKoList() {
-        return new ArrayList<String>(koList);
+    public List<String> getKoOffers() {
+        return new ArrayList<>(koOffers);
     }
 
-    /**
-     * Set the KO offers list
-     *
-     * @param koList
-     *            the KO offers list
-     */
-    public void setKoList(List<String> koList) {
-        this.koList = koList;
-    }
 
     /**
      * Get global result for storage distribution
@@ -125,12 +116,11 @@ public class TryAndRetryData {
     /**
      * Pass offerId fro KO offers list to OK offers list
      *
-     * @param offerId
-     *            the offerId
+     * @param offerId the offerId
      */
     public void koListToOkList(String offerId) {
-        koList.remove(offerId);
-        okList.add(offerId);
+        koOffers.remove(offerId);
+        okOffers.add(offerId);
         globalOfferResult.put(offerId, Response.Status.CREATED);
     }
 
@@ -138,7 +128,7 @@ public class TryAndRetryData {
      * Change the status of an offer id transfer
      *
      * @param offerId the offerId
-     * @param status the response status to set
+     * @param status  the response status to set
      */
     public void changeStatus(String offerId, Response.Status status) {
         globalOfferResult.put(offerId, status);

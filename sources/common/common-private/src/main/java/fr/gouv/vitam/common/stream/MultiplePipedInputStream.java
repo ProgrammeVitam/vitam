@@ -130,7 +130,7 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
      * 
      * @throws IOException if any exception is found during multiple streams
      */
-    public void hasException() throws IOException {
+    public void throwLastException() throws IOException {
         if (lastException != null) {
             throw lastException;
         }

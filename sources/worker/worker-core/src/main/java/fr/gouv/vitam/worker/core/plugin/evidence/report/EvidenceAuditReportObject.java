@@ -26,16 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+
+import java.util.Map;
 
 /**
  * EvidenceAuditReportLine class
  */
 public class EvidenceAuditReportObject {
+    @JsonProperty("identifier")
     private String identifier ;
+
+    @JsonProperty("status")
     private EvidenceStatus evidenceStatus;
+
+    @JsonProperty("message")
     private String message;
+
+    @JsonProperty("objectType")
     private String objectType;
+
+    @JsonProperty("securedHash")
+    private String securedHash;
+
+    @JsonProperty("offersHashes")
+    private Map<String,String>offersHashes;
+
 
     EvidenceAuditReportObject(){
 
@@ -98,5 +116,33 @@ public class EvidenceAuditReportObject {
      **/
     public void setObjectType(String objectType) {
         this.objectType = objectType;
+    }
+
+    /**
+     * getter for securedHash
+     **/
+    public String getSecuredHash() {
+        return securedHash;
+    }
+
+    /**
+     * setter for securedHash
+     **/
+    public void setSecuredHash(String securedHash) {
+        this.securedHash = securedHash;
+    }
+
+    /**
+     * getter for offersHashes
+     **/
+    public Map<String, String> getOffersHashes() {
+        return offersHashes;
+    }
+
+    /**
+     * setter for offersHashes
+     **/
+    public void setOffersHashes(Map<String, String> offersHashes) {
+        this.offersHashes = offersHashes;
     }
 }

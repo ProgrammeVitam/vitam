@@ -211,8 +211,8 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         String containerNameReplay = launchIngest(true);
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        JsonNode logbookResultReplay = logbookClient.selectOperationById(containerNameReplay, null);
-        JsonNode logbookResultNoReplay = logbookClient.selectOperationById(containerNameNoReplay, null);
+        JsonNode logbookResultReplay = logbookClient.selectOperationById(containerNameReplay);
+        JsonNode logbookResultNoReplay = logbookClient.selectOperationById(containerNameNoReplay);
         validateLogbookOperations(logbookResultReplay.get("$results").get(0),
             logbookResultNoReplay.get("$results").get(0));
 

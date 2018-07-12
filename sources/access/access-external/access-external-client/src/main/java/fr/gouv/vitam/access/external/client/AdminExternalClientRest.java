@@ -1038,6 +1038,26 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
+    @Override public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
+        throws VitamClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        try {
+            response = performRequest(HttpMethod.POST,
+                AccessExtAPI.RECTIFICATION_AUDIT,
+                headers,
+                operationId, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 
 
     @Override

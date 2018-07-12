@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -67,10 +68,8 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -282,8 +281,8 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
-            return new StorageMetadatasResult(null);
+        public StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+            return new StorageMetadataResult(null);
         }
 
         @Override

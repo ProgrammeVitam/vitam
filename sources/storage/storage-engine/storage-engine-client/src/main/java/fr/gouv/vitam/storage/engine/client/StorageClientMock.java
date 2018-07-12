@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Lists;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,7 +51,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -127,14 +126,14 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return generateStoredInfoResult(guid);
     }
 
-    @Override
-    public boolean deleteContainer(String strategyId) throws StorageServerClientException {
-        return true;
-    }
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest,
-        String digestAlgorithm)
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest)
+        throws StorageServerClientException {
+        return true;
+    }
+    @Override
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
         throws StorageServerClientException {
         return true;
     }
@@ -208,8 +207,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
-            StorageMetadatasResult metaData =
-                new StorageMetadatasResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
+            StorageMetadataResult metaData =
+                new StorageMetadataResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
                     "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
                     6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
             offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
@@ -217,6 +216,18 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         } catch (InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
+    }
+
+    @Override
+    public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+        String destination) throws StorageServerClientException, InvalidParseOperationException {
+        throw new  UnsupportedOperationException("Not Implemeted ");
+    }
+
+    @Override public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+        Long inputStreamSize, List<String> offerIds)
+        throws StorageServerClientException, InvalidParseOperationException {
+        throw new  UnsupportedOperationException("Not Implemeted ");
     }
 
     @Override

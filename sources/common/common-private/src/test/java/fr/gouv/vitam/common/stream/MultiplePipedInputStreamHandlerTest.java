@@ -40,9 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
 import org.junit.AfterClass;
@@ -129,7 +127,7 @@ public class MultiplePipedInputStreamHandlerTest {
                 total++;
             }
             assertEquals(INPUTSTREAM_SIZE, total);
-            mish.hasException();
+            mish.throwLastException();
         } catch (final IOException e) {
             fail("Should not raized an exception: " + e.getMessage());
         }
@@ -151,7 +149,7 @@ public class MultiplePipedInputStreamHandlerTest {
                 total += read;
             }
             assertEquals(INPUTSTREAM_SIZE, total);
-            mish.hasException();
+            mish.throwLastException();
         } catch (final IOException e) {
             fail("Should not raized an exception: " + e.getMessage());
         }
@@ -201,7 +199,7 @@ public class MultiplePipedInputStreamHandlerTest {
                 }
                 assertEquals("rank: " + i, INPUTSTREAM_SIZE, total[i]);
             }
-            mish.hasException();
+            mish.throwLastException();
         } catch (final IOException e) {
             System.gc();
             LOGGER.error(e);
@@ -263,7 +261,7 @@ public class MultiplePipedInputStreamHandlerTest {
             for (int i = 0; i < nb; i++) {
                 assertEquals(INPUTSTREAM_SIZE, (int) total[i].get());
             }
-            mish.hasException();
+            mish.throwLastException();
         } catch (final InterruptedException | ExecutionException | IOException e) {
             LOGGER.error(e);
             fail("Should not raized an exception: " + e.getMessage());
@@ -338,7 +336,7 @@ public class MultiplePipedInputStreamHandlerTest {
                     break;
                 }
             }
-            mish.hasException();
+            mish.throwLastException();
             mish.close();
             for (int i = 0; i < nb; i++) {
                 assertEquals("rank: " + i, 0, is[i].available());
@@ -368,7 +366,7 @@ public class MultiplePipedInputStreamHandlerTest {
                 is[i].close();
                 assertEquals("rank: " + i, 0, is[i].available());
             }
-            mish.hasException();
+            mish.throwLastException();
             mish.close();
         } catch (final IOException e) {
             fail("Should not raized an exception: " + e.getMessage());
@@ -412,7 +410,7 @@ public class MultiplePipedInputStreamHandlerTest {
             for (int i = VitamConfiguration.getMaxConcurrentMultipleInputstreamHandler() - 1; i >= 500; i--) {
                 MultiplePipedInputStream mish = list.remove(i);
                 try {
-                    mish.hasException();
+                    mish.throwLastException();
                 } catch (IOException e) {
                     LOGGER.error(e);
                     fail("Should not have an exception");
@@ -435,7 +433,7 @@ public class MultiplePipedInputStreamHandlerTest {
             }
             for (MultiplePipedInputStream mish : list) {
                 try {
-                    mish.hasException();
+                    mish.throwLastException();
                 } catch (IOException e) {
                     LOGGER.error(e);
                     fail("Should not have an exception");
@@ -455,7 +453,7 @@ public class MultiplePipedInputStreamHandlerTest {
                     LOGGER.debug(mish.toString());
                     InputStream stream = mish.getInputStream(0);
                     StreamUtils.closeSilently(stream);
-                    mish.hasException();
+                    mish.throwLastException();
                     mish.close();
                     LOGGER.debug(mish.toString());
                 } catch (IllegalArgumentException | IOException e) {
@@ -517,7 +515,7 @@ public class MultiplePipedInputStreamHandlerTest {
                 }
             }
             for (MultiplePipedInputStream mish : list) {
-                mish.hasException();
+                mish.throwLastException();
                 mish.close();
             }
 

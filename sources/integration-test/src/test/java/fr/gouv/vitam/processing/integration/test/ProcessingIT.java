@@ -745,7 +745,7 @@ public class ProcessingIT extends VitamRuleRunner {
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
-        JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
+        JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
             "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO");
@@ -791,7 +791,7 @@ public class ProcessingIT extends VitamRuleRunner {
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
-        JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
+        JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertThat(logbookNode.get("events").get(6).get("outDetail").asText())
             .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
@@ -1296,6 +1296,9 @@ public class ProcessingIT extends VitamRuleRunner {
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
+        ObjectNode options =
+            JsonHandler.createObjectNode().put("correctiveOption", false);
+        workspaceClient.putObject(containerName, "evidenceOptions", JsonHandler.writeToInpustream(options));
 
         workspaceClient
             .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
@@ -2749,8 +2752,8 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(opiBefore, opiAfter);
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        JsonNode logbookResult = logbookClient.selectOperationById(containerName2,
-            new fr.gouv.vitam.common.database.builder.request.single.Select().getFinalSelect());
+        JsonNode logbookResult = logbookClient.selectOperationById(containerName2
+        );
         assertNotNull(logbookResult.get("$results").get(0));
         LogbookOperation logOperation =
             JsonHandler.getFromJsonNode(logbookResult.get("$results").get(0), LogbookOperation.class);

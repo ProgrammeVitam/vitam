@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -34,7 +35,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -59,13 +59,14 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the storage strategy id
      * @return the capacity of the storage
      * @throws StorageNotFoundClientException if the Server got a NotFound result
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageServerClientException   if the Server got an internal error
      */
     JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * get List of offers for a strategy
+     *
      * @param strategyId strategyId
      * @return list id  of offers
      * @throws StorageNotFoundClientException
@@ -77,14 +78,14 @@ public interface StorageClient extends BasicClient {
     /**
      * Store an object available in workspace by its vitam guid
      *
-     * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
+     * @param strategyId  the storage strategy id
+     * @param type        the type of object collection
+     * @param guid        vitam guid
      * @param description object description
-     * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
-     * @throws StorageNotFoundClientException if the Server got a NotFound result
-     * @throws StorageServerClientException if the Server got an internal error
      * @return the result status of object creation
+     * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
+     * @throws StorageNotFoundClientException      if the Server got a NotFound result
+     * @throws StorageServerClientException        if the Server got an internal error
      */
     StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
@@ -103,47 +104,55 @@ public interface StorageClient extends BasicClient {
      * Check the existence of an object in storage by its id and type {@link DataCategory}.
      *
      * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
+     * @param type       the type of object collection
+     * @param guid       vitam guid
      * @return true if exist
      * @throws StorageServerClientException if the Server got an internal error
      */
     boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException;
 
-    /**
-     * Delete a container in the storage offer strategy A non-empty container CANNOT be deleted !
-     *
-     * @param strategyId the storage strategy id
-     * @return true if deleted
-     * @throws StorageServerClientException if the Server got an internal error
-     */
-    boolean deleteContainer(String strategyId) throws StorageServerClientException;
+
 
     /**
      * Delete an object of given type in the storage offer strategy
      *
      * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
-     * @param digest the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
+     * @param type       the type of object collection
+     * @param guid       vitam guid
+     * @param digest     the digest to be compared with
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean delete(String strategyId, DataCategory type, String guid, String digest, String digestAlgorithm)
+    boolean delete(String strategyId, DataCategory type, String guid, String digest)
+        throws StorageServerClientException;
+
+
+
+    /**
+     * Delete an object of given type in the storage offer strategy
+     *
+     * @param strategyId the storage strategy id
+     * @param type       the type of object collection
+     * @param guid       vitam guid
+     * @param digest     the digest to be compared with
+     * @param offerIds   offers ids to delete
+     * @return true if deleted
+     */
+
+    boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
         throws StorageServerClientException;
 
     /**
      * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
      *
      * @param strategyId the storage strategy id
-     * @param guid vitam guid of the object to be returned
-     * @param type
+     * @param guid       vitam guid of the object to be returned
+     * @param type the object type to list
      * @return the object requested
      * @throws StorageServerClientException if the Server got an internal error
-     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
-     *         exist
+     * @throws StorageNotFoundException     if the Server got a NotFound result, if the container or the object does not
+     *                                      exist
      */
     Response getContainerAsync(String strategyId, String guid, DataCategory type)
         throws StorageServerClientException, StorageNotFoundException;
@@ -152,7 +161,7 @@ public interface StorageClient extends BasicClient {
      * List object type in container
      *
      * @param strategyId the strategy ID
-     * @param type the object type to list
+     * @param type       the object type to list
      * @return an iterator with object list
      * @throws StorageServerClientException thrown if the server got an internal error
      */
@@ -163,8 +172,8 @@ public interface StorageClient extends BasicClient {
      * Call storage log backup operation.
      *
      * @return Storage logbook backup response
-     * @throws StorageServerClientException
-     * @throws InvalidParseOperationException
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws InvalidParseOperationException  InvalidParseOperationException
      */
     RequestResponseOK storageLogBackup() throws StorageServerClientException, InvalidParseOperationException;
 
@@ -172,33 +181,61 @@ public interface StorageClient extends BasicClient {
      * Call storage log traceability operation.
      *
      * @return storage log traceability response
-     * @throws StorageServerClientException
-     * @throws InvalidParseOperationException
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     RequestResponseOK storageLogTraceability() throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage
      *
-     * @param strategyId
-     * @param type
-     * @param guid
-     * @param offerIds
-     * @return
-     * @throws StorageServerClientException
-     * @throws StorageNotFoundClientException
+     * @param strategyId the storage strategy id
+     * @param type the object type to list
+     * @param guid vitam guid
+     * @param offerIds offers ids to delete
+     * @return informations
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws StorageNotFoundClientException StorageNotFoundClientException
      */
     JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException, StorageNotFoundClientException;
 
     /**
+     *
+     * @param objectId objectId
+     * @param category category
+     * @param source source
+     * @param destination destination
+     * @return RequestResponseOK
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws InvalidParseOperationException StorageServerClientException
+     */
+    RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+        String destination)
+        throws StorageServerClientException, InvalidParseOperationException;
+
+    /**
+     *
+     * @param objectId objectId
+     * @param category category
+     * @param inputStream inputStream
+     * @param inputStreamSize inputStreamSize
+     * @param offerIds offers ids
+     * @return RequestResponseOK
+     * @throws StorageServerClientException StorageServerClientException
+     * @throws InvalidParseOperationException InvalidParseOperationException
+     */
+    RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize, List<String> offerIds)
+        throws StorageServerClientException, InvalidParseOperationException;
+
+    /**
      * Get offer log .
      *
      * @param strategyId the strategy to get offers
-     * @param type the object type to list
-     * @param offset offset of the last object before
-     * @param limit the number of result wanted
-     * @param order the order order
+     * @param type       the object type to list
+     * @param offset     offset of the last object before
+     * @param limit      the number of result wanted
+     * @param order      the order order
      * @return list of offer log
      * @throws StorageServerClientException
      */

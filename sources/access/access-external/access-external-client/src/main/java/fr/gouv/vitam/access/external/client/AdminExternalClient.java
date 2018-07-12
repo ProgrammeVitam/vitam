@@ -729,6 +729,17 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl)
         throws VitamClientException;
 
+    /**
+     * launch a rectification audit for the operation id
+     *
+     * @param vitamContext the operation Id
+     * @param operationId     the operation Id
+     * @return RequestResponse
+     * @throws VitamClientException The Exception
+     */
+    RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
+        throws VitamClientException;
+
 
     /**
      * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored in

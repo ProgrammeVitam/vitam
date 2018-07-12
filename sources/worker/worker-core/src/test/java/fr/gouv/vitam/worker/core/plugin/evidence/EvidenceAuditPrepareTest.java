@@ -98,7 +98,7 @@ public class EvidenceAuditPrepareTest {
 
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).willReturn(tempFolder.newFile());
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq")).willReturn(tempFolder.newFile());
-
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
 
         ItemStatus execute = evidenceAuditPrepare.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);

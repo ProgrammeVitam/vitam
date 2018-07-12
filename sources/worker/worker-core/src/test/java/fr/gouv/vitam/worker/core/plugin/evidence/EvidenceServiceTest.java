@@ -161,7 +161,7 @@ public class EvidenceServiceTest {
 
         JsonNode select2 = getSelect2();
 
-        when(logbookOperationsClient.selectOperationById(anyString(), any())).thenReturn(logbook);
+        when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
         when(logbookOperationsClient.selectOperation(select))
             .thenReturn(JsonHandler.getFromString(RESULT_SELECT_LOGBOOK_SECUR_OP));
 
@@ -216,7 +216,7 @@ public class EvidenceServiceTest {
         JsonNode select = getSelectlogbookLCsecure();
 
 
-        when(logbookOperationsClient.selectOperationById(anyString(), any())).thenReturn(logbook);
+        when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
 
         when(logbookOperationsClient.selectOperation(select))
             .thenThrow(new LogbookClientNotFoundException("not found"));

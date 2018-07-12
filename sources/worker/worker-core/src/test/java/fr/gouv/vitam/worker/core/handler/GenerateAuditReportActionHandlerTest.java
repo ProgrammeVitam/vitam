@@ -159,7 +159,7 @@ public class GenerateAuditReportActionHandlerTest {
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
 
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
-        when(logbookOperationsClient.selectOperationById(anyObject(), anyObject())).thenReturn(jopResults);
+        when(logbookOperationsClient.selectOperationById(anyObject())).thenReturn(jopResults);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
 
         final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();
@@ -189,7 +189,7 @@ public class GenerateAuditReportActionHandlerTest {
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
 
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
-        when(logbookOperationsClient.selectOperationById(anyObject(), anyObject())).thenReturn(jopResults);
+        when(logbookOperationsClient.selectOperationById(anyObject())).thenReturn(jopResults);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
 
         final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();

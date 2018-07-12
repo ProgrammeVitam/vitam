@@ -125,6 +125,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
+    private static final String RECTIFICATION_AUDIT ="/rectificationaudit" ;
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1552,6 +1553,24 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, EVIDENCE_AUDIT_URI, null, query,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> rectificationAudit(String operationId)
+        throws AdminManagementClientServerException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, RECTIFICATION_AUDIT, null, operationId,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);

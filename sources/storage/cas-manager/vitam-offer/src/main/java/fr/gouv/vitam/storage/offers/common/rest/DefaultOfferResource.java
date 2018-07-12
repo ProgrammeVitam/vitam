@@ -69,7 +69,7 @@ import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -592,7 +592,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         final String containerName = buildContainerName(type, xTenantId);
         try {
             SanityChecker.checkParameter(idObject);
-            StorageMetadatasResult result = defaultOfferService.getMetadatas(containerName, idObject);
+            StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);

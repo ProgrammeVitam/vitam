@@ -954,8 +954,8 @@ public class AccessStep {
         if (!process_timeout) {
             fail("Sip processing not finished. Timeout exceeded.");
         }
-        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
+
 
     @When("^on lance la traçabilité des journaux de cycles de vie des unités archivistiques$")
     public void unit_lfc_traceability() {

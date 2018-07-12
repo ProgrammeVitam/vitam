@@ -9,7 +9,7 @@ import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.serv
 import {Title} from '@angular/platform-browser';
 
 class FileData {
-  constructor(public file: string, public category: string) { }
+  constructor(public file: string, public category: string,offerId:String ) { }
 }
 
 const breadcrumb: BreadcrumbElement[] = [
@@ -25,6 +25,7 @@ const breadcrumb: BreadcrumbElement[] = [
 export class LoadStorageComponent extends PageComponent {
   error = false;
   fileName: string;
+  offerId: string;
   category: string;
   tenant: string = this.resourcesService.getTenant();
   savedData: FileData;
@@ -34,6 +35,8 @@ export class LoadStorageComponent extends PageComponent {
 
   displayErrorInitImport = false;
   displayGetError = false;
+  displayDeleteError =false;
+  displayMessageDelete = false ;
   displayErrorImport = false;
   displaySuccessImport = false;
 
@@ -58,14 +61,14 @@ export class LoadStorageComponent extends PageComponent {
 
   getObject() {
 
-    if (!this.fileName || !this.category || (!this.tenant)) {
+    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
       this.error = true;
       return;
     }
 
     this.dataState = 'RUNNING';
 
-    this.savedData = new FileData(this.fileName, this.category);
+    this.savedData = new FileData(this.fileName, this.category,this.offerId);
 
     this.loadStorageService.download(this.fileName, this.category).subscribe(
       (response) => {
@@ -82,6 +85,24 @@ export class LoadStorageComponent extends PageComponent {
         delete this.savedData;
         this.dataState = 'KO';
         this.displayGetError = true;
+      }
+    );
+  }
+  deleteObject() {
+
+    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
+      this.error = true;
+      return;
+    }
+
+    this.loadStorageService.delete(this.fileName, this.category,this.offerId).subscribe(
+      (response) => {
+
+          this.displayMessageDelete = true;
+
+      }, () => {
+        delete this.savedData;
+        this.displayDeleteError = true;
       }
     );
   }
@@ -105,12 +126,7 @@ export class LoadStorageComponent extends PageComponent {
 
   uploadFile() {
 
-    if (!this.savedData) {
-      this.displayErrorInitImport = true;
-      return;
-    }
-
-    this.loadStorageService.uploadFile(this.fileUpload, this.fileName, this.category).subscribe(
+    this.loadStorageService.uploadFile(this.fileUpload, this.fileName,this.fileUpload.size, this.category, this.offerId).subscribe(
       (response) => {
         delete this.fileUpload;
         this.displaySuccessImport = true;

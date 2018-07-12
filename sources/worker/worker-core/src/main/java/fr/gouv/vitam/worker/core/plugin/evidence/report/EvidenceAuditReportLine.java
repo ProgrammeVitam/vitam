@@ -26,27 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * EvidenceAuditReportLine class
  */
 public class EvidenceAuditReportLine {
-    private String identifier ;
-    private EvidenceStatus evidenceStatus;
-    private String message;
-    private String objectType;
-    private ArrayList<EvidenceAuditReportObject> objectsReports;
-    EvidenceAuditReportLine (){
 
+    @JsonProperty("identifier")
+    private String identifier;
+    @JsonProperty("status")
+    private EvidenceStatus evidenceStatus;
+
+    @JsonProperty("message")
+    private String message;
+
+    @JsonProperty("objectType")
+    private MetadataType objectType;
+
+    @JsonProperty("objectsReports")
+    private ArrayList<EvidenceAuditReportObject> objectsReports;
+
+    @JsonProperty("securedHash")
+    private String securedHash;
+
+    @JsonProperty("offersHashes")
+    private Map<String, String> offersHashes;
+
+    public EvidenceAuditReportLine() {
+        offersHashes = new HashMap<>();
     }
-    public EvidenceAuditReportLine (String id ){
+
+    public EvidenceAuditReportLine(String id) {
         this.identifier = id;
-        evidenceStatus=EvidenceStatus.OK;
+        evidenceStatus = EvidenceStatus.OK;
+        offersHashes = new HashMap<>();
     }
+
     /**
      * getter for identifier
      **/
@@ -92,14 +115,14 @@ public class EvidenceAuditReportLine {
     /**
      * getter for objectType
      **/
-    public String getObjectType() {
+    public MetadataType getObjectType() {
         return objectType;
     }
 
     /**
      * setter for objectType
      **/
-    public void setObjectType(String objectType) {
+    public void setObjectType(MetadataType objectType) {
         this.objectType = objectType;
     }
 
@@ -116,5 +139,33 @@ public class EvidenceAuditReportLine {
     public void setObjectsReports(
         ArrayList<EvidenceAuditReportObject> objectsReports) {
         this.objectsReports = objectsReports;
+    }
+
+    /**
+     * getter for securedHash
+     **/
+    public String getSecuredHash() {
+        return securedHash;
+    }
+
+    /**
+     * setter for securedHash
+     **/
+    public void setSecuredHash(String securedHash) {
+        this.securedHash = securedHash;
+    }
+
+    /**
+     * getter for offersHashes
+     **/
+    public Map<String, String> getOffersHashes() {
+        return offersHashes;
+    }
+
+    /**
+     * setter for offersHashes
+     **/
+    public void setOffersHashes(Map<String, String> offersHashes) {
+        this.offersHashes = offersHashes;
     }
 }

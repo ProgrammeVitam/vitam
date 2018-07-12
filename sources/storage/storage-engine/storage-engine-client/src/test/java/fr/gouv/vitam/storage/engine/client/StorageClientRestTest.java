@@ -250,14 +250,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
             return expectedResponse.head();
         }
 
-        @DELETE
-        @Path("/")
-        public Response deleteContainer() {
-            return expectedResponse.delete();
-        }
+
 
         @DELETE
-        @Path("/objects/{id_object}")
+        @Path("/delete/{id_object}")
         public Response deleteObject(@PathParam("id_object") String idObject) {
             return expectedResponse.delete();
         }
@@ -511,15 +507,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        assertTrue(client.deleteContainer("idStrategy"));
-        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest"));
+        assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest"));
+        assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest"));
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest"));
     }
 
     @RunWithCustomExecutor
@@ -527,15 +518,11 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        assertFalse(client.deleteContainer("idStrategy"));
-        assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
-        assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType().getName()));
+
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest"));
+        assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest"));
+        assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest"));
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest"));
     }
 
     @RunWithCustomExecutor
@@ -575,27 +562,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void deleteServerError() {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.delete()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        try {
-            client.deleteContainer("idStrategy");
-            fail("Should rise an exception");
-        } catch (final VitamClientException e) {
-            // nothing to do
-        }
-
-        when(mock.delete()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
-        try {
-            client.deleteContainer("idStrategy");
-            fail("Should rise an exception");
-        } catch (final VitamClientException e) {
-            // nothing to do
-        }
     }
 
     @RunWithCustomExecutor
@@ -689,11 +655,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponseOK<OfferLog> requestResponse = new RequestResponseOK<>();
         IntStream.range(1, 11).forEach(sequence -> {
-            OfferLog offerLog = new OfferLog();
-            offerLog.setContainer(DataCategory.OBJECT.getFolder() + "_" + TENANT_ID);
-            offerLog.setFileName(GUIDFactory.newGUID().getId());
-            offerLog.setSequence(sequence);
-            offerLog.setTime(LocalDateTime.now());
+            OfferLog offerLog = setUpOfferLog(sequence);
             requestResponse.addResult(offerLog);
         });
         requestResponse.setHttpCode(Status.OK.getStatusCode());
@@ -708,6 +670,15 @@ public class StorageClientRestTest extends VitamJerseyTest {
         assertEquals(Status.OK.getStatusCode(), result.getHttpCode());
         RequestResponseOK<OfferLog> resultOK = (RequestResponseOK<OfferLog>) result;
         assertEquals(10, resultOK.getResults().size());
+    }
+
+    private OfferLog setUpOfferLog(int sequence) {
+        OfferLog offerLog = new OfferLog();
+        offerLog.setContainer(DataCategory.OBJECT.getFolder() + "_" + TENANT_ID);
+        offerLog.setFileName(GUIDFactory.newGUID().getId());
+        offerLog.setSequence(sequence);
+        offerLog.setTime(LocalDateTime.now());
+        return offerLog;
     }
 
     @RunWithCustomExecutor

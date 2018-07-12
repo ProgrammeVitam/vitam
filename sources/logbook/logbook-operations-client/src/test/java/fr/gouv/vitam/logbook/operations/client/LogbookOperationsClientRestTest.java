@@ -419,7 +419,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     public void selectExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectOperationById("id", JsonHandler.createObjectNode());
+            client.selectOperationById("id");
             fail("Should raized an exception");
         } catch (final LogbookClientNotFoundException e) {
 
@@ -435,7 +435,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectOperationById("id", JsonHandler.createObjectNode());
+            client.selectOperationById("id");
             fail("Should raized an exception");
         } catch (final LogbookClientException e) {
 

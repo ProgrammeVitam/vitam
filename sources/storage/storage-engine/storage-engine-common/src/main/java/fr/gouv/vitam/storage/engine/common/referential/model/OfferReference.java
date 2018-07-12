@@ -32,10 +32,14 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
  *
  */
 
-// TODO P1 : this class may change (or be deleted) if we later think there is no
-// need for other attributes
-
 public class OfferReference{
+
+    public OfferReference(String id) {
+        this.id = id;
+    }
+
+    public OfferReference() { /* nothing */   }
+
     private String id;
     private boolean referent;
 

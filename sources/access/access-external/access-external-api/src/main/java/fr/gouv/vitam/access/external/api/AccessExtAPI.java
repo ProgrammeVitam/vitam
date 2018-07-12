@@ -205,7 +205,10 @@ public class AccessExtAPI {
     /**
      * Unit evidence audit uri
      */
-    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";
+    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";    /**
+     * Unit evidence audit uri
+     */
+    public static final String RECTIFICATION_AUDIT = "/rectificationaudit";
     /**
      * Archive unit profile base uri
      */

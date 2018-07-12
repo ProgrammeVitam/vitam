@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,17 +56,15 @@ public class StorageCRUDUtils {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageCRUDUtils.class);
 
     private static final String DEFAULT_STRATEGY = "default";
-    BackupService backupService;
     StorageClient storageClient;
 
     StorageCRUDUtils() {
-        this.backupService = new BackupService();
         this.storageClient = StorageClientFactory.getInstance().getClient();
     }
 
     @VisibleForTesting
-    public StorageCRUDUtils(BackupService backupService, StorageClient storageClient) {
-        this.backupService = backupService;
+    public StorageCRUDUtils(StorageClient storageClient) {
+
         this.storageClient = storageClient;
     }
 
@@ -74,45 +74,47 @@ public class StorageCRUDUtils {
      * @param dataCategory category
      * @param uid          uid of file
      */
-    public boolean deleteFile(DataCategory dataCategory, String uid)
+    public boolean deleteFile(DataCategory dataCategory, String uid, String offerId)
         throws StorageNotFoundClientException, StorageServerClientException {
         boolean deleted = false;
         List<String> offers = null;
         offers = storageClient.getOffers(DEFAULT_STRATEGY);
         JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, uid, offers);
-        JsonNode metadata = information.findValue(offers.get(0));
+        JsonNode metadata = information.findValue(offerId);
         if (metadata != null) {
             String digestString = metadata.get("digest").asText();
-            deleted = storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid, digestString,
-                VitamConfiguration.getDefaultDigestType().getName());
+            deleted = storageClient
+                .delete(DEFAULT_STRATEGY, dataCategory, uid, digestString, Collections.singletonList(offerId));
         }
         return deleted;
     }
 
     /**
      * Create file or erase it if exists
-     *
-     * @param dataCategory dataCategory
+     *  @param dataCategory dataCategory
+     * @param offerId offerID
      * @param uid          uid
      * @param stream       stream
      */
-    public void createOrErase(DataCategory dataCategory, String uid, InputStream stream)
+    public void storeInOffer(DataCategory dataCategory, String uid, String offerId, Long size, InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
         try {
-
-            delete = deleteFile(dataCategory, uid);
+            delete = deleteFile(dataCategory, uid,offerId);
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
 
-        } catch (StorageNotFoundClientException | StorageServerClientException e) {
+        } catch (StorageNotFoundClientException | StorageServerClientException  e) {
             LOGGER.error("error when deleting file ", e);
         }
 
-        backupService.backup(stream, dataCategory, uid);
+        try {
+            storageClient.create(uid, dataCategory, stream, size, Collections.singletonList(offerId));
+        } catch (StorageServerClientException | InvalidParseOperationException e) {
+            LOGGER.error("error when deleting file ", e);
+            throw new BackupServiceException("fail to create");
+        }
     }
-
-
 }

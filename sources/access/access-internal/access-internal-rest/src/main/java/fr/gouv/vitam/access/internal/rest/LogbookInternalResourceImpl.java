@@ -152,8 +152,7 @@ public class LogbookInternalResourceImpl {
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
-            queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectOperationById(operationId, queryDsl);
+            final JsonNode result = client.selectOperationById(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e);
@@ -396,7 +395,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
             if (done) {
                 // Get the created logbookOperation and return the response
-                final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
+                final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId());
                 return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
             } else {
                 ItemStatus itemStatus = processingClient.getOperationProcessStatus(checkOperationGUID.getId());
@@ -450,7 +449,7 @@ public class LogbookInternalResourceImpl {
 
             RequestResponseOK requestResponseOK =
                 RequestResponseOK.getFromJsonNode(
-                    logbookOperationsClient.selectOperationById(operationId, parser.getRequest().getFinalSelect()));
+                    logbookOperationsClient.selectOperationById(operationId));
 
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation == null || foundOperation.isEmpty() || foundOperation.size() > 1) {

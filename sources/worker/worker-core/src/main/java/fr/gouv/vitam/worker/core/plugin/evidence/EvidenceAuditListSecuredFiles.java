@@ -75,7 +75,7 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
         try {
 
             for (URI element : uriListObjectsWorkspace) {
-                File file = handlerIO.getFileFromWorkspace(DATA + "/" + element.getPath());
+                File file = handlerIO.getFileFromWorkspace(DATA + File.separator + element.getPath());
 
                 JsonNode jsonName = getFromFile(file);
                 JsonNode fileNameNode = jsonName.get(FILE_NAME);

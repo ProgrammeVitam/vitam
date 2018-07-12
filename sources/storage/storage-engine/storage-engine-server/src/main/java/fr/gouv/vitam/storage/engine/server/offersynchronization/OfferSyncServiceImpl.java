@@ -43,7 +43,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,8 +61,8 @@ public class OfferSyncServiceImpl implements OfferSyncService {
     private static final String SOURCE_OFFER_ID_PARAMETER_MONDATORY_MSG = "The sourceOfferId parameter is mandatory.";
     private static final String DESTINATION_OFFER_ID_PARAMETER_MONDATORY_MSG =
         "The destinationOfferId parameter is mandatory.";
-    public static final String SYNCHRONIZATION_TENANTS_MANDATORY_MSG = "The Vitam tenants are mandatory.";
-
+    private static final String SYNCHRONIZATION_TENANTS_MANDATORY_MSG = "The Vitam tenants are mandatory.";
+    private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
 
@@ -88,13 +88,16 @@ public class OfferSyncServiceImpl implements OfferSyncService {
         this.distribution = distribution;
     }
 
+
+
+
     /**
      * Synchronize an offer from anthor using the offset.
      *
      * @param sourceOffer      the identifer of the source offer
      * @param destinationOffer the identifier of the destination offer
      * @param offset           the offset of the process of the synchronisation
-     * @param containerToSync
+     * @param containerToSync  containerToSync
      * @param tenantIdToSync   @return OfferSync response
      * @throws VitamSyncException
      */
@@ -104,7 +107,6 @@ public class OfferSyncServiceImpl implements OfferSyncService {
 
         ParametersChecker.checkParameter(SOURCE_OFFER_ID_PARAMETER_MONDATORY_MSG, sourceOffer);
         ParametersChecker.checkParameter(DESTINATION_OFFER_ID_PARAMETER_MONDATORY_MSG, destinationOffer);
-
         LOGGER.debug(String
             .format("Start the synchronization process of the new offer {%s} from the source offer {%s}.",
                 destinationOffer, sourceOffer));
@@ -182,7 +184,7 @@ public class OfferSyncServiceImpl implements OfferSyncService {
                                 // check existing of the object on the given offer.
                                 boolean exists =
                                     distribution.checkObjectExisting(STRATEGY_ID, offerLog.getFileName(), category,
-                                        Arrays.asList(destinationOffer));
+                                        Collections.singletonList(destinationOffer));
 
                                 if (!exists) {
                                     // load the object/file from the given offer
@@ -192,8 +194,8 @@ public class OfferSyncServiceImpl implements OfferSyncService {
                                     if (resp != null &&
                                         resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-                                        distribution.storeData(STRATEGY_ID, offerLog.getFileName(),
-                                            category, null, destinationOffer, resp);
+                                        distribution.storeDataInOffers(STRATEGY_ID, offerLog.getFileName(),
+                                            category, null, Collections.singletonList(destinationOffer), resp);
                                     }
                                 }
                                 continue;

@@ -33,7 +33,6 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class StorageResult {
 
-    // TODO add offer id
 
     private final Integer tenantId;
     private final String type;
@@ -46,7 +45,7 @@ public class StorageResult {
      * @param type
      *            the type The request type
      */
-    public StorageResult(Integer tenantId, String type) {
+    StorageResult(Integer tenantId, String type) {
         this.tenantId = tenantId;
         this.type = type;
     }

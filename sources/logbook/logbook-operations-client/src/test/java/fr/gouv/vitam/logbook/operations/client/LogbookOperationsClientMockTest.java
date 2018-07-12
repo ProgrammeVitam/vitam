@@ -180,7 +180,7 @@ public class LogbookOperationsClientMockTest {
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1",
             client.selectOperation(JsonHandler.getFromString(request)).get("$results").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0",
-            client.selectOperationById("eventIdentifier", JsonHandler.getFromString(request)).get("$results").get(0)
+            client.selectOperationById("eventIdentifier").get("$results").get(0)
                 .get("_id").asText());
     }
 

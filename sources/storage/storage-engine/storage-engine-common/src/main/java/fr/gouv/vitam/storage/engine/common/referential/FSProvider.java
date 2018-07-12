@@ -126,7 +126,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
             case OFFER:
                 StorageOffer[] storageOffersArray = JsonHandler
                         .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
-                storageOffers = new HashMap<String, StorageOffer>();
+                storageOffers = new HashMap<>();
                 for (StorageOffer offer : storageOffersArray) {
                     storageOffers.put(offer.getId(), offer);
                 }

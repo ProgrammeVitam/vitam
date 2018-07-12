@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -53,12 +54,15 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -88,7 +92,9 @@ public class EvidenceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
     private static final String EVIDENCE_AUDIT = "EVIDENCE_AUDIT";
+    private static final String RECTIFICATION_AUDIT = "RECTIFICATION_AUDIT";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
+    private static final String OPERATION_ID_MANDATORY = "Operation id Mandatory";
 
     /**
      * Evidence service
@@ -111,7 +117,7 @@ public class EvidenceResource {
     }
 
 
-    EvidenceResource() {  /*nothing to do   */}
+    EvidenceResource() {  /* nothing to do */}
 
     private void createEvidenceAuditOperation(String operationId)
         throws
@@ -155,6 +161,10 @@ public class EvidenceResource {
 
                 createEvidenceAuditOperation(operationId);
 
+                ObjectNode options =
+                    JsonHandler.createObjectNode().put("correctiveOption", false);
+                workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(options));
+
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
 
                 processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), operationId, EVIDENCE_AUDIT);
@@ -166,17 +176,16 @@ public class EvidenceResource {
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
 
-                VitamClientException | LogbookClientServerException | InternalServerException |InvalidGuidOperationException e) {
+                VitamClientException | InternalServerException | InvalidGuidOperationException e) {
                 LOGGER.error("Error while auditing", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
 
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
+            } catch (LogbookClientServerException |LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
                 return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
             }
-
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -189,7 +198,70 @@ public class EvidenceResource {
 
     }
 
+    @POST
+    @Path("rectificationaudit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response rectificationAudit(String operation) {
 
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        try {
+            ParametersChecker.checkParameter(OPERATION_ID_MANDATORY, operation);
+
+            try (
+                ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+            ) {
+                workspaceClient.createContainer(operationId);
+                ObjectNode option =
+                    JsonHandler.createObjectNode().put("operation", operation).put("correctiveOption", true);
+
+                workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(option));
+
+                createRectificationAuditOperation(operationId);
+
+                processingClient
+                    .initVitamProcess(Contexts.RECTIFICATION_AUDIT.name(), operationId, RECTIFICATION_AUDIT);
+
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, RECTIFICATION_AUDIT,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+
+            } catch (ContentAddressableStorageServerException |InvalidParseOperationException |LogbookClientException | ContentAddressableStorageAlreadyExistException |
+
+                VitamClientException  | InternalServerException | InvalidGuidOperationException e) {
+                LOGGER.error("Error while auditing", e);
+
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+        }
+
+    }
+    private void createRectificationAuditOperation(String operationId)
+        throws
+        LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
+        LogbookClientAlreadyExistsException {
+
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+
+            final LogbookOperationParameters initParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    RECTIFICATION_AUDIT,
+                    GUIDReader.getGUID(operationId),
+                    LogbookTypeProcess.AUDIT,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getLabelOp("RECTIFICATION_AUDIT.STARTED") + " : " +
+                        GUIDReader.getGUID(operationId),
+                    GUIDReader.getGUID(operationId));
+            client.create(initParameters);
+        }
+    }
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))

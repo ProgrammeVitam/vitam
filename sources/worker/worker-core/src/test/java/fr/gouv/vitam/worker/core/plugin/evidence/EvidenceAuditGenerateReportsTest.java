@@ -50,6 +50,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
 /**
@@ -78,6 +79,7 @@ public class EvidenceAuditGenerateReportsTest {
         when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
         when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq" )).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 

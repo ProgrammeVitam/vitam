@@ -58,8 +58,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final String REPORTS = "reports";
 
 
-    @VisibleForTesting
-    EvidenceAuditDatabaseCheck(EvidenceService evidenceService) {
+    @VisibleForTesting EvidenceAuditDatabaseCheck(EvidenceService evidenceService) {
         this.evidenceService = evidenceService;
     }
 
@@ -89,6 +88,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                 newLocalFile, true, false);
 
             if (!parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
+
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                 evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
@@ -108,5 +108,6 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        //nothing to do
     }
 }

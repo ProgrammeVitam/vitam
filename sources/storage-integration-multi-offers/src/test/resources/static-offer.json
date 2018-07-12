@@ -1,0 +1,22 @@
+[
+  {
+    "id" : "default",
+    "baseUrl" : "http://localhost:8757",
+    "parameters" : {
+      "keyStore-keyPath": "src/test/resources/storage-test/tls/client/client.p12",
+      "keyStore-keyPassword": "azerty4",
+      "trustStore-keyPath": "src/test/resources/storage-test/tls/server/truststore.jks",
+      "trustStore-keyPassword": "azerty10"
+    }
+  },
+  {
+    "id" : "default2",
+    "baseUrl" : "http://localhost:8758",
+    "parameters" : {
+      "keyStore-keyPath": "src/test/resources/storage-test/tls/client/client.p12",
+      "keyStore-keyPassword": "azerty4",
+      "trustStore-keyPath": "src/test/resources/storage-test/tls/server/truststore.jks",
+      "trustStore-keyPassword": "azerty10"
+    }
+  }
+]

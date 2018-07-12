@@ -453,8 +453,13 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-
-
+        @POST
+        @Path("/rectificationaudit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response rectificationAudit( String operation) {
+            return expectedResponse.post();
+        }
 
         @POST
         @Path("/archiveunitprofiles")
@@ -1198,6 +1203,16 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK)
             .build());
         RequestResponse<JsonNode> resp = client.evidenceAudit(new Select().getFinalSelect());
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void rectificationAuditTest() throws AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<JsonNode> resp = client.rectificationAudit("id");
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
     }
 
