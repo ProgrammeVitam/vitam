@@ -32,6 +32,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
@@ -148,6 +149,9 @@ public class DescriptiveMetadataMapper {
             relatedObjectRefNew.getRequires().addAll(relatedObjectRef.getRequires());
             relatedObjectRefNew.getReferences().addAll(relatedObjectRef.getReferences());
         }
+
+        descriptiveMetadataModel.setSedaVersion(VitamConstants.SEDA_CURRENT_VERSION);
+        descriptiveMetadataModel.setImplementationVersion(this.getClass().getPackage().getImplementationVersion());
 
         return descriptiveMetadataModel;
     }
