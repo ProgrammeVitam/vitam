@@ -30,7 +30,6 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 import java.util.List;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -262,29 +261,9 @@ public class MetadataResource extends ApplicationStatusResource {
         RequestResponse<JsonNode> result;
         try {
             result = metaData.updateUnits(updateQuery);
-        } catch (final VitamDBException | MetaDataExecutionException ve) {
-            LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(ve.getMessage()))
-                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)

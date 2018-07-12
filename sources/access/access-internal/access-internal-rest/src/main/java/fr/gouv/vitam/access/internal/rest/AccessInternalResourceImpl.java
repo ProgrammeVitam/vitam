@@ -799,7 +799,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.createContainer(operationId);
                 workspaceClient
                         .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
-                processingClient.initVitamProcess(Contexts.MASS_UPDATE.name(), operationId, MASS_UPDATE);
+                processingClient.initVitamProcess(Contexts.MASS_UPDATE.name(), operationId, Contexts.MASS_UPDATE.getEventType());
 
                 RequestResponse<JsonNode> requestResponse =
                         processingClient.executeOperationProcess(operationId, MASS_UPDATE, Contexts.MASS_UPDATE.name(),

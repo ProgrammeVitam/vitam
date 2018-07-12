@@ -176,7 +176,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
     private static final String STP_UPDATE_UNIT_DESC = "STP_UPDATE_UNIT_DESC";
-    private static final String STP_MASS_UPDATE = "STP_MASS_UPDATE";
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
     private static final String UNIT_CHECK_PERMISSION = "UNIT_METADATA_UPDATE_CHECK_PERMISSION";
     private static final String UNIT_CHECK_RULES = "UNIT_METADATA_UPDATE_CHECK_RULES";
@@ -201,17 +200,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String DIFF = "#diff";
     private static final String ID = "#id";
     private static final String DEFAULT_STRATEGY = "default";
-
-    private static final String UNIT_KEY = "unit";
-    private static final String LFC_KEY = "lfc";
-
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
     private static final String JSON = ".json";
-    private static final String CANNOT_CREATE_A_FILE = "Cannot create a file: ";
-    private static final String CANNOT_FOUND_OR_READ_SOURCE_FILE = "Cannot found or read source file: ";
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String ERROR_ADD_CONDITION = "Error during adding condition of Operations";
     private static final String ERROR_CHECK_PERMISSIONS = "Error during checking permission";
     private static final String ERROR_CHECK_RULES = "Error during checking updated rules";
@@ -230,7 +222,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
     private static final String RULES_PREFIX = '.' + RULES_KEY;
     private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
-    private static final String PREVENT_INHERITANCE_PREFIX = '.' + INHERITANCE_KEY + '.' + PREVENT_INHERITANCE_KEY;
     private static final String NOT_A_SELECT_OPERATION = "Not a Select operation";
     private static final String DATA_CATEGORY = "Data category ";
     private static final String ID_DOC_EMPTY = "idDocument is empty";

@@ -77,7 +77,7 @@ public class CheckSpecifiedFieldHelper {
                     fieldNode = node.get(UNSET);
                 }
                 if (fieldNode == null) {
-                    continue;
+                    throw new IllegalStateException("Invalid Dsl action command.");
                 }
                 Iterator<String> fieldNames = fieldNode.fieldNames();
                 switch (dataType) {

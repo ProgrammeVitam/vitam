@@ -28,18 +28,14 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -61,24 +57,15 @@ import javax.ws.rs.core.Response;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -109,10 +96,21 @@ public class MassUpdateFinalize extends ActionHandler {
     private static final String REPORT = "report";
     private static final String FILE_NAME_FORMAT = "%s_%s_%s_%s.json";
 
+    private StorageClientFactory storageClientFactory;
+    private WorkspaceClientFactory workspaceClientFactory;
+
     /**
      * Constructor.
      */
     public MassUpdateFinalize() {
+        this(StorageClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public MassUpdateFinalize(StorageClientFactory storageClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     /**
@@ -129,13 +127,17 @@ public class MassUpdateFinalize extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(MASS_UPDATE_FINALIZE);
 
         final String distribReportConatiner = (String) handler.getInput(DISTRIBUTION_LOCAL_REPORTS_RANK);
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+        try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             List<URI> uris =
                 JsonHandler
                     .getFromStringAsTypeRefence(workspaceClient
                         .getListUriDigitalObjectFromFolder(param.getContainerName(), distribReportConatiner)
                         .toJsonNode().get(RESULTS).get(0).toString(), new TypeReference<List<URI>>() {
                     });
+            if (uris.isEmpty()) {
+                itemStatus.increment(StatusCode.KO);
+                return new ItemStatus(MASS_UPDATE_FINALIZE).setItemsStatus(MASS_UPDATE_FINALIZE, itemStatus);
+            }
             Predicate<String> predicate = p -> p.toLowerCase().endsWith("success.json");
             Map<Boolean, List<String>> listing = uris.stream().map(String::valueOf)
                 .collect(Collectors.partitioningBy(predicate));
@@ -147,17 +149,17 @@ public class MassUpdateFinalize extends ActionHandler {
                 String.format(FILE_NAME_FORMAT, param.getProcessId(), handler.getWorkerId(), REPORT, "success");
             final File distribReports = handler.getNewLocalFile(successReportName);
             constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.TRUE),
-                containerName, successReportName, distribReports, successReportName);
+                containerName, distribReports, successReportName);
 
             String errorReportName =
                 String.format(FILE_NAME_FORMAT, param.getProcessId(), handler.getWorkerId(), REPORT, "error");
             final File distribReportsKO = handler.getNewLocalFile(successReportName);
             constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.FALSE),
-                containerName, errorReportName, distribReportsKO, successReportName);
+                containerName, distribReportsKO, errorReportName);
 
             itemStatus.increment(StatusCode.OK);
-            
-        } catch (InvalidParseOperationException | ContentAddressableStorageServerException | IOException e) {
+
+        } catch (InvalidParseOperationException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -165,9 +167,8 @@ public class MassUpdateFinalize extends ActionHandler {
     }
 
     private void constructReportFile(WorkerParameters param, String distribReportConatiner,
-        WorkspaceClient workspaceClient, List<String> files, String containerName,
-        String successReportName, File distribReports, String reportName)
-        throws IOException, ContentAddressableStorageServerException {
+        WorkspaceClient workspaceClient, List<String> files, String containerName, File distribReports, String reportName)
+        throws IOException, ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         if (files.isEmpty()) {
             return;
         }
@@ -191,12 +192,12 @@ public class MassUpdateFinalize extends ActionHandler {
             } finally {
                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(distribReports))) {
                     workspaceClient.createContainer(containerName);
-                    workspaceClient.putObject(containerName, successReportName, inputStream);
+                    workspaceClient.putObject(containerName, reportName, inputStream);
                 } catch (ContentAddressableStorageAlreadyExistException e) {
                     LOGGER.error(e);
                 }
             }
-            try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 final ObjectDescription description = new ObjectDescription();
                 description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(reportName);
@@ -210,6 +211,7 @@ public class MassUpdateFinalize extends ActionHandler {
             }
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
+            throw e;
         }
     }
 

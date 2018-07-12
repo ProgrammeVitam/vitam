@@ -47,7 +47,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -86,7 +85,7 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
     /**
      * Error messages.
      */
-    private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String ACCESS_CONTRACT_NOT_FOUND_EXCEPTION = "Access contract not found";
 
     /**
      * AdminManagementClientFactory
@@ -147,8 +146,8 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                                 ((RequestResponseOK<AccessContractModel>) contractResponse).getFirstResult();
 
                             if (null == contract) {
-                                LOGGER.error(NOT_FOUND_EXCEPTION);
-                                throw new ProcessingException(NOT_FOUND_EXCEPTION);
+                                LOGGER.error(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
+                                throw new ProcessingException(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
                             } else if (!contract.getWritingPermission()) {
                                 throw new UpdatePermissionException(
                                     VitamCode.UPDATE_UNIT_PERMISSION.name());
@@ -165,8 +164,9 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                                         VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
                                 }
                             }
+                        }else{
+                            throw new ProcessingException(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
                         }
-
                     } catch (final VitamException e) {
                         throw new ProcessingException(e);
                     }

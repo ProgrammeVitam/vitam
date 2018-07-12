@@ -449,11 +449,8 @@ public class MetaDataImpl implements MetaData {
 
     @Override
     public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException {
-
-        Set<String> unitIds = new HashSet<>();
-
+        throws InvalidParseOperationException {
+        Set<String> unitIds;
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
         updateRequest.parse(updateQuery);
         final RequestMultiple request = updateRequest.getRequest();
