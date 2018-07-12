@@ -71,6 +71,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class IngestExternalImplTest {
     private static final String PATH = "/tmp";
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
+    private static final String SCRIPT_SCAN_CLAMAV_OK = "scan-clamav-ok.sh";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String EXECUTION_MODE = "continu";
     IngestExternalImpl ingestExternalImpl;
@@ -268,11 +269,12 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void givenNoVirusFile() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
@@ -280,6 +282,96 @@ public class IngestExternalImplTest {
 
         StatusCode statusCode = ingestExternalImpl.upload(model, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenValidManifestFileNameWithPrefix1() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.OK));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenValidManifestFileNameWithPrefix2() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto-manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.OK));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenValidManifestFileNameWithPrefix3() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.OK));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenInvalidManifestFileNameWithIllegalChars() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("$_manifest.xml_KO.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenInvalidManifestFileNameWithLengthGreaterThan56Chars() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("$_manifest.xml_KO.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierTarResponse() {
@@ -305,5 +397,13 @@ public class IngestExternalImplTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
         return siegfried;
+    }
+
+    private void setVirusScanScript(String script) {
+        final IngestExternalConfiguration config = new IngestExternalConfiguration();
+        config.setPath(PATH);
+        config.setAntiVirusScriptName(script);
+        config.setTimeoutScanDelay(timeoutScanDelay);
+        ingestExternalImpl = new IngestExternalImpl(config);
     }
 }

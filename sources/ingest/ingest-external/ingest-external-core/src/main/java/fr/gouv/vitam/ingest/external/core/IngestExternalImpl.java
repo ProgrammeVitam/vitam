@@ -34,6 +34,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -102,6 +111,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
     private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
     private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
+    private static final String MANIFEST_FILE_NAME_CHECK = "MANIFEST_FILE_NAME_CHECK";
 
     private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";
 
@@ -284,6 +294,7 @@ public class IngestExternalImpl implements IngestExternal {
             boolean isFileInfected = false;
             String mimeType = "";
             boolean isSupportedMedia = false;
+            ManifestFileName manifestFileName = null;
 
             // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (antiVirusResult) {
@@ -420,20 +431,80 @@ public class IngestExternalImpl implements IngestExternal {
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
 
-                // write to logbook parent and child events
-                helper.updateDelegate(endParameters);
-                helper.updateDelegate(antivirusParameters);
-                helper.updateDelegate(formatParameters);
+                LogbookOperationParameters manifestFileNameCheck = null;
 
+                InputStream inputStreamTmp = null;
                 if (isSupportedMedia) {
+                    manifestFileNameCheck = LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(operationId),
+                            MANIFEST_FILE_NAME_CHECK,
+                            containerName,
+                            logbookTypeProcess,
+                            StatusCode.OK,
+                            VitamLogbookMessages.getCodeOp(MANIFEST_FILE_NAME_CHECK, StatusCode.OK),
+                            containerName);
+                    manifestFileNameCheck.putParameterValue(LogbookParameterName.parentEventIdentifier, ingestExtGuid.getId());
                     try {
-                        inputStream = (InputStream) workspaceFileSystem
-                            .getObject(containerName.getId(), objectName.getId()).getEntity();
+                        // check manifest file name by regex
+                        inputStreamTmp = (InputStream) workspaceFileSystem
+                                .getObject(containerName.getId(), objectName.getId()).getEntity();
+                        manifestFileName = checkManifestFileName(inputStreamTmp, mimeType);
+                        if(manifestFileName.isManifestFile()) {
+                            inputStream = (InputStream) workspaceFileSystem
+                                    .getObject(containerName.getId(), objectName.getId()).getEntity();
+                        } else {
+                            LOGGER.error("Nom du fichier manifest n'est pas conforme");
+
+                            manifestFileNameCheck.setStatus(StatusCode.KO);
+                            manifestFileNameCheck.putParameterValue(LogbookParameterName.outcomeDetail,
+                                    messageLogbookEngineHelper.getOutcomeDetail(MANIFEST_FILE_NAME_CHECK, StatusCode.KO));
+                            manifestFileNameCheck.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                    messageLogbookEngineHelper.getLabelOp(MANIFEST_FILE_NAME_CHECK, StatusCode.KO));
+                            ObjectNode msg = JsonHandler.createObjectNode();
+                            msg.put("FileName", manifestFileName.getFileName());
+                            msg.put("AllowedCharacters", VitamConstants.MANIFEST_FILE_NAME_REGEX);
+                            manifestFileNameCheck.putParameterValue(LogbookParameterName.eventDetailData,JsonHandler.unprettyPrint(msg));
+                        }
                     } catch (final ContentAddressableStorageException e) {
                         LOGGER.error(e.getMessage());
                         throw new IngestExternalException(e);
+                    } catch (ArchiveException | IOException e) {
+                        LOGGER.error(e.getMessage());
+                        manifestFileNameCheck.setStatus(StatusCode.FATAL);
+                        manifestFileNameCheck.putParameterValue(LogbookParameterName.outcomeDetail,
+                                messageLogbookEngineHelper.getOutcomeDetail(MANIFEST_FILE_NAME_CHECK, StatusCode.FATAL));
+                        manifestFileNameCheck.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                messageLogbookEngineHelper.getLabelOp(MANIFEST_FILE_NAME_CHECK, StatusCode.FATAL));
+                    } finally {
+                        StreamUtils.closeSilently(inputStreamTmp);
+                    }
+
+                    // update end step param if manifest file name is failed
+                    if (manifestFileNameCheck.getStatus().compareTo(endParameters.getStatus()) > 1) {
+                        endParameters.setStatus(manifestFileNameCheck.getStatus());
+                        endParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                                messageLogbookEngineHelper.getOutcomeDetail(INGEST_EXT, manifestFileNameCheck.getStatus()));
+                        endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
+                    }
+
+                    // write to logbook parent and child events
+                    helper.updateDelegate(endParameters);
+                    helper.updateDelegate(antivirusParameters);
+                    helper.updateDelegate(formatParameters);
+                    helper.updateDelegate(manifestFileNameCheck);
+
+                    if(manifestFileNameCheck.getStatus().compareTo(StatusCode.OK) > 1) {
+                        logbookAndGenerateATR(preUploadResume, operationId, manifestFileNameCheck.getStatus(), mimeType,
+                                isFileInfected, helper,
+                                MANIFEST_FILE_NAME_CHECK, "");
                     }
                 } else {
+                    // write to logbook parent and child events
+                    helper.updateDelegate(endParameters);
+                    helper.updateDelegate(antivirusParameters);
+                    helper.updateDelegate(formatParameters);
+
                     logbookAndGenerateATR(preUploadResume, operationId, StatusCode.KO, mimeType, isFileInfected,
                         helper, CHECK_CONTAINER, ". Format non supporté : " + mimeType);
                 }
@@ -460,7 +531,7 @@ public class IngestExternalImpl implements IngestExternal {
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
-                if (!isFileInfected && isSupportedMedia) {
+                if (!isFileInfected && isSupportedMedia && manifestFileName != null && manifestFileName.isManifestFile()) {
 
                     ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), contextWithExecutionMode);
                     return StatusCode.OK;
@@ -780,4 +851,26 @@ public class IngestExternalImpl implements IngestExternal {
         event.putParameterValue(LogbookParameterName.parentEventIdentifier, finalisationEventId.getId());
         return event;
     }
+
+    private ManifestFileName checkManifestFileName(InputStream in, String mimeType) throws IOException, ArchiveException {
+        ManifestFileName manifestFileName = new ManifestFileName();
+        final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in);
+        ArchiveEntry entry;
+        while ((entry = archiveInputStream.getNextEntry()) != null) {
+            if (archiveInputStream.canReadEntryData(entry)) {
+                LOGGER.info("SIP Files : " + entry.getName());
+                if(!entry.isDirectory() && entry.getName().split("/").length == 1) {
+                    manifestFileName.setFileName(entry.getName());
+                    if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
+                        manifestFileName.setManifestFile(true);
+                        break;
+                    }
+                }
+            }
+        }
+        return manifestFileName;
+    }
+
+
 }
