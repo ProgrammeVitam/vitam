@@ -784,6 +784,56 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
+     * Masive archive units update
+     *
+     * @param request HTTP request
+     * @param updateSet contains updated field
+     * @return archive unit details
+     */
+    @POST
+    @Path("/archiveupdate/units")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveupdate:units:update")
+    public Response massiveArchiveUnitUpdate(@Context HttpServletRequest request, String updateSet) {
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try {
+            // Parse updateSet
+            final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+
+            // get Update model for Metadata
+            final JsonNode metadataQuery = DslQueryHelper.createMassiveUpdateDSLQuery(modifiedFields);
+
+            ObjectNode massUpdateInputs = JsonHandler.createObjectNode();
+            massUpdateInputs.set("dslQuery", metadataQuery);
+            massUpdateInputs.set("ruleActions", modifiedFields.get("rulesUpdates"));
+
+            // TODO: When OK for Lilas/Hassen, update 'metadataQuery' to 'massUpdateInputs'
+            // TODO: When OK for Lilas/Hassen, update massUpdateInputs 'JsonNode' to 'POJO'
+
+            final RequestResponse<JsonNode> updateResponse =
+                UserInterfaceTransactionManager.massiveUnitsUpdate(metadataQuery,
+                    UserInterfaceTransactionManager.getVitamContext(request));
+            return updateResponse.toResponse();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Update Archive Units
      *
      * @param request HTTP request

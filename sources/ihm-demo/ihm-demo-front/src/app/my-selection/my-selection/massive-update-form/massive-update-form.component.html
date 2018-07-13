@@ -1,0 +1,148 @@
+<div class="ui-g-12">
+    <p-accordion [multiple]="true">
+
+        <!-- Descriptive metadata part -->
+        <p-accordionTab header="Mise à jour des métadonnées descriptives">
+            <div class="ui-g">
+                <div class="ui-g-12 ui-g-nopad">
+                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.ADD)" label="Ajouter une métadonnée descriptive"
+                            icon="fa-plus" iconPos="left"></button>
+                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.UPDATE)" label="Modifier une métadonnée descriptive"
+                            icon="fa-pencil" iconPos="left"></button>
+                    <button pButton class="ui-button secondaryButton ui-g-4 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.DELETE)" label="Vider une métadonnée descriptive"
+                            icon="fa-times" iconPos="left"></button>
+                </div>
+
+                <div class="ui-g-12">
+                    <span class="ui-g-12">Les dates doivent être entrées au format JJ/MM/AAAA</span>
+
+                    <div class="ui-g-12" *ngIf="internalSavedMetadata.length > 0">
+                        <div class="ui-g-4">Nom du champ</div>
+                        <div class="ui-g-3">Valeur du champ</div>
+                        <div class="ui-g-4">Type d'action</div>
+                        <div class="ui-g-1">Annuler</div>
+                    </div>
+
+
+                    <ng-template ngFor let-metadata [ngForOf]="internalSavedMetadata">
+
+                        <div class="ui-g-12">
+                            <div class="ui-g-4">
+                                <input pInputText [(ngModel)]="metadata.FieldName" style="width: 100%"/>
+                            </div>
+                            <div class="ui-g-4">
+                                <input pInputText [(ngModel)]="metadata.FieldValue" style="width: 100%"
+                                       *ngIf="metadata.Action !== METADATA_ACITONS.DELETE"/>
+                            </div>
+                            <div class="ui-g-3">
+                                <div class="ui-g-1"></div>
+                                <i class="ui-g-2" [ngClass]="getMetadataActionIcon(metadata.Action)"></i>
+                                <span class="ui-g-8">{{getMetadataActionLabel(metadata.Action)}}</span>
+                            </div>
+                            <div class="ui-g-1">
+                                <i class="fa fa-times clickableDiv" (click)="removeMetadata(i)"></i>
+                                <span class="ui-g-8"></span>
+                            </div>
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+        </p-accordionTab>
+
+        <!-- Rules part -->
+        <p-accordionTab header="Mise à jour des règles de gestion">
+            <div class="ui-g-12">
+                <ng-template ngFor let-category [ngForOf]="rulesCategories">
+                    <p-fieldset [legend]="category.label" class="ui-g-12" [toggleable]="true" [collapsed]="true">
+
+                        <div class="ui-g-12 ui-g-nopad">
+                            <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.ADD, category.rule)" label="Ajouter une règle"
+                                    icon="fa-plus" iconPos="left"></button>
+                            <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.UPDATE, category.rule)" label="Modifier une règle"
+                                    icon="fa-pencil" iconPos="left"></button>
+                            <button pButton class="ui-button secondaryButton ui-g-4 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.DELETE, category.rule)" label="Supprimer une règle"
+                                    icon="fa-trash" iconPos="left"></button>
+
+                            <div class="ui-g-12" *ngIf="internalSavedRules[category.rule].Rules.length > 0">
+                                <div class="ui-g-3">Identifiant d'origine</div>
+                                <div class="ui-g-3">Nouvel identifiant</div>
+                                <div class="ui-g-2">Date de début</div>
+                                <div class="ui-g-3">Type d'action</div>
+                                <div class="ui-g-1">Annuler</div>
+                            </div>
+
+                            <div class="ui-g-12">
+                                <ng-template ngFor let-rule [ngForOf]="internalSavedRules[category.rule].Rules" let-i="index">
+                                    <div class="ui-g">
+                                        <div class="ui-g-3">
+                                            <input pInputText [(ngModel)]="rule.OriginRule" style="width: 100%"
+                                                   *ngIf="rule.Action === RULE_ACTIONS.UPDATE"/>
+                                        </div>
+                                        <div class="ui-g-3">
+                                            <input pInputText [(ngModel)]="rule.Rule" style="width: 100%"/>
+                                        </div>
+                                        <div class="ui-g-2">
+                                            <p-calendar *ngIf="rule.Action!==RULE_ACTIONS.DELETE" [(ngModel)]="rule.StartDate"
+                                                        [inputStyle]="{'width':'100%'}" [dateFormat]="'dd/mm/yy'"
+                                                        [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
+                                        </div>
+                                        <div class="ui-g-3">
+                                            <div class="ui-g-1"></div>
+                                            <i class="ui-g-2" [ngClass]="getRuleActionIcon(rule.Action)"></i>
+                                            <span class="ui-g-8">{{getRuleActionLabel(rule.Action)}}</span>
+                                        </div>
+                                        <div class="ui-g-1">
+                                            <i class="fa fa-times clickableDiv" (click)="removeRule(category.rule, i)"></i>
+                                            <span class="ui-g-8"> </span>
+                                        </div>
+                                    </div>
+                                </ng-template>
+                            </div>
+                        </div>
+
+                        <div class="ui-g-12" *ngIf="(category.rule === 'StorageRule' || category.rule === 'AppraisalRule')">
+                            <span class="ui-g-8">Sort Final: </span>
+                            <div class="ui-g-4" >
+                                <select [(ngModel)]="internalSavedRules[category.rule].FinalAction" style="width: 100%">
+                                    <option *ngFor="let action of finalActions[category.rule] | keys"
+                                            value="{{finalActions[category.rule][action].id}}">
+                                        {{finalActions[category.rule][action].label}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ui-g-12" *ngIf="category.rule === 'ClassificationRule'">
+                            <span class="ui-g-8" >Niveau de la classification: </span>
+                            <div class="ui-g-4">
+                                <input pInputText [(ngModel)]="internalSavedRules[category.rule].ClassificationLevel"
+                                       style="width: 100%"/>
+                            </div>
+                            <span class="ui-g-8" >Propriétaire de la classification: </span>
+                            <div class="ui-g-4">
+                                <input pInputText [(ngModel)]="internalSavedRules[category.rule].ClassificationOwner"
+                                       style="width: 100%"/>
+                            </div>
+                        </div>
+                    </p-fieldset>
+                </ng-template>
+            </div>
+        </p-accordionTab>
+    </p-accordion>
+
+    <div class="ui-g-12">
+        <div class="ui-g-4" style="height: 45px;">Nombre de modifications maximum</div>
+        <input type="number" [(ngModel)]="form.updateThreshold" />
+    </div>
+
+</div>
+
+<!-- Validation -->
+<div class="ui-g-12">
+    <div class="ui-g-1"></div>
+    <button pButton class="ui-button secondaryButton ui-g-4 ui-g-nopad" (click)="getUpdates(true)" label="Lancer la mise à jour de masse sur tout le panier"
+            iconPos="left"></button>
+    <div class="ui-g-2"></div>
+    <button pButton class="ui-button secondaryButton ui-g-4 ui-g-nopad" (click)="getUpdates(false)" label="Lancer la mise à jour de masse sur la sélection"
+            iconPos="left"></button>
+</div>

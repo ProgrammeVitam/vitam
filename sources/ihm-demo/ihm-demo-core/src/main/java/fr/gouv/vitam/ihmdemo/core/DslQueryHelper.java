@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -795,6 +797,55 @@ public final class DslQueryHelper {
             }
         }
         return update.getFinalUpdateById();
+    }
+
+    public static JsonNode createMassiveUpdateDSLQuery(JsonNode modifiedFields)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+
+        JsonNode query = modifiedFields.get("query");
+        JsonNode threshold = modifiedFields.get("threashold");
+        JsonNode metadataModifications = modifiedFields.get("metadataUpdates");
+
+        // Handle Updates on metadata:
+        JsonNode metadataUpdates = metadataModifications.get("updates");
+        for (final JsonNode modifiedField: metadataUpdates) {
+            String fieldName = modifiedField.get("FieldName").textValue();
+            JsonNode fieldValue = modifiedField.get("FieldValue");
+            if (fieldName == null) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add Actions
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(fieldName, fieldValue);
+            update.addActions(new SetAction(action));
+        }
+
+        // Handle Deletions on metadata
+        JsonNode metadataDeletions = metadataModifications.get("deletions");
+        for (final JsonNode deletedField: metadataDeletions) {
+            String fieldName = deletedField.get("FieldName").textValue();
+            if (fieldName == null) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add Actions
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(fieldName, new TextNode(""));
+            update.addActions(new SetAction(action));
+        }
+
+        ObjectNode fullQuery = JsonHandler.createObjectNode();
+        fullQuery.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
+        fullQuery.set(BuilderToken.GLOBAL.QUERY.exactToken(), query.get(BuilderToken.GLOBAL.QUERY.exactToken()));
+        if (threshold != null && threshold.longValue() != 0L) {
+            fullQuery.set(BuilderToken.GLOBAL.THRESOLD.exactToken(), threshold);
+        }
+        fullQuery.set(BuilderToken.GLOBAL.ACTION.exactToken(), update.getFinalUpdate().get(BuilderToken.GLOBAL.ACTION.exactToken()));
+
+
+        return fullQuery;
     }
 
     private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)

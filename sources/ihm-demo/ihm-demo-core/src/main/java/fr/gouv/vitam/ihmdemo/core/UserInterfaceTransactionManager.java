@@ -115,6 +115,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * Massive AU update
+     *
+     * @param parameters search criteria as DSL query
+     * @param context    Vitamcontext
+     * @return result
+     * @throws VitamClientException
+     */
+    public static RequestResponse<JsonNode> massiveUnitsUpdate(JsonNode parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.massUpdateUnits(context, parameters);
+        }
+    }
+
+    /**
      * Update units result
      *
      * @param parameters   search criteria as DSL query

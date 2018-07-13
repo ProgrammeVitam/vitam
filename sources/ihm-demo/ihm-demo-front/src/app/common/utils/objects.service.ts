@@ -48,4 +48,19 @@ export class ObjectsService {
     }
   }
 
+  /**
+   * Transform the object in an array of object where object properties become array element.
+   * For Example, transform {a: value, b: value} into [{a: value}, {b: value}]
+   *
+   * @param object initial object
+   * @returns {any[]} array of object properties
+   */
+  static objectToArray(object: any): any[] {
+    return Object.keys(object).map(x => {
+      let item = {};
+      item[x] = object[x];
+      return item;
+    });
+  }
+
 }
