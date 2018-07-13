@@ -995,5 +995,4 @@ public class MetadataResource extends ApplicationStatusResource {
             return Response.status(status).entity(error).build();
         }
     }
-
 }

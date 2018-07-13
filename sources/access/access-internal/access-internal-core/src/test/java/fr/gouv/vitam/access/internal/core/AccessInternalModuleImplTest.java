@@ -1189,6 +1189,64 @@ public class AccessInternalModuleImplTest {
             .containsOnly("{\"$set\":{\"#management.StorageRule.FinalAction\":\"Transfer\"}}");
     }
 
+    @Test
+    public void givenCorrectDslWhenSelectObjectsThenOK()
+            throws Exception {
+        when(metaDataClient.selectObjectGroups(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenEmptyDslWhenSelectObjectsThenTrowsIllegalArgumentException()
+            throws Exception {
+        accessModuleImpl.selectObjects(fromStringToJson(""));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenSelectObjectsTestAccessExecutionException()
+            throws Exception {
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenEmptyDSLWhenSelectObjectsThenThrowsInvalidParseOperationException()
+            throws Exception {
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenDSLWhenSelectObjectsThenThrowsMetadataInvalidSelectException()
+            throws Exception {
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
+    @Test(expected = AccessInternalExecutionException.class)
+    public void givenDSLWhenSelectObjectsThenThrowsMetaDataDocumentSizeException()
+            throws Exception {
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
+    @Test(expected = AccessInternalExecutionException.class)
+    public void givenClientProblemWhenSelectObjectsThenThrowsAccessExecutionException()
+            throws Exception {
+        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenEmptyDSLWhenSlectObjectsThenThrowsInvalidParseOperationException()
+            throws Exception {
+        final JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+                .selectObjectGroups(jsonQuery);
+        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+    }
+
     private RequestParserMultiple executeCheck(String queryString)
         throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException {
         JsonNode queryJson = JsonHandler.getFromString(queryString);

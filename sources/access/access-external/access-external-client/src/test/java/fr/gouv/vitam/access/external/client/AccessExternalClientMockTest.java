@@ -15,6 +15,11 @@ public class AccessExternalClientMockTest {
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
+    final String queryDsqlForGot =
+            "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
+                    " \"$filter\": { \"$orderby\": \"#id\" }, " +
+                    " \"$projection\" : { } " +
+                    " }";
     final String ID = "identifier1";
     final String USAGE = "usage";
     final String CONTRACT = "contract";
@@ -83,5 +88,12 @@ public class AccessExternalClientMockTest {
         throws Exception {
         assertNotNull(client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternalSelectObjectsThenReturnResult()
+            throws Exception {
+        assertNotNull(client.selectObjects(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                JsonHandler.getFromString(queryDsqlForGot)));
     }
 }

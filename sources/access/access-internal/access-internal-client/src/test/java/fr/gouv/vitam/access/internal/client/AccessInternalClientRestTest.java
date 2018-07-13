@@ -289,6 +289,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @Override
+        @GET
+        @Path("/objects")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjects(JsonNode queryDsl) {
+            return expectedResponse.post();
+        }
+
     }
 
     @RunWithCustomExecutor

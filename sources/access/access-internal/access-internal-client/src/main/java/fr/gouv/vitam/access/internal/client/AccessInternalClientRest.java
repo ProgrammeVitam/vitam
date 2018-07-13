@@ -655,4 +655,37 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw e;
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery) throws InvalidParseOperationException,
+            AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+            fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+
+        Response response = null;
+        LOGGER.debug("DEBUG: start selectObjects {}", selectQuery);
+        try {
+            response = performRequest(HttpMethod.GET, OBJECTS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamDBException(
+                        CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+                throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            } else if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+                throw new fr.gouv.vitam.common.exception.BadRequestException(FORBIDDEN_OPERATION);
+            }
+            LOGGER.debug("DEBUG: end selectObjects {}", response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

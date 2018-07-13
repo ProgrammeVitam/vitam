@@ -128,4 +128,15 @@ public interface AccessInternalModule {
      */
     Response findDIPByOperationId(String id) throws AccessInternalExecutionException;
 
+    /**
+     * select Objects Group based on DSL query
+     *
+     * @param queryJson as String { $query : query}
+     * @return the result of the select on object
+     * @throws IllegalArgumentException if json query is null
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws AccessInternalExecutionException Throw if error occurs when send Object to database
+     */
+    JsonNode selectObjects(JsonNode queryJson)
+            throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException;
 }

@@ -26,19 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import fr.gouv.vitam.common.stream.StreamUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -47,8 +38,17 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 /**
@@ -203,5 +203,18 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     @Override
     public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest) {
         throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
+            throws InvalidParseOperationException {
+
+        JsonNode res = null;
+        try {
+            res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultGot.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return new RequestResponseOK().addResult(res);
     }
 }

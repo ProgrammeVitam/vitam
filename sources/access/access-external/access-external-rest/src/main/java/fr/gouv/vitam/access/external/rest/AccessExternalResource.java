@@ -93,6 +93,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
     private static final String UNITS = "units";
+    private static final String OBJECTS = "objects";
     private static final String CONTRACT_ACCESS_NOT_ALLOW = "Contract access does not allow ";
     private static final String UNIT_NOT_FOUND = "Unit not found";
     private static final String REQ_RES_DOES_NOT_EXIST = "Request resource does not exist";
@@ -683,4 +684,71 @@ public class AccessExternalResource extends ApplicationStatusResource {
             .build();
     }
 
+    /**
+     * get Objects group list based on DSL query
+     * @param queryJson the query to get units
+     * @return Response
+     */
+    @GET
+    @Path("/objects")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "objects:read", description = "Récupérer la liste des groupes d'objets")
+    public Response getObjects(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryJson);
+            RequestResponse<JsonNode> result = null;
+            try {
+                result = client.selectObjects(queryJson);
+            } catch (final VitamDBException ve) {
+                LOGGER.error(ve);
+                status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status)
+                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                                .setContext(OBJECTS)
+                                .setState(CODE_VITAM)
+                                .setMessage(ve.getMessage())
+                                .setDescription(status.getReasonPhrase()))
+                        .build();
+            }
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Request unauthorized ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error(REQ_RES_DOES_NOT_EXIST, e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (BadRequestException e) {
+            LOGGER.error("No search query specified, this is mandatory", e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        }
+    }
 }

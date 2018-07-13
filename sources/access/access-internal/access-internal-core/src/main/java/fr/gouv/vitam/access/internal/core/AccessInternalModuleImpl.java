@@ -1792,4 +1792,44 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw e;
         }
     }
+
+    /**
+     * select Object
+     *
+     * @param jsonQuery as String { $query : query}
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws AccessInternalExecutionException Throw if error occurs when send Object to database
+     */
+    @Override
+    public JsonNode selectObjects(JsonNode jsonQuery)
+            throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
+            VitamDBException {
+
+        JsonNode jsonNode = null;
+        LOGGER.debug("DEBUG: start selectObjects {}", jsonQuery);
+
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(jsonQuery);
+            // Check correctness of request
+            LOGGER.debug("{}", jsonNode);
+            final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+            parser.getRequest().reset();
+            if (!(parser instanceof SelectParserMultiple)) {
+                throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
+            }
+            jsonNode =
+                    metaDataClient.selectObjectGroups(jsonQuery);
+            LOGGER.debug("DEBUG {}", jsonNode);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PARSING_ERROR, e);
+            throw e;
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(ILLEGAL_ARGUMENT, e);
+            throw e;
+        } catch (final Exception e) {
+            LOGGER.error("exeption thrown", e);
+            throw new AccessInternalExecutionException(e);
+        }
+        return jsonNode;
+    }
 }

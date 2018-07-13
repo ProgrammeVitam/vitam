@@ -943,8 +943,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            throw new InvalidParseOperationException(
-                                                "Object ID should not be empty for collection " + requestedCollection);
+                                            result = client.selectObjects(getVitamContext(request), criteria);
                                         } else {
                                             result = client.selectObjectMetadatasByUnitId(
                                                 getVitamContext(request),
