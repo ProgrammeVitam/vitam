@@ -552,11 +552,30 @@ L'expression *searchParameter* peut être formulée avec les opérateurs suivant
 - **« - »** signifie **NOT** (tout sauf)
 - **« " »** signifie **"expression exacte"** (l'ordre des mots est impératif dans la recherche)
 - **« ( »** et **« ) »** signifie une précédence dans les opérateurs (priorisation des recherches **AND** et **OR**)
-- **« * »** à la fin d'un mot signifie une recherche par préfixe.
-  - La recherche est effecuté sur les racines des mots. En particulier, l'utilisation du **« * »** empêche les recherches avec des accents. Ainsi un search de "éco*" ne trouvera pas "école", en revanche "eco" trouvera "école".
- - ne pas confondre avec l'opérateur **$wildcard** qui permet de chercher des expression sur champs de type chaine non analysée.
-- **« ~N »** à la fin d'un mot permet de réaliser une recherche approchante, *N* étant la distance d'édition (nombre d'insertions, de suppressions ou de substitutions nécessaires pour transformer un nom en un autre)
-- **« ~N »** après une expression (encadrée par **« * »**) autorise des "trous" dans l'expression recherchée, *N* étant le nombre de mots maximums autorisés pour la complétion
+- **« "mot-1…mot-n"~N »** recherche la séquence de mots *mot-1…mot-n* dans le texte, N étant le nombre de mots maximum à rajouter à la séquence pour qu'elle correspondent à un morceau de texte.
+
+  - Ex : "documentaire end"~2 → **documentaire** ce week end.
+
+- Opérateurs fonctionnant sur les racines de mots : lors de l'indexation des métadonnées analysées, les mots sont indexés en y enlevant des suffixes connus, afin que différentes formes puissent correspondre à une même requête :
+  - archivage → archivag
+  - archivages → archivag
+  - archiver → archiv
+  - archivons → archivon
+  - archiverez → archiv
+  - archivent → archivent
+  - archivistique → archivist
+  - numérique → num
+  - numériser → numer
+
+- **« * »** à la fin d'un mot fait une recherche par préfixe.
+  - Ex : archiv* → archiver, archivistique
+  - Ne pas confondre avec l'opérateur **$wildcard** qui permet de chercher des expression sur champs de type chaine non analysée.
+- **« ~N »** à la fin d'un mot permet de réaliser une recherche approchante, *N* étant la distance d'édition (nombre d'insertions, de suppressions ou de substitutions nécessaires pour transformer un nom en un autre). N peut valoir 0, 1 ou 2
+- **« ~ »** à la fin d'un mot permet de réaliser une recherche approchante, en fonction du nombre de caractère du mots :
+
+  - Jusqu'à 2 : correspondance exacte
+  - De 3 à 5 : équivalent à ~1
+  - Au-delà de 5 : équivalent à ~2.
 
 **Important** : Par défaut, *$search* effectue un OR entre chaque mot de l'expression de recherche.
 
@@ -575,7 +594,7 @@ L'expression *searchParameter* peut être formulée avec les opérateurs suivant
 - Cet opérateur ne doit être utilisé que pour les champs de type chaîne analysée. Le comportement dans le cas d'un champ de type texte analysé ou null est non supporté.
 
 
-### Cas particulièr : recherches par #id
+### Cas particulier : recherches par #id
 
 Un cas particulier est traité dans ce paragraphe, il s'agit de la recherche par identifiant technique.
 Sur les différentes collections, le champ #id est un champ obligatoire peuplé par Vitam. Il s'agit de l'identifiant unique du document (unité archivistique, groupe d'objets, différents référentiels...) représentée sous la forme d'une chaîne de 36 caractères correspondant à un GUID.
