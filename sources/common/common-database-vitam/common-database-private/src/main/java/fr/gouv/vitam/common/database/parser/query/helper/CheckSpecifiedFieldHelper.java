@@ -47,6 +47,7 @@ public class CheckSpecifiedFieldHelper {
     private static final String ACTION = "$action";
     private static final String SET = "$set";
     private static final String UNSET = "$unset";
+    private static final String SETREGEX = "$setregex";
     private static final String ARCHIVE_UNIT_PROFILE = "ArchiveUnitProfile";
     private static final String MANAGEMENT = "#management";
     private static final String IDENTIFIER = "#identifier";
@@ -75,6 +76,9 @@ public class CheckSpecifiedFieldHelper {
                 JsonNode fieldNode = node.get(SET);
                 if (fieldNode == null) {
                     fieldNode = node.get(UNSET);
+                }
+                if (fieldNode == null) {
+                    fieldNode = node.get(SETREGEX);
                 }
                 if (fieldNode == null) {
                     throw new IllegalStateException("Invalid Dsl action command.");

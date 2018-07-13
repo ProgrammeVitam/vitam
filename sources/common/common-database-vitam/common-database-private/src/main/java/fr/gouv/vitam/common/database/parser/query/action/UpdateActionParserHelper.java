@@ -142,7 +142,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      *
      * @param data JsonNode
      * @param adapter VarNameAdapter
-     * @return a SetAction
+     * @return a Set Action
      * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SetAction set(final JsonNode data, final VarNameAdapter adapter)
@@ -164,5 +164,17 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
         } catch (final Exception e) {
             throw new InvalidParseOperationException("Parse error", e);
         }
+    }
+
+    /**
+     *
+     * @param data
+     * @param adapter
+     * @return
+     * @throws InvalidParseOperationException
+     */
+    public static final SetregexAction setregex(final JsonNode data, final VarNameAdapter adapter)
+        throws InvalidParseOperationException {
+        return new SetregexAction(UPDATEACTION.SETREGEX, data, adapter);
     }
 }

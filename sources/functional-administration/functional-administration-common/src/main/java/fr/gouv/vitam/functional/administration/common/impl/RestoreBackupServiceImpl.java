@@ -93,6 +93,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
                     FunctionalBackupService
                         .getBackupFileName(collection, ParameterHelper.getTenantParameter(), result.get()));
             }
+
         } catch (StorageServerClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
         }

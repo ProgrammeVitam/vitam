@@ -201,6 +201,27 @@
         "min": 1,
         "optional": true,
         "hint": "Fields to remove in the result"
+      },
+      "$setregex": {
+        "format": "object",
+        "elements": {
+          "$target": {
+            "format": "ref",
+            "type": "string",
+            "hint": "target field"
+          },
+          "$controlPattern": {
+            "format": "ref",
+            "type": "string",
+            "hint": "pattern of control"
+          },
+          "$updatePattern": {
+            "format": "ref",
+            "type": "string",
+            "hint": "pattern of update"
+          }
+        },
+        "optional": true
       }
     },
     "min": 1

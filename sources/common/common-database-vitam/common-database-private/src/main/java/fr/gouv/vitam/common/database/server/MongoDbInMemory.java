@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -50,10 +52,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.QueryPattern;
 
 /**
  * Tools to update a Mongo document (as json) with a dsl query.
- *
  */
 public class MongoDbInMemory {
 
@@ -74,14 +76,14 @@ public class MongoDbInMemory {
     /**
      * Update the originalDocument with the given request. If the Document is a MetadataDocument (Unit/ObjectGroup) it
      * should use a MultipleQuery Parser
-     *
      * @param request The given update request
      * @param isMultiple true if the UpdateParserMultiple must be used (Unit/ObjectGroup)
      * @param varNameAdapter VarNameAdapter to use
      * @return the updated document
      * @throws InvalidParseOperationException
      */
-    public JsonNode getUpdateJson(JsonNode request, boolean isMultiple, VarNameAdapter varNameAdapter) throws InvalidParseOperationException {
+    public JsonNode getUpdateJson(JsonNode request, boolean isMultiple, VarNameAdapter varNameAdapter)
+        throws InvalidParseOperationException {
         final AbstractParser<?> parser;
 
         if (isMultiple) {
@@ -97,7 +99,6 @@ public class MongoDbInMemory {
 
     /**
      * Update the originalDocument with the given parser (containing the request)
-     *
      * @param requestParser The given parser containing the update request
      * @return the updated document
      * @throws InvalidParseOperationException
@@ -141,6 +142,9 @@ public class MongoDbInMemory {
                         break;
                     case UNSET:
                         unset(content);
+                        break;
+                    case SETREGEX:
+                        setregex(content);
                         break;
                     default:
                         break;
@@ -200,6 +204,24 @@ public class MongoDbInMemory {
         }
     }
 
+    private void setregex(final JsonNode content) throws InvalidParseOperationException {
+        QueryPattern queryPattern = JsonHandler.getFromJsonNodeLowerCamelCase(content, QueryPattern.class);
+        String stringToSearch = originalDocument.get(queryPattern.getTarget()).asText();
+        // The pattern to search for
+        Pattern pattern = Pattern.compile(queryPattern.getControlPattern());
+        Matcher matcher = pattern.matcher(stringToSearch);
+        StringBuffer sb = new StringBuffer();
+        // find & replace all matches
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, queryPattern.getUpdatePattern());
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(sb)) {
+            matcher.appendTail(sb);
+            ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, queryPattern.getTarget(), false)).
+                put(queryPattern.getTarget(), sb.toString());
+        }
+    }
+
     private void min(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
         final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
@@ -251,7 +273,7 @@ public class MongoDbInMemory {
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) parent).remove(lastNodeName);
 
-        JsonHandler.setNodeInPath((ObjectNode)updatedDocument, element.getValue().asText(), value, true);
+        JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getValue().asText(), value, true);
     }
 
     private void push(final BuilderToken.UPDATEACTION req, final JsonNode content)

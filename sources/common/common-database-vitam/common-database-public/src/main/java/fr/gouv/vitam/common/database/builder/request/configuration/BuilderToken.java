@@ -868,7 +868,11 @@ public abstract class BuilderToken {
          * Remove n element from a list from the end (1) or the beginning (-1)<br>
          * $pop : { name : -1/1 }
          */
-        POP("pop");
+        POP("pop"),
+        /**
+         * $setregex : { name : value, name : value, name : value }
+         */
+        SETREGEX("setregex");
 
         private final String exactToken;
 

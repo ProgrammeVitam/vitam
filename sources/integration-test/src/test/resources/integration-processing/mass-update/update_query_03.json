@@ -1,0 +1,19 @@
+{
+  "$query": [
+    {
+      "$match": {
+        "Title": "reportage juillet"
+      }
+    }
+  ],
+  "$threshold": 1000,
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "Title",
+        "$controlPattern": "reportage juillet",
+        "$updatePattern": "Reportage photographique juillet n°17642"
+      }
+    }
+  ]
+}

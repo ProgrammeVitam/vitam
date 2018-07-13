@@ -70,7 +70,8 @@ public class UpdateMultipleSchemaValidatorTest {
     public void testUpdateMultipleSchemaValidatorWithNoThreshold()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_no_threshold.json"));
+        JsonNode updateQuery =
+            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_no_threshold.json"));
         dslValidator.validate(updateQuery);
     }
 
@@ -111,6 +112,27 @@ public class UpdateMultipleSchemaValidatorTest {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_projection.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
+            .hasMessageContaining("Dsl query is not valid");
+    }
+
+    @Test
+    public void testUpdateMultipleSchemaValidatorRegexPatternWithoutUpdatePatternException()
+        throws InvalidParseOperationException, IOException, ValidationException {
+        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        JsonNode updateQuery =
+            JsonHandler.getFromFile(PropertiesUtils.findFile(
+                "update_multiple_regex_pattern_without_controlPattern.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
+            .hasMessageContaining("Dsl query is not valid");
+    }
+
+    @Test
+    public void testUpdateMultipleSchemaValidatorRegexPatternWithoutControlPatternException()
+        throws InvalidParseOperationException, IOException, ValidationException {
+        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        JsonNode updateQuery =
+            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
     }
