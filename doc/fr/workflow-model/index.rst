@@ -12,4 +12,5 @@
    masterdata/_toc
    traceability/_toc_traceability
    update/_toc_update
-   mass_udpate / _toc_unit_mass_update.rst	
+   mass_udpate/_toc_unit_mass_update
+   tree_view_update/_toc_modification_arborescence
