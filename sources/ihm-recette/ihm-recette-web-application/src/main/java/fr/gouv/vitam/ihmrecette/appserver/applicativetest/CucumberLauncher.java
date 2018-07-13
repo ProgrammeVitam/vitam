@@ -60,7 +60,7 @@ public class CucumberLauncher {
      * @return status code
      * @throws IOException
      */
-    public byte launchCucumberTest(List<String> arguments) throws IOException {
+    byte launchCucumberTest(List<String> arguments) throws IOException {
         RuntimeOptions runtimeOptions = new RuntimeOptions(arguments);
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();

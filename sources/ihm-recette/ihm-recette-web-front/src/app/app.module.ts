@@ -43,6 +43,8 @@ import { LinkAuComponent } from './admin/link-au/link-au.component';
 import { LinkAuService } from './admin/link-au/link-au.service';
 import { TestAuditCorrectionComponent } from './admin/test-audit-correction/test-audit-correction.component';
 import { TestAuditCorrectionService } from './admin/test-audit-correction/test-audit-correction.service';
+import { FunctionalTestsFeatureComponent } from './tests/functional-tests-feature/functional-tests-feature.component';
+import {FunctionalTestsFeatureService} from './tests/functional-tests-feature.service';
 
 const appRoutes: Routes = [
   {
@@ -68,6 +70,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'tests/queryDSL', component: QueryDSLComponent
+  },
+  {
+    path: 'tests/testFeature', component: FunctionalTestsFeatureComponent
   },
   {
     path: 'tests/perf', component: PerfComponent
@@ -102,8 +107,10 @@ const appRoutes: Routes = [
     VisNetworkDirective,
     LoadStorageComponent,
     LinkAuComponent,
-    TestAuditCorrectionComponent
-  ],
+    TestAuditCorrectionComponent,
+    FunctionalTestsFeatureComponent
+
+],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
     HttpClientModule,
@@ -140,7 +147,8 @@ const appRoutes: Routes = [
     VisNetworkService,
     LoadStorageService,
     LinkAuService,
-    TestAuditCorrectionService
+    TestAuditCorrectionService,
+    FunctionalTestsFeatureService,
   ],
   bootstrap: [AppComponent]
 })

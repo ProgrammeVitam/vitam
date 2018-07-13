@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -46,6 +47,7 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functionaltest.cucumber.step.World;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * resource to manage system test
@@ -59,7 +61,6 @@ public class ApplicativeTestResource {
     private String testSystemSipDirectory;
 
     /**
-     *
      * @param applicativeTestService service
      * @param testSystemSipDirectory base path on feature
      */
@@ -71,6 +72,7 @@ public class ApplicativeTestResource {
 
     /**
      * launch cucumber test
+     *
      * @return 202 if test are in progress, 200 if the previous test are done
      */
     @POST
@@ -79,13 +81,57 @@ public class ApplicativeTestResource {
         if (applicativeTestService.inProgress()) {
             return Response.accepted().build();
         }
+        try {
+            if (applicativeTestService.getIsTnrMasterActived().get()) {
 
-        String fileName = applicativeTestService.launchCucumberTest(Paths.get(testSystemSipDirectory));
-        return Response.status(Response.Status.ACCEPTED).entity(fileName).build();
+                applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(false));
+                applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "master");
+            }
+            String fileName = applicativeTestService.launchCucumberTest(Paths.get(testSystemSipDirectory));
+            return Response.status(Response.Status.ACCEPTED).entity(fileName).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+
+    }
+
+    /**
+     * launch cucumber test
+     *
+     * @return 200 if the previous test are done
+     */
+    @POST
+    @Path("/testFeature")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchCucumberPiecesTest(String pieces) {
+        String results;
+
+        try {
+
+            if (!applicativeTestService.getIsTnrMasterActived().get()) {
+                applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "tnr_master");
+                applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(true));
+            }
+            results = applicativeTestService.launchPiecesCucumberTest(pieces + "\n");
+        } catch (Exception e) {
+
+            String stackTrace = getStack(e);
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(stackTrace).build();
+        }
+        return Response.status(Response.Status.OK).entity(results).build();
+    }
+
+    private String getStack(Throwable e) {
+        String stackTrace = ExceptionUtils.getStackTrace(e);
+        return stackTrace.replace(System.lineSeparator(), "<br/>\n");
     }
 
     /**
      * get status of the test
+     *
      * @return 202 if test are in progress, 200 if the previous test are done
      */
     @HEAD
@@ -98,6 +144,7 @@ public class ApplicativeTestResource {
 
     /**
      * list the report of system test
+     *
      * @return list of report
      * @throws IOException
      */
@@ -113,7 +160,9 @@ public class ApplicativeTestResource {
     }
 
     /**
+     * PDL
      * return a specific report according to his name.
+     *
      * @param fileName name of the report
      * @return 200 if report is ok, 404 if exception occurs
      * @throws IOException
@@ -134,12 +183,14 @@ public class ApplicativeTestResource {
 
     /**
      * synchronize tnr directory
+     *
      * @return status of the command
      */
 
     @POST
     @Path("/sync")
     public Response synchronizedTestDirectory() throws IOException, InterruptedException {
+        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "master");
         int status = applicativeTestService.synchronizedTestDirectory(Paths.get(testSystemSipDirectory));
         return Response.ok().entity(status).build();
     }

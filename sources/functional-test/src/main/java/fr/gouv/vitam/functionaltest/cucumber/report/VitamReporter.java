@@ -48,7 +48,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     private NiceAppendable output;
     private Reports reports = new Reports();
-    private Report report;
+    private Report report = new Report();
     private String currentFeature;
     private Queue<Step> steps = new LinkedList<>();
 
@@ -139,6 +139,7 @@ public class VitamReporter implements Reporter, Formatter {
 
         if (result.getStatus().equals(Result.FAILED)) {
             report.addError(result.getErrorMessage());
+            reports.add(report);
         }
     }
 
