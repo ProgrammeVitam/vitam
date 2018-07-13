@@ -29,7 +29,34 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static com.mongodb.client.model.Accumulators.addToSet;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
@@ -42,6 +69,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -77,6 +105,7 @@ import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -85,32 +114,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphService;
-
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.mongodb.client.model.Accumulators.addToSet;
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
 
 /**
  * DB Request using MongoDB only
@@ -454,7 +457,7 @@ public class DbRequest {
             roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds()));
         }
 
-            // lets add the query on the tenant
+        // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
             .must(QueryToElasticsearch.getCommand(realQuery))
             .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
@@ -865,7 +868,15 @@ public class DbRequest {
                     if (model == FILTERARGS.UNITS) {
                         JsonNode externalSchema =
                             updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
+                        JsonNode ontologyFields =
+                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
+                        if (ontologyFields != null && ontologyFields.size() > 0) {
+                            validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
+                            documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+                            documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
+                            documentFinal.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
+                        }
+                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);                        
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
                                 "Unable to validate updated Unit " + status.getValidationMessage());
@@ -873,8 +884,7 @@ public class DbRequest {
                         if (externalSchema != null && externalSchema.size() > 0) {
                             validateOtherExternalSchema(updatedJsonDocument, externalSchema);
                             documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        }
-
+                        }                        
                     }
 
                     // Make Update
@@ -932,6 +942,38 @@ public class DbRequest {
         } catch (FileNotFoundException | ProcessingException e) {
             LOGGER.debug("Unable to initialize External Json Validator");
             throw new MetaDataExecutionException(e);
+        }
+    }
+
+    private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
+        SchemaValidationUtils validator)
+        throws MetaDataExecutionException {
+        String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
+        Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
+        try {
+            ((ArrayNode) JsonHandler.getFromString(finalOntologyAsString)).forEach(ontology -> {
+                try {
+                    OntologyModel model = JsonHandler.getFromJsonNode(ontology, OntologyModel.class);
+                    ontologyModelMap.put(model.getIdentifier(), model);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.warn("Unable to serialize ontology field");
+                }
+            });
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Could not parse ontologies", e);
+            throw new MetaDataExecutionException(e);
+        }
+        List<String> errors = new ArrayList<String>();
+        // that means a transformation could be done so we need to process the full json
+        validator.loopAndReplaceInJson(updatedJsonDocument, ontologyModelMap, errors);
+
+        if (!errors.isEmpty()) {
+            // archive unit could not be transformed, so the error would be thrown later by the schema
+            // validation verification
+            String error = "Archive unit contains fields declared in ontology with a wrong format : " +
+                String.join(",", errors.toString());
+            LOGGER.error(error);
+            throw new MetaDataExecutionException(error);
         }
     }
 

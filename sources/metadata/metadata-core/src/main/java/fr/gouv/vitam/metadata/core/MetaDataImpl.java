@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -52,10 +54,12 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -73,6 +77,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DatabaseCursor;
@@ -94,7 +99,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
-import org.bson.Document;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -197,15 +201,14 @@ public class MetaDataImpl implements MetaData {
                             .append(OPI, "$" + MetadataDocument.OPI)
                             .append(SP, "$" + MetadataDocument.ORIGINATING_AGENCY)
                             .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
-                        .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
-                        .append(TOTAL_OBJECT, new Document("$sum", 1))
-                        .append(LIST_GOT, new Document("$addToSet", "$_id"))),
+                                .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
+                                .append(TOTAL_OBJECT, new Document("$sum", 1))
+                                .append(LIST_GOT, new Document("$addToSet", "$_id"))),
                 new Document("$project",
                     new Document(ID, 1)
                         .append(TOTAL_SIZE, 1)
                         .append(TOTAL_OBJECT, 1)
-                        .append(TOTAL_GOT, new Document("$size", "$listGOT")))
-                ),
+                        .append(TOTAL_GOT, new Document("$size", "$listGOT")))),
                 Document.class);
 
 
@@ -469,9 +472,22 @@ public class MetaDataImpl implements MetaData {
         }
         List res = toArrayList(arrayNodeResponse);
         Long total = result != null ? result.getTotal() : res.size();
-        return new RequestResponseOK<JsonNode>(queryCopy)
+        return new RequestResponseOK<JsonNode>(removeUnwantedInternalQueries(queryCopy))
             .addAllResults(toArrayList(arrayNodeResponse))
             .setTotal(total);
+    }
+
+    private JsonNode removeUnwantedInternalQueries(JsonNode queryOriginal) {
+        JsonNode queryCopy = queryOriginal.deepCopy();
+        if (queryCopy != null && queryCopy.get(GLOBAL.ACTION.exactToken()) != null) {
+            queryCopy.get(GLOBAL.ACTION.exactToken()).forEach(action -> {
+                if (action != null && action.get(UPDATEACTION.SET.exactToken()) != null &&
+                    action.get(UPDATEACTION.SET.exactToken()).get(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS) != null) {
+                    ((ObjectNode) action).remove(UPDATEACTION.SET.exactToken());
+                }
+            });
+        }
+        return queryCopy;
     }
 
     private RequestResponse getUnitById(String id)
