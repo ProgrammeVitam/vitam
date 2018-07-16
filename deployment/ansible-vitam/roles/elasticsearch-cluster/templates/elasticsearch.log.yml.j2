@@ -103,3 +103,5 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-l
 # Require explicit names when deleting indices:
 #
 action.destructive_requires_name: true
+
+indices.query.bool.max_clause_count: 10000
