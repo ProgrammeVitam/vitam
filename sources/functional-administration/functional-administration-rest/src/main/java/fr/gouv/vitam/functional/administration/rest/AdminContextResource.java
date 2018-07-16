@@ -26,24 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Wrapper around ContextResource to expose many services.
@@ -58,7 +60,6 @@ public class AdminContextResource {
     public static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
     /**
-     *
      * @param contextResource
      */
     public AdminContextResource(ContextResource contextResource) {
@@ -92,4 +93,21 @@ public class AdminContextResource {
         return contextResource.findContexts(queryDsl);
     }
 
+
+    /**
+     * Update contexts
+     *
+     * @param contextId
+     * @param queryDsl
+     * @return Response
+     */
+    @Path("/contexts/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
+
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        return contextResource.updateContexts(contextId, queryDsl);
+    }
 }
