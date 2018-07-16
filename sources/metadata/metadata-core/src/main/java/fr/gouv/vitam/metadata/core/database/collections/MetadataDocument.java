@@ -251,4 +251,12 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
             return Collections.EMPTY_MAP;
         return map;
     }
+
+    public String getSp() {
+        return get(ORIGINATING_AGENCY, String.class);
+    }
+
+    public Collection<String> getUp() {
+        return getCollectionOrEmpty(Unit.UP);
+    }
 }

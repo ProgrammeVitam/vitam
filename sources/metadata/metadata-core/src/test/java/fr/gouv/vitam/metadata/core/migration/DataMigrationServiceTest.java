@@ -12,11 +12,11 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.GraphService;
 
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -67,11 +67,11 @@ public class DataMigrationServiceTest {
     private DataMigrationRepository repository =
         new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
 
-    private GraphService graphService;
+    private GraphLoader graphLoader;
 
     @Before
     public void setUpBeforeClass() throws Exception {
-        graphService = new GraphService(new MongoDbMetadataRepository(unitCollection));
+        graphLoader = new GraphLoader(new MongoDbMetadataRepository(unitCollection));
     }
 
     @After
@@ -83,7 +83,7 @@ public class DataMigrationServiceTest {
     public void tryStartMongoDataUpdate_firstStart() throws Exception {
 
         // Given
-        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphLoader));
         CountDownLatch awaitTermination = new CountDownLatch(1);
         Mockito.doAnswer(i -> {
             awaitTermination.countDown();
@@ -103,7 +103,7 @@ public class DataMigrationServiceTest {
     public void tryStartMongoDataUpdate_alreadyRunning() throws Exception {
 
         // Given
-        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphLoader));
 
         CountDownLatch longRunningTask = new CountDownLatch(1);
 
@@ -131,7 +131,7 @@ public class DataMigrationServiceTest {
         // First invocation
 
         // Given
-        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphLoader));
 
         // When
         boolean firstStart = instance.tryStartMongoDataUpdate();
@@ -154,7 +154,7 @@ public class DataMigrationServiceTest {
     public void mongoDataUpdate_emptyDataSet() throws Exception {
 
         // Given
-        DataMigrationService instance = new DataMigrationService(repository, graphService);
+        DataMigrationService instance = new DataMigrationService(repository, graphLoader);
 
         // When
         instance.mongoDataUpdate();
@@ -175,7 +175,7 @@ public class DataMigrationServiceTest {
         String ogDataSetFile = "DataMigrationR6/15ObjectGroupDataSet/R6ObjectGroupDataSet.json";
         importObjectGroupDataSetFile(ogDataSetFile);
 
-        DataMigrationService instance = new DataMigrationService(repository, graphService);
+        DataMigrationService instance = new DataMigrationService(repository, graphLoader);
 
         // When
         instance.mongoDataUpdate();

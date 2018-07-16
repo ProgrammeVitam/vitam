@@ -26,9 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -222,6 +221,24 @@ public class Unit extends MetadataDocument<Unit> {
             }
         }
         return map;
+    }
+
+    /**
+     * add graph information into unit.
+     * @param unitGraphModel
+     */
+    public void mergeWith(UnitGraphModel unitGraphModel) {
+        put(UP, unitGraphModel.parents());
+        put(UNITUPS, unitGraphModel.ancestors());
+        put(GRAPH, unitGraphModel.graph());
+        put(PARENT_ORIGINATING_AGENCIES, unitGraphModel.ancestorByOriginatingAgency());
+        put(ORIGINATING_AGENCIES, unitGraphModel.originatingAgencies());
+        put(UNITDEPTHS, unitGraphModel.unitDepths());
+
+        put(MINDEPTH, unitGraphModel.minDepth());
+        put(MAXDEPTH, unitGraphModel.maxDepth());
+
+        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
     }
 
 }

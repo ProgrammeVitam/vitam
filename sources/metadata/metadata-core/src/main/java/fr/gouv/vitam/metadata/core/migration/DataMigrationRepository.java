@@ -68,12 +68,32 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Projections.computed;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
-import static fr.gouv.vitam.metadata.core.database.collections.GraphLoader.UNIT_VITAM_GRAPH_PROJECTION;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.GRAPH;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.PARENT_ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITDEPTHS;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITUPS;
 
 /**
  * Repository for mongo data migration
  */
 public class DataMigrationRepository {
+
+    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
+        new BasicDBObject(UP, 1)
+            .append(UNITUPS, 1)
+            .append(GRAPH, 1)
+            .append(ORIGINATING_AGENCIES, 1)
+            .append(UNITDEPTHS, 1)
+            .append(ORIGINATING_AGENCY, 1)
+            .append(PARENT_ORIGINATING_AGENCIES, 1)
+            .append(ID, 1)
+            .append(OG, 1);
+
 
     /**
      * Vitam Logger.
