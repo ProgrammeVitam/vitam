@@ -32,11 +32,15 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
 
 /**
  * Abstract class of CAS that contains common methos
@@ -56,7 +60,11 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try (final InputStream stream = (InputStream) getObject(containerName, objectName).getEntity()) {
+        Response response = null;
+        InputStream stream = null;
+        try  {
+            response = getObject(containerName, objectName);
+            stream = response.readEntity(InputStream.class);
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
@@ -66,6 +74,9 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             throw e;
+        } finally {
+            StreamUtils.closeSilently(stream);
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
