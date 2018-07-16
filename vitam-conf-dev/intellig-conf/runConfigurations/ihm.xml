@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ihm" type="Multirun" factoryName="Multirun" singleton="true" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
+    <runConfiguration name="IhmDemoApplication" type="Application" />
+    <runConfiguration name="ihmRecette" type="Application" />
+    <method />
+  </configuration>
+</component>

@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="access" type="Multirun" factoryName="Multirun" singleton="true" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="5">
+    <runConfiguration name="AccessInternalApplication" type="Application" />
+    <runConfiguration name="AccessExternalApplication" type="Application" />
+    <method />
+  </configuration>
+</component>

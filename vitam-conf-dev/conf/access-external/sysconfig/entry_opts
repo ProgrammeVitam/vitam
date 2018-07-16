@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/access-external/access-external-rest-0.31.0-SNAPSHOT.jar"

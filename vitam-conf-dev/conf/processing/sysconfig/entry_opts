@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/processing/processing-management-0.31.0-SNAPSHOT.jar"

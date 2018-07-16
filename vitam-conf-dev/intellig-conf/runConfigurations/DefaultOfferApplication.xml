@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DefaultOfferApplication" type="Application" factoryName="Application">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain" />
+    <option name="VM_PARAMETERS" value=" -Dlogback.configurationFile=$USER_HOME$/Bureau/vitam/vitam-logkback.xml" />
+    <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../vitam/offer/offer.conf 8077" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/../vitam/offer" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="vitam-offer" />
+    <envs />
+    <method />
+  </configuration>
+</component>

@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="launch cucumber" type="Application" factoryName="Application">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    <option name="MAIN_CLASS_NAME" value="cucumber.api.cli.Main" />
+    <option name="VM_PARAMETERS" value="-DtnrBaseDirectory=$USER_HOME$/vitam-itests" />
+    <option name="PROGRAM_PARAMETERS" value="-g fr.gouv.vitam.functionaltest.cucumber -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:report.json $USER_HOME$/vitam-itests/access-accession-register.feature" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/functional-test/" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="functional-test" />
+    <envs />
+    <method />
+  </configuration>
+</component>

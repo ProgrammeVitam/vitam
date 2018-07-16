@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="vitamDMZ" type="Multirun" factoryName="Multirun" singleton="true" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="5">
+    <runConfiguration name="WorkspaceApplication" type="Application" />
+    <runConfiguration name="MetaDataApplication" type="Application" />
+    <runConfiguration name="LogbookApplication" type="Application" />
+    <runConfiguration name="StorageApplication" type="Application" />
+    <runConfiguration name="DefaultOfferApplication" type="Application" />
+    <runConfiguration name="ProcessManagementApplication" type="Application" />
+    <runConfiguration name="WorkerApplication" type="Application" />
+    <runConfiguration name="AdminManagementApplication" type="Application" />
+    <runConfiguration name="IngestInternalApplication" type="Application" />
+    <runConfiguration name="AccessInternalApplication" type="Application" />
+    <method />
+  </configuration>
+</component>
