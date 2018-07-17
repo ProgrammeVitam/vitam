@@ -1316,11 +1316,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private boolean hasNewFinalAction(JsonNode existingFinalAction, JsonNode finalAction) {
-        if (existingFinalAction != null && finalAction == null) {
-            return true;
-        }
         if (existingFinalAction == null && finalAction != null) {
             return true;
+        }
+        if (existingFinalAction != null && finalAction == null) {
+            return false;
         }
         if (existingFinalAction == null && finalAction == null) {
             return false;
