@@ -368,7 +368,7 @@ export class MySelectionComponent extends PageComponent {
         break;
       default:
         // TODO Display error ?
-        console.log('No action selected');////////
+        console.log('No action selected');
     }
   }
 

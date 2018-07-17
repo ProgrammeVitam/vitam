@@ -3,15 +3,18 @@ import { PageComponent } from '../../common/page/page-component';
 import { Title } from '@angular/platform-browser';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
 import { ArchiveUnitService } from '../archive-unit.service';
-import { FieldDefinition } from '../../common/search/field-definition';
+import { DynamicSelectItem, FieldDefinition } from '../../common/search/field-definition';
 import { Preresult } from '../../common/preresult';
 import { ColumnDefinition } from '../../common/generic-table/column-definition';
 import { VitamResponse } from '../../common/utils/response';
 import { ArchiveUnitHelper } from '../archive-unit.helper';
 import { Router } from '@angular/router';
 import { DateService } from '../../common/utils/date.service';
-import {MySelectionService} from "../../my-selection/my-selection.service";
-import {ResourcesService} from "../../common/resources.service";
+import { MySelectionService } from "../../my-selection/my-selection.service";
+import { ResourcesService } from "../../common/resources.service";
+import { FormGroup } from '@angular/forms';
+import { SelectItem } from 'primeng/primeng';
+import { DialogService } from '../../common/dialog/dialog.service';
 
 const breadcrumb: BreadcrumbElement[] = [
     { label: 'Recherche', routerLink: '' },
@@ -39,10 +42,41 @@ export class ArchiveUnitComponent extends PageComponent {
         FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
         FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
         new FieldDefinition('originatingagencies', 'Service producteur de l\'entrée', 4, 12),
-        FieldDefinition.createDateField('appDateSup', 'Date d\'échéance de la règle de communicabilité', 4, 12),
-        FieldDefinition.createSelectField('appFinalAction', 'Sort final de la règle de communicabilité',
-            'Sort Final', this.archiveUnitHelper.finalActionSelector.AppraisalRule, 4, 12)
+        FieldDefinition.createSelectField('ruleCategory', 'Catégorie de règle', 'Catégorie',
+          this.archiveUnitHelper.rulesCategories.map(x => ({value: x.rule, label: x.label})), 4, 12, ArchiveUnitComponent.updateValues),
+        FieldDefinition.createDateField('ruleDateSup', 'Date d\'échéance', 4, 12),
+        FieldDefinition.createDynamicSelectField('ruleFinalAction', 'Sort final',
+            this.makeDynamicFinalActions(), 'select', ArchiveUnitComponent.computeFinalActions , 4, 12)
     ];
+
+    static updateValues(allData: FieldDefinition[], searchForm: FormGroup): void {
+        const updatingField: FieldDefinition[] = allData.filter((x) => 'ruleFinalAction' === x.name);
+
+        if (updatingField && updatingField.length === 1) {
+            updatingField[0].options = ArchiveUnitComponent.computeFinalActions(updatingField[0].baseOptions, searchForm.value.ruleCategory);
+        }
+    }
+
+    static computeFinalActions(items: DynamicSelectItem[], otherData: string): SelectItem[] {
+        if (!otherData || otherData === '') {
+            return  [];
+        }
+
+        return DynamicSelectItem.toSelectItems(items.filter(x => otherData === x.data));
+    }
+
+    makeDynamicFinalActions() {
+        let finalActions: DynamicSelectItem[] = [];
+
+      finalActions = finalActions.concat(
+            this.archiveUnitHelper.finalActionSelector.AppraisalRule.map(
+              x => new DynamicSelectItem(x.label, x.value, 'AppraisalRule')));
+      finalActions = finalActions.concat(
+            this.archiveUnitHelper.finalActionSelector.StorageRule.map(
+              x => new DynamicSelectItem(x.label, x.value, 'StorageRule')));
+
+        return finalActions;
+    }
 
     public columns = [
         ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined,
@@ -63,16 +97,18 @@ export class ArchiveUnitComponent extends PageComponent {
             () => true, () => ({ 'width': '50px' }), null, false),
         ColumnDefinition.makeSpecialIconColumn('Ajout au panier', ArchiveUnitComponent.getBasketIcons, () => {},
           (item, service, icon) => {
+            let message = '';
             switch(icon) {
             case 'fa-file':
-              // TODO (add services)
               this.selectionService.addToSelection(false, [item['#id']], this.resourceService.getTenant());
+              message = 'L\'unité archivistique à bien été ajouté au panier';
               break;
             case 'fa-sitemap':
               this.selectionService.addToSelection(true, [item['#id']], this.resourceService.getTenant());
+              message = 'L\'unité archivistique et sa déscendance ont bien étés ajoutés au panier';
               break;
-            case 'fa-archive':
-              // FIXME: Think about change that in order to set opi and not all ids
+              case 'fa-archive':
+              // TODO: Think about change that in order to set opi and not all ids
               this.selectionService.getIdsToSelect(true, item['#opi']).subscribe(
                 (response) => {
                   const ids: string[] = response.$results.reduce(
@@ -87,10 +123,14 @@ export class ArchiveUnitComponent extends PageComponent {
               );
 
               this.selectionService.addToSelection(false, [item['#id']], this.resourceService.getTenant());
+              message = 'L\'unité archivistique et les unité de son éntrée ont bien étés ajoutés au panier';
               break;
             default:
-              console.log('Error ? ');
+              console.log('Error ? Impossible de reconnaitre l\'action');
             }
+
+            this.dialogService.displayMessage(message, 'Ajout au panier')
+            // TODO: Display message ?
       }, null, false, null, ArchiveUnitComponent.getBasketIconsLabel)
     ];
 
@@ -133,7 +173,7 @@ export class ArchiveUnitComponent extends PageComponent {
 
     constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public service: ArchiveUnitService,
                 public archiveUnitHelper: ArchiveUnitHelper, private router: Router, private selectionService: MySelectionService,
-                private resourceService: ResourcesService) {
+                private resourceService: ResourcesService, public dialogService: DialogService) {
         super('Recherche d\'archives', breadcrumb, titleService, breadcrumbService);
     }
 
@@ -175,8 +215,8 @@ export class ArchiveUnitComponent extends PageComponent {
                 if (request.description) { criteriaSearch.Description = request.description; }
                 if (request.originatingagencies) { criteriaSearch.originatingagencies = request.originatingagencies; }
 
-                let isStartDate = request.startDate;
-                let isEndDate = request.endDate;
+                const isStartDate = request.startDate;
+                const isEndDate = request.endDate;
                 if (isStartDate && isEndDate) {
                     if (request.startDate > request.endDate) {
                         preResult.searchProcessError = 'La date de début doit être antérieure à la date de fin.';
@@ -190,19 +230,23 @@ export class ArchiveUnitComponent extends PageComponent {
                     return preResult;
                 }
 
-                if (request.appDateSup) {
-                    criteriaSearch.AppDateSupp = request.appDateSup;
-                    criteriaSearch.AppDateSupp.setDate(criteriaSearch.AppDateSupp.getDate() + 1)
+                if (request.ruleCategory) {
+                    criteriaSearch.RuleCategory = request.ruleCategory;
                 }
 
-                if (request.appFinalAction) {
-                    criteriaSearch.AppFinalAction = request.appFinalAction;
+                if (request.ruleDateSup) {
+                    criteriaSearch.RuleDateSup = request.ruleDateSup;
+                    criteriaSearch.RuleDateSup.setDate(criteriaSearch.RuleDateSup.getDate() + 1)
+                }
+
+                if (request.ruleFinalAction) {
+                    criteriaSearch.RuleFinalAction = request.ruleFinalAction;
                 }
             }
 
             if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate
-                || criteriaSearch.EndDate || criteriaSearch.originatingagencies
-                || criteriaSearch.AppDateSupp || criteriaSearch.AppFinalAction) {
+                || criteriaSearch.EndDate || criteriaSearch.originatingagencies || criteriaSearch.RuleCategory
+                || criteriaSearch.RuleDateSup || criteriaSearch.RuleFinalAction) {
                 if (!!request.facets) {
                     criteriaSearch.facets = request.facets;
                 }

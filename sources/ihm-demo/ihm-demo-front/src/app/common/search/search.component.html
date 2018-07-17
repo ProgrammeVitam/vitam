@@ -19,7 +19,7 @@
                       [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
                       [yearRange]="'400:2500'" [locale]="frLocale"></p-calendar>
           <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}"
-                      [(ngModel)]="field.placeholder"
+                      [(ngModel)]="field.placeholder" (onChange)="field.updateFunction(data, searchForm)"
                       [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
           <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}"
                      *ngIf="field.type === 'selectMultiple'" [options]="field.options" formControlName="{{field.name}}"
@@ -90,16 +90,18 @@
               <label stle="font-weigth: bold" class="ui-g-12">{{field.label ? field.label : field.placeholder}} </label>
               <input pInputText class="ui-g-12" formControlName="{{field.name}}" name="{{field.name}}"
                      *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
-              <p-calendar class="ui-g-12" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
+              <p-calendar class="ui-g-12 ui-g-nopad" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
                           *ngIf="field.type === 'date'" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
                           [yearRange]="'400:2500'" [locale]="frLocale"></p-calendar>
               <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}"
                           placeholder="{{field.placeholder}}" [style]="{'width':'100%'}"
-                          [options]="field.options" *ngIf="field.type === 'select'"></p-dropdown>
+                          [options]="field.options" *ngIf="field.type === 'select' && field.options.length > 0"
+                          (onChange)="field.updateFunction(advancedData, advancedSearchForm)"></p-dropdown>
               <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left' }"
-                         *ngIf="field.type === 'selectMultiple'" [options]="field.options"
+                         *ngIf="field.type === 'selectMultiple' && field.options.length > 0" [options]="field.options"
                          formControlName="{{field.name}}" id="{{field.name}}"
                          multiple="multiple"></p-listbox>
+              <span *ngIf="(field.type === 'selectMultiple' || field.type === 'select') && field.options.length === 0">Aucune option éligible</span>
             </div>
           </div>
           <div class="ui-g-12">

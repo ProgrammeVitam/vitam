@@ -97,8 +97,9 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
-    private static final String APPRAISAL_DATE_SUP = "AppDateSupp";
-    private static final String APPRAISAL_FINAL_ACTION = "AppFinalAction";
+    private static final String RULE_CATEGORY = "RuleCategory";
+    private static final String RULE_DATE_SUP = "RuleDateSup";
+    private static final String RULE_FINAL_ACTION = "RuleFinalAction";
     private static final String ONTOLOGY_TYPE = "OntologyType";
     private static final String ONTOLOGY_NAME = "OntologyName";
     private static final String ONTOLOGY_ID = "OntologyID";
@@ -513,6 +514,9 @@ public final class DslQueryHelper {
         String startDate = null;
         String endDate = null;
         String advancedSearchFlag = "";
+        String ruleCategory = null;
+        String ruleFinalAction = null;
+        String ruleEndDate = null;
 
         for (final Entry<String, Object> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
@@ -644,14 +648,16 @@ public final class DslQueryHelper {
                 continue;
             }
 
-            if (searchKeys.equalsIgnoreCase(APPRAISAL_DATE_SUP)) {
-                andQuery.add(lte(VitamFieldsHelper.management() + ".AppraisalRule.Rules.EndDate", (String) searchValue));
-                continue;
+            if (searchKeys.equalsIgnoreCase(RULE_CATEGORY)) {
+                ruleCategory = (String) searchValue;
             }
 
-            if (searchKeys.equalsIgnoreCase(APPRAISAL_FINAL_ACTION)) {
-                andQuery.add(eq(VitamFieldsHelper.management() + ".AppraisalRule.FinalAction", (String) searchValue));
-                continue;
+            if (searchKeys.equalsIgnoreCase(RULE_DATE_SUP)) {
+                ruleEndDate = (String) searchValue;
+            }
+
+            if (searchKeys.equalsIgnoreCase(RULE_FINAL_ACTION)) {
+                ruleFinalAction = (String) searchValue;
             }
 
             if (searchKeys.startsWith(START_PREFIX)) {
@@ -666,7 +672,6 @@ public final class DslQueryHelper {
                 advancedSearchFlag = (String) searchValue;
                 continue;
             }
-
 
             if (searchKeys.equalsIgnoreCase(REQUEST_FACET_PREFIX)) {
                 RequestFacetItem requestFacetItem = JsonHandler
@@ -716,6 +721,17 @@ public final class DslQueryHelper {
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
             andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
+        }
+
+        if (!Strings.isNullOrEmpty(ruleCategory)) {
+            String managmentRuleCategory = VitamFieldsHelper.management() + "." + ruleCategory;
+            if (!Strings.isNullOrEmpty(ruleFinalAction)) {
+                andQuery.add(eq(managmentRuleCategory + ".FinalAction", ruleFinalAction));
+            }
+
+            if (!Strings.isNullOrEmpty(ruleEndDate)) {
+                andQuery.add(lte(managmentRuleCategory + ".Rules.EndDate", ruleEndDate));
+            }
         }
 
         boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();

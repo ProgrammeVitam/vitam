@@ -27,9 +27,9 @@ export class ArchiveUnitHelper {
           {label: 'Conserver', value: 'Keep'},
           {label: 'Détruire', value: 'Destroy'}
       ], 'StorageRule': [
-          {label: 'RestrictAccess', value: 'Accès Restreint'},
-          {label: 'Transfer', value: 'Transférer'},
-          {label: 'Copy', value: 'Copier'}
+          {label: 'Accès Restreint', value: 'RestrictAccess'},
+          {label: 'Transférer', value: 'Transfer'},
+          {label: 'Copier', value: 'Copy'}
       ]
   };
   public textAreaFields = [
