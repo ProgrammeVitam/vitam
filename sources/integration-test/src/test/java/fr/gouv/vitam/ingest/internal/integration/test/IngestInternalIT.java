@@ -789,7 +789,6 @@ public class IngestInternalIT {
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
                 (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
 
-            assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
             assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"),
@@ -806,7 +805,7 @@ public class IngestInternalIT {
             assertTrue(!responseClassification.isOk());
             assertEquals(responseClassification.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
 
-            // execute update -> PreventInheritance 
+            // execute update -> PreventInheritance
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
             String queryUpdate =
