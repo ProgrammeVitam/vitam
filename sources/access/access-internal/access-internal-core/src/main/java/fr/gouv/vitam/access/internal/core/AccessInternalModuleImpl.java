@@ -231,11 +231,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * AccessModuleImpl constructor
      *
-     * @param configuration of mongoDB access
      */
     // constructor
-    public AccessInternalModuleImpl(AccessInternalConfiguration configuration) {
-        ParametersChecker.checkParameter("Configuration cannot be null", configuration);
+    public AccessInternalModuleImpl() {
         storageClientMock = null;
         logbookLifeCycleClientMock = null;
         logbookOperationClientMock = null;
@@ -392,7 +390,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     @Override
     public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version)
-        throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
+        throws StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);

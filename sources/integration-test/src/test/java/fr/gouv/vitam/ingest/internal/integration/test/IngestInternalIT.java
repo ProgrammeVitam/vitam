@@ -38,6 +38,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,6 +65,7 @@ import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -72,10 +74,13 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -84,8 +89,11 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -156,6 +164,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -183,7 +192,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String LINE_2 = "line 2";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-    private static final String contractId = "aName3";
     private static String DATA_MIGRATION = "DATA_MIGRATION";
 
 
@@ -1111,6 +1119,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         }
     }
 
+    @Ignore("To be fixed by @Auhtor (IMA)")
     @RunWithCustomExecutor
     @Test
     public void testMigrationAfterIngestOk() throws Exception {
@@ -2196,6 +2205,168 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals("ClassOWn",
             node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationOwner")
                 .asText());
+
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testApplyAccessContractSecurityFilter()
+        throws FileNotFoundException, InvalidParseOperationException, DatabaseException,
+        InvalidCreateOperationException {
+
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // UniqueTitleParent : aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq
+        // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
+        final List<Document> unitList =
+            JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
+                    .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
+                new TypeReference<List<Unit>>() {
+                });
+
+        // Save units in Mongo
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+            .save(unitList);
+
+        // Save units in Elasticsearch
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())
+            .save(unitList);
+
+
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryOriginatingAgency(true);
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        // Test With originating agencies restriction
+        try {
+
+            AccessInternalModuleImpl accessInternalModule = new AccessInternalModuleImpl();
+
+            CompareQuery query_1 =
+                QueryHelper.eq("Title", "UniqueTitleParent");
+
+            CompareQuery query_2 =
+                QueryHelper.eq("Title", "UniqueTitleChild");
+            query_2.setDepthLimit(1);
+
+            SelectMultiQuery selectMultiple = new SelectMultiQuery();
+            selectMultiple.addQueries(query_1, query_2);
+
+
+            JsonNode newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+
+            assertThat(newJson).isNotNull();
+
+            JsonNode result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            RequestResponseOK<JsonNode> res =
+                JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            // UniqueTitleChild found
+            assertThat(res.getResults()).hasSize(1);
+            assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
+
+            // Add Originating Agency Identifier0 then recheck. Should not return result
+            accessContractModel.setEveryOriginatingAgency(false);
+            accessContractModel.getOriginatingAgencies().add("Identifier0");
+
+            newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+            assertThat(newJson.toString().split("Identifier0")).hasSize(3);
+
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            assertThat(res.getResults()).hasSize(0);
+
+
+            // Add Originating Agency Identifier1 then recheck. Should return one result
+            accessContractModel.getOriginatingAgencies().add("Identifier1");
+            newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+            assertThat(newJson.toString().split("Identifier0")).hasSize(3);
+
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            // UniqueTitleChild found
+            assertThat(res.getResults()).hasSize(1);
+            assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
+
+            // Set rootUnit to UniqueTitleParent guid. Should return result
+            accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq");
+            newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+            assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq")).hasSize(5);
+
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            // UniqueTitleChild found
+            assertThat(res.getResults()).hasSize(1);
+            assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
+
+            // Set rootUnit to UniqueTitleChild guid. The first query should not return result as root unit restrict access
+            // => So for the second query no roots => should not return result
+            accessContractModel.getRootUnits().clear();
+            accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
+            newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+            assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq")).hasSize(5);
+
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            assertThat(res.getResults()).hasSize(0);
+
+
+
+            //////////////////////////
+            ///   Test Depth negative
+            /////////////////////////
+            query_1 =
+                QueryHelper.eq("Title", "UniqueTitleChild");
+
+            query_2 =
+                QueryHelper.eq("Title", "UniqueTitleChild");
+            query_2.setDepthLimit(-1);
+
+            selectMultiple = new SelectMultiQuery();
+            selectMultiple.addQueries(query_1, query_2);
+
+            // Restrict to UniqueTitleChild
+            accessContractModel.getRootUnits().clear();
+            accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
+
+
+            // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only UniqueTitleChild
+            // => should not return result
+            newJson =
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            assertThat(res.getResults()).hasSize(0);
+
+
+        } catch (Exception e) {
+            LOGGER.error(e);
+            fail("should not throw exception");
+        }
 
     }
 

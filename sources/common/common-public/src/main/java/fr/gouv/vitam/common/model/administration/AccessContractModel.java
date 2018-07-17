@@ -26,12 +26,13 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -116,6 +117,9 @@ public class AccessContractModel extends AbstractContractModel {
      * @return originatingAgencies collection
      */
     public Set<String> getOriginatingAgencies() {
+        if (originatingAgencies == null) {
+            originatingAgencies = new HashSet<>();
+        }
         return originatingAgencies;
     }
 
@@ -222,6 +226,9 @@ public class AccessContractModel extends AbstractContractModel {
      * @return the root units
      */
     public Set<String> getRootUnits() {
+        if (rootUnits == null) {
+            rootUnits = new HashSet<>();
+        }
         return rootUnits;
     }
 
@@ -242,6 +249,9 @@ public class AccessContractModel extends AbstractContractModel {
      * @return the excluded root units
      */
     public Set<String> getExcludedRootUnits() {
+        if (excludedRootUnits == null) {
+            excludedRootUnits = new HashSet<>();
+        }
         return excludedRootUnits;
     }
 

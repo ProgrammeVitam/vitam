@@ -90,13 +90,13 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator.GenericRejectionCause;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -747,27 +747,28 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         private AccessContractValidator validateExistsArchiveUnits(MetaDataClient metaDataClient) {
 
             return (contract, contractName) -> {
-                Set<String> rootUnits = contract.getRootUnits();
+                Set<String> checkUnits = new HashSet<>();
+                Set<String> includeUnits = contract.getRootUnits() == null ? new HashSet<>() : contract.getRootUnits();
+                Set<String> excludeUnits =
+                    contract.getExcludedRootUnits() == null ? new HashSet<>() : contract.getExcludedRootUnits();
 
-                if (null == contract.getRootUnits()) {
-                    if (null == contract.getExcludedRootUnits()) {
-                        return Optional.empty();
-                    }
-                    rootUnits = contract.getExcludedRootUnits();
+                if (!includeUnits.isEmpty() && !excludeUnits.isEmpty()) {
+                    checkUnits.addAll(includeUnits);
+                    checkUnits.addAll(excludeUnits);
+                } else if (!excludeUnits.isEmpty()) {
+                    checkUnits = excludeUnits;
+                } else if (!includeUnits.isEmpty()) {
+                    checkUnits = includeUnits;
                 } else {
-                    if (null != contract.getExcludedRootUnits()) {
-                        AccessContractModel acm = new AccessContractModel();
-                        acm.setExcludedRootUnits(contract.getExcludedRootUnits());
-                        validateExistsArchiveUnits(metaDataClient).validate(acm, contractName);
-                    }
-                }
-
-                rootUnits.removeIf(unit -> unit.trim().isEmpty());
-                if (rootUnits.isEmpty()) {
                     return Optional.empty();
                 }
 
-                String[] rootUnitArray = rootUnits.toArray(new String[rootUnits.size()]);
+                checkUnits.removeIf(unit -> unit.trim().isEmpty());
+                if (checkUnits.isEmpty()) {
+                    return Optional.empty();
+                }
+
+                String[] rootUnitArray = checkUnits.toArray(new String[checkUnits.size()]);
 
                 final Select select = new Select();
                 try {
@@ -787,12 +788,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     List<JsonNode> result = responseOK.getResults();
                     if (null == result || result.isEmpty()) {
                         return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contractName, String.join(",", rootUnits)));
+                            .rejectRootUnitsNotFound(contractName, String.join(",", checkUnits)));
 
-                    } else if (result.size() == rootUnits.size()) {
+                    } else if (result.size() == checkUnits.size()) {
                         return Optional.empty();
                     } else {
-                        Set<String> notFoundRootUnits = new HashSet<>(rootUnits);
+                        Set<String> notFoundRootUnits = new HashSet<>(checkUnits);
                         result.forEach(unit -> {
                             notFoundRootUnits.remove(unit.get("#id").asText());
                         });
