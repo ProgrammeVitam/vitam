@@ -26,23 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,7 +43,6 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
@@ -66,6 +52,15 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * CheckArchiveUnitSchema Plugin.<br>
@@ -109,7 +104,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     /**
      * Empty constructor CheckArchiveUnitSchemaActionPlugin
-     * 
+     *
      * @param adminManagementClientFactory
      *
      */
@@ -238,58 +233,44 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     }
 
 
-    private void handleExternalOntologies(JsonNode archiveUnit, ItemStatus itemStatus, SchemaValidationUtils validator)
-        throws ProcessingException, ArchiveUnitOntologyValidationException {
-        Select selectOntologies = new Select();
-        Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
+    private void handleExternalOntologies(JsonNode archiveUnit, ItemStatus itemStatus, SchemaValidationUtils validator) throws ProcessingException, ArchiveUnitOntologyValidationException {
         JsonNode originalArchiveUnit = archiveUnit.deepCopy();
+
+        JsonNode archiveUnitData = archiveUnit.path("ArchiveUnit");
+        if(archiveUnitData.isMissingNode()) {
+            return;
+        }
+
         try {
             final File ontologyFile = (File) handlerIO.getInput(ONTOLOGY_IN_RANK);
-            InputStream ontologyFIS = null;
-            if (ontologyFile != null) {
-                ontologyFIS = new FileInputStream(ontologyFile);
-            } else {
+            if (ontologyFile == null) {
                 return;
             }
-            JsonNode ontologyJson = JsonHandler.getFromInputStream(ontologyFIS);
-            if (ontologyJson.isArray()) {
-                List<ObjectNode> ontologyModelList = JsonHandler.toArrayList((ArrayNode) ontologyJson);
-                for (ObjectNode ontology : ontologyModelList) {
-                    OntologyModel ontMode = new OntologyModel();
-                    ontMode.setType(OntologyType.valueOf(ontology.get(OntologyModel.TAG_TYPE).asText()));
-                    ontMode.setIdentifier(ontology.get(OntologyModel.TAG_IDENTIFIER).asText());
-                    ontologyModelMap.put(ontMode.getIdentifier(), ontMode);
-                }
-                if (ontologyModelMap.size() > 0) {
-                    List<String> errors = new ArrayList<String>();
-                    // that means a transformation could be done so we need to process the full json
-                    validator.loopAndReplaceInJson(archiveUnit, ontologyModelMap, errors);
-                    if (!errors.isEmpty()) {
-                        // archive unit could not be transformed, so the error would be thrown later by the schema
-                        // validation verification
-                        String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                            String.join(",", errors.toString());
-                        LOGGER.error(error);
-                        throw new ArchiveUnitOntologyValidationException(error);
-                    }
-                }
+            OntologyModel[] ontologies = JsonHandler.getFromFile(ontologyFile, OntologyModel[].class);
+            Map<String, OntologyModel> ontologiesByIdentifier = Arrays.stream(ontologies).collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
+            if(ontologiesByIdentifier.isEmpty()) {
+                return;
+            }
+            List<String> errors = new ArrayList<>();
+            validator.verifyAndReplaceFields(archiveUnitData, ontologiesByIdentifier, errors);
+            if (!errors.isEmpty()) {
+                String error = "Archive unit contains fields declared in ontology with a wrong format : " +
+                    String.join(",", errors.toString());
+                LOGGER.error(error);
+                throw new ArchiveUnitOntologyValidationException(error);
             }
         } catch (InvalidParseOperationException e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
             throw new ProcessingException(e);
-        } catch (FileNotFoundException e) {
-            LOGGER.error("Ontology File cannot be found ", e);
-            return;
         }
 
         final String unitBeforeUpdate = JsonHandler.prettyPrint(originalArchiveUnit);
-        final String unitAfterUpdate = JsonHandler.prettyPrint(archiveUnit);
+        final String unitAfterUpdate = JsonHandler.prettyPrint(archiveUnitData);
         List<String> diff = VitamDocument.getUnifiedDiff(unitAfterUpdate, unitBeforeUpdate);
         if (diff.size() > 0) {
             isUpdateJsonMandatory = true;
         }
-
     }
 
 
