@@ -1,8 +1,8 @@
 {
   "id": "MassUpdateWorkflow",
   "name": "Mass Update Workflow",
-  "identifier": "MASS_UPDATE",
-  "typeProc": "UPDATE",
+  "identifier": "MASS_UPDATE_UNIT_DESC",
+  "typeProc": "MASS_UPDATE",
   "comment": "Mass Update of Archive Units Workflow",
   "lifecycleLog": "DISABLED",
   "steps": [

@@ -142,7 +142,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      *
      * @param data JsonNode
      * @param adapter VarNameAdapter
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SetAction set(final JsonNode data, final VarNameAdapter adapter)

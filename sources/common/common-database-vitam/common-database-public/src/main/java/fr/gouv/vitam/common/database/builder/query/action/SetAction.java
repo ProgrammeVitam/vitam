@@ -222,7 +222,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param value key value
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final String value)
@@ -250,7 +250,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param value key value
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final boolean value)
@@ -277,7 +277,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param value key value
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final long value)
@@ -304,7 +304,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param value key value
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final double value)
@@ -331,7 +331,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param value key value
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final Date value)
@@ -358,7 +358,7 @@ public class SetAction extends Action {
      *
      * @param variableName key name
      * @param values values as list
-     * @return the Set Action
+     * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final List<?> values)

@@ -406,7 +406,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final String value)
@@ -418,7 +418,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value as List of values
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final List<?> value)
@@ -430,7 +430,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final boolean value)
@@ -442,7 +442,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final long value)
@@ -454,7 +454,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final double value)
@@ -466,7 +466,7 @@ public class UpdateActionHelper {
      *
      * @param variableName key name
      * @param value key value
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final Date value)
@@ -488,7 +488,7 @@ public class UpdateActionHelper {
     /**
      *
      * @param node of variableName and values
-     * @return a Set Action
+     * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final ObjectNode node)

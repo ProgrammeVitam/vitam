@@ -148,9 +148,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String UNITS = "units";
     private static final String RESULTS = "$results";
 
-    private static final String STP_MASS_UPDATE_UNIT = "STP_MASS_UPDATE_UNIT";
-    private static final String STP_MASS_UPDATE_UNIT_DESC = "STP_MASS_UPDATE_UNIT_DESC";
-    private static final String MASS_UPDATE = "MASS_UPDATE";
     private static final String UNITS_URI = "/units";
 
     /**
@@ -171,8 +168,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
-    private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
-    private static final String STP_UPDATE_DESC_UNIT = "STP_UPDATE_DESC_UNIT";
 
     private final AccessInternalModule accessModule;
     private ArchiveUnitMapper archiveUnitMapper;
@@ -767,10 +762,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 parser.getRequest().reset();
                 throw new IllegalArgumentException(REQUEST_IS_NOT_AN_UPDATE_OPERATION);
             }
-
-            String masterEvType = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT) ?
-                    STP_MASS_UPDATE_UNIT :
-                    STP_MASS_UPDATE_UNIT_DESC;
+            boolean updateManagement = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
+            Contexts context =  updateManagement ? Contexts.MASS_UPDATE_UNIT : Contexts.MASS_UPDATE_UNIT_DESC;
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -781,11 +774,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 final LogbookOperationParameters initParameters =
                         LogbookParametersFactory.newLogbookOperationParameters(
                                 GUIDReader.getGUID(operationId),
-                                masterEvType,
+                                context.getEventType(),
                                 GUIDReader.getGUID(operationId),
                                 LogbookTypeProcess.MASS_UPDATE,
                                 StatusCode.STARTED,
-                                VitamLogbookMessages.getCodeOp(masterEvType, StatusCode.STARTED),
+                                VitamLogbookMessages.getCodeOp(context.getEventType(), StatusCode.STARTED),
                                 GUIDReader.getGUID(operationId));
 
                 // Add access contract rights
@@ -799,10 +792,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.createContainer(operationId);
                 workspaceClient
                         .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
-                processingClient.initVitamProcess(Contexts.MASS_UPDATE.name(), operationId, Contexts.MASS_UPDATE.getEventType());
+                processingClient.initVitamProcess(context.name(), operationId, context.getEventType());
 
                 RequestResponse<JsonNode> requestResponse =
-                        processingClient.executeOperationProcess(operationId, MASS_UPDATE, Contexts.MASS_UPDATE.name(),
+                        processingClient.executeOperationProcess(operationId, context.getEventType(), context.name(),
                                 ProcessAction.RESUME.getValue());
                 return requestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |

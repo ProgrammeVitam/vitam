@@ -272,7 +272,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE.name(), containerName, Contexts.MASS_UPDATE.getEventType());
+                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -324,7 +324,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE.name(), containerName, Contexts.MASS_UPDATE.getEventType());
+                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -351,7 +351,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
                 "MASS_UPDATE_FINALIZE.OK");
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE.OK");
+                "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 
@@ -395,7 +395,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE.name(), containerName, Contexts.MASS_UPDATE.getEventType());
+                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -428,13 +428,13 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
                 "MASS_UPDATE_FINALIZE.OK");
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE.OK");
+                "MASS_UPDATE_UNIT_DESC.OK");
 
             JsonNode logbookResult2 = logbookClient.selectOperation(selectQuery.getFinalSelect());
             assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
                 "MASS_UPDATE_FINALIZE.OK");
             assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE.OK");
+                "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 
