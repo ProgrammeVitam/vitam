@@ -42,9 +42,11 @@ import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -155,8 +157,8 @@ public class ObjectGroupMapper {
             binaryDataObjectType.setSize(BigInteger.valueOf(version.getSize()));
             final MessageDigestBinaryObjectType messageDigestBinaryObjectType =
                 new MessageDigestBinaryObjectType();
-            messageDigestBinaryObjectType.setAlgorithm(version.getAlgorithm());
-            messageDigestBinaryObjectType.setValue(version.getMessageDigest());
+            messageDigestBinaryObjectType.setAlgorithm(StringUtils.trimToEmpty(version.getAlgorithm()));
+            messageDigestBinaryObjectType.setValue(StringUtils.trimToEmpty(version.getMessageDigest()));
             binaryDataObjectType.setMessageDigest(messageDigestBinaryObjectType);
             mapCommonInformations(version, binaryDataObjectType);
             binaryDataObjectType.setMetadata(coreMetadataMapper.map(version.getMetadata()));
@@ -165,7 +167,8 @@ public class ObjectGroupMapper {
             final DescriptiveTechnicalMetadataType otherMetadata = new DescriptiveTechnicalMetadataType();
             Map<String, Object> otherMetadataMap = version.getOtherMetadata();
             if (otherMetadataMap != null && !otherMetadataMap.isEmpty()) {
-                otherMetadata.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(otherMetadataMap)));
+                otherMetadata.getAny()
+                    .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(otherMetadataMap)));
                 binaryDataObjectType.setOtherMetadata(otherMetadata);
             }
         }
@@ -189,12 +192,12 @@ public class ObjectGroupMapper {
     /**
      * Map Common informations contains in MinimalDataObjectType
      *
-     * @param version the version of the model to map
+     * @param version               the version of the model to map
      * @param minimalDataObjectType the given minimalDataObjectType to complete can be (physicalDataObjectType or
-     *        binaryDataObjectType
-     * @param <T> object that extend MinimalDataObjectType
+     *                              binaryDataObjectType
+     * @param <T>                   object that extend MinimalDataObjectType
      */
-    private  <T extends MinimalDataObjectType> void mapCommonInformations(final VersionsModel version,
+    private <T extends MinimalDataObjectType> void mapCommonInformations(final VersionsModel version,
         T minimalDataObjectType) {
         // TODO : Not done yet we need informations about field List<RelationshipType> and dataObjectGroupReferenceId
         // from the SEDA 2.0 .xsd,it's is not map for the moment because don't know

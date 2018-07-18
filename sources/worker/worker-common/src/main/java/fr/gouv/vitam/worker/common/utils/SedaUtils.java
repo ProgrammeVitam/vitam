@@ -46,19 +46,15 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
-import org.apache.commons.io.IOUtils;
-import org.xml.sax.SAXException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SedaVersion;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -74,10 +70,12 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.xml.sax.SAXException;
 
 /**
  * SedaUtils to read or split element from SEDA
- *
  */
 // TODO P0 : remove parameterChecker when it's a handler method
 // the check is done with ParameterHelper and the WorkerParameters classes on the worker (WorkerImpl before the
@@ -201,7 +199,7 @@ public class SedaUtils {
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
             final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
-            final QName acquisitionInformationName = new QName(NAMESPACE_URI, SedaConstants.TAG_ACQUISITIONINFORMATION);;
+            final QName acquisitionInformationName = new QName(NAMESPACE_URI, SedaConstants.TAG_ACQUISITIONINFORMATION);
             final QName legalStatusName = new QName(NAMESPACE_URI, SedaConstants.TAG_LEGALSTATUS);
 
             StringBuffer sedaComment = new StringBuffer();
@@ -354,7 +352,7 @@ public class SedaUtils {
 
     /**
      * check if there are many folder content in the SIP
-     * 
+     *
      * @throws ProcessingException
      * @throws UnsupportedEncodingException
      */
@@ -385,7 +383,7 @@ public class SedaUtils {
 
     /**
      * check if there are many file manifest.xml another in the SIP root
-     * 
+     *
      * @throws ProcessingException
      * @throws UnsupportedEncodingException
      */
@@ -405,7 +403,6 @@ public class SedaUtils {
     }
 
     /**
-     *
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
      */
@@ -615,8 +612,11 @@ public class SedaUtils {
                                         break;
                                     case SedaConstants.TAG_DIGEST:
                                         dataObjectInfo.setAlgo(DigestType
-                                            .fromValue(((Attribute) startElement.getAttributes().next()).getValue()));
-                                        final String messageDigest = evenReader.getElementText();
+                                            .fromValue(StringUtils
+                                                .trimToEmpty(
+                                                    ((Attribute) startElement.getAttributes().next()).getValue())));
+                                        final String messageDigest =
+                                            StringUtils.trimToEmpty(evenReader.getElementText());
                                         dataObjectInfo.setMessageDigest(messageDigest);
                                         break;
                                     case SedaConstants.TAG_SIZE:
@@ -889,8 +889,8 @@ public class SedaUtils {
      * Retrieve information about an object.
      *
      * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param pathToObject path to the object
+     * @param containerId     container id
+     * @param pathToObject    path to the object
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */

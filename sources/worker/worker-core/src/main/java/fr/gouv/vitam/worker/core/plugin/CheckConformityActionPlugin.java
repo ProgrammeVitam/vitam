@@ -37,10 +37,10 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -68,7 +68,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
     private static final int ALGO_RANK = 0;
     private static final int OG_OUT_RANK = 0;
     private boolean asyncIO = false;
-    
+
     /**
      * Constructor
      */
@@ -89,7 +89,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
-            
+
             handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
 
             final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
@@ -111,7 +111,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             }
 
             if (oneOrMoreMessagesDigestUpdated) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, 
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectName(), jsonOG, false, asyncIO);
             }
 
@@ -149,7 +149,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             final String manifestDigestString = manifestDigest.digestHex();
             final String vitamDigestString = vitamDigest.digestHex();
             String binaryObjectMessageDigest = binaryObject.getMessageDigest();
-            
+
             LOGGER.debug(
                 "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObjectMessageDigest + "\n\t" +
                     manifestDigestString + "\n\t" + vitamDigestString);
@@ -162,8 +162,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 subTaskItemStatus.increment(StatusCode.KO);
                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
                 itemStatus.increment(StatusCode.KO);
-            }
-            else if (manifestDigestString.equals(binaryObjectMessageDigest)) {
+            } else if (manifestDigestString.equals(binaryObjectMessageDigest)) {
                 subTaskItemStatus.increment(StatusCode.OK);
                 itemStatus.increment(StatusCode.OK);
                 if (!isVitamDigest) {
@@ -174,24 +173,27 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 }
 
                 // define eventDetailData
-                eventDetailData = "{\"MessageDigest\":\"" + binaryObjectMessageDigest +
-                    "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
-                    "\", \"SystemMessageDigest\": \"" + vitamDigestString +
-                    "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
-                subTaskItemStatus.setEvDetailData(eventDetailData);
+                ObjectNode jsonNode = JsonHandler.createObjectNode();
+                jsonNode.put("MessageDigest", binaryObjectMessageDigest);
+                jsonNode.put("Algorithm", binaryObject.getAlgo().getName());
+                jsonNode.put("SystemMessageDigest", vitamDigestString);
+                jsonNode.put("SystemAlgorithm", (String) handlerIO.getInput(ALGO_RANK));
 
-            } 
-            else {
+                subTaskItemStatus.setEvDetailData(JsonHandler.unprettyPrint(jsonNode));
+
+            } else {
                 subTaskItemStatus.increment(StatusCode.KO);
                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(INVALID);
                 itemStatus.increment(StatusCode.KO);
                 // Set eventDetailData in KO case
-                eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
-                    binaryObject.getAlgo() +
-                    "\", \"ComputedMessageDigest\": \"" + manifestDigestString + "\"} ";
-                subTaskItemStatus.setEvDetailData(eventDetailData);
+                ObjectNode jsonNode = JsonHandler.createObjectNode();
+                jsonNode.put("MessageDigest", binaryObject.getMessageDigest());
+                jsonNode.put("Algorithm", binaryObject.getAlgo().getName());
+                jsonNode.put("ComputedMessageDigest", manifestDigestString);
+
+                subTaskItemStatus.setEvDetailData(JsonHandler.unprettyPrint(jsonNode));
             }
-            
+
             itemStatus.setSubTaskStatus(binaryObject.getId(), subTaskItemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {

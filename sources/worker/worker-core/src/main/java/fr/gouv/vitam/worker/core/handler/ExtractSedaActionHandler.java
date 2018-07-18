@@ -73,13 +73,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -173,6 +171,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Handler class used to extract metaData. </br>
@@ -353,8 +352,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         AdminManagementClientFactory adminManagementClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
@@ -665,7 +663,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @param workflowUnitType
      * @throws ProcessingException throw when can't read or extract element from SEDA
@@ -1441,9 +1439,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
-     * @param isRootArchive true if the AU is root
+     * @param isRootArchive    true if the AU is root
      * @throws InvalidParseOperationException
      */
     private void updateManagementAndAppendGlobalMgtRule(ObjectNode archiveUnit, Set<String> globalMgtIdExtra,
@@ -1498,9 +1496,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1993,12 +1991,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case SedaConstants.TAG_DIGEST: {
-                            final String messageDigest = reader.getElementText();
+                            final String messageDigest = StringUtils.trimToEmpty(reader.getElementText());
                             bo.setMessageDigest(messageDigest);
                             final Iterator<?> it1 = event.asStartElement().getAttributes();
 
                             if (it1.hasNext()) {
-                                final String al = ((Attribute) it1.next()).getValue();
+                                final String al = StringUtils.trimToEmpty(((Attribute) it1.next()).getValue());
                                 final DigestType d = DigestType.fromValue(al);
                                 bo.setAlgo(d);
                             }
@@ -2278,7 +2276,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2742,7 +2740,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2900,7 +2898,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * contract
      *
      * @throws ProcessingUnitLinkingException in case the sip declares an attachment to a unit that is not a children of
-     *         the unit declared in ingest contract
+     *                                        the unit declared in ingest contract
      */
     private void checkIngestContractWithAttachmentGuid(ArrayNode attachmentNode)
         throws ProcessingUnitLinkingException {
