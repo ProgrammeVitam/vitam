@@ -82,6 +82,27 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     }
 
     @Override
+    public boolean contextIsUsed(String contextId) throws VitamClientInternalException, InternalSecurityException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/identity/context/" + contextId, new MultivaluedHashMap<>(),
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status.equals(Status.OK)) {
+                return response.readEntity(Boolean.class);
+            }
+
+            String message = response.readEntity(String.class);
+            LOGGER.error("http status is: {}, content is: {}", status, message);
+            throw new InternalSecurityException(message);
+
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
         throws VitamClientInternalException, InternalSecurityException {
         Response response = null;

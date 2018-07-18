@@ -26,15 +26,9 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-
-import java.util.Optional;
-
-import javax.ws.rs.NotFoundException;
-
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -42,9 +36,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.rest.service.IdentityService;
-import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
+import java.util.Optional;
+
+import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 public class IdentityResourceTest {
 
@@ -84,5 +83,18 @@ public class IdentityResourceTest {
         // When / Then
         assertThatThrownBy(() -> identityResource.findIdentityByCertificate(bytes))
             .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    public void shouldFindContextIsUsed() {
+        // Given
+        final String CONTEXT_ID = "contextId";
+        IdentityModel identityModel = new IdentityModel();
+        identityModel.setContextId(CONTEXT_ID);
+        given(identityService.contextIsUsed(CONTEXT_ID)).willReturn(true);
+
+        // When / Then
+        Response response = identityResource.contextIsUsed(CONTEXT_ID);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 }

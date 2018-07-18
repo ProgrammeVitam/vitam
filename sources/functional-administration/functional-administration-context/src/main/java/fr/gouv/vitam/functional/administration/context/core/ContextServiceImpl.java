@@ -26,20 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -48,8 +34,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -97,9 +85,24 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -113,6 +116,7 @@ public class ContextServiceImpl implements ContextService {
     private static final String CONTEXT_IS_MANDATORY_PARAMETER = "contexts parameter is mandatory";
     private static final String CONTEXTS_IMPORT_EVENT = "STP_IMPORT_CONTEXT";
     private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
+    private static final String CONTEXTS_DELETE_EVENT = "STP_DELETE_CONTEXT";
     public static final String CONTEXTS_BACKUP_EVENT = "STP_BACKUP_CONTEXT";
 
     private static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO";
@@ -122,11 +126,13 @@ public class ContextServiceImpl implements ContextService {
 
     private static final String UPDATE_UNKNOWN_VALUE = "STP_UPDATE_CONTEXT.UNKNOWN_VALUE.KO";
     private static final String UPDATE_KO = "STP_UPDATE_CONTEXT.KO";
+    private static final String DELETE_KO = "STP_DELETE_CONTEXT.KO";
 
     private static final String UPDATE_CONTEXT_MANDATORY_PARAMETER = "context is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
+    private final InternalSecurityClient internalSecurityClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
     private final ContractService<IngestContractModel> ingestContract;
@@ -144,6 +150,7 @@ public class ContextServiceImpl implements ContextService {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
         ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
         ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
         this.ingestContract = ingestContract;
@@ -166,6 +173,7 @@ public class ContextServiceImpl implements ContextService {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
         this.ingestContract = ingestContract;
         this.accessContract = accessContract;
         this.securityProfileService = securityProfileService;
@@ -299,6 +307,83 @@ public class ContextServiceImpl implements ContextService {
                 throw new ReferentialNotFoundException("Context not found");
             }
             return list.get(0);
+        }
+    }
+
+    @Override
+    public RequestResponse<ContextModel> deleteContext(String contextId) throws VitamException {
+
+        SanityChecker.checkParameter(contextId);
+
+        final DeleteParserSingle parser = new DeleteParserSingle(new SingleVarNameAdapter());
+        parser.parse(new Delete().getFinalDelete());
+        try {
+            parser.addCondition(QueryHelper.eq(Context.IDENTIFIER, contextId));
+        } catch (InvalidCreateOperationException e) {
+            throw new ReferentialException(e);
+        }
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
+
+
+        ContextManager manager = new ContextManager(logbookClient, accessContract, ingestContract, securityProfileService, eip);
+
+        try {
+            manager.logDeleteStarted(contextId);
+
+            if (internalSecurityClient.contextIsUsed(contextId)) {
+                manager.logValidationError("Delete context error : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
+                return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Delete context error : " + contextId, StatusCode.KO)
+                        .setHttpCode(Response.Status.FORBIDDEN.getStatusCode())
+                        .setMessage(DELETE_KO);
+            }
+
+            RequestResponseOK response = new RequestResponseOK<>();
+
+            DbRequestResult result =
+                     mongoAccess.deleteDocument(parser.getRequest().getFinalDelete(), FunctionalAdminCollections.CONTEXT);
+
+            response.addResult(new DbRequestResult(result))
+                    .setTotal(result.getTotal())
+                    .setHttpCode(Response.Status.OK.getStatusCode());
+
+            // close result
+            result.close();
+
+            functionalBackupService.saveCollectionAndSequence(
+                    eip,
+                    CONTEXTS_BACKUP_EVENT,
+                    FunctionalAdminCollections.CONTEXT,
+                    eip.toString());
+
+            manager.logDeleteSuccess(contextId);
+
+            return response;
+        } catch (SchemaValidationException | BadRequestException e) {
+            LOGGER.error(e);
+            final String err = "Delete context error > " + e.getMessage();
+
+            // logbook error event
+            manager.logValidationError(err, CONTEXTS_DELETE_EVENT, DELETE_KO);
+
+            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
+                    StatusCode.KO)
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(DELETE_KO);
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            final VitamError error =
+                    getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context delete error", StatusCode.KO)
+                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            final String err = "Delete context error > " + e.getMessage();
+            error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                    .setDescription(err)
+                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+            // logbook error event
+            manager.logFatalError(err);
+            return error;
         }
     }
 
@@ -546,6 +631,51 @@ public class ContextServiceImpl implements ContextService {
                 evDetData);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
                 "." + StatusCode.OK);
+            logbookClient.update(logbookParameters);
+        }
+
+        /**
+         * log delete start process
+         *
+         * @throws VitamException
+         */
+        private void logDeleteStarted(String id) throws VitamException {
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                    .newLogbookOperationParameters(eip, CONTEXTS_DELETE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                            StatusCode.STARTED,
+                            VitamLogbookMessages.getCodeOp(CONTEXTS_DELETE_EVENT, StatusCode.STARTED), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_DELETE_EVENT +
+                    "." + StatusCode.STARTED);
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            logbookClient.create(logbookParameters);
+        }
+
+
+        /**
+         * log delete success process
+         *
+         * @throws VitamException
+         */
+        private void logDeleteSuccess(String id) throws VitamException {
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParameters =
+                    LogbookParametersFactory
+                            .newLogbookOperationParameters(
+                                    eipUsage,
+                                    CONTEXTS_DELETE_EVENT,
+                                    eip,
+                                    LogbookTypeProcess.MASTERDATA,
+                                    StatusCode.OK,
+                                    VitamLogbookMessages.getCodeOp(CONTEXTS_DELETE_EVENT, StatusCode.OK),
+                                    eip);
+
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_DELETE_EVENT +
+                    "." + StatusCode.OK);
             logbookClient.update(logbookParameters);
         }
 

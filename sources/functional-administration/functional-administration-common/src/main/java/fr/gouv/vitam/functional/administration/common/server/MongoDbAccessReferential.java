@@ -148,4 +148,14 @@ public interface MongoDbAccessReferential {
     DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException, BadRequestException;
 
+    /**
+     * @param delete filter
+     * @param collection collection of Mongo for delete
+     * @return DbRequestResult
+     * @throws ReferentialException when error occurs
+     * @throws SchemaValidationException
+     * @throws BadRequestException
+     */
+    DbRequestResult deleteDocument(JsonNode delete, FunctionalAdminCollections collection)
+            throws ReferentialException, BadRequestException, SchemaValidationException;
 }

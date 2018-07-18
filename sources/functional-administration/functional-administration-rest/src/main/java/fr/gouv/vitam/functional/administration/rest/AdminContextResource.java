@@ -27,17 +27,21 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -92,4 +96,19 @@ public class AdminContextResource {
         return contextResource.findContexts(queryDsl);
     }
 
+    @Path("/context/{contextId}")
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteContext(@PathParam("contextId") String contextId) {
+        // TODO: report this as a vitam event
+        LOGGER.info("delete context with admin interface");
+        LOGGER.info("using of admin tenant: 1");
+
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        final GUID eip = GUIDFactory.newEventGUID(tenantId);
+
+        return contextResource.deleteContext(contextId);
+    }
 }

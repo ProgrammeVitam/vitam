@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,6 +33,7 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
+import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -53,6 +51,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import org.bson.Document;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -192,6 +193,22 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         } catch (final DatabaseException | BadRequestException | InvalidParseOperationException |
             InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
             LOGGER.error("find Document Exception", e);
+            throw new ReferentialException(e);
+        }
+    }
+
+    @Override
+    public DbRequestResult deleteDocument(JsonNode delete, FunctionalAdminCollections collection)
+            throws ReferentialException, BadRequestException, SchemaValidationException {
+        try {
+            final DeleteParserSingle parser = new DeleteParserSingle(collection.getVarNameAdapater());
+            parser.parse(delete);
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            return dbrequest.execute(parser.getRequest());
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new BadRequestException(e);
+        } catch (DatabaseException | VitamDBException e) {
+            LOGGER.error("delete Document Exception", e);
             throw new ReferentialException(e);
         }
     }
