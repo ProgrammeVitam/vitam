@@ -165,4 +165,16 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
             throw new InvalidParseOperationException("Parse error", e);
         }
     }
+
+    /**
+     *
+     * @param data
+     * @param adapter
+     * @return
+     * @throws InvalidParseOperationException
+     */
+    public static final SetregexAction setregex(final JsonNode data, final VarNameAdapter adapter)
+        throws InvalidParseOperationException {
+        return new SetregexAction(UPDATEACTION.SETREGEX, data, adapter);
+    }
 }

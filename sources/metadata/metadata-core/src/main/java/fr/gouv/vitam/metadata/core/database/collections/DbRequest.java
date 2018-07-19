@@ -871,7 +871,6 @@ public class DbRequest {
                         MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
-                requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
                 if (documentId.equals(document.get(MetadataDocument.ID))) {

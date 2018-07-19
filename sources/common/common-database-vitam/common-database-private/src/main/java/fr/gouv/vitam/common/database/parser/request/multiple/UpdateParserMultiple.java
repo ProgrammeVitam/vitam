@@ -52,6 +52,7 @@ import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionPars
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.push;
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.rename;
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.set;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.setregex;
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.unset;
 
 /**
@@ -150,6 +151,20 @@ public class UpdateParserMultiple extends RequestParserMultiple {
         }
     }
 
+    protected void setregexParse(final JsonNode rootNode)
+        throws InvalidParseOperationException {
+        if (rootNode == null) {
+            return;
+        }
+
+        try {
+            ((UpdateMultiQuery) request).setThreshold(rootNode.asLong());
+        } catch (final Exception e) {
+            throw new InvalidParseOperationException(
+                "Parse in error for Action: " + rootNode, e);
+        }
+    }
+
     /**
      * Compute the QUERY from command
      *
@@ -199,6 +214,8 @@ public class UpdateParserMultiple extends RequestParserMultiple {
                 return set(command, updateAdapter);
             case UNSET:
                 return unset(command, updateAdapter);
+            case SETREGEX:
+                return setregex(command, updateAdapter);
             default:
                 throw new InvalidParseOperationException(
                     "Invalid command: " + refCommand);

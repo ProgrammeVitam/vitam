@@ -41,8 +41,7 @@
       },
       "$setregex": {
         "$target": "Title",
-        "$controlPattern": "reportage juillet",
-        "$updatePattern": "Reportage photographique juillet"
+        "$controlPattern": "reportage juillet"
       }
     }
   ]
