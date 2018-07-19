@@ -112,4 +112,12 @@ public class IdentityService {
         return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
     }
 
+    /**
+     * @param contextId
+     * @return true if the context is used by an identity
+     */
+    public boolean contextIsUsed(String contextId) {
+        return identityRepository.contextIsUsed(contextId);
+    }
+
 }

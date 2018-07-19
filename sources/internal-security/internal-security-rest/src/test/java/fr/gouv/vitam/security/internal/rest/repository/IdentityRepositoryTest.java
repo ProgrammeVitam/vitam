@@ -46,6 +46,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository.CERTIFICATE_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test @IdentityRepository
@@ -151,6 +152,27 @@ public class IdentityRepositoryTest {
         assertThat(document)
             .isNotNull()
             .containsEntry("ContextId", contextId);
+    }
+
+    @Test
+    public void shouldFindContextIsUsed() throws InvalidParseOperationException {
+
+        final String CONTEXT_ID = "1";
+
+        // Given
+        GUID id = GUIDFactory.newGUID();
+
+        IdentityModel identityModel = new IdentityModel();
+        identityModel.setContextId(CONTEXT_ID);
+        identityModel.setIssuerDN("issuerDN");
+        identityModel.setSubjectDN("distinguishedName");
+        identityModel.setSerialNumber(BigInteger.TEN);
+        identityModel.setId(id.toString());
+
+        identityRepository.createIdentity(identityModel);
+
+        // When / Then
+        assertTrue(identityRepository.contextIsUsed(CONTEXT_ID));
     }
 
 }

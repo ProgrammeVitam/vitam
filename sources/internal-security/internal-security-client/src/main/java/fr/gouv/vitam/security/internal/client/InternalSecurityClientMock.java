@@ -73,4 +73,9 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
         //nothing to do
         return;
     }
+
+    @Override
+    public boolean contextIsUsed(String contextId) {
+        return false;
+    }
 }

@@ -18,29 +18,6 @@
 package fr.gouv.vitam.functional.administration.context.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,13 +56,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.Document;
@@ -98,6 +75,30 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class ContextServiceImplTest {
 
@@ -296,6 +297,41 @@ public class ContextServiceImplTest {
         verify(ingestContractService).findByIdentifier(INVALID_INGEST_CONTRACT_IDENTIFIER);
         verifyZeroInteractions(ingestContractService);
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportAndDeleteTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        final List<IngestContractModel> ingestContractModels =
+                JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+                });
+        String INGEST_CONTRACT_ID = "IC-000001";
+        when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
+
+        final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
+        final List<ContextModel> ModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+                });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final Select select = new Select();
+        select.setQuery(eq("Name", "My_Context_1"));
+        final ContextModel context =
+                contextService
+                        .findContexts(select.getFinalSelect())
+                        .getDocuments(Context.class, ContextModel.class).get(0);
+
+        reset(functionalBackupService);
+
+        final RequestResponse<ContextModel> deleteError = contextService.deleteContext(context.getIdentifier());
+        assertTrue(deleteError.isOk());
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());
+    }
+
 
     @Test
     @RunWithCustomExecutor

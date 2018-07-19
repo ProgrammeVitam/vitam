@@ -26,10 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.context.api;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -37,6 +34,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.util.List;
 
 /**
  * ContextService Interface declaring methods associated to contexts
@@ -81,4 +80,13 @@ public interface ContextService extends VitamAutoCloseable {
      * @throws InvalidParseOperationException thrown if the query is incorrect
      */
     ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException;
+
+    /**
+     * Delete a context
+     *
+     * @param contextId the id of the context
+     * @return a response as a RequestResponse<ContextModel> object
+     * @throws VitamException thrown if operation could not be done
+     */
+    RequestResponse<ContextModel> deleteContext(String contextId) throws VitamException;
 }

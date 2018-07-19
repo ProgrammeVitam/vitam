@@ -100,4 +100,14 @@ public class IdentityRepository {
         return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber.intValue()));
     }
 
+    /**
+     * Check if a context is used
+     *
+     * @param contextId
+     * @return true if the context is used by Identity
+     */
+    public boolean contextIsUsed(String contextId) {
+        return (identityCollection.count(eq("ContextId", contextId)) == 0) ? false : true;
+    }
+
 }

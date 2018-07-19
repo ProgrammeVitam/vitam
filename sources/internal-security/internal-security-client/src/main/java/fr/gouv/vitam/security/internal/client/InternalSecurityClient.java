@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.security.internal.client;
 
-import java.util.Optional;
-
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+
+import java.util.Optional;
 
 /**
  * InternalSecurityClient Interface
@@ -71,4 +71,14 @@ public interface InternalSecurityClient extends BasicClient {
      */
     void checkPersonalCertificate(byte[] certificate, String permission)
         throws VitamClientInternalException, InternalSecurityException;
+
+    /**
+     * Check if a context is used in certificates
+     *
+     * @param contextId
+     * @return true if the context is used by an identity.
+     * @throws VitamClientInternalException
+     * @throws InternalSecurityException
+     */
+    boolean contextIsUsed(String contextId) throws VitamClientInternalException, InternalSecurityException;
 }

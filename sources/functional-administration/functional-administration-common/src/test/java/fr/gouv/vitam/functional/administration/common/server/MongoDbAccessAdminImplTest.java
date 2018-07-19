@@ -26,19 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -52,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -74,6 +62,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -90,6 +79,19 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
@@ -138,6 +140,7 @@ public class MongoDbAccessAdminImplTest {
     static IngestContract contract;
     static AccessContract accessContract;
     static Profile profile;
+    static Context context;
 
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
@@ -229,6 +232,8 @@ public class MongoDbAccessAdminImplTest {
         accessContract = createAccessContract();
 
         profile = createProfile();
+
+        context = createContext();
 
     }
 
@@ -584,6 +589,32 @@ public class MongoDbAccessAdminImplTest {
     }
 
 
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteContext()
+            throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+            DatabaseException, SchemaValidationException, BadRequestException {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final FunctionalAdminCollections contextCollection = FunctionalAdminCollections.CONTEXT;
+        final JsonNode jsonContext = JsonHandler.toJsonNode(context);
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonContext);
+        mongoAccess.insertDocuments(arrayNode, contextCollection).close();
+
+        final Select select = new Select();
+        select.setQuery(eq(Context.IDENTIFIER, "contextId"));
+        final DbRequestResult result = mongoAccess.deleteDocument(select.getFinalSelect(), contextCollection);
+        result.close();
+
+        final DbRequestResult contextFound =  mongoAccess.findDocuments(select.getFinalSelect(), contextCollection);
+        assertEquals(0, contextFound.getTotal());
+        contextFound.close();
+
+        mongoAccess.deleteCollection(contextCollection).close();
+    }
+
+
     private static IngestContract createContract() {
         final IngestContract contract = new IngestContract(TENANT_ID);
         final String name = "aName";
@@ -637,5 +668,15 @@ public class MongoDbAccessAdminImplTest {
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
         return profile;
+    }
+
+    private static Context createContext() {
+        JsonNode node = JsonHandler.createObjectNode();
+        ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newIngestContractGUID(TENANT_ID).getId());
+        ((ObjectNode) node).put(Context.IDENTIFIER, "contextId");
+
+        final Context context = new Context(node);
+
+        return context;
     }
 }

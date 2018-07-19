@@ -44,6 +44,7 @@ import java.util.Optional;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -122,5 +123,16 @@ public class IdentityServiceTest {
         assertThat(result).isPresent().hasValueSatisfying(identity ->
             assertThat(identity.getContextId()).isEqualTo(contextId)
         );
+    }
+
+    @Test
+    public void shouldFindContextIsUsed() {
+
+        // Given
+        final String CONTEXT_ID = "contextId";
+        given(identityRepository.contextIsUsed(CONTEXT_ID)).willReturn(true);
+
+        // When / Then
+        assertTrue(identityService.contextIsUsed(CONTEXT_ID));
     }
 }
