@@ -63,7 +63,7 @@ public class ComputedFieldsTest {
             VitamDocument.SCORE);
 
     private static List<String> expectedGotComputedFields =
-        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
+        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);
 
     private static List<String> expectedGotMainFields =
         Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE, ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION,

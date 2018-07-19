@@ -90,8 +90,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     /**
      * Compute graph for unit/got from all parents
      *
-     * @param metadataCollections the collection concerned by the build of the graph
-     * @param unitsId the collection of units subject of computing graph
+     * @param metadataCollections     the collection concerned by the build of the graph
+     * @param unitsId                 the collection of units subject of computing graph
      * @param computeObjectGroupGraph true mean compute graph
      * @return The collection of object group treated or to be treated bu an other process.
      * This collection contains got's id of concerning units.
@@ -145,7 +145,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Generic method to calculate graph for unit and object group
      *
      * @param metadataCollections the type the collection (Unit or ObjectGroup)
-     * @param documents the concerning collection of documents
+     * @param documents           the concerning collection of documents
      * @throws MetaDataException
      */
     default void computeGraph(MetadataCollections metadataCollections, List<Document> documents)
@@ -284,6 +284,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
 
         if (null != getCache().getIfPresent(unitId)) {
             document.put(Unit.ORIGINATING_AGENCIES, new ArrayList<>(sps));
+            document.put(Unit.UNITUPS, new ArrayList<>(us));
             getCache().put(unitId, document);
         }
 
@@ -313,10 +314,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         throws VitamRuntimeException {
 
         Set<String> sps = new HashSet<>();
+        Set<String> unitParents = new HashSet<>();
         String gotId = document.get(ObjectGroup.ID, String.class);
         List<String> up = document.get(ObjectGroup.UP, List.class);
 
-        computeObjectGroupGraph(sps, up);
+        computeObjectGroupGraph(sps, unitParents, up);
 
         String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
         if (StringUtils.isNotEmpty(originatingAgency)) {
@@ -324,6 +326,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         }
 
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
+            .append(Unit.UNITUPS, unitParents)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
 
@@ -385,10 +388,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
      *
      * @param originatingAgencies
+     * @param unitParents
      * @param up
      * @throws VitamRuntimeException
      */
-    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> up)
+    default void computeObjectGroupGraph(Set<String> originatingAgencies, Set<String> unitParents, List<String> up)
         throws VitamRuntimeException {
         if (null == up || up.isEmpty()) {
             return;
@@ -406,6 +410,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             List agencies = au.get(Unit.ORIGINATING_AGENCIES, List.class);
             if (CollectionUtils.isNotEmpty(agencies)) {
                 originatingAgencies.addAll(agencies);
+            }
+
+            List parents = au.get(Unit.UNITUPS, List.class);
+            if (CollectionUtils.isNotEmpty(parents)) {
+                unitParents.addAll(parents);
             }
         }
     }
@@ -425,7 +434,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Bulk save in elasticsearch
      *
      * @param metaDaCollection
-     * @param collection of id of documents
+     * @param collection       of id of documents
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
@@ -435,7 +444,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Bulk save in elasticsearch
      *
      * @param metaDaCollection
-     * @param collection of documents
+     * @param collection       of documents
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
