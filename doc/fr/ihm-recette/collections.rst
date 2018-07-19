@@ -141,6 +141,17 @@ Un fois le fichier téléchargé, il est possible de le modifier, et l'importer 
 .. image:: images/administration_modification_fichier.png
 
 
+Ajout et suppression d'un parent
+================================
+
+Il est possible d' ajouter ou de supprimer un lien entre deux unités archivistiques présentes dans la solution.
+
+pour cela, il faut rentrer les identifiants des unités archivistiques dans les champs correspondants, sélectionner un type d'opération ( ajouter ou supprimer un lien ), et aussi sélectionner le contrat d'accès permettant d'avoir les droits pour les différentes modifications. 
+
+
+.. image:: images/administration_reclassement.png
+
+NOTE: il est possible d'avoir une visualisation de ces modifications de liens dans la section "visualisation du graphe".
 
 
 
