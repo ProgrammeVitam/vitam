@@ -30,6 +30,6 @@ metricReporterHosts:
    - "{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"
 {% endfor %}
 metricLogLevel: DEBUG
-metricReporterInterval: 1
+metricReporterInterval: 3
 metricReporterIntervalUnit: MINUTES
 {% endif %}
