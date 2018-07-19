@@ -654,5 +654,43 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             // Then
         }).isInstanceOf(VitamClientException.class);
     }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void selectObjectsShouldRaiseExceptionWhenExecution() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.selectObjectGroups(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenInvalidRequestWhenSelectObjectsThenReturnBadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.selectObjectGroups(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenEntityTooLargeRequestWhenSelectObjectsThenReturnRequestEntityTooLarge() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        client.selectObjectGroups(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenEntityTooLargeRequestWhenSelectThenReturnNotAcceptable() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.selectObjectGroups(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankQueryWhenSelectObjectsThenReturnMetadataInvalidSelectException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        client.selectObjectGroups(JsonHandler.getFromString(""));
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void selectObjectsTest()
+            throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+            MetaDataClientServerException, VitamDBException {
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        client.selectObjectGroups(JsonHandler.getFromString(QUERY));
+    }
 }
 

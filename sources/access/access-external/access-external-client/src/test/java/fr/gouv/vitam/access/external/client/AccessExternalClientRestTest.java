@@ -730,4 +730,22 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    //@Test
+    @RunWithCustomExecutor
+    public void givenBadRequestWhenSelectObjectsThenRaiseAnException()
+            throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client
+                .selectObjects(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+                .getHttpCode())
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @RunWithCustomExecutor
+    public void givenRequestNullWhenSelectObjectsThenErrorResponse()
+            throws Exception {
+        assertThat(client.selectObjects(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null).getHttpCode())
+                .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
 }

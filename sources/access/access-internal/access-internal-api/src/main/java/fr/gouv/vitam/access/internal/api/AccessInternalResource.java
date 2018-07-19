@@ -146,4 +146,13 @@ public interface AccessInternalResource extends VitamResource {
      */
     Response massUpdateUnits(JsonNode dslQuery);
 
+    /**
+     * gets objects group with Json query
+     *
+     * @param dslQuery null not allowed
+     * @return a objects group result list
+     */
+    Response getObjects(JsonNode dslQuery)
+            throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
+
 }

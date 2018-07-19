@@ -881,4 +881,52 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return objectMapper;
     }
 
+    /**
+     * get Groups Objects list based on DSL query
+     *
+     * @param queryDsl as JsonNode
+     * @return a group objects result list
+     */
+    @Override
+    @GET
+    @Path("/objects")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjects(JsonNode queryDsl) {
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
+        Status status;
+        JsonNode result = null;
+        LOGGER.debug("DEBUG: start selectObjects {}", queryDsl);
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+            result =
+                    accessModule.selectObjects(AccessContractRestrictionHelper.applyAccessContractRestriction(queryDsl,
+                            VitamThreadUtils.getVitamSession().getContract()));
+            LOGGER.debug("DEBUG {}", result);
+            resetQuery(result, queryDsl);
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final AccessInternalExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (final VitamDBException ve) {
+            LOGGER.error(ve);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(UNITS)
+                            .setState(CODE_VITAM)
+                            .setMessage(ve.getMessage())
+                            .setDescription(status.getReasonPhrase()))
+                    .build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
 }

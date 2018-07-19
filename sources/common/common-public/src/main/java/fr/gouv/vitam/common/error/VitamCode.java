@@ -185,6 +185,10 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in updateUnitbyId method."),
 
+    ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "49",
+            Status.BAD_REQUEST,
+            "Access external client error in selectObjects method."),
+
     ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "03",
         Status.BAD_REQUEST,
         "Access external client error in selectObjectById method."),

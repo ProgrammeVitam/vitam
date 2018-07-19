@@ -265,4 +265,19 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest)
         throws AccessInternalClientServerException;
+
+    /**
+     * Select Objects group based on DSL query
+     * @param selectQuery the query used to select objects
+     * @return a response containing a json node object including DSL queries and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested object does not exist
+     * @throws AccessUnauthorizedException
+     * @throws BadRequestException if empty query is found
+     */
+    RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
+            throws InvalidParseOperationException, AccessInternalClientServerException,
+            AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+
 }

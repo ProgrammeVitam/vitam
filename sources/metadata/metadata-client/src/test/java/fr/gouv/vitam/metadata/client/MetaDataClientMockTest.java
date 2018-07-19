@@ -107,4 +107,11 @@ public class MetaDataClientMockTest {
         throws VitamClientException {
         assertNotNull(client.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet()));
     }
+
+    @Test
+    public void selectObjectsTest()
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException, VitamDBException {
+        assertNotNull(client.selectObjectGroups(JsonHandler.getFromString(VALID_QUERY)));
+    }
 }

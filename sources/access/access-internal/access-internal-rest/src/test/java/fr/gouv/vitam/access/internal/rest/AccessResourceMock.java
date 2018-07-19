@@ -52,6 +52,12 @@ import fr.gouv.vitam.common.GlobalDataRest;
 @Produces("application/json")
 public class AccessResourceMock implements AccessInternalResource {
 
+    final String queryDsqlForGot =
+            "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
+                    " \"$filter\": { \"$orderby\": \"#id\" }, " +
+                    " \"$projection\" : { } " +
+                    " }";
+
     /**
      * Empty Constructor
      */
@@ -164,6 +170,15 @@ public class AccessResourceMock implements AccessInternalResource {
     @Path("/units")
     public Response massUpdateUnits(JsonNode dslQuery) {
         return Response.status(200).entity("{\"units\" = \"OK_MockUnits\"}").build();
+    }
+
+    /**
+     * get units list
+     */
+    @GET
+    @Path("/objects")
+    public Response getObjects(JsonNode dslQuery) {
+        return Response.status(200).entity(queryDsqlForGot).build();
     }
 
 }

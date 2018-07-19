@@ -372,7 +372,7 @@ public class DbRequest {
                 QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
                         : MetadataCollections.OBJECTGROUP.useScore());
-            if (FILTERARGS.UNITS.equals(collectionType)) {
+            if (FILTERARGS.UNITS.equals(collectionType) || FILTERARGS.OBJECTGROUPS.equals(collectionType)) {
                 facets = QueryToElasticsearch.getFacets(requestParser);
             }
             VitamCollection.setMatch(false);
@@ -434,7 +434,7 @@ public class DbRequest {
                 // FIXME later on see if we should support depth
                 LOGGER.debug("ObjectGroup No depth at all");
                 result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
-                    limit, scrollId, scrollTimeout);
+                    limit, scrollId, scrollTimeout, facets);
             }
         } finally {
             previous.clear();
@@ -655,7 +655,7 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final String scrollId, final Integer scrollTimeout)
+        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
@@ -679,7 +679,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, null, scrollId, scrollTimeout);
+            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
     }
 
     /**
