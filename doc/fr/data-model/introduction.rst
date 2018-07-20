@@ -32,12 +32,20 @@ Les fichiers à renseigner pour rajouter un nouvel index sont stockés dans le r
 Généralités
 ===========
 
+Collections et bases
+--------------------
+
+Les bases Mongo sont organisées en bases et collections.
+
+Les bases contiennent différentes collections. Les collections peuvent être rapprochées du concept de tables en SQL.
+
+
 Cardinalité
 ------------
 
-La cardinalité présentée pour chacun des champs correspond aux exigences de la base de données.
+La cardinalité présentée pour chacun des champs correspond aux exigences de la base de données Mongo.
 
-Certains champs ayant une cardinalité 1-1 sont directement renseignés par la solution logicielle Vitam et sont donc obligatoirement présents dans la base de données, mais ne le sont pas forcement dans les données envoyées.
+Certains champs ayant une cardinalité 1-1 sont directement renseignés par la solution logicielle Vitam et sont donc obligatoirement présents dans la base de données, mais ne le sont pas forcément dans les données envoyées.
 
 Nommage des champs
 ------------------
@@ -45,36 +53,30 @@ Nommage des champs
 Les champs des fichiers JSON présents dans les collections peuvent être nommés de deux manières :
 
 * "champ" : un champ sans underscore est modifiable via les API.
-* "_champ" : un champ ayant avec un underscore n'est pas modifiable via les API. Une fois renseigné dans la solution logicielle Vitam par le bordereau de transfert ou la solution logicielle Vitam, il ne pourra plus être modifié depuis l’extérieur.
+* "_champ" : un champ commençant un underscore n'est pas modifiable via les API. Une fois renseigné dans la solution logicielle Vitam par le bordereau de transfert ou la solution logicielle Vitam, il ne pourra plus être modifié depuis l’extérieur.
 
-Collections et bases
---------------------
-
-Les bases Mongo sont organisées par bases et collections.
-
-Les bases contiennent différentes collections. Les collections peuvent être rapprochées du concept de table en SQL.
 
 Identifiants
 ------------
 
 Il existe plusieurs types d'identifiant :
 
-	* GUID : identifiant unique de 36 caractères généré par la solution logicielle Vitam
-	* PUID : identifiant des formats dans le référentiel Pronom
-	* PID : identifiant de processus Unix
+	* GUID : identifiant unique de 36 caractères généré par la solution logicielle Vitam.
+	* PUID : identifiant des formats dans le référentiel Pronom.
+	* PID : identifiant de processus Unix.
 
 Dates
 -----
 
 Toutes les dates décrites dans ce document sont au format ISO 8601.
-``Exemple : "2017-11-02T13:50:28.922"``
+``Exemple : "2017-11-02T13:50:28.922"``.
 
 Limite de caractères acceptés dans les champs
 ---------------------------------------------
 
-Mongo est un type de base de données dite "schemaless", soit sans-schéma. Ainsi, les champs contenus dans les collections décrites dans ce document sont, sauf mention contraire, sans limite de caractères.
+Mongo est un type de base de données dite "schemaless", soit sans schéma. Ainsi, les champs contenus dans les collections décrites dans ce document sont, sauf mention contraire, sans limite de caractères.
 
-Type d'indexation dans elasticSearch
+Type d'indexation dans ElasticSearch
 ------------------------------------
 
 Les champs peuvent être indexés de deux façons différentes dans ElasticSearch :
