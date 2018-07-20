@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -95,6 +97,9 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
+    private static final String RULE_CATEGORY = "RuleCategory";
+    private static final String RULE_DATE_SUP = "RuleDateSup";
+    private static final String RULE_FINAL_ACTION = "RuleFinalAction";
     private static final String ONTOLOGY_TYPE = "OntologyType";
     private static final String ONTOLOGY_NAME = "OntologyName";
     private static final String ONTOLOGY_ID = "OntologyID";
@@ -509,6 +514,9 @@ public final class DslQueryHelper {
         String startDate = null;
         String endDate = null;
         String advancedSearchFlag = "";
+        String ruleCategory = null;
+        String ruleFinalAction = null;
+        String ruleEndDate = null;
 
         for (final Entry<String, Object> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
@@ -639,6 +647,19 @@ public final class DslQueryHelper {
                 andQuery.add(eq(VitamFieldsHelper.originatingAgencies(), (String) searchValue));
                 continue;
             }
+
+            if (searchKeys.equalsIgnoreCase(RULE_CATEGORY)) {
+                ruleCategory = (String) searchValue;
+            }
+
+            if (searchKeys.equalsIgnoreCase(RULE_DATE_SUP)) {
+                ruleEndDate = (String) searchValue;
+            }
+
+            if (searchKeys.equalsIgnoreCase(RULE_FINAL_ACTION)) {
+                ruleFinalAction = (String) searchValue;
+            }
+
             if (searchKeys.startsWith(START_PREFIX)) {
                 startDate = (String) searchValue;
                 continue;
@@ -651,6 +672,7 @@ public final class DslQueryHelper {
                 advancedSearchFlag = (String) searchValue;
                 continue;
             }
+
             if (searchKeys.equalsIgnoreCase(REQUEST_FACET_PREFIX)) {
                 RequestFacetItem requestFacetItem = JsonHandler
                     .getFromString(JsonHandler.writeAsString(searchValue), RequestFacetItem.class);
@@ -699,6 +721,17 @@ public final class DslQueryHelper {
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
             andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
+        }
+
+        if (!Strings.isNullOrEmpty(ruleCategory)) {
+            String managmentRuleCategory = VitamFieldsHelper.management() + "." + ruleCategory;
+            if (!Strings.isNullOrEmpty(ruleFinalAction)) {
+                andQuery.add(eq(managmentRuleCategory + ".FinalAction", ruleFinalAction));
+            }
+
+            if (!Strings.isNullOrEmpty(ruleEndDate)) {
+                andQuery.add(lte(managmentRuleCategory + ".Rules.EndDate", ruleEndDate));
+            }
         }
 
         boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
@@ -780,6 +813,55 @@ public final class DslQueryHelper {
             }
         }
         return update.getFinalUpdateById();
+    }
+
+    public static JsonNode createMassiveUpdateDSLQuery(JsonNode modifiedFields)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+
+        JsonNode query = modifiedFields.get("query");
+        JsonNode threshold = modifiedFields.get("threashold");
+        JsonNode metadataModifications = modifiedFields.get("metadataUpdates");
+
+        // Handle Updates on metadata:
+        JsonNode metadataUpdates = metadataModifications.get("updates");
+        for (final JsonNode modifiedField: metadataUpdates) {
+            String fieldName = modifiedField.get("FieldName").textValue();
+            JsonNode fieldValue = modifiedField.get("FieldValue");
+            if (fieldName == null) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add Actions
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(fieldName, fieldValue);
+            update.addActions(new SetAction(action));
+        }
+
+        // Handle Deletions on metadata
+        JsonNode metadataDeletions = metadataModifications.get("deletions");
+        for (final JsonNode deletedField: metadataDeletions) {
+            String fieldName = deletedField.get("FieldName").textValue();
+            if (fieldName == null) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add Actions
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(fieldName, new TextNode(""));
+            update.addActions(new SetAction(action));
+        }
+
+        ObjectNode fullQuery = JsonHandler.createObjectNode();
+        fullQuery.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
+        fullQuery.set(BuilderToken.GLOBAL.QUERY.exactToken(), query.get(BuilderToken.GLOBAL.QUERY.exactToken()));
+        if (threshold != null && threshold.longValue() != 0L) {
+            fullQuery.set(BuilderToken.GLOBAL.THRESOLD.exactToken(), threshold);
+        }
+        fullQuery.set(BuilderToken.GLOBAL.ACTION.exactToken(), update.getFinalUpdate().get(BuilderToken.GLOBAL.ACTION.exactToken()));
+
+
+        return fullQuery;
     }
 
     private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)

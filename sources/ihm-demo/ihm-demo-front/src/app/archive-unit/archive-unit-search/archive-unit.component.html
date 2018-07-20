@@ -6,5 +6,5 @@
 <vitam-archive-unit-facet label="Affiner la recherche" [data]="response" [searchRequest]="searchRequest" [advancedMode]="advancedMode"
     [disabledFacet]="disabledFacet" [service]="service" (responseEvent)="onNotify($event)" [preSearch]="preSearchFunction" [submitFunction]="initialSearch"></vitam-archive-unit-facet>
 
-<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="service" [searchFunction]="paginationSearch"
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [addToBasketAllowed]="true" [service]="service" [searchFunction]="paginationSearch"
     [searchForm]="searchForm" [path]="'/search/archiveUnit'"></vitam-results>

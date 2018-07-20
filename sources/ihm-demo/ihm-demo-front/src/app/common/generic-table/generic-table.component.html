@@ -5,7 +5,7 @@
             [styleClass]="clickable(col)" [sortable]="col.sortable" (sortFunction)="col.sortFunction(items, $event)">
     <ng-template let-item="rowData" pTemplate="body">
       <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">      	
-        <i *ngFor="let icon of col.getIcons(item, col.icons)"
+        <i *ngFor="let icon of col.getIcons(item, col.icons)" style="padding-right: 2px"
            [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, icon)" title="{{col.getLabel(icon)}}">
            </i>
 

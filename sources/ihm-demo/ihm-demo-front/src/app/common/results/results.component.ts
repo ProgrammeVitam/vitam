@@ -3,6 +3,8 @@ import { ColumnDefinition } from '../generic-table/column-definition';
 import { SelectItem } from 'primeng/primeng';
 import { Hits, VitamResponse } from '../utils/response';
 import { Observable } from 'rxjs/Observable';
+import {MySelectionService} from "../../my-selection/my-selection.service";
+import {ResourcesService} from "../resources.service";
 
 @Component({
   selector: 'vitam-results',
@@ -21,6 +23,7 @@ export class ResultsComponent implements OnInit {
   @Input() searchForm: any;
   @Input() specificRowCss: (item, index) => string;
   @Input() actionLabel: string;
+  @Input() addToBasketAllowed: boolean = false;
   @Input() enableExport: boolean;
   @Input() action: () => any = () => {};
   @ViewChild('infoSupp') infoSuppElem;
@@ -40,9 +43,10 @@ export class ResultsComponent implements OnInit {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) { }
+  constructor(private changeDetectorRef: ChangeDetectorRef, private selectionService: MySelectionService, private resourceService: ResourcesService) { }
 
   ngOnChanges(changes: SimpleChanges) {
+
     if (!!this.data) {
       this.items = this.data.$results;
       this.firstItem = 0;
@@ -76,7 +80,6 @@ export class ResultsComponent implements OnInit {
         this.errorOnResults = true;
       }
     }
-
   }
 
   ngOnInit() {

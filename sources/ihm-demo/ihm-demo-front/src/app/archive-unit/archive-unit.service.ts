@@ -64,6 +64,10 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.AUDIT}`, undefined, body);
   }
 
+  massUpdate(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}`, undefined, body);
+  }
+
   downloadDIP(id: string) {
     return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, 'blob');
   }

@@ -22,6 +22,16 @@ export class ArchiveUnitHelper {
     Keep: {id: 'Keep', label: 'Conserver'},
     Destroy: {id: 'Destroy', label: 'Détruire'}
   };
+  public finalActionSelector = {
+      'AppraisalRule': [
+          {label: 'Conserver', value: 'Keep'},
+          {label: 'Détruire', value: 'Destroy'}
+      ], 'StorageRule': [
+          {label: 'Accès Restreint', value: 'RestrictAccess'},
+          {label: 'Transférer', value: 'Transfer'},
+          {label: 'Copier', value: 'Copy'}
+      ]
+  };
   public textAreaFields = [
     'Description',
     'CustodialHistory.CustodialHistoryItem',

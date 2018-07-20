@@ -11,6 +11,7 @@
     <!-- Header -->
     <div class="ui-g" *ngIf="hits">
         <div class="ui-g-12">
+            <!-- Display info -->
             <div class="ui-g-3" style="height: 100px;">
                 <div class="ui-g-12" style="height: 45px;">Unités archivistiques dans le panier</div>
                 <div class="ui-g-12" style="height: 45px;">Unités archivistiques sélectionnées</div>
@@ -20,26 +21,55 @@
                 <div class="ui-g-12" style="height: 45px;">{{hits ? countSelected() : 0}}</div>
             </div>
 
+            <!-- Select action -->
             <div class="ui-g-4" style="height: 100px;">
                 <div class="ui-g-12" style="height: 90px; padding-top: 25px;">
+                    <!-- TODO: Add onChange in order to init specific forms on select kind of action ? -->
                     <p-dropdown [options]="basketOptions" [(ngModel)]="selectedOption" placeholder="Sélectionner une action"
-                                [disabled]="!hits || hits.total === 0"></p-dropdown>
+                                [disabled]="!hits || hits.total === 0" (onChange)="initForm()"></p-dropdown>
                 </div>
             </div>
 
-            <div class="ui-g-4" style="height: 100px;">
+            <!-- Launch Action -->
+            <div class="ui-g-4" style="height: 100px;" *ngIf="selectedOption !== 'MASS_UPDATE'">
                 <div class="ui-g-12" style="height: 45px;">
                     <button type="button" pButton icon="fa-download" label="Lancer l'action sur le panier"
-                            (click)="actionOnBasket(false, selectedOption)"
-                            [disabled]="!hits || hits.total === 0 || !selectedOption"></button>
+                            (click)="actionOnBasket(false)"
+                            [disabled]="!hits || hits.total === 0 || !selectedOption || !checkInputs()"></button>
                 </div>
                 <div class="ui-g-12" style="height: 45px;">
                     <button type="button" pButton icon="fa-download" label="Lancer l'action sur la sélection"
-                            (click)="actionOnBasket(true, selectedOption)"
-                            [disabled]="!hits || hits.total === 0 || !selectedOption || countSelected() === 0"></button>
+                            (click)="actionOnBasket(true)"
+                            [disabled]="!hits || hits.total === 0 || !selectedOption || !checkInputs() || countSelected() === 0"></button>
+                </div>
+            </div>
+            <div  class="ui-g-4" style="height: 100px;" *ngIf="selectedOption === 'MASS_UPDATE'">
+                <div class="ui-g-12" style="height: 45px;">
+                    <span>Lancer l'action via le formulaire ci-dessous</span>
+                </div>
+                <div class="ui-g-12" style="height: 45px;">
+                    <span>Lancer l'action via le formulaire ci-dessous</span>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Specific Elimination form -->
+    <div class="ui-g" *ngIf="selectedOption === 'ELIMINATION'">
+        <div class="ui-g-12" style="height: 100px;">
+            <div class="ui-g-4" style="height: 45px;">Date d'échéance demandée</div>
+            <p-calendar class="ui-g-4" type="date" placeholder="jj/mm/aaaa" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+                        [yearRange]="'400:2500'" [locale]="frLocale" [(ngModel)]="form.eliminationDate"></p-calendar>
+        </div>
+        <div class="ui-g-12 ui-g-nopad" style="height: 100px;">
+            <div class="ui-g-4" style="height: 45px;">Mode d'élimination</div>
+            <p-toggleButton class="ui-g-4" onLabel="Action" offLabel="Analyse" [(ngModel)]="form.eliminationMode"></p-toggleButton>
+        </div>
+    </div>
+
+    <!-- Specific Update form -->
+    <div class="ui-g" *ngIf="selectedOption === 'MASS_UPDATE'">
+        <vitam-massive-update-form [(form)]="form" (launchUpdate)="actionOnBasket($event)"></vitam-massive-update-form>
     </div>
 
     <!-- DataTable -->

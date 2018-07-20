@@ -150,7 +150,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
             .onChange(WorkflowComponent.updateValues),
           FieldDefinition.createSelectMultipleField('statuses', 'Statut', this.optionsStatuses, 2, 12),
           FieldDefinition.createSelectMultipleField('states', 'États', this.optionsStates, 2, 12),
-          FieldDefinition.createDynamicSelectField('steps', 'Dernière étape', this.optionsWorkflowSteps,
+          FieldDefinition.createDynamicSelectField('steps', 'Dernière étape', this.optionsWorkflowSteps, 'dynamicSelect',
             WorkflowComponent.computeSelectItems, 4, 12)
         ];
       }

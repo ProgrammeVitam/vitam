@@ -75,7 +75,8 @@ export class FieldDefinition {
     return newFieldDefinition;
   }
 
-  static createSelectField(name: string, label: string, placeholder: string, options: SelectItem[], totalSize?: number, inputSize?: number) {
+  static createSelectField(name: string, label: string, placeholder: string, options: SelectItem[],
+                           totalSize?: number, inputSize?: number, updateFunction?: (x,y) => void) {
     let newFieldDefinition = new FieldDefinition(name, placeholder);
     newFieldDefinition.label = label;
     newFieldDefinition.type = 'select';
@@ -86,6 +87,9 @@ export class FieldDefinition {
     if (inputSize) {
       newFieldDefinition.inputSize = inputSize;
       newFieldDefinition.blankSize = (12 - inputSize) / 2;
+    }
+    if (updateFunction) {
+      newFieldDefinition.updateFunction = updateFunction;
     }
     return newFieldDefinition;
   }
@@ -104,11 +108,11 @@ export class FieldDefinition {
     return newFieldDefinition;
   }
 
-  static createDynamicSelectField(name: string, placeholder: string, baseOptions: DynamicSelectItem[],
+  static createDynamicSelectField(name: string, placeholder: string, baseOptions: DynamicSelectItem[], type: string,
                                   computeSelectItems: (x: DynamicSelectItem[], y: any) => SelectItem[] = DynamicSelectItem.toSelectItems,
                                   totalSize = 3, inputSize = 12) {
     let newFieldDefinition = new FieldDefinition(name, placeholder);
-    newFieldDefinition.type = 'dynamicSelect';
+    newFieldDefinition.type = type;
     newFieldDefinition.baseOptions = baseOptions;
     newFieldDefinition.computeSelectItems = computeSelectItems;
     newFieldDefinition.options = computeSelectItems(baseOptions, '');

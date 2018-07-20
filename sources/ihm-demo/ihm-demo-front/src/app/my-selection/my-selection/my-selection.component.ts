@@ -33,11 +33,16 @@ export class MySelectionComponent extends PageComponent {
   columns: ColumnDefinition[];
 
   selectedOption: string;
+  form: any = {};
   basketOptions: SelectItem[] = [
     { label: 'Export DIP', value: 'EXPORT' },
     { label: 'Audit de cohérence', value: 'AUDIT' },
+    { label: 'Élimination', value: 'ELIMINATION'},
+    { label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
     { label: 'Vider le panier', value: 'DELETE' }
   ];
+
+  frLocale = DateService.vitamFrLocale;
 
   nbRows = 25;
   firstItem = 0;
@@ -236,6 +241,24 @@ export class MySelectionComponent extends PageComponent {
           message = 'Erreur lors du lancement de l\'audit de cohérence des unités archivistiques du panier';
         }
         break;
+      case 'ELIMINATION':
+        if (isOK) {
+          title = 'Élimination en cours';
+          message = 'L\'action d\'élimination (analyse ou action) est en cours sur les éléments du panier';
+        } else {
+          title = 'Erreur lors de l\'élimination';
+          message = 'Erreur lors du lancement de l\'action d\'élimination (analyse ou action) des éléments du panier';
+        }
+        break;
+      case 'MASS_UPDATE':
+        if (isOK) {
+          title = 'Mise à jour de masse';
+          message = 'La mise à jour de masse des unités archivistiques du panier est en cours';
+        } else {
+          title = 'Erreur lors de la mise à jour de masse';
+          message = 'Erreur lors du lancement de la mse à jour de masse des unités archivistiques du panier';
+        }
+        break;
       default:
         break;
     }
@@ -275,8 +298,9 @@ export class MySelectionComponent extends PageComponent {
     };
   }
 
-  actionOnBasket(isOnSelection: boolean = false, selectedOption) {
-    if (selectedOption === 'DELETE') {
+  actionOnBasket(isOnSelection: boolean = false) {
+    console.log('selection: ', isOnSelection);
+    if (this.selectedOption === 'DELETE') {
       this.doDelete(isOnSelection);
       return;
     }
@@ -286,28 +310,93 @@ export class MySelectionComponent extends PageComponent {
       // Action on all selected items
       const selection: ArchiveUnitSelection[] = this.displayedItems
         .filter(value => value.selected);
+      if (selection.length === 0) {
+        this.dialogService.displayMessage("L'action n'a pas été lancée sur la sélection car aucune archive n'est sélectionnée", "Sélection vide");
+        return;
+      }
       query = this.getQuery(selection);
     } else {
       // Action on all items in basket
       query = this.getQuery(this.selectedArchiveUnits);
     }
 
-    if (selectedOption === 'EXPORT') {
-      this.archiveUnitService.exportDIP(query).subscribe(
-        () => {
-          this.displayActionEnded(selectedOption, true);
-        }, () => {
-          this.displayActionEnded(selectedOption, false);
+    switch(this.selectedOption) {
+      case 'EXPORT':
+        this.archiveUnitService.exportDIP(query).subscribe(
+          () => {
+            this.displayActionEnded(this.selectedOption, true);
+          }, () => {
+            this.displayActionEnded(this.selectedOption, false);
+          }
+        );
+        break;
+      case 'AUDIT':
+        this.archiveUnitService.audit(query).subscribe(
+          () => {
+            this.displayActionEnded(this.selectedOption, true);
+          }, () => {
+            this.displayActionEnded(this.selectedOption, false);
+          }
+        );
+        break;
+      case 'ELIMINATION':
+        if (this.checkInputs()) {
+          // TODO Launch Elimination
+          //this.archiveUnitService.elimination(query, this.form).subscribe();
+          this.displayActionEnded(this.selectedOption, true);
+          // TODO: Handle success / error mode
         }
-      );
-    } else {
-      this.archiveUnitService.audit(query).subscribe(
-        () => {
-          this.displayActionEnded(selectedOption, true);
-        }, () => {
-          this.displayActionEnded(selectedOption, false);
+        break;
+      case 'MASS_UPDATE':
+        if (this.checkInputs()) {
+          // TODO Launch massive Update
+          let updateInfo = {
+            query: query,
+            rulesUpdates: this.form.updateRules,
+            metadataUpdates: this.form.updateMetadata,
+            threshold: this.form.updateThreshold
+          };
+          this.archiveUnitService.massUpdate(updateInfo).subscribe(
+            () => {
+              this.displayActionEnded(this.selectedOption, true);
+            }, () => {
+              this.displayActionEnded(this.selectedOption, false);
+            }
+          );
+          // TODO: Handle success / error mode
         }
-      );
+        break;
+      default:
+        // TODO Display error ?
+        console.log('No action selected');
+    }
+  }
+
+  initForm() {
+    switch(this.selectedOption) {
+      case 'EXPORT': case 'AUDIT': case 'DELETE':
+        return;
+      case 'ELIMINATION':
+        this.form.eliminationMode = false;
+        this.form.eliminationDate = null;
+        break;
+      case 'MASS_UPDATE':
+        break;
+      default:
+        break;
+    }
+  }
+
+  checkInputs(): boolean {
+    switch(this.selectedOption) {
+      case 'EXPORT': case 'AUDIT': case 'DELETE':
+        return true;
+      case 'ELIMINATION':
+        return this.form.eliminationDate != null;
+      case 'MASS_UPDATE':
+        return this.form.updateRules || this.form.updateMetadata;
+      default:
+        return false;
     }
   }
 

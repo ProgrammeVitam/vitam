@@ -7,7 +7,7 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 
 import {
-  ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
+  AccordionModule, ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
@@ -96,6 +96,7 @@ import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-detai
 import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { MessagesUtilsService } from './common/utils/messages-utils.service';
+import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
 
 const appRoutes: Routes = [
   {
@@ -277,13 +278,15 @@ const appRoutes: Routes = [
     LoadingBlockComponent,
     MySelectionComponent,
     ArchiveUnitSelectionComponent,
-  ArchiveUnitFacetComponent
+  ArchiveUnitFacetComponent,
+  MassiveUpdateFormComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
     BrowserModule,
     BrowserAnimationsModule,
     MenubarModule,
+    AccordionModule,
     ButtonModule,
     BreadcrumbModule,
     CalendarModule,

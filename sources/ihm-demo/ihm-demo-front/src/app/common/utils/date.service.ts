@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import {DatePipe} from '@angular/common';
-import {isUndefined} from "util";
-import {ObjectsService} from "./objects.service";
 
 @Injectable()
 export class DateService {
@@ -45,5 +43,16 @@ export class DateService {
 
     return adjustedUTCDate;
   }
+
+  static vitamFrLocale = {
+    dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
+    dayNamesMin: ["Di","Lu","Ma","Me","Je","Ve","Sa"],
+    monthNames: [ "Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Décembre" ],
+    monthNamesShort: [ "Jan", "Fév", "Mars", "Avr", "Mai", "Juin","Juil", "Aou", "Sep", "Oct", "Nov", "Dec" ],
+    firstDayOfWeek: 1,
+    today: "Aujourd'hui",
+    clear: 'Vider'
+  };
 
 }

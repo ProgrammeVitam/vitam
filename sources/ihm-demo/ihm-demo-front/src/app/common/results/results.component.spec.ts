@@ -5,6 +5,16 @@ import {ResultsComponent} from "./results.component";
 import {Observable} from "rxjs/Observable";
 import {Hits, VitamResponse} from "../utils/response";
 import 'rxjs/add/observable/of';
+import {MySelectionService} from "../../my-selection/my-selection.service";
+import {ResourcesService} from "../resources.service";
+
+const MySelectionServiceStub = {
+  addToSelection: (child: boolean, ids: string[], tenant) => {}
+};
+
+const ResourceServiceStub = {
+  getTenant: () => "0"
+};
 
 describe('ResultsComponent', () => {
   let component: ResultsComponent;
@@ -42,12 +52,16 @@ describe('ResultsComponent', () => {
     hits.limit = 5;
 
     return hits;
-  }
+  };
 
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ResultsComponent],
+      providers: [
+        { provide: MySelectionService, useValue: MySelectionServiceStub },
+        { provide: ResourcesService, useValue: ResourceServiceStub }
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     })
       .compileComponents();
