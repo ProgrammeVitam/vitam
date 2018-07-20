@@ -26,15 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -60,6 +52,12 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * AdminManagementClient interface
@@ -494,6 +492,18 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<ContextModel> findContextById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
+
+    /**
+     * Find if security profile is used in contexts
+     *
+     * @param securityProfileId
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws ReferentialNotFoundException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<Boolean> securityProfileIsUsedInContexts(String securityProfileId)
+            throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
 
     /**
      * launch audit with options

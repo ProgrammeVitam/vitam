@@ -76,6 +76,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -329,6 +330,7 @@ public class ContextServiceImplTest {
 
         final RequestResponse<ContextModel> deleteError = contextService.deleteContext(context.getIdentifier());
         assertTrue(deleteError.isOk());
+        assertThat(deleteError.getHttpCode()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());
     }
 

@@ -26,28 +26,17 @@
  */
 package fr.gouv.vitam.functional.administration.security.profile.core;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -72,6 +61,7 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -86,6 +76,16 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SecurityProfileService implements VitamAutoCloseable {
 
@@ -105,12 +105,14 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private static final String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
         "Permission set cannot be set with full access mode : %s";
 
-    private static final String SECURITY_PROFILE_IMPORT_EVENT = "IMPORT_SECURITY_PROFILE";
-    private static final String SECURITY_PROFILE_UPDATE_EVENT = "UPDATE_SECURITY_PROFILE";
-    private static final String SECURITY_PROFILE_BACKUP_EVENT = "BACKUP_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_DELETE_EVENT = "STP_DELETE_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_BACKUP_EVENT = "STP_BACKUP_SECURITY_PROFILE";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
+    private final AdminManagementClient adminManagementClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
 
@@ -124,11 +126,12 @@ public class SecurityProfileService implements VitamAutoCloseable {
      * @param functionalBackupService
      */
     public SecurityProfileService(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService) {
+                                  FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.adminManagementClient = adminManagementClient;
     }
 
     public RequestResponse<SecurityProfileModel> createSecurityProfiles(List<SecurityProfileModel> securityProfileList)
@@ -366,6 +369,93 @@ public class SecurityProfileService implements VitamAutoCloseable {
         return parser.getRequest().getFinalUpdate();
     }
 
+    public RequestResponse<SecurityProfileModel> deleteSecurityProfile(String securityProfileId) throws VitamException {
+
+        VitamError error =
+                getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(), "Delete security profile error", StatusCode.KO)
+                        .setHttpCode(Response.Status.BAD_REQUEST
+                                .getStatusCode());
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
+
+        SecurityProfileLogbookManager manager = new SecurityProfileLogbookManager(logbookClient, eip);
+
+        manager.logDeleteStarted(securityProfileId);
+
+        try {
+            JsonNode finalDelete = enforceIdentifierInDeleteQuery(securityProfileId);
+
+            if (!exist(finalDelete)) {
+                manager.logValidationError("Security profile not found : " + securityProfileId, SECURITY_PROFILE_DELETE_EVENT);
+                return getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(), "Delete context error : " + securityProfileId, StatusCode.KO)
+                        .setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
+            }
+
+            RequestResponse<Boolean> requestResponse = adminManagementClient.securityProfileIsUsedInContexts(securityProfileId);
+            if (((RequestResponseOK<Boolean>) requestResponse).getResults().get(0)){
+                manager.logValidationError("Security profile is used : " + securityProfileId, SECURITY_PROFILE_DELETE_EVENT);
+                return getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(), "Delete context error : " + securityProfileId, StatusCode.KO)
+                        .setHttpCode(Response.Status.FORBIDDEN.getStatusCode());
+            }
+
+            DbRequestResult result = mongoAccess.deleteDocument(finalDelete, FunctionalAdminCollections.SECURITY_PROFILE);
+            RequestResponseOK response = new RequestResponseOK<>();
+            response.addResult(new DbRequestResult(result))
+                    .setTotal(result.getTotal())
+                    .setHttpCode(Response.Status.NO_CONTENT.getStatusCode());
+            result.close();
+
+            functionalBackupService.saveCollectionAndSequence(
+                    eip,
+                    SECURITY_PROFILE_BACKUP_EVENT,
+                    FunctionalAdminCollections.SECURITY_PROFILE, eip.toString());
+
+            manager.logDeleteSuccess(securityProfileId);
+
+            return response;
+
+        } catch (SchemaValidationException | BadRequestException e) {
+            LOGGER.error(e);
+            final String err = new StringBuilder("Security profile delete failed > ").append(e.getMessage()).toString();
+            manager.logValidationError(err, SECURITY_PROFILE_DELETE_EVENT);
+            error.setCode(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem())
+                    .setDescription(err)
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+            return error;
+        } catch (VitamException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            final String err = new StringBuilder("Security profile delete failed > ").append(e.getMessage()).toString();
+            manager.logFatalError(err, SECURITY_PROFILE_DELETE_EVENT);
+            error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                    .setDescription(err)
+                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+            return error;
+        }
+    }
+
+    private JsonNode enforceIdentifierInDeleteQuery(String identifier)
+            throws InvalidParseOperationException, InvalidCreateOperationException {
+        final DeleteParserSingle parser =
+                new DeleteParserSingle(FunctionalAdminCollections.SECURITY_PROFILE.getVarNameAdapater());
+        parser.parse(new Delete().getFinalDelete());
+        parser.addCondition(QueryHelper.eq(SecurityProfile.IDENTIFIER, identifier));
+        return parser.getRequest().getFinalDelete();
+    }
+
+    private boolean exist(JsonNode finalSelect) throws InvalidParseOperationException, ReferentialException {
+        DbRequestResult result = mongoAccess.findDocuments(finalSelect, FunctionalAdminCollections.SECURITY_PROFILE);
+        final List<SecurityProfileModel> list =
+                result.getDocuments(SecurityProfile.class, SecurityProfileModel.class);
+        if (list.isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Logbook manager for security profile operations
      */
@@ -512,6 +602,56 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 "." + StatusCode.OK);
             logbookClient.update(logbookParameters);
         }
+
+        /**
+         * log delete start process
+         *
+         * @throws VitamException
+         */
+        private void logDeleteStarted(String id) throws VitamException {
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                    .newLogbookOperationParameters(eip, SECURITY_PROFILE_DELETE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                            StatusCode.STARTED,
+                            VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_DELETE_EVENT, StatusCode.STARTED), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, SECURITY_PROFILE_DELETE_EVENT +
+                    "." + StatusCode.STARTED);
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            logbookClient.create(logbookParameters);
+        }
+
+        /**
+         * log delete sucess process
+         *
+         * @throws VitamException
+         */
+        private void logDeleteSuccess(String id) throws VitamException {
+            final ObjectNode evDetData = JsonHandler.createObjectNode();
+
+            final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+            final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+            final LogbookOperationParameters logbookParameters =
+                    LogbookParametersFactory
+                            .newLogbookOperationParameters(
+                                    eipId,
+                                    SECURITY_PROFILE_DELETE_EVENT,
+                                    eip,
+                                    LogbookTypeProcess.MASTERDATA,
+                                    StatusCode.OK,
+                                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_DELETE_EVENT, StatusCode.OK),
+                                    eip);
+            if (null != id && !id.isEmpty()) {
+                logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
+            }
+            logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                    wellFormedJson);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, SECURITY_PROFILE_DELETE_EVENT +
+                    "." + StatusCode.OK);
+            logbookClient.update(logbookParameters);
+        }
+
     }
 
     @Override

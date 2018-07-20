@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -80,6 +81,7 @@ public class ContextResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
+    private final AdminManagementClient adminManagementClient;
 
     /**
      *
@@ -87,10 +89,11 @@ public class ContextResource {
      * @param functionalBackupService
      */
     public ContextResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService) {
+        FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
+        this.adminManagementClient = adminManagementClient;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -102,7 +105,7 @@ public class ContextResource {
         ParametersChecker.checkParameter(CONTEXTS_JSON_IS_MANDATORY_PATAMETER, ContextModelList);
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
-            functionalBackupService);
+            functionalBackupService, adminManagementClient);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.createContexts(ContextModelList);
 
@@ -156,7 +159,7 @@ public class ContextResource {
     public Response findContexts(JsonNode queryDsl) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
-            functionalBackupService);
+            functionalBackupService, adminManagementClient);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             SanityChecker.checkJsonAll(queryDsl); 
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
@@ -189,7 +192,7 @@ public class ContextResource {
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
-            functionalBackupService);
+            functionalBackupService, adminManagementClient);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {
@@ -224,15 +227,20 @@ public class ContextResource {
     Response deleteContext(String contextId) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
-                functionalBackupService);
+                functionalBackupService, adminManagementClient);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.deleteContext(contextId);
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
+            }
+            if (Response.Status.FORBIDDEN.getStatusCode() == requestResponse.getHttpCode()) {
+                return Response.status(Response.Status.FORBIDDEN).entity(requestResponse).build();
+            }
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.FORBIDDEN.getStatusCode());
-                return Response.status(Status.FORBIDDEN).entity(requestResponse).build();
+                return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             }
 
-            return Response.status(Status.OK).entity(requestResponse).build();
+            return Response.status(Status.NO_CONTENT).entity(requestResponse).build();
 
         } catch (ReferentialNotFoundException exp) {
             LOGGER.error(exp);

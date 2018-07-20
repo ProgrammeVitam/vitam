@@ -26,20 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -48,6 +34,8 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -55,6 +43,18 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Admin functional Application declaring resources for the functional administration of Vitam
@@ -109,8 +109,10 @@ public class AdminFunctionalApplication extends Application {
 
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
+            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+
             ContextResource contextResource = new ContextResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService);
+                functionalBackupService, adminManagementClient);
 
             AdminContextResource adminContextResource = new AdminContextResource(contextResource);
             singletons.add(adminContextResource);
@@ -121,7 +123,8 @@ public class AdminFunctionalApplication extends Application {
             singletons.add(adminOntologyResource);
 
             SecurityProfileResource securityProfileResource =
-                new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService);
+                new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
+                        adminManagementClient);
             AdminSecurityProfileResource adminSecurityProfileResource =
                 new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);

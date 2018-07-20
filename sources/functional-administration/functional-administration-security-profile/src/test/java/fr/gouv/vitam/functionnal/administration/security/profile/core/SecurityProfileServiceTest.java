@@ -26,36 +26,11 @@
  */
 package fr.gouv.vitam.functionnal.administration.security.profile.core;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -84,6 +59,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -91,6 +68,29 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 public class SecurityProfileServiceTest {
@@ -102,7 +102,7 @@ public class SecurityProfileServiceTest {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String BACKUP_SECURITY_PROFILE = "BACKUP_SECURITY_PROFILE";
+    private static final String BACKUP_SECURITY_PROFILE = "STP_BACKUP_SECURITY_PROFILE";
 
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
@@ -119,6 +119,7 @@ public class SecurityProfileServiceTest {
     private VitamCounterService vitamCounterService;
     private FunctionalBackupService functionalBackupService;
     private SecurityProfileService securityProfileService;
+    private AdminManagementClient adminManagementClient;
 
     static int mongoPort;
 
@@ -162,11 +163,13 @@ public class SecurityProfileServiceTest {
         LogbookOperationsClientFactory.changeMode(null);
 
         functionalBackupService = mock(FunctionalBackupService.class);
+        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+
 
         securityProfileService =
             new SecurityProfileService(
                 MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, functionalBackupService);
+                vitamCounterService, functionalBackupService, adminManagementClient);
     }
 
     @AfterClass
@@ -542,5 +545,34 @@ public class SecurityProfileServiceTest {
         final RequestResponseOK<SecurityProfileModel> securityProfileModelListSearch =
             securityProfileService.findSecurityProfiles(JsonHandler.createObjectNode());
         assertThat(securityProfileModelListSearch.getResults()).hasSize(2);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSecurityProfileTestDeleteByIdentifier() throws Exception {
+
+        // Create profiles
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
+        List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles,
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        });
+        RequestResponse<SecurityProfileModel> createResponse =
+                securityProfileService.createSecurityProfiles(securityProfileModelList);
+
+        assertThat(createResponse.isOk()).isTrue();
+        final RequestResponseOK<SecurityProfileModel> createResponseCast =
+                (RequestResponseOK<SecurityProfileModel>) createResponse;
+        assertThat(createResponseCast.getResults()).hasSize(2);
+        assertThat(createResponseCast.getResults().get(0).getId()).isNotEmpty();
+
+        String identifier = createResponseCast.getResults().get(0).getIdentifier();
+
+        RequestResponse<SecurityProfileModel> response = securityProfileService.deleteSecurityProfile(identifier);
+        assertThat(response.getHttpCode()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+
+        final Optional<SecurityProfileModel> findResponse = securityProfileService.findOneByIdentifier(identifier);
+        assertThat(findResponse.isPresent()).isFalse();
     }
 }
