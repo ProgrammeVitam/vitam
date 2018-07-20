@@ -26,9 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.utils;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -37,102 +47,139 @@ import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
-
 public final class AccessContractRestrictionHelper {
 
     private AccessContractRestrictionHelper() {
         // Non instantiable helper class
     }
 
-    public static JsonNode applyAccessContractRestriction(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForUnit(JsonNode queryDsl, AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
-        if ((null != rootUnits && !rootUnits.isEmpty())
-            || (null != excludedRootUnits && !excludedRootUnits.isEmpty())) {
-            if (null == rootUnits) {
-                rootUnits = new HashSet<>();
-            }
+
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl);
+        List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
+
+        if (!rootUnits.isEmpty() || !excludedRootUnits.isEmpty()) {
             String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
-
-            if (null == excludedRootUnits) {
-                excludedRootUnits = new HashSet<>();
-            }
             String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[excludedRootUnits.size()]);
+            Query rootUnitsRestriction = or()
+                .add(
+                    in(BuilderToken.PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
+                    in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray)
+                );
 
-            final SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(queryDsl);
-
-            Query rootUnitsRestriction = QueryHelper
-                .or().add(QueryHelper.in(BuilderToken.PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
-                    QueryHelper.in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray));
-
-            Query excludeRootUnitsRestriction = QueryHelper
-                .and().add(QueryHelper.nin(BuilderToken.PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
-                    QueryHelper.nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray));
+            Query excludeRootUnitsRestriction = and()
+                .add(
+                    nin(BuilderToken.PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
+                    nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray)
+                );
 
 
-            List<Query> queryList = parser.getRequest().getQueries();
             if (queryList.isEmpty()) {
-                if (rootUnitsArray.length > 0)
-                    queryList.add(rootUnitsRestriction.setDepthLimit(0));
-                if (excludedRootUnitsArray.length > 0)
-                    queryList.add(excludeRootUnitsRestriction.setDepthLimit(0));
+                if (rootUnits.size() > 0 && excludedRootUnits.size() > 0) {
+                    parser.getRequest().getQueries()
+                        .add(and().add(rootUnitsRestriction, excludeRootUnitsRestriction).setDepthLimit(0));
+                } else if (rootUnits.size() > 0) {
+                    parser.getRequest().getQueries().add(rootUnitsRestriction.setDepthLimit(0));
+                } else if (excludedRootUnits.size() > 0) {
+                    parser.getRequest().getQueries().add(excludeRootUnitsRestriction.setDepthLimit(0));
+                }
             } else {
-                Query firstQuery = queryList.get(0);
-                int depth = firstQuery.getParserRelativeDepth();
-                Query restrictedQuery = QueryHelper.and().add(firstQuery);
-                if (rootUnitsArray.length > 0)
-                    restrictedQuery = QueryHelper.and().add(restrictedQuery, rootUnitsRestriction);
-                if (excludedRootUnitsArray.length > 0)
-                    restrictedQuery = QueryHelper.and().add(restrictedQuery, excludeRootUnitsRestriction);
-                restrictedQuery.setDepthLimit(depth);
-                parser.getRequest().getQueries().set(0, restrictedQuery);
+                // In cas of one or multiple query
+                for (int i = 0; i < queryList.size(); i++) {
+                    final Query query = queryList.get(i);
+                    int depth = query.getParserRelativeDepth();
+
+                    if (rootUnits.size() > 0 && excludedRootUnits.size() > 0) {
+                        Query restrictedQuery = and().add(rootUnitsRestriction, excludeRootUnitsRestriction, query);
+                        restrictedQuery.setDepthLimit(depth);
+                        parser.getRequest().getQueries().set(i, restrictedQuery);
+
+                    } else if (rootUnits.size() > 0) {
+                        Query restrictedQuery = and().add(rootUnitsRestriction, query);
+                        restrictedQuery.setDepthLimit(depth);
+                        parser.getRequest().getQueries().set(i, restrictedQuery);
+
+                    } else if (excludedRootUnits.size() > 0) {
+                        Query restrictedQuery = and().add(excludeRootUnitsRestriction, query);
+                        restrictedQuery.setDepthLimit(depth);
+                        parser.getRequest().getQueries().set(i, restrictedQuery);
+                    }
+                }
             }
-            queryDsl = parser.getRequest().getFinalSelect();
         }
 
-        return addProdServicesToQuery(queryDsl, contract);
-    }
+        // Filter on originating Agencies
+        if (!contract.getEveryOriginatingAgency()) {
+            queryList = new ArrayList<>(parser.getRequest().getQueries());
 
-    private static JsonNode addProdServicesToQuery(JsonNode queryDsl, AccessContractModel contract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        Set<String> prodServices = contract.getOriginatingAgencies();
-        if (contract.getEveryOriginatingAgency()) {
-            return queryDsl;
-        } else {
-            final SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(queryDsl);
-            parser.getRequest().addQueries(QueryHelper.or()
-                .add(QueryHelper.in(
-                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
-                .add(QueryHelper.eq(BuilderToken.PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
-                .setDepthLimit(0));
-            return parser.getRequest().getFinalSelect();
+            Set<String> prodServices = contract.getOriginatingAgencies();
+            Query originatingAgencyRestriction = or()
+                .add(
+                    in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])),
+                    eq(BuilderToken.PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name())
+                );
+
+            if (queryList.isEmpty()) {
+                parser.getRequest().getQueries().add(originatingAgencyRestriction.setDepthLimit(0));
+            } else {
+                // In cas of one or multiple query
+                for (int i = 0; i < queryList.size(); i++) {
+                    final Query query = queryList.get(i);
+                    int depth = query.getParserRelativeDepth();
+                    Query restrictedQuery = and().add(originatingAgencyRestriction, query);
+                    restrictedQuery.setDepthLimit(depth);
+                    parser.getRequest().getQueries().set(i, restrictedQuery);
+                }
+
+            }
         }
+
+        return parser.getRequest().getFinalSelect();
     }
 
-    public static JsonNode addProdServicesToQueryForObjectGroup(JsonNode queryDsl)
+    /**
+     * Just filter by originating agency.
+     * For Usage restriction, No restriction for the metadata of ObjectGroup,
+     * But restriction is applied when access/download binary is handled
+     *
+     * @param queryDsl
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractRestrictionForObjectGroup(JsonNode queryDsl)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-        Set<String> prodServices = contract.getOriginatingAgencies();
+
         if (contract.getEveryOriginatingAgency()) {
             return queryDsl;
         } else {
             final SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
-            parser.getRequest().addQueries(QueryHelper.or()
-                .add(QueryHelper.in(
-                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
-                .setDepthLimit(0));
+            List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
+
+            Set<String> prodServices = contract.getOriginatingAgencies();
+            Query originatingAgencyRestriction =
+                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
+
+            if (queryList.isEmpty()) {
+                parser.getRequest().getQueries().add(originatingAgencyRestriction.setDepthLimit(0));
+            } else {
+                // In cas of one or multiple query
+                for (int i = 0; i < queryList.size(); i++) {
+                    final Query query = queryList.get(i);
+                    int depth = query.getParserRelativeDepth();
+                    Query restrictedQuery = and().add(originatingAgencyRestriction, query);
+                    restrictedQuery.setDepthLimit(depth);
+                    parser.getRequest().getQueries().set(i, restrictedQuery);
+                }
+            }
             return parser.getRequest().getFinalSelect();
         }
     }
+
 }
-
-

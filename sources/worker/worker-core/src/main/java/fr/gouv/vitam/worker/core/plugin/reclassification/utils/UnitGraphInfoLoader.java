@@ -82,7 +82,7 @@ public class UnitGraphInfoLoader {
         // Only return document id
         select.addUsedProjection(VitamFieldsHelper.id());
         JsonNode selectWithAccessContractFilter = AccessContractRestrictionHelper
-            .applyAccessContractRestriction(select.getFinalSelect(), accessContractModel);
+            .applyAccessContractRestrictionForUnit(select.getFinalSelect(), accessContractModel);
 
         JsonNode resultJson = metaDataClient.selectUnits(selectWithAccessContractFilter);
 

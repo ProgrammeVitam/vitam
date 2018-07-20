@@ -1,0 +1,86 @@
+[
+  {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq",
+    "_mgt": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "UniqueTitleParent",
+    "Description": "UniqueTitleParent",
+    "StartDate": "2017-03-27T08:19:17",
+    "EndDate": "2017-03-27T08:19:17",
+    "_storage": {
+      "_nbc": 2,
+      "offerIds": [
+        "offer-fs-1.service.int.consul",
+        "offer-fs-2.service.int.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Identifier0"
+    ],
+    "_sp": "Identifier0",
+    "_ops": [
+      "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq"
+    ],
+    "_opi": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+    "_unitType": "INGEST",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_uds": {
+    },
+    "_us_sp": {
+    },
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2018-04-30T14:33:47.168",
+    "_v": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sm5iaaabq",
+    "_mgt": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "UniqueTitleChild",
+    "Description": "UniqueTitleChild",
+    "StartDate": "2017-03-27T08:19:17",
+    "EndDate": "2017-03-27T08:19:17",
+    "_storage": {
+      "_nbc": 2,
+      "offerIds": [
+        "offer-fs-1.service.int.consul",
+        "offer-fs-2.service.int.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Identifier1"
+    ],
+    "_sp": "Identifier1",
+    "_ops": [
+      "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq"
+    ],
+    "_opi": "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq",
+    "_unitType": "INGEST",
+    "_up": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_graph": [
+    ],
+    "_uds": {
+      "1": [
+        "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+      ]
+    },
+    "_us_sp": {
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2018-04-30T14:33:47.168",
+    "_v": 0,
+    "_tenant": 0
+  }
+]
