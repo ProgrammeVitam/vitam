@@ -160,6 +160,8 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
     * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer.
     * EvDateTimeReq : date de la demande de transfert inscrit dans le champ evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
+    * ArchivalAgreement : identifiant du contrat d'entrée utilisé. Reprend le champ "ArchivalAgreement" du message ArchiveTransfer
+    * ArchiveProfile : identifiant du profil d'archivage utilisé. Reprend le champ "ArchiveProfile" du message ArchiveTransfer. Cardinalité 0-1.
     * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer.
     * AcquisitionInformation : modalités d'entrée des archives. Chaîne de caractères. Reprend le champ AcquisitionInformation du message ArchiveTransfer
     * LegalStatus : statut des archives échangés. Chaîne de caractères. Reprend le champ LegalStatus du message ArchiveTransfer
@@ -171,7 +173,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"evIdProc" (event Identifier Process):** identifiant du processus.
 
   * Il s'agit d'une chaîne de 36 caractères.
-  * Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
+  * Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id". Dans le cas où une opération en déclenche d'autres, elles utilisent toutes le même evIdProc, qui permet alors de suivre une suite de processus.
   * Cardinalité : 1-1
   * Ce champ existe pour les structures incluantes et incluses.
 
@@ -211,7 +213,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 **"agId" (agent Identifier):** identifiant de l'agent interne réalisant l'évènement.
 
-    * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier. ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
+    * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et l'identifiant du serveur, du site et de la plateforme. Ce champ est calculé par le journal à partir de ServerIdentifier et en s'appuyant sur des fichiers de configurations. ``Exemple : "{\"Name\":\"vitam-env-itrec-external-01.vitam-env\",\"Role\":\"ingest-external\",\"ServerId\":1045466546,\"SiteId\":1,\"GlobalPlatformId\":240160178}",``
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
 
@@ -220,6 +222,12 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * Il s'agit d'une chaîne de caractères.
     * Cardinalité : 1-1
     * Ce champ existe uniquement pour la structure incluante.
+
+**"agIdPers"** : identifiant personae, issu du certificat personnae.
+
+    * Il s'agit d'une chaîne de caractères.
+    * Cardinalité : 1-1
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evIdAppSession" (event Identifier Application Session):** identifiant de la transaction qui a entraîné le lancement d'une opération dans la solution logicielle Vitam.
 
@@ -341,6 +349,7 @@ Les events sont au minimum composés des champs suivants:
       * outDetail
       * outMessg
       * agId
+      * AgIdPers
       * evIdReq
       * obId
 
@@ -355,22 +364,23 @@ Exemple de données stockées par l'opération de sécurisation des journaux d'o
 
 ::
 
-	"evDetData":
-	{
-	\"LogType\":\"OPERATION\",
-	\"StartDate\":\"2017-06-29T09:22:23.227\",
-	\"EndDate\":\"2017-06-29T09:39:08.690\",
-	\"Hash\":\"HYnFf07gFkar3lO+U2FQ9qkhi9eUMFN5hcH7oU7vrAAL3FAlMm8aJP7+VxkVWhLzmmFolwUEcq6fbS7Km2is5g==\",
-	\"TimeStampToken\":\"MIIEljAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEewYJKoZIhvcNAQcCoIIEbDCCBGgCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAvp71IU4GqUJ/rIVKZ74J09qdSDeHw24HHsjw0tAnHjD6ZfUJHjDp8yQSdB6Lf2a6ORPF5JCgsh86CctQ9h93mwIBARgPMjAxNzA2MjkwOTM5MDdaMYIDzTCCA8kCAQEwfjB4MQswCQYDVQQGEwJmcjEMMAoGA1UECAwDaWRmMQ4wDAYDVQQHDAVwYXJpczEOMAwGA1UECgwFdml0YW0xFDASBgNVBAsMC2F1dGhvcml0aWVzMSUwIwYDVQQDDBxjYV9pbnRlcm1lZGlhdGVfdGltZXN0YW1waW5nAgIAtzANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzA2MjkwOTM5MDdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQN8TGGTXtmpAztB16UGznFwW2xZMKRuX3zMnF9bTZFybM9tCGJtJd/IdBglcs69fsH05yuXOEYuwPhN1yQijSGEwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQGlkJQTJOiVJrGpFe2GsjJ0Ekug0n9Opel3//wOcpCmpqIET8w2yUcP1yqQJXYc87YeY1/OWhZiWFqbWXVV9HS4wDQYJKoZIhvcNAQENBQAEggIAV/rdnxIAyhvoGDprIahKAK3TPcriTggh1+gtDjEiD7kGB0KtXwAmPn2gb/2YtOmvIU7/a5KBFlfBR+foIRrc6z52cEdalhSpyHpYgpFuF7SjMFO6Mfso1dwjI9KpZTv6OI6Kplbg6zwK939GpDbPgKaMrXw0EDafk184RQz6NNFFYG8JuQxhlba1SYkEMg0+oOkcz814H1ET7zUbt2yq75zdffduUDB81dxjsvpKbx/LbBEOUswGgnfnYGOlo1XbQaI2sM2+YiXHGD/qnl/uAteBayFeaHKXel+gkp8D1ykBFOrE46n6fCI5i0OhKHcPAxvxTg8p03M38PrZIwnqSUI1rxfJhk9Hu0JVcQi1EYLBMmyL4IbhXNFz2ZmSHgC6/BGTMZmuEksrA4vJr1WEFMUocEFQnL9pOJ+iI8U0SusJEDYvjde+yvfnxC8ZOGXOsaP9aUsuITOMT/wFdrH4RFe8q8Wjxzu5p4lSvJI9P+soSfBbLyzGUjmF2lAi/HdyzjunhmRr/kxHK8P9Bo2CSz77xgN566k2r44ER/lyHFvHme5ITq25CRhJf39kfbPh1Jjku3ulwiquykhnjXX7YGx5bDRNv+z29l4tq+AkZqq8O+0XY5fLGgauptsKhpj+CsfYs0uNJCywZtIOHzdL0NBeF7AF97nwTV841ZN/rKg=\",
-	\"PreviousLogbookTraceabilityDate\":null,
-	\"MinusOneMonthLogbookTraceabilityDate\":null,
-	\"MinusOneYeargbookTraceabilityDate\":null,
-	\"NumberOfElement\":379,
-	\"FileName\":\"0_LogbookOperation_20170629_093907.zip\",
-	\"Size\":3975227,
-	\"DigestAlgorithm\":\"SHA512\"}"
+    "evDetData":
+      "{\"LogType\":\"OPERATION\",
+      \"StartDate\":\"2018-07-16T06:55:02.577\",
+      \"EndDate\":\"2018-07-16T07:55:02.436\",
+      \"Hash\":\"Fdd5gi8oU9/nuuvudyShlVA2GqGff2ld2fxzzweNNIGwqlWAMlea/vXJmh3pGbM8B5Hj626iICAMRJxKriNEuw==\",
+      \"TimeStampToken\":\"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\",
+      \"PreviousLogbookTraceabilityDate\":\"2018-07-16T05:55:02.109\",
+      \"MinusOneMonthLogbookTraceabilityDate\":\"2018-07-16T03:55:02.235\",
+      \"MinusOneYearLogbookTraceabilityDate\":\"2018-07-16T03:55:02.235\",
+      \"NumberOfElements\":3,
+      \"FileName\":\"0_LogbookOperation_20180716_075502.zip\",
+      \"Size\":41492,
+      \"SecurisationVersion\":\"V1\",
+      \"DigestAlgorithm\":\"SHA512\",
+      \"MaxEntriesReached\":false}",
 
-Dans le cas de l'événement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
+Dans le cas de l'événement final d'une opération de sécurisation du journal des opérations, le champ **"evDetData"** est composé des champs suivants :
 
 **"LogType":** type de logbook sécurisé.
 
@@ -378,7 +388,7 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 
       ``Exemple : "operation"``
 
-      * La valeur de ce champ est soit OPERATION soit LIFECYCLE.
+      * La valeur de ce champ est soit OPERATION, LIFECYCLE ou STORAGE, respectivement pour le journal des opérations, les journaux de cycles de vie ou le journal des écritures
       * Cardinalité : 1-1
 
 **"StartDate":** date de début de la période de couverture de l'opération de sécurisation.
@@ -421,31 +431,37 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 
       * Cardinalité : 1-1
 
-**"Hash":** Empreinte racine.
+**"Hash":** empreinte racine.
 
       * Il s'agit d'une chaîne de caractères.
       * Empreinte de la racine de l'arbre de Merkle.
       * Cardinalité : 1-1
 
-**"TimeStampToken":** Tampon d’horodatage.
+**"TimeStampToken":** tampon d’horodatage.
 
       * Il s'agit d'une chaîne de caractères.
       * Tampon d’horodatage sûr du journal sécurisé.
       * Cardinalité : 1-1
 
-**"NumberOfElement":** Nombre d'éléments.
+**"NumberOfElement":** nombre d'éléments.
 
       * Il s'agit d'un entier.
       * Nombre d'opérations sécurisées.
       * Cardinalité : 1-1
 
-**"Size":** Taille du fichier.
+**"Size":** taille du fichier.
 
       * Il s'agit d'un entier.
       * Taille du fichier sécurisé (en octets).
       * Cardinalité : 1-1
 
-**"FileName":** Identifiant du fichier.
+**"SecurisationVersion":** version de l'algorithme de sécurisation.
+
+      * Il s'agit d'une chaîne de caractères.
+      * La version est une valeur fixe (v1, v2...)
+      * Cardinalité : 1-1
+
+**"FileName":** identifiant du fichier.
 
       * Il s'agit d'une chaîne de caractères.
       * Nom du fichier sécurisé sur les offres de stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
