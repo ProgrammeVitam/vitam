@@ -59,7 +59,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +74,7 @@ import java.util.regex.Pattern;
 
 import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
 import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 /**
  * SchemaValidationUtils
@@ -153,6 +153,7 @@ public class SchemaValidationUtils {
 
 
     private static final Pattern SPECIFIC_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}[zZ])$");
+    private static final Pattern PATTERN_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2})");
 
     private static final String TYPE = "type";
     private static final String ARRAY = "array";
@@ -704,7 +705,7 @@ public class SchemaValidationUtils {
             }
             try {
                 originalFields.set(i, mapFieldToOntology(field, ontology.getType()));
-            } catch (IllegalArgumentException | DateTimeParseException e) {
+            } catch (IllegalArgumentException e) {
                 errors.add(error(ontology, fieldName, e));
             }
         }
@@ -717,7 +718,7 @@ public class SchemaValidationUtils {
             String field = archiveUnitFragment.asText();
             try {
                 objectNodeParent.set(ontology.getIdentifier(), mapFieldToOntology(field, ontology.getType()));
-            } catch (IllegalArgumentException | DateTimeParseException e) {
+            } catch (IllegalArgumentException e) {
                 return Collections.singletonList(error(ontology, fieldName, e));
             }
         }
@@ -733,10 +734,7 @@ public class SchemaValidationUtils {
             case DOUBLE:
                 return new DoubleNode(Double.parseDouble(field));
             case DATE:
-                if (SPECIFIC_DATE_TZ.matcher(field).find()) {
-                    return new TextNode(field.substring(0, field.length() - 1));
-                }
-                return new TextNode(LocalDate.parse(field).format(ISO_LOCAL_DATE));
+                return new TextNode(mapFieldToDate(field));
             case LONG:
                 return new LongNode(Long.parseLong(field));
             case BOOLEAN:
@@ -745,5 +743,15 @@ public class SchemaValidationUtils {
                 LOGGER.warn(String.format("Not implemented for type %s", field));
                 throw new IllegalStateException(String.format("Not implemented for type %s", field));
         }
+    }
+
+    private String mapFieldToDate(String field) {
+        if (SPECIFIC_DATE_TZ.matcher(field).find()) {
+            return field.substring(0, field.length() - 1);
+        }
+        if(PATTERN_DATE_TZ.matcher(field).find()) {
+            return field;
+        }
+        throw new IllegalArgumentException(String.format("Error with date '%s'", field));
     }
 }

@@ -496,4 +496,35 @@ public class SchemaValidationUtilsTest {
         assertThat(errors).anyMatch(error -> error.contains("MyDate"));
     }
 
+    @Test
+    public void should_have_no_error_with_datetime_iso8601() throws Exception {
+        // Given
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap = Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"2018-07-20T16:15:45.685\"}");
+
+        ArrayList<String> errors = new ArrayList<>();
+
+        // When
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, errors);
+
+        // Then
+        assertThat(errors).isEmpty();
+    }
+
+    @Test
+    public void should_have_no_error_with_date_iso8601() throws Exception {
+        // Given
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap = Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"2018-07-20\"}");
+
+        ArrayList<String> errors = new ArrayList<>();
+
+        // When
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, errors);
+
+        // Then
+        assertThat(errors).isEmpty();
+    }
 }
