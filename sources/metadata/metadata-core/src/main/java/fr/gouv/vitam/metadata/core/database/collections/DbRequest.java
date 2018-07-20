@@ -977,7 +977,7 @@ public class DbRequest {
         }
         List<String> errors = new ArrayList<String>();
         // that means a transformation could be done so we need to process the full json
-        validator.loopAndReplaceInJson(updatedJsonDocument, ontologyModelMap, errors);
+        validator.verifyAndReplaceFields(updatedJsonDocument, ontologyModelMap, errors);
 
         if (!errors.isEmpty()) {
             // archive unit could not be transformed, so the error would be thrown later by the schema
