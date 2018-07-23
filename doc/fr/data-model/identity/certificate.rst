@@ -10,7 +10,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 ===================================================================
 
 ::
-           
+
  {
     "_id": "aeaaaaaaaahwgpj2aa2fgak7cxqdy6aaaaaq",
     "SubjectDN": "CN=ihm-recette, O=vitam, L=paris, ST=idf, C=fr",
@@ -18,9 +18,9 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     "SerialNumber": 254,
     "IssuerDN": "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr",
     "Certificate": "Q2VydGlmaWNhdGU6CiAgICBEYXRhOgogICAgICAgIFZlcnNpb246IDMgKDB4MikKICA
-    
+
         [...]
-    
+
     kbE4KM08yV1dIRlJMWnpQRWZ4eXlxMm1TbVdsaUUvUzZUbzJVVEswamxobStpbThPa29mZmlLbXlodVpWS3
     S0tRU5EIENFUlRJRklDQVRFLS0tLS0="
  }
@@ -33,7 +33,7 @@ Détail des champs du JSON stocké dans la collection
   * Champ peuplé par la solution logicielle Vitam
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cardinalité : 1-1
-  
+
 **"SubjectDN":** Identifiant unique (Distinguished Name) du certificat applicatif
 
   * Il s'agit d'une chaîne de caractères
@@ -56,5 +56,5 @@ Détail des champs du JSON stocké dans la collection
 
 **"Certificate":** Certificat
 
-  * Il s'agit d'une chaîne de caractères
+  * Il s'agit d'une chaîne de caractères correspondant au binaire du certificat suivant la norme X509
   * Cadinalité : 1-1
