@@ -881,7 +881,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             checkEmptyQuery(queryDsl);
             result =
                 accessModule
-                    .selectObjects(AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroup(queryDsl));
+                    .selectObjects(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnit(queryDsl, VitamThreadUtils.getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
