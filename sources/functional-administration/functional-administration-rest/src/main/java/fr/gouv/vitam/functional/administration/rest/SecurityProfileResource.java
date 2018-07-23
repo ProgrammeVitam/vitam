@@ -41,11 +41,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 
 import javax.ws.rs.ApplicationPath;
@@ -81,16 +82,18 @@ public class SecurityProfileResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
+    private final AdminManagementClient adminManagementClient;
 
     /**
      * @param mongoAccess
      * @param functionalBackupService
      */
     public SecurityProfileResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService) {
+                                   FunctionalBackupService functionalBackupService, AdminManagementClient adminManagementClient) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
+        this.adminManagementClient = adminManagementClient;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -118,7 +121,7 @@ public class SecurityProfileResource {
         ParametersChecker.checkParameter(SECURITY_PROFILE_JSON_IS_MANDATORY_PARAMETER, securityProfileModelList);
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService)) {
+            vitamCounterService, functionalBackupService, adminManagementClient)) {
             RequestResponse requestResponse = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
             if (!requestResponse.isOk()) {
@@ -153,7 +156,7 @@ public class SecurityProfileResource {
     public Response findSecurityProfiles(JsonNode queryDsl) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService)) {
+            vitamCounterService, functionalBackupService, adminManagementClient)) {
 
             RequestResponseOK<SecurityProfileModel> securityProfileModelList =
                 securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
@@ -186,7 +189,7 @@ public class SecurityProfileResource {
     public Response findSecurityProfileByIdentifier(@PathParam("id") String identifier) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService)) {
+            vitamCounterService, functionalBackupService, adminManagementClient)) {
 
             final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
             parser.parse(new Select().getFinalSelect());
@@ -218,7 +221,7 @@ public class SecurityProfileResource {
     public Response updateSecurityProfile(@PathParam("id") String identifier, JsonNode queryDsl) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
-            vitamCounterService, functionalBackupService)) {
+            vitamCounterService, functionalBackupService, adminManagementClient)) {
 
             RequestResponse requestResponse = securityProfileService.updateSecurityProfile(identifier, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
@@ -239,6 +242,41 @@ public class SecurityProfileResource {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Delete security profile by identifier
+     *
+     * @param securityProfileId the identifier of the security profile
+     * @return Response
+     */
+    Response deleteSecurityProfile(String securityProfileId) {
+
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
+                vitamCounterService, functionalBackupService, adminManagementClient)) {
+
+            RequestResponse requestResponse = securityProfileService.deleteSecurityProfile(securityProfileId);
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
+            }
+            if (Response.Status.FORBIDDEN.getStatusCode() == requestResponse.getHttpCode()) {
+                return Response.status(Response.Status.FORBIDDEN).entity(requestResponse).build();
+            }
+            if (!requestResponse.isOk()) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
+            }
+
+            return Response.status(Response.Status.NO_CONTENT).entity(requestResponse).build();
+
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 

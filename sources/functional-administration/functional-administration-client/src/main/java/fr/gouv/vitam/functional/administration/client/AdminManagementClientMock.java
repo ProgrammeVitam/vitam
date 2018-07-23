@@ -26,20 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -73,6 +63,14 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -482,6 +480,14 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
         return ClientMockResultHelper.createReponse(model);
 
+    }
+
+    @Override
+    public RequestResponse<Boolean> securityProfileIsUsedInContexts(String securityProfileId)
+            throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
+        RequestResponseOK<Boolean> response = new RequestResponseOK<>();
+        response.addResult(false);
+        return response;
     }
 
     @Override

@@ -26,17 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -83,6 +72,16 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * AdminManagement client
@@ -1364,6 +1363,34 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<Boolean> securityProfileIsUsedInContexts(String securityProfileId)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input security profile Id json is mandatory", securityProfileId);
+        try {
+            final SelectParserSingle parser = new SelectParserSingle();
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(Context.SECURITY_PROFILE, securityProfileId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+            RequestResponse<ContextModel> requestResponse = findContexts(queryDsl);
+
+            List<ContextModel> results = ((RequestResponseOK<ContextModel>) requestResponse).getResults();
+            RequestResponseOK<Boolean> result = new RequestResponseOK<>();
+            if (results.isEmpty()) {
+                result.addResult(false);
+                return result;
+            }
+
+            result.addResult(true);
+            return result;
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
         }
     }
 

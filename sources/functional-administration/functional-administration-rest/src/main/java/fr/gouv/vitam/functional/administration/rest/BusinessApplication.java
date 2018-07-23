@@ -26,8 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -35,23 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Business application for function administration declaring resources and filters
@@ -91,14 +89,18 @@ public class BusinessApplication extends Application {
 
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
+            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+
             singletons.add(resource);
             singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,
                 functionalBackupService));
             singletons.add(new OntologyResource(mongoDbAccess, vitamCounterService,
                 functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
-            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
+            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService,
+                    adminManagementClient));
+            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
+                    adminManagementClient));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));

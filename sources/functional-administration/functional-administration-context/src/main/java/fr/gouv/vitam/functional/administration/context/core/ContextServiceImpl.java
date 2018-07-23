@@ -323,6 +323,8 @@ public class ContextServiceImpl implements ContextService {
             throw new ReferentialException(e);
         }
 
+        JsonNode finalDelete = parser.getRequest().getFinalDelete();
+
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
 
@@ -331,6 +333,12 @@ public class ContextServiceImpl implements ContextService {
 
         try {
             manager.logDeleteStarted(contextId);
+
+            if (!exist(finalDelete)) {
+                manager.logValidationError("Context not found : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
+                return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Delete context error : " + contextId, StatusCode.KO)
+                        .setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
+            }
 
             if (internalSecurityClient.contextIsUsed(contextId)) {
                 manager.logValidationError("Delete context error : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
@@ -342,11 +350,11 @@ public class ContextServiceImpl implements ContextService {
             RequestResponseOK response = new RequestResponseOK<>();
 
             DbRequestResult result =
-                     mongoAccess.deleteDocument(parser.getRequest().getFinalDelete(), FunctionalAdminCollections.CONTEXT);
+                     mongoAccess.deleteDocument(finalDelete, FunctionalAdminCollections.CONTEXT);
 
             response.addResult(new DbRequestResult(result))
                     .setTotal(result.getTotal())
-                    .setHttpCode(Response.Status.OK.getStatusCode());
+                    .setHttpCode(Response.Status.NO_CONTENT.getStatusCode());
 
             // close result
             result.close();
@@ -385,6 +393,17 @@ public class ContextServiceImpl implements ContextService {
             manager.logFatalError(err);
             return error;
         }
+    }
+
+    private boolean exist(JsonNode finalSelect) throws InvalidParseOperationException, ReferentialException {
+        DbRequestResult result = mongoAccess.findDocuments(finalSelect, FunctionalAdminCollections.CONTEXT);
+        final List<ContextModel> list =
+                result.getDocuments(Context.class, ContextModel.class);
+        if (list.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
