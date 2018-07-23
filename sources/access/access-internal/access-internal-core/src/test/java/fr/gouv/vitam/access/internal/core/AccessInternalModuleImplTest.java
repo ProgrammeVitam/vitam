@@ -745,13 +745,6 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void given_null_params_conf_When_updateUnitById_ThenNotThrowAnyException()
-        throws Exception {
-        accessModuleImpl =
-            new AccessInternalModuleImpl(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_updateUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
