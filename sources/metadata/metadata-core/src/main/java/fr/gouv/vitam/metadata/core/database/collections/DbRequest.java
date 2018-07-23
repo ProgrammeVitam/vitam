@@ -876,7 +876,7 @@ public class DbRequest {
                             documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
                             documentFinal.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
                         }
-                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);                        
+                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
                                 "Unable to validate updated Unit " + status.getValidationMessage());
@@ -884,7 +884,7 @@ public class DbRequest {
                         if (externalSchema != null && externalSchema.size() > 0) {
                             validateOtherExternalSchema(updatedJsonDocument, externalSchema);
                             documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        }                        
+                        }
                     }
 
                     // Make Update
@@ -965,7 +965,7 @@ public class DbRequest {
         }
         List<String> errors = new ArrayList<String>();
         // that means a transformation could be done so we need to process the full json
-        validator.loopAndReplaceInJson(updatedJsonDocument, ontologyModelMap, errors);
+        validator.verifyAndReplaceFields(updatedJsonDocument, ontologyModelMap, errors);
 
         if (!errors.isEmpty()) {
             // archive unit could not be transformed, so the error would be thrown later by the schema

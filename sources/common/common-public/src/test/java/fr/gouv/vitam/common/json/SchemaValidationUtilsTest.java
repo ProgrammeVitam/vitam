@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import static fr.gouv.vitam.common.model.administration.OntologyType.DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -431,11 +433,11 @@ public class SchemaValidationUtilsTest {
         ontologyModelMap.put("extDouble", new OntologyModel().setType(OntologyType.DOUBLE).setIdentifier("extDouble"));
         ontologyModelMap.put("extBoolean",
             new OntologyModel().setType(OntologyType.BOOLEAN).setIdentifier("extBoolean"));
-        ontologyModelMap.put("BirthDate", new OntologyModel().setType(OntologyType.DATE).setIdentifier("BirthDate"));
+        ontologyModelMap.put("BirthDate", new OntologyModel().setType(DATE).setIdentifier("BirthDate"));
         JsonNode jsonArcUnit =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(JSON_FILE_WITH_REPLACEABLE_FIELDS));
         JsonNode jsonOriginArcUnit = jsonArcUnit.deepCopy();
-        schemaValidation.loopAndReplaceInJson(jsonArcUnit, ontologyModelMap, new ArrayList<>());
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, new ArrayList<>());
         jsonArcUnit.get("ArchiveUnit").get("extLong").forEach((j) -> assertTrue(j.isLong()));
         jsonArcUnit.get("ArchiveUnit").get("extDouble").forEach((j) -> assertTrue(j.isDouble()));
         jsonArcUnit.get("ArchiveUnit").get("extBoolean").forEach((j) -> assertTrue(j.isBoolean()));
@@ -445,38 +447,89 @@ public class SchemaValidationUtilsTest {
         JsonNode jsonOriginArcUnit2 = jsonOriginArcUnit.deepCopy();
         JsonNode jsonOriginArcUnit3 = jsonOriginArcUnit.deepCopy();
         JsonNode jsonOriginArcUnit4 = jsonOriginArcUnit.deepCopy();
-        
+
         ((ArrayNode) jsonOriginArcUnit.get("ArchiveUnit").get("extLong")).set(0, new DoubleNode(8.324));
         List<String> errors = new ArrayList<>();
-        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit, ontologyModelMap, errors);
+        schemaValidation.verifyAndReplaceFields(jsonOriginArcUnit, ontologyModelMap, errors);
         assertTrue(!errors.isEmpty());
         assertTrue(errors.get(0).contains("extLong"));
 
         ((ArrayNode) jsonOriginArcUnit2.get("ArchiveUnit").get("extBoolean")).set(0, new TextNode("NOT_TRUE"));
         errors = new ArrayList<>();
-        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit2, ontologyModelMap, errors);
+        schemaValidation.verifyAndReplaceFields(jsonOriginArcUnit2, ontologyModelMap, errors);
         assertTrue(!errors.isEmpty());
         assertTrue(errors.get(0).contains("extBoolean"));
 
         ((ArrayNode) jsonOriginArcUnit3.get("ArchiveUnit").get("Writer")).set(0,
             JsonHandler.getFromString("{\"BirthDate\":\"01/01/2001\"}"));
         errors = new ArrayList<>();
-        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit3, ontologyModelMap, errors);
+        schemaValidation.verifyAndReplaceFields(jsonOriginArcUnit3, ontologyModelMap, errors);
         assertTrue(!errors.isEmpty());
         assertTrue(errors.get(0).contains("BirthDate"));
 
         ((ArrayNode) jsonOriginArcUnit3.get("ArchiveUnit").get("Writer")).set(0,
             JsonHandler.getFromString("{\"BirthDate\":\"01/01/2001\"}"));
         errors = new ArrayList<>();
-        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit3, ontologyModelMap, errors);
+        schemaValidation.verifyAndReplaceFields(jsonOriginArcUnit3, ontologyModelMap, errors);
         assertTrue(!errors.isEmpty());
         assertTrue(errors.get(0).contains("BirthDate"));
 
         ((ArrayNode) jsonOriginArcUnit4.get("ArchiveUnit").get("extDouble")).set(0, new TextNode("notADouble"));
         errors = new ArrayList<>();
-        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit4, ontologyModelMap, errors);
+        schemaValidation.verifyAndReplaceFields(jsonOriginArcUnit4, ontologyModelMap, errors);
         assertTrue(!errors.isEmpty());
         assertTrue(errors.get(0).contains("extDouble"));
     }
 
+
+    @Test
+    public void should_have_error_when_wrong_type_date() throws Exception {
+        // Given
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap =
+            Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"Everything is awesome\"}");
+
+        ArrayList<String> errors = new ArrayList<>();
+
+        // When
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, errors);
+
+        // Then
+        assertThat(errors).anySatisfy(error -> error.contains("MyDate"));
+    }
+
+    @Test
+    public void should_have_no_error_with_datetime_iso8601() throws Exception {
+        // Given
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap =
+            Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"2018-07-20T16:15:45.685\"}");
+
+        ArrayList<String> errors = new ArrayList<>();
+
+        // When
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, errors);
+
+        // Then
+        assertThat(errors).isEmpty();
+    }
+
+    @Test
+    public void should_have_no_error_with_date_iso8601() throws Exception {
+        // Given
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap =
+            Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"2018-07-20\"}");
+
+        ArrayList<String> errors = new ArrayList<>();
+
+        // When
+        schemaValidation.verifyAndReplaceFields(jsonArcUnit, ontologyModelMap, errors);
+
+        // Then
+        assertThat(errors).isEmpty();
+    }
 }

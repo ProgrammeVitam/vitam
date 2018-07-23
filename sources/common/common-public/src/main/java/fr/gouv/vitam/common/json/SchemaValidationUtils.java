@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -67,6 +68,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ModelConstants;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
+import org.apache.commons.lang3.BooleanUtils;
+
+import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
+import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
 
 /**
  * SchemaValidationUtils
@@ -658,98 +663,95 @@ public class SchemaValidationUtils {
     }
 
     /**
-     * 
-     * Loop and replace in Json fields to map the ontology
-     * 
-     * @param archiveUnit the archive Unit to be changed
-     * @param ontologyModelMap the map containing ontology fields to be changed
-     * @param errorList errorList to be returned
-     * @return a list of error
+     * Verify and replace fields.
+     *
+     * @param node to modify
+     * @param ontologyModelMap where are ontologies
+     * @param errors of replacement
      */
-    public void loopAndReplaceInJson(JsonNode archiveUnit, Map<String, OntologyModel> ontologyModelMap,
-        List<String> errorList) {
-        Iterator<Entry<String, JsonNode>> iterator = archiveUnit.fields();
+    public void verifyAndReplaceFields(JsonNode node, Map<String, OntologyModel> ontologyModelMap,
+        List<String> errors) {
+        Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            String key = entry.getKey();
-            JsonNode value = entry.getValue();
-            if (ontologyModelMap.containsKey(key)) {
-                try {
-                    replaceProperFieldWithType(value, ontologyModelMap.get(key), archiveUnit);
-                } catch (Exception e) {
-                    errorList.add("Error with field " + key + (e.getMessage() != null ? " - " + e.getMessage() : ""));
-                }
-            } else if (value != null && value.isObject()) {
-                loopAndReplaceInJson(value, ontologyModelMap, errorList);
-            } else if (value != null && value.isArray()) {
-                ((ArrayNode) value).forEach(o -> {
-                    loopAndReplaceInJson(o, ontologyModelMap, errorList);
-                });
+            String fieldName = entry.getKey();
+            JsonNode fieldValue = entry.getValue();
+            if (fieldValue == null || fieldValue.isMissingNode()) {
+                continue;
+            }
+            if (ontologyModelMap.containsKey(fieldName)) {
+                errors.addAll(replaceProperFieldWithType(fieldValue, ontologyModelMap.get(fieldName), node, fieldName));
+            } else if (fieldValue.isObject()) {
+                verifyAndReplaceFields(fieldValue, ontologyModelMap, errors);
+            } else if (fieldValue.isArray()) {
+                fieldValue.forEach(o -> verifyAndReplaceFields(o, ontologyModelMap, errors));
             }
         }
     }
 
-    /**
-     * Change the type of field for long double and boolean
-     *
-     * @param archiveUnitFragment
-     * @param ontology
-     */
-    private void replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent) {
+    private List<String> replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent, String fieldName) {
         if (archiveUnitFragment.isArray()) {
-            ArrayNode copy = ((ArrayNode) archiveUnitFragment).deepCopy();
-            for (int i = 0; i < copy.size(); i++) {
-                if (OntologyType.DOUBLE == ontology.getType()) {
-                    ((ArrayNode) archiveUnitFragment).set(i, new DoubleNode(Double.parseDouble(copy.get(i).asText())));
-                } else if (OntologyType.LONG == ontology.getType()) {
-                    ((ArrayNode) archiveUnitFragment).set(i, new LongNode(Long.parseLong(copy.get(i).asText())));
-                } else if (OntologyType.BOOLEAN == ontology.getType()) {
-                    if ("true".equals(copy.get(i).asText().toLowerCase())) {
-                        ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.TRUE);
-                    } else if ("false".equals(copy.get(i).asText().toLowerCase())) {
-                        ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.FALSE);
-                    } else {
-                        throw new IllegalArgumentException(
-                            "Incorrect value, " + copy.get(i).asText() + " is not a boolean ");
-                    }
-                } else if (OntologyType.DATE == ontology.getType()) {
-                    // deal with specific dates
-                    if (copy.get(i).asText() != null && SPECIFIC_DATE_TZ.matcher(copy.get(i).asText()).find()) {
-                        ((ArrayNode) archiveUnitFragment).set(i,
-                            new TextNode(copy.get(i).asText().substring(0, copy.get(i).asText().length() - 1)));
-                    }
-                }
+            return replacePropertyFieldArray((ArrayNode) archiveUnitFragment, archiveUnitFragment.deepCopy(), ontology, fieldName);
+        }
+        return replacePropertyField(archiveUnitFragment, ontology, parent, fieldName);
+    }
+
+    private List<String> replacePropertyFieldArray(ArrayNode originalFields, ArrayNode copyFields, OntologyModel ontology, String fieldName) {
+        ArrayList<String> errors = new ArrayList<>();
+        for (int i = 0; i < copyFields.size(); i++) {
+            String field = copyFields.get(i).asText();
+            if (field == null) {
+                continue;
             }
-        } else if (archiveUnitFragment.isTextual() && parent.isObject() &&
-            parent.get(ontology.getIdentifier()) != null) {
-            if (OntologyType.DOUBLE == ontology.getType()) {
-                ((ObjectNode) parent).set(ontology.getIdentifier(),
-                    new DoubleNode(Double.parseDouble(archiveUnitFragment.asText())));
-            } else if (OntologyType.LONG == ontology.getType()) {
-                ((ObjectNode) parent).set(ontology.getIdentifier(),
-                    new LongNode(Long.parseLong(archiveUnitFragment.asText())));
-            } else if (OntologyType.BOOLEAN == ontology.getType()) {
-                if ("true".equals(archiveUnitFragment.asText().toLowerCase())) {
-                    ((ObjectNode) parent).set(ontology.getIdentifier(), BooleanNode.TRUE);
-                } else if ("false".equals(archiveUnitFragment.asText().toLowerCase())) {
-                    ((ObjectNode) parent).set(ontology.getIdentifier(), BooleanNode.FALSE);
-                } else {
-                    throw new IllegalArgumentException(
-                        "Incorrect value, " + archiveUnitFragment.asText() + " is not a boolean ");
-                }
-            } else if (OntologyType.DATE == ontology.getType()) {
-                // deal with specific dates
-                if (archiveUnitFragment.asText() != null &&
-                    SPECIFIC_DATE_TZ.matcher(archiveUnitFragment.asText()).find()) {
-                    ((ObjectNode) parent).set(ontology.getIdentifier(), new TextNode(
-                        archiveUnitFragment.asText().substring(0, archiveUnitFragment.asText().length() - 1)));
-                } else if (archiveUnitFragment.asText() != null &&
-                    !PATTERN_DATE_TZ.matcher(archiveUnitFragment.asText()).find()) {
-                    throw new IllegalArgumentException(
-                        "Incorrect value, " + archiveUnitFragment.asText() + " is not a correct date");
-                }
+            try {
+                originalFields.set(i, mapFieldToOntology(field, ontology.getType()));
+            } catch (IllegalArgumentException e) {
+                errors.add(error(ontology, fieldName, e));
             }
+        }
+        return errors;
+    }
+
+    private List<String> replacePropertyField(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent, String fieldName) {
+        ObjectNode objectNodeParent = (ObjectNode) parent;
+        if (archiveUnitFragment.isTextual() && parent.isObject() && parent.get(ontology.getIdentifier()) != null) {
+            String field = archiveUnitFragment.asText();
+            try {
+                objectNodeParent.set(ontology.getIdentifier(), mapFieldToOntology(field, ontology.getType()));
+            } catch (IllegalArgumentException e) {
+                return Collections.singletonList(error(ontology, fieldName, e));
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private String error(OntologyModel ontology, String fieldName, RuntimeException e) {
+        return String.format("Error '%s' on field '%s' should be of type '%s'.", e.getMessage(), fieldName, ontology.getType().name());
+    }
+
+    private JsonNode mapFieldToOntology(String field, OntologyType type) {
+        switch (type) {
+            case DOUBLE:
+                return new DoubleNode(Double.parseDouble(field));
+            case DATE:
+                return new TextNode(mapFieldToDate(field));
+            case LONG:
+                return new LongNode(Long.parseLong(field));
+            case BOOLEAN:
+                return BooleanNode.valueOf(BooleanUtils.toBoolean(field.toLowerCase(), TRUE.asText(), FALSE.asText()));
+            default:
+                LOGGER.warn(String.format("Not implemented for type %s", field));
+                throw new IllegalStateException(String.format("Not implemented for type %s", field));
         }
     }
 
+    private String mapFieldToDate(String field) {
+        if (SPECIFIC_DATE_TZ.matcher(field).find()) {
+            return field.substring(0, field.length() - 1);
+        }
+        if(PATTERN_DATE_TZ.matcher(field).find()) {
+            return field;
+        }
+        throw new IllegalArgumentException(String.format("Error with date '%s'", field));
+    }
 }

@@ -109,7 +109,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     /**
      * Empty constructor CheckArchiveUnitSchemaActionPlugin
-     * 
+     *
      * @param adminManagementClientFactory
      *
      */
@@ -263,7 +263,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 if (ontologyModelMap.size() > 0) {
                     List<String> errors = new ArrayList<String>();
                     // that means a transformation could be done so we need to process the full json
-                    validator.loopAndReplaceInJson(archiveUnit, ontologyModelMap, errors);
+                    validator.verifyAndReplaceFields(archiveUnit, ontologyModelMap, errors);
                     if (!errors.isEmpty()) {
                         // archive unit could not be transformed, so the error would be thrown later by the schema
                         // validation verification
