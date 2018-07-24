@@ -46,6 +46,7 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
@@ -462,9 +463,12 @@ public class SedaUtils {
             }
             LOGGER.debug("End of extracting  Uri from manifest");
 
-        } catch (XMLStreamException | URISyntaxException | UnsupportedEncodingException e) {
+        } catch (XMLStreamException | UnsupportedEncodingException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
+        } catch (URISyntaxException e) {
+            LOGGER.error(e);
+            throw new VitamKoRuntimeException(e);
         } finally {
             extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getOutcomeMessages().isEmpty());
             try {
