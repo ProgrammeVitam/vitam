@@ -53,7 +53,47 @@ public final class AccessContractRestrictionHelper {
         // Non instantiable helper class
     }
 
+    /**
+     * Apply access contract restriction for archive unit
+     *
+     * @param queryDsl
+     * @param contract
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
     public static JsonNode applyAccessContractRestrictionForUnit(JsonNode queryDsl, AccessContractModel contract)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        return applyAccessContractRestriction(queryDsl, contract, true);
+    }
+
+    /**
+     * Apply access contract restriction for object group
+     *
+     * @param queryDsl
+     * @param contract
+     * @return JsonNode contains restriction
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractRestrictionForObjectGroup(JsonNode queryDsl, AccessContractModel contract)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        return applyAccessContractRestriction(queryDsl, contract, false);
+    }
+
+
+    /**
+     * Apply access contract restriction for object group and archive unit
+     *
+     * @param queryDsl
+     * @param contract
+     * @param isUnit
+     * @return JsonNode contains restriction
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractRestriction(JsonNode queryDsl, AccessContractModel contract,
+        boolean isUnit)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
@@ -65,15 +105,20 @@ public final class AccessContractRestrictionHelper {
         if (!rootUnits.isEmpty() || !excludedRootUnits.isEmpty()) {
             String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
             String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[excludedRootUnits.size()]);
+            // If unit then query _id else (GOT) then query _up
+            String fieldToQuery = BuilderToken.PROJECTIONARGS.ID.exactToken();
+            if (!isUnit) {
+                fieldToQuery = BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
+            }
             Query rootUnitsRestriction = or()
                 .add(
-                    in(BuilderToken.PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
+                    in(fieldToQuery, rootUnitsArray),
                     in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray)
                 );
 
             Query excludeRootUnitsRestriction = and()
                 .add(
-                    nin(BuilderToken.PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
+                    nin(fieldToQuery, excludedRootUnitsArray),
                     nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray)
                 );
 
@@ -143,15 +188,16 @@ public final class AccessContractRestrictionHelper {
 
     /**
      * Just filter by originating agency.
-     * For Usage restriction, No restriction for the metadata of ObjectGroup,
-     * But restriction is applied when access/download binary is handled
+     *
+     * Deprecated as used just for object group, from Release 8 use applyAccessContractRestrictionForObjectGroup instead
      *
      * @param queryDsl
      * @return
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForObjectGroup(JsonNode queryDsl)
+    @Deprecated
+    public static JsonNode applyAccessContractRestrictionOnOriginatingAgencies(JsonNode queryDsl)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
 
