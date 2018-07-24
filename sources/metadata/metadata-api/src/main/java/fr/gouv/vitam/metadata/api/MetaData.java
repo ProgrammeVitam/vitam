@@ -182,6 +182,22 @@ public interface MetaData {
         throws InvalidParseOperationException;
 
     /**
+     * Update UNITs Rules by Ids {@link UpdateMultiQuery}Query <br>
+     * for this method, the roots will be filled<br>
+     * for example request :  {  <br>
+     * "dslRequest": {"$roots":[{id:"id1"},{id:"id2"}],"$query":[]}, <br> 
+     * "ruleActions": {"add":[{"AppraisalRule":{"Rules":[{"Rule":"APP-00001","StartDate":"1982-09-01"}],"FinalAction":"Keep"}} ]  }  <br>
+     * }
+     * @param updateQuery the update query as JsonNode containing unitIds in root parts and updates in ruleActions part
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     * $context will be added later (Access)</br>
+     * $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     */
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery)
+            throws InvalidParseOperationException;
+
+    /**
      * Update UNITs by Id {@link UpdateMultiQuery}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{

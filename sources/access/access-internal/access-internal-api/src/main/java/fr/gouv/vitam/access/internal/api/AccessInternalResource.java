@@ -38,12 +38,13 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 /**
  * Access Resource REST API
@@ -173,6 +174,14 @@ public interface AccessInternalResource extends VitamResource {
      * @return the response
      */
     Response massUpdateUnits(JsonNode dslQuery);
+
+    /**
+     * Mass update of archive units rules 
+     *
+     * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
+     * @return the response
+     */
+    Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest);
 
     /**
      * gets objects group with Json query

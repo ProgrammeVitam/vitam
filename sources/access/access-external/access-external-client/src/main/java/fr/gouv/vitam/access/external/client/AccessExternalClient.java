@@ -50,7 +50,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnits /units
-     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation
@@ -61,7 +60,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
-     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id to select
@@ -73,7 +71,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * updateUnitbyId UPDATE /units/{id}
-     *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @param unitId the unit id to update
@@ -85,7 +82,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectById
-     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id for getting object
@@ -100,7 +96,6 @@ public interface AccessExternalClient extends BasicClient {
      * getObjectAsInputStream<br>
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
      * @param vitamContext the vitam context
      * @param unitId the unit id for getting the object
      * @param usage kind of usage
@@ -117,7 +112,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperation
-     *
      * @param vitamContext the vitam context
      * @param select the select query
      * @return logbookOperation representation
@@ -131,7 +125,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperationbyId
-     *
      * @param vitamContext the vitam context
      * @param operationId the operation id
      * @param select the select query
@@ -192,7 +185,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Performs a reclassification workflow.
-     *
      * @param vitamContext the vitam context
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      * @return Response
@@ -203,7 +195,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Mass update of archive units.
-     *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @return Json representation
@@ -213,8 +204,17 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     * Mass update of archive units rules.
+     * @param vitamContext the vitam context
+     * @param updateRulesQuery the update request (query and actions)
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode updateRulesQuery)
+        throws VitamClientException;
+
+    /**
      * selectObjects /objects
-     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation

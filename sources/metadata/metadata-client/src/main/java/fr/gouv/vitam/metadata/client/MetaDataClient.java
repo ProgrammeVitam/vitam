@@ -294,6 +294,18 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException;
 
+    /**
+     * Update units rules Bulk.
+     * @param query
+     * @param actions
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+            MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Export all units and object groups that are a descendants of the provided units to workspace for graph update.

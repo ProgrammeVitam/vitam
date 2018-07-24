@@ -72,6 +72,11 @@ public class CheckSpecifiedFieldHelper {
             UpdateParserMultiple parser = new UpdateParserMultiple();
             parser.parse(query);
             ArrayNode actions = (ArrayNode) query.get(ACTION);
+
+            if (actions == null) {
+                return false;
+            }
+
             for (JsonNode node : actions) {
                 JsonNode fieldNode = node.get(SET);
                 if (fieldNode == null) {

@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -106,6 +107,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
+    }
+
+    @Override public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson)
+            throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitSimpleResult(queryJson);
     }
 
     @Override

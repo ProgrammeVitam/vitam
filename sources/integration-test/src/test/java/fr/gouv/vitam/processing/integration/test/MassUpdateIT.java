@@ -122,8 +122,6 @@ public class MassUpdateIT extends VitamRuleRunner {
         "integration-processing/mass-update/unit_01.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_02_JSON =
         "integration-processing/mass-update/unit_02.json";
-    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_03_JSON =
-        "integration-processing/mass-update/unit_03.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_01_JSON =
         "integration-processing/mass-update/update_query_01.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON =
@@ -131,6 +129,7 @@ public class MassUpdateIT extends VitamRuleRunner {
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_03_JSON =
         "integration-processing/mass-update/update_query_03.json";
     private static final String QUERY = "query.json";
+    private static final String ACTION = "actions.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON =
         "integration-processing/mass-update/unit_lfc_00.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_01_JSON =
@@ -271,6 +270,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                     PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_01_JSON));
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
+            workspaceClient
+                .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient
@@ -325,6 +326,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                     PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
+            workspaceClient
+                .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             processingClient
                 .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 
@@ -396,6 +399,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                     PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_03_JSON));
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
+            workspaceClient
+                .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             processingClient
                 .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 

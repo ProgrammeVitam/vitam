@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.parser.query.helper.CheckSpecifiedFieldHelp
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -101,7 +102,6 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
 
     /**
      * Constructor.
-     *
      * @param adminManagementClientFactory
      */
     @VisibleForTesting
@@ -112,8 +112,7 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
 
     /**
      * Execute an action
-     *
-     * @param param   {@link WorkerParameters}
+     * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
@@ -130,6 +129,8 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
         final boolean shouldCheckGraph = Boolean.valueOf((String) handler.getInput(CHECK_GRAPH_RANK));
         final boolean shouldCheckMDD = Boolean.valueOf((String) handler.getInput(CHECK_MDD_RANK));
         JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
+
+        JsonNode queryActions = handler.getJsonFromWorkspace("actions.json");
 
         try {
             // Check contract permissions
@@ -155,16 +156,16 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
 
                             // Check management data
                             if (shouldCheckManagement) {
-                                boolean updateMgt = CheckSpecifiedFieldHelper
-                                    .containsSpecifiedField(initialQuery, DataType.MANAGEMENT);
-                                if (updateMgt && BooleanUtils.isTrue(contract.getWritingRestrictedDesc())) {
+                                if ((!JsonHandler.isNullOrEmpty(queryActions)|| CheckSpecifiedFieldHelper
+                                    .containsSpecifiedField(initialQuery, DataType.MANAGEMENT)) &&
+                                    BooleanUtils.isTrue(contract.getWritingRestrictedDesc())) {
                                     LOGGER
                                         .error(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_MANAGEMENT_UNAUTHORIZED.name());
                                     throw new UpdatePermissionException(
                                         VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
                                 }
                             }
-                        }else{
+                        } else {
                             throw new ProcessingException(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
                         }
                     } catch (final VitamException e) {
@@ -173,14 +174,14 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                 }
             }
             // Check graph data
-            if (shouldCheckGraph && CheckSpecifiedFieldHelper.containsSpecifiedField(initialQuery, DataType.GRAPH)) {
+            if (shouldCheckGraph && (queryActions == null && CheckSpecifiedFieldHelper.containsSpecifiedField(initialQuery, DataType.GRAPH))) {
                 itemStatus.increment(StatusCode.KO);
                 itemStatus.setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_GRAPH_UNAUTHORIZED.name());
                 return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
                     .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
             }
             // Check MDD data
-            if (shouldCheckMDD && CheckSpecifiedFieldHelper.containsSpecifiedField(initialQuery, DataType.MDD)) {
+            if (shouldCheckMDD && (queryActions == null && CheckSpecifiedFieldHelper.containsSpecifiedField(initialQuery, DataType.MDD))) {
                 itemStatus.increment(StatusCode.KO);
                 itemStatus.setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_INTERNAL_DATA_UNAUTHORIZED.name());
                 return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
@@ -205,7 +206,6 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
 
     /**
      * Check mandatory parameter
-     *
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */

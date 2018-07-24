@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
@@ -99,7 +100,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * Mass update of archive units with dsl query.
      *
      * @param updateQuery the query to be executed to update archive units
-     * @return
+     * @return a response containing a json node object including DSL queries, context and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
@@ -109,6 +110,20 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
         AccessUnauthorizedException;
+
+    /**
+     * Mass update of archive units rules.
+     * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
+     * @return a response containing a json node object including queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
+     */
+    RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
+            throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
+            AccessUnauthorizedException;
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id

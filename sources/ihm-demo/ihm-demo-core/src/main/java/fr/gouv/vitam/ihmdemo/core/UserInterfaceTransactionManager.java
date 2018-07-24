@@ -168,6 +168,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * Massive Rules update
+     *
+     * @param parameters search criteria as DSL query
+     * @param context    Vitamcontext
+     * @return result
+     * @throws VitamClientException
+     */
+    public static RequestResponse<JsonNode> massiveRulesUpdate(JsonNode parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.massUpdateUnitsRules(context, parameters);
+        }
+    }
+
+    /**
      * Update units result
      *
      * @param parameters search criteria as DSL query

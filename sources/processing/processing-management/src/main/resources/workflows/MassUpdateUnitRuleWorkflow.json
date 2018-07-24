@@ -1,0 +1,107 @@
+{
+  "id": "MassUpdateUnitRulesWorkflow",
+  "name": "Mass Update Units Rules Workflow",
+  "identifier": "MASS_UPDATE_UNIT_RULE",
+  "typeProc": "MASS_UPDATE",
+  "comment": "Mass Update of Archive Units Rules Workflow",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_CHECK_AND_COMPUTE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_UPDATE_CHECK_PERMISSION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkManagement",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkGraph",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkMDD",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PREPARE_UPDATE_UNIT_LIST",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "units_to_update",
+                "uri": "WORKSPACE:massUpdateUnits/unitsToUpdate.jsonl"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "massUpdateUnits/unitsToUpdate.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "MASS_UPDATE_UNITS_RULES",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "update_units_report",
+                "uri": "WORKSPACE:reports"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_MASS_UPDATE_FINALIZE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "MASS_UPDATE_FINALIZE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "update_units_report_container",
+                "uri": "VALUE:reports"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

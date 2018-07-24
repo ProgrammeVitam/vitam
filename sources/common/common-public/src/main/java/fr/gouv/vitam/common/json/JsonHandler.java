@@ -964,4 +964,9 @@ public final class JsonHandler {
 
         return currentNode;
     }
+
+    public static boolean isNullOrEmpty(JsonNode jsonNode) {
+        if (jsonNode == null) { return true; }
+        return !jsonNode.fieldNames().hasNext();
+    }
 }

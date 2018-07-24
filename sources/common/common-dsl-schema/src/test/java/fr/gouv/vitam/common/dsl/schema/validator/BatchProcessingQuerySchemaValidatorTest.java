@@ -32,12 +32,12 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
-public class EliminationQuerySchemaValidatorTest {
+public class BatchProcessingQuerySchemaValidatorTest {
 
     @Test
     public void should_not_retrieve_any_exception_when_selectOnlyQueryMultiple() throws Exception {
         // Given
-        DslValidator dslValidator = new EliminationQuerySchemaValidator();
+        DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
             JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-complete.json"));
         // When
@@ -48,7 +48,7 @@ public class EliminationQuerySchemaValidatorTest {
     @Test
     public void should_retrieve_exception_when_filter_is_in_query() throws Exception {
         // Given
-        DslValidator dslValidator = new EliminationQuerySchemaValidator();
+        DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
             JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-filter.json"));
         // When
@@ -62,7 +62,7 @@ public class EliminationQuerySchemaValidatorTest {
     @Test
     public void should_retrieve_exception_when_projection_is_in_query() throws Exception {
         // Given
-        DslValidator dslValidator = new EliminationQuerySchemaValidator();
+        DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
             JsonHandler
                 .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-projection.json"));
@@ -77,7 +77,7 @@ public class EliminationQuerySchemaValidatorTest {
     @Test
     public void should_retrieve_exception_when_invalid_threshold() throws Exception {
         // Given
-        DslValidator dslValidator = new EliminationQuerySchemaValidator();
+        DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
             JsonHandler
                 .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-threshold.json"));

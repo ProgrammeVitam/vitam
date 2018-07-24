@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
-import fr.gouv.vitam.common.dsl.schema.validator.EliminationQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -288,8 +289,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("Missing dslRequest request", eliminationRequestBody.getDslRequest());
             ParametersChecker.checkDateParam("Bad formatted date", eliminationRequestBody.getDate());
 
-            EliminationQuerySchemaValidator validator =
-                new EliminationQuerySchemaValidator();
+            BatchProcessingQuerySchemaValidator validator =
+                new BatchProcessingQuerySchemaValidator();
             validator.validate(eliminationRequestBody.getDslRequest());
 
         } catch (IllegalArgumentException | IOException | ValidationException e) {
@@ -628,6 +629,74 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
+        }
+    }
+
+    /**
+     * Mass update of archive units rules with json request.
+     * 
+     * @param massUpdateUnitRuleRequest the mass update rules request (null not allowed)
+     * @return
+     */
+    @POST
+    @Path("/units/rules")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "units:rules:update", description = "Mise à jour en masse des règles de gestion")
+    public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) throws InvalidParseOperationException {
+        Status status;
+        // Manually schema validation of DSL Query
+        try {
+            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator(); // BatchProcessingQuerySchemaValidator
+            validator.validate(massUpdateUnitRuleRequest.getDslRequest());
+        } catch (ValidationException e) {
+            LOGGER.warn("Could not validate request", e);
+            return e.getVitamError().toResponse();
+        } catch (IOException e) {
+            LOGGER.warn("Can not read Dsl query", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
+                            "Can not read Dsl query").setHttpCode(status.getStatusCode())).build();
+        }
+        
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> response = client.updateUnitsRules(massUpdateUnitRuleRequest);
+
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
+                        error);
+            }
+            return Response.status(Status.OK).entity(response).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Internal request error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error("Writing permission invalid", e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                    .build();
         }
     }
 

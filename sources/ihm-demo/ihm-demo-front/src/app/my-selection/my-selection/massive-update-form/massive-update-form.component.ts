@@ -179,9 +179,9 @@ export class MassiveUpdateFormComponent implements OnInit {
 
     if (nbUpdates > 0) {
       this.form.updateRules = {
-        adds: ObjectsService.objectToArray(additions),
-        updates: ObjectsService.objectToArray(updates),
-        deletes: ObjectsService.objectToArray(deletions)
+        add: ObjectsService.objectToArray(additions),
+        update: ObjectsService.objectToArray(updates),
+        delete: ObjectsService.objectToArray(deletions)
       };
     } else {
       delete this.form.updateRules;
