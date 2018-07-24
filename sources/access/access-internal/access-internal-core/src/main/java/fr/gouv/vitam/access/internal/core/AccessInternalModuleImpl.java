@@ -48,12 +48,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
-import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -196,16 +194,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID = "#id";
     private static final String DEFAULT_STRATEGY = "default";
 
-    private static final String UNIT_KEY = "unit";
-    private static final String LFC_KEY = "lfc";
 
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
     private static final String JSON = ".json";
-    private static final String CANNOT_CREATE_A_FILE = "Cannot create a file: ";
-    private static final String CANNOT_FOUND_OR_READ_SOURCE_FILE = "Cannot found or read source file: ";
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String ERROR_ADD_CONDITION = "Error during adding condition of Operations";
     private static final String ERROR_CHECK_RULES = "Error during checking updated rules";
     private static final String ERROR_VALIDATE_DT = "Error during validation of the document type";
@@ -233,12 +226,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     /**
      * AccessModuleImpl constructor
-     *
-     * @param configuration of mongoDB access
      */
     // constructor
-    public AccessInternalModuleImpl(AccessInternalConfiguration configuration) {
-        ParametersChecker.checkParameter("Configuration cannot be null", configuration);
+    public AccessInternalModuleImpl() {
         storageClientMock = null;
         logbookLifeCycleClientMock = null;
         logbookOperationClientMock = null;
@@ -249,7 +239,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient a StorageClient instance
+     * @param storageClient           a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -265,7 +255,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -307,8 +297,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
+     * @param idUnit    as String
+     * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -790,7 +780,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error message to throw if response is null or no result could be found
+     * @param error        message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -821,7 +811,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException when error in execution
+     * @throws ProcessingException                 when error in execution
      */
     private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1086,7 +1076,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             JsonNode categoryNode = management.get(category);
             JsonNode fullupdatedInheritanceNode;
             JsonNode updatedPreventInheritanceNode;
-            JsonNode updatedPreventRulesNode ;
+            JsonNode updatedPreventRulesNode;
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -1252,7 +1242,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request The initial request
+     * @param request              The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
