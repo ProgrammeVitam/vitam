@@ -39,13 +39,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -112,6 +115,12 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.KO, extractUriResponse.getErrorNumber());
             }
 
+        } catch (final VitamKoRuntimeException e) {
+
+            ObjectNode evdev = JsonHandler.createObjectNode();
+            evdev.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evdev));
+            itemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
