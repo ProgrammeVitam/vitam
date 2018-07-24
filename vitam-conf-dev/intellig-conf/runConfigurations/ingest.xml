@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ingest" type="Multirun" factoryName="Multirun" singleton="true" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="5">
+    <runConfiguration name="IngestInternalApplication" type="Application" />
+    <runConfiguration name="IngestExternalApplication" type="Application" />
+    <method />
+  </configuration>
+</component>

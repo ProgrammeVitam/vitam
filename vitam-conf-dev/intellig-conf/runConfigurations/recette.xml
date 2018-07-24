@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="recette" type="js.build_tools.npm" factoryName="npm">
+    <package-json value="$PROJECT_DIR$/ihm-recette/ihm-recette-web-front/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="start" />
+    </scripts>
+    <arguments value="$NODE_DEBUG_OPTION server.js --port4201" />
+    <node-interpreter value="project" />
+    <envs />
+    <method />
+  </configuration>
+</component>

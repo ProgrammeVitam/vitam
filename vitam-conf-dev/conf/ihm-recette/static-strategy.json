@@ -1,0 +1,12 @@
+{
+  "id": "default",
+  "hot": {
+    "copy": 1,
+    "offers": [
+      {
+        "id": "offer-fs-1.service.consul",
+        "referent": true
+      }
+    ]
+  }
+}

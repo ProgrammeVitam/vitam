@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ihm-demo" type="js.build_tools.gulp" factoryName="Gulp.js">
+    <node-interpreter>project</node-interpreter>
+    <node-options />
+    <gulpfile>$PROJECT_DIR$/ihm-demo/ihm-demo-web-front/gulpfile.js</gulpfile>
+    <tasks />
+    <arguments />
+    <envs />
+    <method />
+  </configuration>
+</component>

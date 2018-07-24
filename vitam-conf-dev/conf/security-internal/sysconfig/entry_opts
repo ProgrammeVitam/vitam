@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/security-internal/internal-security-rest-0.31.0-SNAPSHOT.jar"

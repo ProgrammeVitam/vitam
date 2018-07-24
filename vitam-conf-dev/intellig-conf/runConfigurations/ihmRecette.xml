@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ihmRecette" type="Application" factoryName="Application" singleton="true">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.ihmrecette.appserver.ServerApplication" />
+    <option name="VM_PARAMETERS" value=" -Dlogback.configurationFile=$USER_HOME$/Bureau/vitam/vitam-logkback.xml" />
+    <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../vitam/ihm-recette/ihm-recette.conf " />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/../vitam/ihm-recette" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="ihm-recette-web-application" />
+    <envs />
+    <method />
+  </configuration>
+</component>

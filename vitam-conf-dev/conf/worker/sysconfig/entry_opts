@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/worker/worker-server-0.31.0-SNAPSHOT.jar"

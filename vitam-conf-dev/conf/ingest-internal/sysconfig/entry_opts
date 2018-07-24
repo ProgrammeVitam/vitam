@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/ingest-internal/ingest-internal-rest-0.31.0-SNAPSHOT.jar"

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>/vitam/log/security-internal/accesslog-security-internal.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+      		<totalSizeCap>14GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%h %l %u %t "%r" %s %b "%i{Referer}" "%i{User-agent}" %D %i{X-Request-Id} %i{X-Tenant-Id} %i{X-Application-Id}</pattern>
+		</encoder>
+	</appender>
+	<appender-ref ref="FILE" />
+</configuration>
