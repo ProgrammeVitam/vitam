@@ -54,6 +54,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -112,6 +113,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     private static final String ERRORS = "errors";
     private static final String ID = "#id";
     private static final String STATUS = "#status";
+    private static final String DIFF = "#diff";
     private static final String SEPARTOR = ",";
 
     /**
@@ -206,14 +208,15 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                     final ItemStatus itemStatus = new ItemStatus(MASS_UPDATE_UNITS);
                     String unitId = result.get(ID).asText();
                     DistributionStatus status = DistributionStatus.valueOf(result.get(STATUS).asText());
+                    String diff = result.get(DIFF).asText();
                     // TODO : if diff empty => update alerady executed => do not update LFC (and set status warning ??)
 
                     if (status.equals(DistributionStatus.OK) || status.equals(DistributionStatus.WARNING)) {
                         // write LFC
                         try {
-                            // TODO : should add diff to evDetData ?
-                            writeLfcForUpdateUnit(lfcClient, workerParameters, unitId);
-                        } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidGuidOperationException e) {
+                            writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
+                        } catch (LogbookClientServerException | LogbookClientNotFoundException | 
+                                InvalidParseOperationException | InvalidGuidOperationException e) {
                             LOGGER.error("Error while updating UNIT LFC ", e);
                             itemStatus.increment(StatusCode.FATAL);
                         } catch (LogbookClientBadRequestException e) {
@@ -283,18 +286,23 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
         return itemStatuses;
     }
-
+    
     /**
      * write LFC for update Unit
+     * 
+     * @param lfcClient
      * @param param
      * @param unitId
+     * @param diff
      * @throws LogbookClientNotFoundException
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     * @throws InvalidGuidOperationException
      */
-    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId)
-        throws LogbookClientNotFoundException,
-        LogbookClientBadRequestException, LogbookClientServerException, InvalidGuidOperationException {
+    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, 
+            InvalidParseOperationException, InvalidGuidOperationException {
 
         LogbookLifeCycleParameters logbookLfcParam =
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
@@ -306,12 +314,32 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                 VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, StatusCode.OK),
                 VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, StatusCode.OK),
                 GUIDReader.getGUID(unitId));
+        logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, getEvDetDataForDiff(diff));
+        
         lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
     }
 
     /**
+     * getEvDetDataForDiff
+     * 
+     * @param diff
+     * @return
+     * @throws InvalidParseOperationException
+     */
+    private String getEvDetDataForDiff(String diff) throws InvalidParseOperationException {
+        if (diff == null) {
+            return "";
+        }
+
+        ObjectNode diffObject = JsonHandler.createObjectNode();
+        diffObject.put("diff", diff);
+        return JsonHandler.writeAsString(diffObject);
+    }
+
+    /**
      * saveDocumentWithLfcInStorage
+     * 
      * @param handler
      * @param params
      * @param guid
@@ -356,7 +384,8 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     }
 
     /**
-     * Store local reports in workspace.
+     * Store local reports in workspace
+     * 
      * @param handler
      * @param processId
      * @param reportModelOK
@@ -394,6 +423,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * Check mandatory parameter
+     * 
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */
@@ -402,6 +432,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * getJsonLineForItem
+     * 
      * @param item
      * @return
      */
