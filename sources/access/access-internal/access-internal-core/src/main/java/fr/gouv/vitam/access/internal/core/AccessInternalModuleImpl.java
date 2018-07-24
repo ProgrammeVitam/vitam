@@ -446,7 +446,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             }
             if (finalversionsResponse.getFileInfoModel() != null &&
-                !finalversionsResponse.getFileInfoModel().getFilename().isEmpty()) {
+                    !Strings.isNullOrEmpty(finalversionsResponse.getFileInfoModel().getFilename())) {
                 filename = finalversionsResponse.getFileInfoModel().getFilename();
             }
             objectId = finalversionsResponse.getId();

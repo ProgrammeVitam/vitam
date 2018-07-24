@@ -67,9 +67,9 @@ public class ComputedFieldsTest {
 
     private static List<String> expectedGotMainFields =
         Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE, ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION,
-            ObjectGroup.VERSIONS_STORAGE, ObjectGroup.OBJECTCOPIES, ObjectGroup.OBJECTSTORAGE,
+            ObjectGroup.VERSIONS_STORAGE, ObjectGroup.OBJECTCOPIES, ObjectGroup.OBJECTSTORAGE, ObjectGroup.FILE_INFO,
             ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
-            ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
+            ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE, ObjectGroup.FILE_NAME,
             ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
             MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
             MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
