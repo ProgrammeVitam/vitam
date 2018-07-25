@@ -110,4 +110,20 @@ public enum LogbookTypeProcess {
      */
     MASS_UPDATE;
 
+    /**
+     * Get the LogbookTypeProcess matching the given type
+     *
+     * @param type
+     * @return a LogbookTypeProcess
+     * @throws IllegalArgumentException
+     */
+    public static LogbookTypeProcess getLogbookTypeProcess(String type) throws IllegalArgumentException {
+        for (LogbookTypeProcess c : LogbookTypeProcess.values()) {
+            if (c.name().equals(type)) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException(type);
+    }
+
 }

@@ -26,6 +26,7 @@ import java.util.Map;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -92,11 +93,12 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param tenantId the tenant identifier
+     * @param useForcedPause if the forced pause must be applied
      * @return the status
      * @throws ProcessingException if resume could not be applied
      * @throws StateNotAllowedException if the process state is incorrect
      */
-    ItemStatus resume(WorkerParameters workerParameters, Integer tenantId)
+    ItemStatus resume(WorkerParameters workerParameters, Integer tenantId, boolean useForcedPause)
         throws ProcessingException, StateNotAllowedException;
 
     /**
@@ -181,5 +183,21 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @return
      */
     ServerConfiguration getConfiguration();
+
+    /**
+     * Removed the forced pause on the tenant and/or the type of process
+     *
+     * @param pause
+     */
+    void removeForcePause(ProcessPause pause) throws ProcessingException;
+
+
+
+    /**
+     * Add a forced pause on the tenant and/or the type of process
+     *
+     * @param  pause
+     */
+    void forcePause(ProcessPause pause) throws ProcessingException;
 
 }

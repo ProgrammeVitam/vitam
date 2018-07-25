@@ -26,18 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -52,6 +50,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -61,6 +60,7 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -80,6 +80,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
+    private static final String FORCE_PAUSE_URI = "/forcepause";
+    private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
+
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String ACTION_ID_MUST_HAVE_A_VALID_VALUE = "Action id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
@@ -551,6 +554,43 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientInternalException e) {
             LOGGER.debug("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public RequestResponse<ProcessPause> forcePause(ProcessPause info) throws ProcessingException {
+        ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, FORCE_PAUSE_URI, null, info,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, ProcessPause.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ProcessingException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws ProcessingException {
+        ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, REMOVE_FORCE_PAUSE_URI, null, info,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, ProcessPause.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ProcessingException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

@@ -125,7 +125,7 @@ public class ProcessManagementImplTest {
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
                 "http://localhost:8083",
                 "http://localhost:8083"),
-            1);
+            1, false);
     }
 
     @RunWithCustomExecutor

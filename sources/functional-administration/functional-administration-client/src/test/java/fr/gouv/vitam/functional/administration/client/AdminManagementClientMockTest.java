@@ -41,6 +41,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.ProcessPause;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -434,6 +435,21 @@ public class AdminManagementClientMockTest {
     @Test
     public void switchIndexesTest() throws Exception {
         RequestResponse<IndexationResult> resp = client.switchIndexes(JsonHandler.createObjectNode());
+        assertTrue(resp.isOk());
+    }
+
+    @Test
+    public void forcePauseTest() throws Exception {
+        ProcessPause info = new ProcessPause("INGEST", 0, null);
+        RequestResponse<ProcessPause> resp = client.forcePause(info);
+        assertTrue(resp.isOk());
+    }
+
+
+    @Test
+    public void removeForcePauseTest() throws Exception {
+        ProcessPause info = new ProcessPause("INGEST", 0, null);
+        RequestResponse<ProcessPause> resp = client.removeForcePause(info);
         assertTrue(resp.isOk());
     }
 

@@ -36,10 +36,12 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
@@ -109,5 +111,22 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      * @param entry
      */
     void initVitamProcess(String contextId, ProcessingEntry entry) throws InternalServerException, BadRequestException;
+
+
+    /**
+     * Removed the forced pause on the tenant and/or the type of process
+     *
+     * @param info
+     */
+    RequestResponse removeForcePause(ProcessPause info) throws ProcessingException;
+
+
+
+    /**
+     * Add a forced pause on the tenant and/or the type of process
+     *
+     * @param info
+     */
+    RequestResponse<ProcessPause> forcePause(ProcessPause info) throws ProcessingException;
 
 }

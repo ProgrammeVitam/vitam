@@ -29,15 +29,6 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.InputStream;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -53,6 +44,14 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
@@ -79,6 +78,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -129,6 +130,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -832,6 +834,62 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, exp.getLocalizedMessage())).build();
         }
     }
+
+    /**
+     * Pause the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/forcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response forcePause(ProcessPause info) {
+
+        ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
+            .getClient()) {
+            RequestResponse requestResponse = processingClient.forcePause(info);
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+
+    /**
+     * Remove the pause for the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/removeforcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeForcePause(ProcessPause info) {
+
+        ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
+            .getClient()) {
+            RequestResponse requestResponse = processingClient.removeForcePause(info);
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+
+
 
     private AccessContractModel getContractDetails(String contractId) throws InvalidCreateOperationException {
 

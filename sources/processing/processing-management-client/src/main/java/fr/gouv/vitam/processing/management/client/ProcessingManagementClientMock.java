@@ -26,15 +26,13 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -45,6 +43,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -251,6 +250,17 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         actionDefinition.setOut(out);
         return new Action().setActionDefinition(actionDefinition);
 
+    }
+
+
+    @Override
+    public RequestResponse<ProcessPause> forcePause(ProcessPause info) {
+        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) {
+        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
 
 

@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -47,6 +41,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.codahale.metrics.Gauge;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -57,14 +56,13 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -276,7 +274,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                         workParams.setMap(process.getExtraParams());
                     }
 
-                    itemStatus = processManagement.resume(workParams, tenantId);
+                    itemStatus = processManagement.resume(workParams, tenantId, true);
                     break;
 
                 default:
@@ -392,7 +390,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     break;
 
                 case RESUME:
-                    itemStatus = processManagement.resume(workParams, tenantId);
+                    itemStatus = processManagement.resume(workParams, tenantId, false);
                     break;
 
                 case REPLAY:
@@ -537,6 +535,58 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_PROCESSES_ERROR, e.getLocalizedMessage()))
                 .build();
+        }
+    }
+
+
+
+    /**
+     * Pause the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/forcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response forcePause(ProcessPause info) {
+
+        try {
+            processManagement.forcePause(info);
+
+            RequestResponseOK<ProcessPause> response = new RequestResponseOK<>();
+            response.addResult(info)
+                .setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
+        } catch (ProcessingException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+    }
+
+
+    /**
+     * Remove the pause for the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/removeforcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeForcePause(ProcessPause info) {
+
+        try {
+            processManagement.removeForcePause(info);
+            RequestResponseOK<ProcessPause> response = new RequestResponseOK<>();
+            response.addResult(info)
+                .setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
+        } catch (ProcessingException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
     }
 }

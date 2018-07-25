@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -728,4 +729,21 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
 
+    /**
+     * Pause the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return The server response as vitam RequestResponse
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse forcePause(ProcessPause info) throws AdminManagementClientServerException;
+
+    /**
+     * Remove the pause for the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return The server response as vitam RequestResponse
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse removeForcePause(ProcessPause info) throws AdminManagementClientServerException;
 }

@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -92,7 +93,10 @@ public class ProcessManagementImpl implements ProcessManagement {
     private final ProcessDataAccess processData;
     private final Map<String, WorkFlow> poolWorkflow;
     private ProcessDistributor processDistributor;
-
+    private final Map<Integer, List<LogbookTypeProcess>> pausedProcessesByTenant;
+    private final List<Integer> pausedTenants;
+    private final List<LogbookTypeProcess> pausedTypeProcesses;
+    private Boolean pauseAll;
     /**
      * constructor of ProcessManagementImpl
      *
@@ -108,6 +112,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         this.config = config;
         processData = ProcessDataAccessImpl.getInstance();
         poolWorkflow = new ConcurrentHashMap<>();
+        this.pausedProcessesByTenant = new ConcurrentHashMap<Integer, List<LogbookTypeProcess>>();
+        this.pausedTenants = new ArrayList<Integer>();
+        this.pausedTypeProcesses = new ArrayList<LogbookTypeProcess>();
+        pauseAll = Boolean.FALSE;
         this.processDistributor = processDistributor;
         new ProcessWorkFlowsCleaner(this, TimeUnit.HOURS);
         new WorkflowsLoader(this);
@@ -280,7 +288,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     @Override
-    public ItemStatus resume(WorkerParameters workerParameters, Integer tenantId)
+    public ItemStatus resume(WorkerParameters workerParameters, Integer tenantId, boolean useForcedPause)
         throws ProcessingException, StateNotAllowedException {
         final String operationId = workerParameters.getContainerName();
 
@@ -293,8 +301,11 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
 
-        stateMachine.resume(workerParameters);
+        if (useForcedPause && isPauseForced(processWorkflow, tenantId)) {
+            return next(workerParameters, tenantId);
+        }
 
+        stateMachine.resume(workerParameters);
 
         return new ItemStatus(operationId)
             .increment(processWorkflow.getStatus())
@@ -322,6 +333,151 @@ public class ProcessManagementImpl implements ProcessManagement {
             .increment(processWorkflow.getStatus())
             .setGlobalState(processWorkflow.getState())
             .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess().toString());
+    }
+
+    /**
+     * Ckeck if the processWorkflow.logbookTypeProcess or the tenantId are paused
+     *
+     * @param processWorkflow
+     * @param tenantId
+     * @return
+     */
+    private boolean isPauseForced(ProcessWorkflow processWorkflow, Integer tenantId) {
+
+        //Check the pauseAll param, if true all the processes for all the tenants are paused
+        if (Boolean.TRUE.equals(pauseAll)) {
+            return true;
+        }
+
+        //Check the list of paused tenant
+        if (pausedTenants.contains(tenantId)) {
+            return true;
+        }
+
+
+        //Get the logbookTypeProcess of the workflow
+        LogbookTypeProcess logbookTypeProcess = processWorkflow.getLogbookTypeProcess();
+
+        //Check the list of paused processes
+        if (pausedTypeProcesses.contains(logbookTypeProcess)) {
+            return true;
+        }
+
+        //Check the list of paused process for the given tenant
+        List<LogbookTypeProcess> pausedWorklowsByTenant = pausedProcessesByTenant.get(tenantId);
+        if (pausedWorklowsByTenant != null && pausedWorklowsByTenant.contains(logbookTypeProcess)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public void forcePause(ProcessPause pause)
+        throws ProcessingException {
+        String type = pause.getType();
+        Integer tenantId = pause.getTenant();
+        Boolean pauseAll = pause.getPauseAll();
+
+
+        if (type == null && tenantId == null && pauseAll == null) {
+            throw new ProcessingException(
+                "Type, tenant and pauseAll param cannot all be null");
+        }
+
+        this.pauseAll = pause.getPauseAll();
+
+        LogbookTypeProcess processType = null;
+        if (type != null && !type.isEmpty()) {
+            try {
+                processType = LogbookTypeProcess.getLogbookTypeProcess(type);
+            } catch (IllegalArgumentException e) {
+                throw new ProcessingException(
+                    "Type " + type + " is not a valid process type");
+            }
+        }
+
+        if (processType != null && tenantId != null) {
+            //Get the list of paused process for the given tenant
+            List<LogbookTypeProcess> pausedWorklowsByTenant = pausedProcessesByTenant.get(tenantId);
+            if (pausedWorklowsByTenant == null) {
+                pausedWorklowsByTenant = new ArrayList<LogbookTypeProcess>();
+            }
+            if (!pausedWorklowsByTenant.contains(processType)) {
+                pausedWorklowsByTenant.add(tenantId, processType);
+            }
+            pausedProcessesByTenant.put(tenantId, pausedWorklowsByTenant);
+        } else if (processType == null && tenantId != null) {
+            if (!pausedTenants.contains(tenantId)) {
+                pausedTenants.add(tenantId);
+            }
+        } else if (processType != null && tenantId == null) {
+            if (!pausedTypeProcesses.contains(processType)) {
+                pausedTypeProcesses.add(processType);
+            }
+        }
+
+    }
+
+
+    @Override
+    public void removeForcePause(ProcessPause pause)
+        throws ProcessingException {
+
+        String type = pause.getType();
+        Integer tenantId = pause.getTenant();
+        Boolean pauseAll = pause.getPauseAll();
+
+        if (type == null && tenantId == null && pauseAll == null) {
+            throw new ProcessingException(
+                "Type, tenant and pauseAll param cannot all be null");
+        }
+        //Remove the pauseAll
+        if (Boolean.FALSE.equals(pauseAll)) {
+            this.pauseAll = pauseAll;
+        }
+
+
+        LogbookTypeProcess processType = null;
+        if (type != null && !type.isEmpty()) {
+            try {
+                processType = LogbookTypeProcess.getLogbookTypeProcess(type);
+            } catch (IllegalArgumentException e) {
+                throw new ProcessingException(
+                    "Type " + type + "is not a valid process type");
+            }
+        }
+
+        if (processType != null && tenantId != null) {
+            //Get the list of paused process for the given tenant
+            List<LogbookTypeProcess> pausedWorklowsByTenant = pausedProcessesByTenant.get(tenantId);
+            if (pausedWorklowsByTenant != null && !pausedWorklowsByTenant.isEmpty()) {
+                pausedWorklowsByTenant.remove(processType);
+            }
+            //remove the tenant from the pausedTenants list and from the pausedProcessesByTenant map
+        } else if (processType == null && tenantId != null) {
+            if (pausedTenants.contains(tenantId)) {
+                pausedTenants.remove(tenantId);
+            }
+            if (pausedProcessesByTenant.containsKey(tenantId)) {
+                pausedProcessesByTenant.remove(tenantId);
+            }
+            //remove the processType from the paused pausedTypeProcesses list and from the pausedProcessesByTenant map
+        } else if (processType != null && tenantId == null) {
+            if (pausedTypeProcesses.contains(processType)) {
+                pausedTypeProcesses.remove(processType);
+            }
+            LogbookTypeProcess pr = processType;
+            pausedProcessesByTenant.forEach((id, v) -> {
+                if (v != null && !v.isEmpty()) {
+                    v.remove(pr);
+                }
+
+            });
+        }
+
+
     }
 
     @Override
