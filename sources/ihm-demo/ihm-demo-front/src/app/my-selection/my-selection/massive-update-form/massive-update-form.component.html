@@ -5,9 +5,9 @@
         <p-accordionTab header="Mise à jour des métadonnées descriptives">
             <div class="ui-g">
                 <div class="ui-g-12 ui-g-nopad">
-                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.ADD)" label="Ajouter une métadonnée descriptive"
-                            icon="fa-plus" iconPos="left"></button>
-                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.UPDATE)" label="Modifier une métadonnée descriptive"
+                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.UPDATE)" label="Ajouter/Modifier une métadonnée descriptive"
+                            icon="fa-pencil" iconPos="left"></button>
+                    <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.PATTERN)" label="Modifier une chaîne de caractères"
                             icon="fa-pencil" iconPos="left"></button>
                     <button pButton class="ui-button secondaryButton ui-g-4 ui-g-nopad" (click)="addNewMetadata(METADATA_ACITONS.DELETE)" label="Vider une métadonnée descriptive"
                             icon="fa-times" iconPos="left"></button>
@@ -17,24 +17,28 @@
                     <span class="ui-g-12">Les dates doivent être entrées au format JJ/MM/AAAA</span>
 
                     <div class="ui-g-12" *ngIf="internalSavedMetadata.length > 0">
-                        <div class="ui-g-4">Nom du champ</div>
-                        <div class="ui-g-3">Valeur du champ</div>
-                        <div class="ui-g-4">Type d'action</div>
+                        <div class="ui-g-3">Nom du champ</div>
+                        <div class="ui-g-3">Chaîne de caractère actuelle</div>
+                        <div class="ui-g-3">Nouvelle Valeur</div>
+                        <div class="ui-g-2">Type d'action</div>
                         <div class="ui-g-1">Annuler</div>
                     </div>
 
-
-                    <ng-template ngFor let-metadata [ngForOf]="internalSavedMetadata">
+                    <ng-template ngFor let-metadata [ngForOf]="internalSavedMetadata" let-i="index">
 
                         <div class="ui-g-12">
-                            <div class="ui-g-4">
+                            <div class="ui-g-3">
                                 <input pInputText [(ngModel)]="metadata.FieldName" style="width: 100%"/>
                             </div>
-                            <div class="ui-g-4">
+                            <div class="ui-g-3">
+                                <input pInputText [(ngModel)]="metadata.FieldPattern" style="width: 100%"
+                                       *ngIf="metadata.Action === METADATA_ACITONS.PATTERN"/>
+                            </div>
+                            <div class="ui-g-3">
                                 <input pInputText [(ngModel)]="metadata.FieldValue" style="width: 100%"
                                        *ngIf="metadata.Action !== METADATA_ACITONS.DELETE"/>
                             </div>
-                            <div class="ui-g-3">
+                            <div class="ui-g-2">
                                 <div class="ui-g-1"></div>
                                 <i class="ui-g-2" [ngClass]="getMetadataActionIcon(metadata.Action)"></i>
                                 <span class="ui-g-8">{{getMetadataActionLabel(metadata.Action)}}</span>
