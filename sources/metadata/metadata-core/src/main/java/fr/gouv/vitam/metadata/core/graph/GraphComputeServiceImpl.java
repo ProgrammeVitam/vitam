@@ -163,25 +163,29 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     public GraphComputeResponse computeGraph(JsonNode queryDSL) throws MetaDataException {
 
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-
-        boolean tryBuildGraph = lockers.get(tenant).compareAndSet(false, true);
+        AtomicBoolean lock = lockers.get(tenant);
+        boolean tryBuildGraph = lock.compareAndSet(false, true);
 
         if (!tryBuildGraph) {
             throw new MetaDataException("Compute graph process already in progress");
         }
-        GraphComputeResponse response = new GraphComputeResponse();
+        try {
 
-        ScrollSpliterator<Set<String>> scroll = executeQuery(queryDSL);
+            GraphComputeResponse response = new GraphComputeResponse();
 
-
-        StreamSupport.stream(scroll, false).forEach(
-            item -> {
-                GraphComputeResponse stats = computeGraph(MetadataCollections.UNIT, item, true);
-                response.increment(stats);
-            });
+            ScrollSpliterator<Set<String>> scroll = executeQuery(queryDSL);
 
 
-        return response;
+            StreamSupport.stream(scroll, false).forEach(
+                item -> {
+                    GraphComputeResponse stats = computeGraph(MetadataCollections.UNIT, item, true);
+                    response.increment(stats);
+                });
+            return response;
+        } finally {
+            lock.set(false);
+        }
+
     }
 
     /**
@@ -336,7 +340,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection())
+                .findDocuments(collection, null);
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
