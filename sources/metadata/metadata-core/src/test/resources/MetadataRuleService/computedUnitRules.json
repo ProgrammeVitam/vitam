@@ -1,0 +1,24 @@
+{
+  "guid_1": {},
+  "guid_2": {},
+  "guid_3": {},
+  "guid_4": {
+    "ReuseRule": {
+      "Rules": [
+        {
+          "UnitId": "guid_4",
+          "OriginatingAgency": "sp4",
+          "Paths": [
+            [
+              "guid_4"
+            ]
+          ],
+          "Rule": "R3",
+          "StartDate": "startDate",
+          "EndDate": "endDate"
+        }
+      ],
+      "Properties": []
+    }
+  }
+}

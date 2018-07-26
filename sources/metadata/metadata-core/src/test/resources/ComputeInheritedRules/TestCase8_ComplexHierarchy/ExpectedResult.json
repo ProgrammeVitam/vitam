@@ -1,0 +1,1294 @@
+{
+  "guid1": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [],
+      "Rules": []
+    }
+  },
+  "guid2": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "Rule": "APP-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    }
+  },
+  "guid3": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid3"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy",
+          "UnitId": "guid3"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid3"
+            ]
+          ],
+          "Rule": "APP-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid3"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "RestrictAccess"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid3"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    }
+  },
+  "guid4": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid4",
+          "OriginatingAgency": "sp4",
+          "Paths": [
+            [
+              "guid4"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "RestrictAccess"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    }
+  },
+  "guid5": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid4",
+          "OriginatingAgency": "sp4",
+          "Paths": [
+            [
+              "guid5",
+              "guid4"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid1"
+            ],
+            [
+              "guid5",
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid5",
+              "guid4",
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid5",
+          "OriginatingAgency": "sp5",
+          "Paths": [
+            [
+              "guid5"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Copy"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid5",
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    }
+  },
+  "guid6": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid6",
+          "OriginatingAgency": "sp6",
+          "Paths": [
+            [
+              "guid6"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid6",
+          "OriginatingAgency": "sp6",
+          "Paths": [
+            [
+              "guid6"
+            ]
+          ],
+          "Rule": "APP-00002"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "RestrictAccess"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid6",
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    }
+  },
+  "guid7": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid4",
+          "OriginatingAgency": "sp4",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        },
+        {
+          "UnitId": "guid6",
+          "OriginatingAgency": "sp6",
+          "Paths": [
+            [
+              "guid7",
+              "guid6"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid1"
+            ],
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid6",
+          "OriginatingAgency": "sp6",
+          "Paths": [
+            [
+              "guid7",
+              "guid6"
+            ]
+          ],
+          "Rule": "APP-00002"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        },
+        {
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "RestrictAccess"
+        },
+        {
+          "UnitId": "guid5",
+          "OriginatingAgency": "sp5",
+          "Paths": [
+            [
+              "guid7",
+              "guid5"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Copy"
+        }
+      ],
+      "Rules": [
+        {
+          "EndDate": "2001-01-01",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "UnitId": "guid2"
+        },
+        {
+          "EndDate": "2001-01-01",
+          "OriginatingAgency": "sp3",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid3"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid3"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "UnitId": "guid3"
+        }
+      ]
+    }
+  },
+  "guid8": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ],
+      "Rules": []
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationAudience",
+          "PropertyValue": "CA2"
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL2"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid8",
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid8",
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationReassessingDate",
+          "PropertyValue": "2016-06-03"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid8"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        }
+      ],
+      "Rules": []
+    }
+  },
+  "guid9": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ],
+      "Rules": []
+    },
+    "ClassificationRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationAudience",
+          "PropertyValue": "CA2"
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "CL2"
+        },
+        {
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp2",
+          "Paths": [
+            [
+              "guid9",
+              "guid8",
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid9",
+              "guid8",
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "CO1"
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        },
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "ClassificationReassessingDate",
+          "PropertyValue": "2016-06-03"
+        }
+      ],
+      "Rules": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [
+        {
+          "UnitId": "guid8",
+          "OriginatingAgency": "sp8",
+          "Paths": [
+            [
+              "guid9",
+              "guid8"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Transfer"
+        }
+      ],
+      "Rules": []
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "#id": "guid_3",
+    "#unitups": [
+      "guid_2"
+    ],
+    "#originating_agency": "sp3",
+    "#management": {}
+  },
+  {
+    "#id": "guid_1",
+    "#unitups": [],
+    "#originating_agency": "sp1",
+    "#management": {}
+  }
+]

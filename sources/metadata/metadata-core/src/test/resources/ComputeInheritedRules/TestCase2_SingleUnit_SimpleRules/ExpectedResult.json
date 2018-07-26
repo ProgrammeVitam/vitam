@@ -1,0 +1,147 @@
+{
+  "guid1": {
+    "StorageRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "STO-00001",
+          "StartDate": "2015-01-01",
+          "EndDate": "2016-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "STO-00002",
+          "StartDate": "2016-01-01",
+          "EndDate": "2017-01-01"
+        }
+      ],
+      "Properties": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00049",
+          "StartDate": "2016-01-01",
+          "EndDate": "2017-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ]
+    },
+    "AccessRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "DisseminationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ReuseRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ClassificationRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "CLASS-00001",
+          "StartDate": "2015-06-03",
+          "EndDate": "2025-06-03"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "ClassificationAudience",
+          "PropertyValue": "ClassificationAudience0"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "ClassificationLevel",
+          "PropertyValue": "Confidentiel Défense"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "ClassificationOwner",
+          "PropertyValue": "ClassificationOwner0"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "NeedReassessingAuthorization",
+          "PropertyValue": true
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "ClassificationReassessingDate",
+          "PropertyValue": "2016-06-03"
+        }
+      ]
+    }
+  }
+}

@@ -26,24 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -70,8 +54,23 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchParseException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 /**
  * Units resource REST API
@@ -88,18 +87,24 @@ public class MetadataResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
 
     private final MetaData metaData;
+    private final MetadataRuleService metadataRuleService;
 
     /**
      * MetaDataResource constructor
+     *
      * @param metaData
+     * @param metadataRuleService
      */
-    public MetadataResource(MetaData metaData) {
+    public MetadataResource(MetaData metaData,
+        MetadataRuleService metadataRuleService) {
         this.metaData = metaData;
+        this.metadataRuleService = metadataRuleService;
         LOGGER.info("init MetaData Resource server");
     }
 
     /**
      * Insert unit with json request
+     *
      * @param insertRequest the insert request in JsonNode format
      * @return Response
      */
@@ -172,6 +177,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Insert unit with json request
+     *
      * @param jsonNodes the insert request in JsonNode format
      * @return Response
      */
@@ -249,6 +255,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Update unit with json request
+     *
      * @param updateQuery the insert request in JsonNode format
      * @return Response
      */
@@ -283,6 +290,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Select unit with json request
+     *
      * @param request the request in JsonNode format
      * @return Response
      */
@@ -296,6 +304,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
+     *
      * @param selectRequest
      * @return
      */
@@ -358,6 +367,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Flush Unit index
+     *
      * @return Response
      */
     @Path("units")
@@ -385,6 +395,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Select objectgroups with json request
+     *
      * @param request the request in JsonNode format
      * @return Response
      */
@@ -398,6 +409,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
+     *
      * @param selectRequest
      * @return
      */
@@ -460,6 +472,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Flush ObjectGroup index
+     *
      * @return Response
      */
     @Path("objectgroups")
@@ -500,6 +513,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Update unit by query and path parameter unit_id
+     *
      * @param updateRequest the update request
      * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
@@ -651,6 +665,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Create unit with json request
+     *
      * @param insertRequest the insert query
      * @return the Response
      */
@@ -713,6 +728,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Get ObjectGroup
+     *
      * @param selectRequest the request
      * @param objectGroupId the objectGroup ID to get
      * @return a response with the select query and the required object group (can be empty)
@@ -741,6 +757,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Get ObjectGroup
+     *
      * @param updateRequest the query to update the objectgroup
      * @param objectGroupId the objectGroup ID to get
      * @return a response with the select query and the required object group (can be empty)
@@ -916,6 +933,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Reindex a collection
+     *
      * @param indexParameters parameters specifying what to reindex
      * @return Response response
      */
@@ -961,6 +979,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Switch indexes
+     *
      * @param switchIndexParameters
      * @return Response response
      */
@@ -993,6 +1012,72 @@ public class MetadataResource extends ApplicationStatusResource {
             VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_SWITCH_INDEX_ERROR,
                 exc.getMessage());
             return Response.status(status).entity(error).build();
+        }
+    }
+
+    /**
+     * Select units with inherited rules
+     *
+     * @param selectRequest the select request in JsonNode format
+     * @return {@link Response} will be contains an json filled by unit result
+     */
+    @Path("unitsWithInheritedRules")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectUnitsWithInheritedRules(JsonNode selectRequest) {
+
+        Status status;
+        try {
+            RequestResponse<JsonNode> result = metadataRuleService.selectUnitsWithInheritedRules(selectRequest);
+
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(st)).build();
+
+        } catch (final VitamDBException ve) {
+            LOGGER.error(ve);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(ve.getMessage()))
+                .build();
+        } catch (final InvalidParseOperationException | BadRequestException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+
+        } catch (final MetaDataExecutionException e) {
+            return metadataExecutionExceptionTrace(e);
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e);
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
         }
     }
 }

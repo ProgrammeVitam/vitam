@@ -1,0 +1,30 @@
+[
+  {
+    "Title": "Unit 2",
+    "#id": "guid_2",
+    "InheritedRules": {}
+  },
+  {
+    "Title": "Unit 4",
+    "#id": "guid_4",
+    "InheritedRules": {
+      "ReuseRule": {
+        "Rules": [
+          {
+            "UnitId": "guid_4",
+            "OriginatingAgency": "sp4",
+            "Paths": [
+              [
+                "guid_4"
+              ]
+            ],
+            "Rule": "R3",
+            "StartDate": "startDate",
+            "EndDate": "endDate"
+          }
+        ],
+        "Properties": []
+      }
+    }
+  }
+]

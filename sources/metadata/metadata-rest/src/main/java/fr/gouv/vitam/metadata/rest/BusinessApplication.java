@@ -38,7 +38,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
@@ -49,9 +48,9 @@ import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
+import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 
 /**
  * Metadata resources and filter
@@ -85,7 +84,8 @@ public class BusinessApplication extends Application {
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 
-            MetadataResource metaDataResource = new MetadataResource(metadata);
+            MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);
+            MetadataResource metaDataResource = new MetadataResource(metadata, metadataRuleService);
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
             MetadataManagementResource metadataReconstruction =
                 new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata);

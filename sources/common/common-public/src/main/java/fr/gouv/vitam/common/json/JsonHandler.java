@@ -787,6 +787,31 @@ public final class JsonHandler {
         }
     }
 
+    /**
+     * @param inputStream to transform
+     * @param clasz       the instance of target class
+     * @param parameterClazz the the target class template parameters
+     * @return the corresponding object
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz, Class<?>... parameterClazz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("InputStream, class or parameterClazz", inputStream, clasz, parameterClazz);
+            JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(clasz, parameterClazz);
+            return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), type);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+    }
 
     /**
      * From one ArrayNode, get a new ArrayNode from offset to limit items

@@ -1,0 +1,293 @@
+{
+  "guid1": {
+    "StorageRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00047",
+          "StartDate": "2014-01-01",
+          "EndDate": "2015-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00048",
+          "StartDate": "2015-01-01",
+          "EndDate": "2016-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ]
+    },
+    "AccessRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "DisseminationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ReuseRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    }
+  },
+  "guid2": {
+    "AccessRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00047",
+          "StartDate": "2014-01-01",
+          "EndDate": "2015-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00048",
+          "StartDate": "2015-01-01",
+          "EndDate": "2016-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "DisseminationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ReuseRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "StorageRule": {
+      "Rules": [],
+      "Properties": []
+    }
+  },
+  "guid3": {
+    "AccessRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00047",
+          "StartDate": "2014-01-01",
+          "EndDate": "2015-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00048",
+          "StartDate": "2015-01-01",
+          "EndDate": "2016-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "DisseminationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ReuseRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "StorageRule": {
+      "Rules": [],
+      "Properties": []
+    }
+  },
+  "guid4": {
+    "AccessRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00047",
+          "StartDate": "2014-01-01",
+          "EndDate": "2015-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid1"
+            ]
+          ],
+          "Rule": "APP-00048",
+          "StartDate": "2015-01-01",
+          "EndDate": "2016-01-01"
+        }
+      ],
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Destroy"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "DisseminationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ReuseRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "StorageRule": {
+      "Rules": [],
+      "Properties": []
+    }
+  }
+}
