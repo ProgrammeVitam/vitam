@@ -48,6 +48,7 @@ import fr.gouv.vitam.metadata.core.model.InheritedRuleModel;
 
 /**
  * POJO for the result of Inherited Rule
+ * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitInheritedRule {
 

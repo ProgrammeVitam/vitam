@@ -103,6 +103,7 @@ public abstract class BuilderToken {
         THRESOLD("threshold"),
         /**
          * Action part (in case of update)
+         * @deprecated : To be removed in future releases.
          */
         RULES("rules"),
         /**

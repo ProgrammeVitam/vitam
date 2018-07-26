@@ -40,6 +40,7 @@ import java.util.Set;
 
 /**
  * Object to build the graph of unit
+ * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitNode {
     private UnitSimplified unit;

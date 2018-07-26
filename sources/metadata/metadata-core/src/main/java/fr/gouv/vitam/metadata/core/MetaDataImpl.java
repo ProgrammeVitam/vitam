@@ -551,6 +551,9 @@ public class MetaDataImpl implements MetaData {
         return newSelectQuery;
     }
 
+    /**
+     * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
+     */
     private void computeRuleForUnit(ArrayNode arrayNodeResponse)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
         MetaDataNotFoundException, BadRequestException, VitamDBException {
