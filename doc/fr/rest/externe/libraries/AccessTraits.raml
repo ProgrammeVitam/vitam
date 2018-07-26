@@ -55,6 +55,30 @@ traits:
             schema: AccessTypes.AccessGetByIdResponse
             example: !include examples/access1UnitResponse.json
 
+
+  AccessUnitWithInheritedRulesResponse:
+    description: Response model for units with inherited rules in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
+    body:
+      application/json:
+        description: Contient la requête DSL multiple au format JSON.
+        schema: AccessTypes.AccessMultipleQuery
+        example: !include examples/accessUnitQuery.json
+    responses:
+      200:
+        description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL ainsi que leurs règles héritées.
+        body:
+          application/json:
+            description: Réponse DSL multiple pour Access contenant les métadonnées des Unités d'archives ainsi que leurs règles héritées.
+            schema: AccessTypes.AccessMultipleResponse
+            example: !include examples/accessUnitWithInheritedRulesResponse.json
+
   AccessUniqueObjectQualifierResponse:
     description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,

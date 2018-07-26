@@ -129,6 +129,17 @@ documentation:
             required: true
             enum: [ "application/octet-stream", "application/json" ]
 
+/unitsWithInheritedRules:
+  displayName: ArchiveUnits with inherited rules
+  description: |
+   API qui définit les requêtes pour accéder aux Unités d'archives avec leurs règles de gestion héritées.
+   La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Unités d'archives ainsi que leurs règles de gestion héritées.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+    is: [AccessTraits.AccessUnitWithInheritedRulesResponse]
+
 /dipexport:
   displayName: DIP Export
   description: |

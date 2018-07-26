@@ -62,70 +62,62 @@ Les AU situées en dessous de Botzaris dans l'arborescence vont donc hériter de
 
 Dans les résultats on récupère une AU dont le titre est : "Buttes-Chaumont". Cette AU ne possède pas de règle de gestion et c'est normal : seule les règles de gestions enregistrées en base sont retournées, il n'y a pas de calcul d'héritage.
 
-Pour voir les règles réellement appliquées à l'AU au travers l'héritage, il faut utiliser l'opérateur $rules dans la $projection. En reprenant la même requête que ci dessus et en lui demandant l'héritage :
-
+Pour voir les règles réellement appliquées à l'AU au travers l'héritage, on peut utiliser l'API **GET /unitsWithInheritedRules**. On obtient un bloc "InheritedRuled" (règles héritées) dans les réponses dont voici un extrait :
 ```json
 {
-  "$roots": [],
-  "$query": [
-    {
-      "$eq": {
-        "#allunitups": "aeaqaaaaaahexbfjaallkaldvongvhyaaaba"
-      }
-    }
-  ],
-  "$filter": {},
-  "$projection": {
-    "$fields": {
-      "$rules": 1
+  "InheritedRules": {
+    "DisseminationRule": {
+      "Rules": [
+        {
+          "UnitId": "aeaqaaaaaagmqmplab2rqale23iwrmqaaaba",
+          "OriginatingAgency": "RATP",
+          "Paths": [
+            [
+              "aeaqaaaaaagmqmplab2rqale23iwrniaaabq",
+              "aeaqaaaaaagmqmplab2rqale23iwrnaaaabq",
+              "aeaqaaaaaagmqmplab2rqale23iwrnyaaaba",
+              "aeaqaaaaaagmqmplab2rqale23iwrmqaaaba"
+            ],
+            [
+              "aeaqaaaaaagmqmplab2rqale23iwrniaaabq",
+              "aeaqaaaaaagmqmplab2rqale23iwrnaaaabq",
+              "aeaqaaaaaagmqmplab2rqale23iwrmyaaaba",
+               "aeaqaaaaaagmqmplab2rqale23iwrmqaaaba"
+            ]
+          ],
+          "Rule": "DIS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2025-01-01"
+        }
+      ],
+      "Properties": []
     }
   }
 }
 ```
-On obtient un bloc "inheritedRule" (règles héritées) dans les réponses dont voici un extrait :
-
-```json
-  "inheritedRule": {
-       "DisseminationRule": {
-         "DIS-00001": {
-           "aeaqaaaaaahexbfjaallkaldvongvhiaaaba": {
-             "StartDate": "2000-01-01",
-             "EndDate": "2025-01-01",
-             "path": [
-               [
-                 "aeaqaaaaaahexbfjaallkaldvongvhiaaaba",
-                 "aeaqaaaaaahexbfjaallkaldvongviaaaacq",
-                 "aeaqaaaaaahexbfjaallkaldvongvhyaaaba",
-                 "aeaqaaaaaahexbfjaallkaldvongvhyaaacq"
-               ],
-               [
-                 "aeaqaaaaaahexbfjaallkaldvongvhiaaaba",
-                 "aeaqaaaaaahexbfjaallkaldvongvhiaaacq",
-                 "aeaqaaaaaahexbfjaallkaldvongvhyaaaba",
-                 "aeaqaaaaaahexbfjaallkaldvongvhyaaacq"
-               ]
-             ]
-           }
-         }
-       }}
-```
 
 Comprenant donc :
 
-  * L'objet "inheritedRule"
+  * L'objet "InheritedRules"
   * Les catégories de règles, ici "DisseminationRule"
-  * Les identifiant de règles dans chaque catégorie ("DIS-00001")
-  * Les dates de débuts et fin d'applications
-  * Les chemins d'héritage, c'est à dire tous les chemins possibles ayant pour conséquence que cette AU hérite de cette règle (dans l'exemple il y a deux chemins possibles). Le chemin étant une succession d'identifiant d'AU
+  * Pour chaque catégorie, la liste des règles (Rules)
+  * Chaque règle contient :
+    - L'identifiant de la règle (Rule)
+    - L'unité archivistique qui la porte (UnitId).
+    - Le service producteur de la règle qui la porte (OriginatingAgency)
+    - L'ensemble des chemins par laquelle la règle est héritée (Paths). Ici, il y'a deux chemins possibles. Un chemin étant l'ensemble des identifiants des unités archivistiques. 
+    - Les dates de débuts et fin d'applications
 
-**Attention : les requêtes utilisant $rules peuvent être très coûteuses pour le système. Il convient de limiter le périmètre de la requête au maximum pour éviter un recalcul massif inutilement**
+**Attention :**
+  - Le calcul des règles de gestion peut être très coûteux pour le système. Il convient de limiter le périmètre de la requête au maximum pour éviter un recalcul massif inutilement
+  - Il est également possible d'utiliser la projection spéciale "$rules" afin de calculer les règles de gestion depuis le endpoint **GET /units**. Cependant cette API est dépréciée et sera supprimée dans une prochaine release.
 
 # Les métadonnées de catégories
 
-Dans le SIP utilisé pour ce jeu de test, on peut chercher l'AU de titre "Eglise de Pantin". On remarquera dans cette AU le retour concernant la métadonnée de sort final (FinalAction) et celles des règles de classification (ClassificationLevel et ClassificationOwner), dont voici un extrait :
+Dans le SIP utilisé pour ce jeu de test, on peut chercher l'AU de titre "Eglise de Pantin". On remarquera dans cette AU le retour concernant la propriété de sort final (FinalAction) et celles des règles de classification (ClassificationLevel et ClassificationOwner), dont voici un extrait :
 
 ```json
-"StorageRule": {
+    "StorageRule": {
       "Rules": [
         {
           "Rule": "STO-00001",
@@ -136,20 +128,54 @@ Dans le SIP utilisé pour ce jeu de test, on peut chercher l'AU de titre "Eglise
       "FinalAction": "Copy"
     },
     "ClassificationRule": {
-           "ClassificationLevel": "Secret Défense",
-           "ClassificationOwner": "RATP",
-           "Rules": [
-             {
-               "Rule": "CLASS-00001",
-               "StartDate": "2000-01-01",
-               "EndDate": "2010-01-01"
-             }
-           ]
-         }
-       },
+      "ClassificationLevel": "Secret Défense",
+      "ClassificationOwner": "RATP",
+      "Rules": [
+        {
+          "Rule": "CLASS-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2010-01-01"
+        }
+      ]
+    }
+  },
 ```
 
-Pour finir en cherchant l'AU de titre "1_Saint Denis Université" on peut voir la structure de PreventInheritance (qui indique que toutes les AU sous celle ci n'hériteront pas des règles AccessRule)
+Les properités des règles sont également héritées depuis les unités archivistiques parentes. On peut utiliser l'API **GET /unitsWithInheritedRules** afin de calculer l'ensemble des proprités héritées :
+
+```json
+"InheritedRules": {
+  "StorageRule": {
+    "Rules": [],
+    "Properties": [
+      {
+        "UnitId": "aeaqaaaaaagmqmplab2rqale23iwrbiaaaba",
+        "OriginatingAgency": "RATP",
+        "Paths": [
+          [
+            "aeaqaaaaaagmqmplab2rqale23iwrbyaaaaq",
+            "aeaqaaaaaagmqmplab2rqale23iwrbiaaaba"
+          ]
+        ],
+        "PropertyName": "FinalAction",
+        "PropertyValue": "Copy"
+      }
+    ]
+  }
+}
+```
+où on retrouve :
+  * L'objet "InheritedRules"
+  * Les catégories de règles, ici "StorageRule"
+  * Pour chaque catégorie, la liste des propriétés (Properties)
+  * Chaque propriété contient :
+    - Le nom de la propriété, ici "FinalAction"
+    - La valeur de la propriété, ici "Copy"
+    - L'unité archivistique qui la porte (UnitId).
+    - Le service producteur de la règle qui la propriété (OriginatingAgency)
+    - L'ensemble des chemins par laquelle la règle est héritée (Paths).
+
+Pour finir en cherchant l'AU de titre "1_Saint Denis Université" on peut voir la métadonnée de PreventInheritance (qui indique que toutes les AU sous celle ci n'hériteront pas des règles et des propriétés de la catégorie AccessRule)
 
 ```json
 "#management": {
@@ -197,7 +223,7 @@ Pour finir en cherchant l'AU de titre "1_Saint Denis Université" on peut voir l
   },
   "$projection": {
     "$fields": {
-    	"$rules" : 1, "Title" : 1
+    	"#id" : 1, "Title" : 1
     }
   }
 }

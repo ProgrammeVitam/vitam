@@ -695,8 +695,9 @@ La valeur **1** indique que le champ est activé (renvoyé au client). Toute aut
 **Remarque :**
 - Pour la collection *unit*, il est possible de demander la construction de l'ensemble des règles héritées en utilisant une projection *spéciale* **$rules**. Si cette projection est utilisée, l'ensemble des champs de l'unité archivistique est remonté.
   Cette projection ne devrait être utilisée que dans le point d'API */units/{id}* (GET BY ID).
-
-
+  
+  Il est également à noter que la projection *$rules* est **dépréciée** et devrait être supprimée dans une prochaine release. Elle est remplacée par une nouvelle API GET /unitsWithInheritedRules**.
+  
 ```json
 {
   "$projection": { "$fields": { "$rules": 1 } }
