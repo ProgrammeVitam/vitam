@@ -135,8 +135,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/units/bulk", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.POST, "/units/bulk", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -699,5 +700,37 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    @Override
+    public JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery)
+        throws MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException, MetaDataExecutionException {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.SELECT_UNITS_QUERY_NULL.getMessage(), selectQuery);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/unitsWithInheritedRules", null, selectQuery,
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            }
+            return response.readEntity(JsonNode.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 }

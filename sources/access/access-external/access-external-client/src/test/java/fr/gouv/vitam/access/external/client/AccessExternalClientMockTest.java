@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Before;
@@ -39,6 +40,13 @@ public class AccessExternalClientMockTest {
         throws Exception {
         assertNotNull(client.selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql)));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternalSelectUnitsWithInheritedRulesThenReturnResult() {
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            JsonHandler.getFromString(queryDsql)))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

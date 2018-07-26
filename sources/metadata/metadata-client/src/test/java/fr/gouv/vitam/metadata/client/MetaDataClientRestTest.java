@@ -152,6 +152,14 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @Path("unitsWithInheritedRules")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitWithInheritedRules(String request) {
+            return expectedResponse.get();
+        }
+
         @Path("units/{id_unit}")
         @GET
         @Consumes(MediaType.APPLICATION_JSON)
@@ -713,6 +721,48 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     public void selectObjectsTest() {
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void selectUnitsWithoutInheritedRulesShouldRaiseExceptionWhenExecution() {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void given_InvalidRequest_When_SelectUnitsWithoutInheritedRules_ThenReturn_BadRequest() {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void given_EntityTooLargeRequest_When_selectUnitsWithoutInheritedRules_ThenReturn_RequestEntityTooLarge() {
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void given_EntityTooLargeRequest_When_SelectUnitsWithoutInheritedRules_ThenReturn_not_acceptable() {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void given_blankQuery_whenSelectUnitsWithoutInheritedRules_ThenReturn_MetadataInvalidSelectException() {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString("")))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void selectUnitsWithoutInheritedRulesTest() {
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
             .isInstanceOf(InvalidParseOperationException.class);
     }
 }

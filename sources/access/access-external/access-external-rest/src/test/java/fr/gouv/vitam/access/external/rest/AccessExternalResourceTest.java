@@ -156,6 +156,7 @@ public class AccessExternalResourceTest {
     private static final String ID = "identifier4";
     // LOGGER
     private static final String ACCESS_UNITS_URI = "/units";
+    private static final String ACCESS_UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
 
     private static final String ID_UNIT = "identifier5";
     private static final String TENANT_ID = "0";
@@ -1615,5 +1616,305 @@ public class AccessExternalResourceTest {
             .when().options("/")
             .then().statusCode(Status.OK.getStatusCode())
             .body(CoreMatchers.containsString("units:read"));
+    }
+
+    @Test
+    public void givenStartedServerHtpOverride_WhenSelectUnitsWithInheritedRulesWithNotJsonRequest_ThenReturnError_UnsupportedMediaType()
+        throws Exception {
+
+        given()
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+
+        given()
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithNotJsonRequest_ThenReturnOK() throws Exception {
+        given()
+            .contentType(ContentType.XML).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+
+        given()
+            .contentType(ContentType.XML).header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testAccessUnitsWithInheritedRules() throws Exception {
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+        // Multiple Query DSL Validator Ok
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testHttpOverrideAccessUnitsWithInheritedRules() throws Exception {
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .headers(new Headers(new Header(X_HTTP_METHOD_OVERRIDE, "GET"),
+                new Header(GlobalDataRest.X_TENANT_ID, TENANT_ID)))
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .headers(new Headers(new Header(X_HTTP_METHOD_OVERRIDE, "GET"),
+                new Header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)))
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+
+    @Test
+    public void testErrorsSelectUnitsWithInheritedRules()
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(anyObject());
+
+        // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(BODY_TEST_SINGLE)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST_SINGLE)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+    }
+
+    @Test
+    public void testOkSelectUnitsWithInheritedRules() throws Exception {
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+        // Query Validation Ok
+        JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(queryNode)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
+        // Validation Ok
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_MULTIPLE))
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
+    }
+
+    @Test
+    public void testhttpOverrideErrorsSelectUnitsWithInheritedRules()
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(anyObject());
+
+        // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST_SINGLE)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST_SINGLE)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        PowerMockito.doThrow(new BadRequestException("Bad Request"))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST_SINGLE)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
     }
 }

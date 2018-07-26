@@ -74,6 +74,18 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
+    /**
+     * Select units with inherited rules
+     */
+    @Override
+    @GET
+    @Path("/unitsWithInheritedRules")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectUnitsWithInheritedRules(JsonNode queryDsl) {
+        return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
+    }
+
     @Override
     @POST
     @Path("/dipexport")

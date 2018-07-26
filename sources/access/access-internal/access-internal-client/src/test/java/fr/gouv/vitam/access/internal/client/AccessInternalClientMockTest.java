@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.internal.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -150,6 +151,18 @@ public class AccessInternalClientMockTest {
         assertNotNull(client);
         final Response response = client.downloadTraceabilityFile("OP_ID");
         assertNotNull(response);
+    }
+
+    @Test
+    public void givenMockExists_whenSelectUnitsWithInheritedRules_ThenReturnOK()
+        throws Exception {
+        AccessInternalClientFactory.changeMode(null);
+        final AccessInternalClient client =
+            AccessInternalClientFactory.getInstance().getClient();
+
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
 }

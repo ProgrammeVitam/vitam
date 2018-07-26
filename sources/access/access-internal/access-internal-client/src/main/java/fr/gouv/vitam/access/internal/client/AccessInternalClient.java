@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 
 /**
  * Access client interface
@@ -280,4 +282,19 @@ public interface AccessInternalClient extends MockOrRestClient {
             throws InvalidParseOperationException, AccessInternalClientServerException,
             AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
 
+    /**
+     * Select units with inherited rules by select query (DSL)
+     *
+     * @param selectQuery : select query
+     * @return Json object
+     * @return a response containing a json node object including DSL queries and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws BadRequestException if empty query is found
+     */
+    RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
 }

@@ -177,6 +177,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @GET
+        @Path("unitsWithInheritedRules")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitsWithInheritedRules(String queryDsl) {
+            return expectedResponse.get();
+        }
+
 
         // Logbook operations
         @GET
@@ -740,4 +748,48 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
+    /*
+     * select units with inherited rules
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceOKWhenSelectUnitsWithInheritedRulesThenReturnOK()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
+        assertThat(client.selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            JsonHandler.getFromString(queryDsql))).isNotNull();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInternalServerError_whenSelectUnitsWithInheritedRules_ThenRaiseAnExeption() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        assertThat(client
+            .selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
+            .getHttpCode())
+            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceNotFound_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client
+            .selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
+            .getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequest_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client
+            .selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
+            .getHttpCode())
+            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 }

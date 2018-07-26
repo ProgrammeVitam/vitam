@@ -34,7 +34,6 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
-import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -1816,7 +1815,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
             }
             jsonNode =
-                    metaDataClient.selectObjectGroups(jsonQuery);
+                metaDataClient.selectObjectGroups(jsonQuery);
             LOGGER.debug("DEBUG {}", jsonNode);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PARSING_ERROR, e);
@@ -1829,5 +1828,25 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException(e);
         }
         return jsonNode;
+    }
+
+    @Override
+    public JsonNode selectUnitsWithInheritedRules(JsonNode jsonQuery)
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
+
+        ParametersChecker.checkParameter(DATA_CATEGORY, jsonQuery);
+
+        // Check correctness of request
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        if (!(parser instanceof SelectParserMultiple)) {
+            throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
+        }
+
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            return metaDataClient.selectUnitsWithInheritedRules(jsonQuery);
+        } catch (MetaDataDocumentSizeException |
+            ProcessingException | MetaDataClientServerException | MetaDataExecutionException  e) {
+            throw new AccessInternalExecutionException(e);
+        }
     }
 }

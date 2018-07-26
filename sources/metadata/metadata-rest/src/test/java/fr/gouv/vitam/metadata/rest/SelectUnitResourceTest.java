@@ -156,6 +156,12 @@ public class SelectUnitResourceTest {
         "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$order\": \"ASC\"}}]}";
     private static final String SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER =
         "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5}}]}";
+
+    private static final String SEARCH_QUERY_BY_GUID_1 =
+        "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_1 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
+    /**
+     * @deprecated : obsolete $rules projection. Use /unitsWithInheritedRules API
+     */
     private static final String SEARCH_QUERY_WITH_RULE =
         "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_FACET_FILTERS =
@@ -279,6 +285,10 @@ public class SelectUnitResourceTest {
     }
 
     // select archive unit test
+
+    /**
+     * @deprecated to be replaced with /unitsWithInheritedRules
+     */
     @Test
     public void given_2units_insert_when_searchUnits_thenReturn_Found() throws Exception {
         with()
@@ -542,4 +552,104 @@ public class SelectUnitResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
+    @Test
+    public void given_badRequestHHtp_when_selectUnitsWithInheritedRules_thenReturn_BAD_REQUEST() {
+        given()
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/unitsWithInheritedRules")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void given_Bad_Request_when_SelectUnitsWithInheritedRules_thenReturn_Bad_Request() {
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BAD_QUERY_TEST)
+            .when()
+            .get("/unitsWithInheritedRules")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void given_emptyQuery_when_SelectUnitsWithInheritedRules_thenReturn_BadRequest() {
+
+        given()
+            .contentType(ContentType.JSON)
+            .body("")
+            .when()
+            .get("/unitsWithInheritedRules")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_2units_insert_when_searchUnitsWithInheritedRules_thenReturn_Found() throws Exception {
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(DATA_0)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        JsonNode responseJson =
+            given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_1)).when()
+                .get("/unitsWithInheritedRules").then()
+                .statusCode(Status.FOUND.getStatusCode())
+                .extract().as(JsonNode.class);
+        RequestResponseOK<JsonNode> responseOK =
+            JsonHandler.getFromString(JsonHandler.unprettyPrint(responseJson), RequestResponseOK.class, JsonNode.class);
+
+        assertThat(responseOK.getResults()).hasSize(1);
+        JsonNode unit1 = responseOK.getResults().get(0);
+        // Ensure inherited rules are exported
+        assertThat(unit1.get("InheritedRules").get("StorageRule").size()).isGreaterThan(0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_2units_insert_when_searchUnitsWithInheritedRulesWithFacet_thenReturn_Facet() throws Exception {
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(DATA_1)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(DATA_0)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        RequestResponseOK<JsonNode> responseOK1 = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
+            .get("/unitsWithInheritedRules").then()
+            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+
+        assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
+        assertThat(responseOK1.getFacetResults().get(0).getName()).isEqualTo("mgt_facet");
+        assertThat(responseOK1.getFacetResults().get(0).getBuckets().size()).isEqualTo(1);
+        assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getValue()).isEqualTo("str0");
+        assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
+    }
 }

@@ -168,6 +168,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
+        @GET
+        @Path("/unitsWithInheritedRules")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitsWithInheritedRules(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
+        @Override
         public Response exportDIP(JsonNode queryDsl) {
             return null;
         }
@@ -563,4 +572,47 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         assertNotNull(response);
     }
 
+    /* select units with inherited rules */
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenInternalServerError_whenSelectUnitsWithInheritedRules_ThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
+            .isInstanceOf(VitamDBException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenBadRequestException_whenSelectUnitsWithInheritedRules_ThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.FORBIDDEN).build());
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        final JsonNode queryJson = JsonHandler.getFromString(emptyQueryDsl);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
+            .isInstanceOf(BadRequestException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenResourceNotFound_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
+            .isInstanceOf(AccessInternalClientNotFoundException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenBadRequest_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
 }
