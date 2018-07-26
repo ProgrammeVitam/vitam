@@ -1256,7 +1256,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
 
         deleteObject(context, digest, offerReferences);
-        //TODO log in log storage bug #4805
+        //TODO log in log storage bug #4836
 
     }
 

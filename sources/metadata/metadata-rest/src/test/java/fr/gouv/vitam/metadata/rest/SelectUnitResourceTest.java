@@ -327,16 +327,16 @@ public class SelectUnitResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
-    @Test(expected = InvalidParseOperationException.class)
-    public void given_emptyQuery_when_Select_thenReturn_BadRequest() throws InvalidParseOperationException {
+    @Test
+    public void given_emptyQuery_when_Select_thenReturn_BadRequest() {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(""))
+            .body("")
             .when()
             .get("/units")
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -352,7 +352,6 @@ public class SelectUnitResourceTest {
     }
 
     // select Unit by ID (request and uri)
-
 
     @Test
     @RunWithCustomExecutor

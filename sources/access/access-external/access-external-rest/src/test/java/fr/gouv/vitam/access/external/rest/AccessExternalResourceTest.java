@@ -105,7 +105,6 @@ public class AccessExternalResourceTest {
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_OBJECTS_ID_URI = "/units/xyz/objects";
     private static AccessExternalMain application;
-    private static VitamServer vitamServer;
 
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceTest.class);
@@ -210,14 +209,7 @@ public class AccessExternalResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        try {
-            if (vitamServer != null) {
-                vitamServer.stop();
-            }
-            junitHelper.releasePort(port);
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
+        junitHelper.releasePort(port);
     }
 
     private static JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {

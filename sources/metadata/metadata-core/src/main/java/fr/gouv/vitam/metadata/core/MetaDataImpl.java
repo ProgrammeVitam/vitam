@@ -136,6 +136,7 @@ public class MetaDataImpl implements MetaData {
 
     /**
      * Get a new MetaDataImpl instance
+     *
      * @param mongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
@@ -358,47 +359,43 @@ public class MetaDataImpl implements MetaData {
             }
         }
 
-        try {
-            // parse Select request
-            final RequestParserMultiple selectRequest = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
-            selectRequest.parse(selectQuery);
-            // Reset $roots (add or override id on roots)
-            if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
-                final RequestMultiple request = selectRequest.getRequest();
-                if (request != null) {
-                    LOGGER.debug("Reset $roots id with :" + unitOrObjectGroupId);
-                    request.resetRoots().addRoots(unitOrObjectGroupId);
-                }
+        // parse Select request
+        final RequestParserMultiple selectRequest = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        selectRequest.parse(selectQuery);
+        // Reset $roots (add or override id on roots)
+        if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
+            final RequestMultiple request = selectRequest.getRequest();
+            if (request != null) {
+                LOGGER.debug("Reset $roots id with :" + unitOrObjectGroupId);
+                request.resetRoots().addRoots(unitOrObjectGroupId);
             }
-            if (filters != null && !filters.isEmpty()) {
-                final RequestMultiple request = selectRequest.getRequest();
-                if (request != null) {
-                    final String[] hints = filters.stream()
-                        .map(BuilderToken.FILTERARGS::exactToken)
-                        .toArray(String[]::new);
-                    LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
-                    request.addHintFilter(hints);
-                }
-            }
-
-            boolean shouldComputeUnitRule = false;
-            ObjectNode fieldsProjection =
-                (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
-            if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
-                shouldComputeUnitRule = true;
-                fieldsProjection.removeAll();
-            }
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest);
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
-
-            // Compute Rule for unit(only with search by Id)
-            if (shouldComputeUnitRule && result.hasFinalResult()) {
-                computeRuleForUnit(arrayNodeResponse);
-            }
-        } catch (final MetaDataNotFoundException | BadRequestException e) {
-            LOGGER.error(e);
-            throw e;
         }
+        if (filters != null && !filters.isEmpty()) {
+            final RequestMultiple request = selectRequest.getRequest();
+            if (request != null) {
+                final String[] hints = filters.stream()
+                    .map(BuilderToken.FILTERARGS::exactToken)
+                    .toArray(String[]::new);
+                LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
+                request.addHintFilter(hints);
+            }
+        }
+
+        boolean shouldComputeUnitRule = false;
+        ObjectNode fieldsProjection =
+            (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
+        if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
+            shouldComputeUnitRule = true;
+            fieldsProjection.removeAll();
+        }
+        result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest);
+        arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+
+        // Compute Rule for unit(only with search by Id)
+        if (shouldComputeUnitRule && result.hasFinalResult()) {
+            computeRuleForUnit(arrayNodeResponse);
+        }
+
         List res = toArrayList(arrayNodeResponse);
         List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
         Long total = (result != null) ? result.getTotal() : res.size();
@@ -437,12 +434,7 @@ public class MetaDataImpl implements MetaData {
             if (result.getNbResult() == 0) {
                 throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
             }
-        } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final BadRequestException |
-            MetaDataNotFoundException e) {
-            LOGGER.error(e);
+        } catch (final BadRequestException | MetaDataNotFoundException e) {
             throw new MetaDataExecutionException(e);
         }
     }
@@ -527,11 +519,7 @@ public class MetaDataImpl implements MetaData {
                 VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
-        } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
-            LOGGER.error(e);
-            throw e;
         } catch (final BadRequestException e) {
-            LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
         List res = toArrayList(arrayNodeResponse);

@@ -482,7 +482,7 @@ public class ItemStatus {
             JsonHandler.validate(evDetailData);
 
         } catch (InvalidParseOperationException e) {
-            throw new IllegalArgumentException("Value of eventDetailData has to be a Valid Json");
+            throw new IllegalArgumentException("Value of eventDetailData has to be a Valid Json", e);
         }
         data.put(EVENT_DETAIL_DATA, evDetailData);
         return this;

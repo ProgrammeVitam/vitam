@@ -40,8 +40,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
 public class AccessExternalClientRestTest extends VitamJerseyTest {
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/access-external/v1";
+    private static final String QUERY_DSL = "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
+        " $filter : { $orderby : '#id' }," +
+        " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+        " }";
     protected AccessExternalClientRest client;
 
     @Rule
@@ -292,13 +294,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : '#id' }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
         assertThat(client
-            .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
             .getHttpCode())
                 .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
@@ -308,13 +305,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : '#id' }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
         assertThat(client
-            .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
             .getHttpCode())
                 .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
