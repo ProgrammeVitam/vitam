@@ -63,6 +63,8 @@ public class ArchiveUnitMapperTest {
         rule = generateRule(SedaConstants.TAG_RULE_CLASSIFICATION);
         rule.setClassificationLevel("fakeClassificationLevel");
         rule.setClassificationOwner("fakeClassificationOwner");
+        rule.setNeedReassessingAuthorization(true);
+        rule.setClassificationReassessingDate("2000-01-02");
         archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_CLASSIFICATION);
 
         //DisseminationRule
@@ -212,10 +214,7 @@ public class ArchiveUnitMapperTest {
 
             case SedaConstants.TAG_RULE_DISSEMINATION:
             case SedaConstants.TAG_RULE_REUSE:
-                break;
             case SedaConstants.TAG_RULE_CLASSIFICATION:
-                rule.setNeedReassessingAuthorization(true);
-                rule.setClassificationReassessingDate("2000-01-02");
                 break;
             default:
                 throw new IllegalArgumentException("Type cannot be " + type);

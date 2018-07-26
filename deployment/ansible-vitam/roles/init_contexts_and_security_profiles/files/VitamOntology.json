@@ -964,6 +964,18 @@
         ]
     },
     {
+        "Identifier": "ClassificationAudience",
+        "SedaField": "ClassificationAudience",
+        "Description": "Mapping : unit-es-mapping.json. Permet de gérer les questions de 'diffusion restreinte', de 'spécial France' et de 'Confidentiel Industrie'.",
+        "Type": "TEXT",
+        "Origin": "INTERNAL",
+        "ShortName": "Audience de la classification",
+        "Collections": [
+            "Unit"
+        ]
+    },
+
+    {
         "Identifier": "ClassificationReassessingDate",
         "SedaField": "ClassificationReassessingDate",
         "Description": "Mapping : unit-es-mapping.json. Date de réévaluation de la classification.",

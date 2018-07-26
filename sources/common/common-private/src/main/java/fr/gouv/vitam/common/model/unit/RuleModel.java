@@ -48,19 +48,6 @@ public class RuleModel {
     @JsonProperty("EndDate")
     private String endDate;
 
-
-
-
-    /**
-     * classificationReassessingDate
-     */
-    private String classificationReassessingDate;
-
-    /**
-     * needReassessingAuthorization
-     */
-    private Boolean needReassessingAuthorization;
-
     public RuleModel() {
     }
 
@@ -83,22 +70,6 @@ public class RuleModel {
 
     public void setStartDate(String startDate) {
         this.startDate = startDate;
-    }
-
-    public String getClassificationReassessingDate() {
-        return classificationReassessingDate;
-    }
-
-    public void setClassificationReassessingDate(String classificationReassessingDate) {
-        this.classificationReassessingDate = classificationReassessingDate;
-    }
-
-    public Boolean isNeedReassessingAuthorization() {
-        return needReassessingAuthorization;
-    }
-
-    public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
-        this.needReassessingAuthorization = needReassessingAuthorization;
     }
 
     public String getEndDate() {

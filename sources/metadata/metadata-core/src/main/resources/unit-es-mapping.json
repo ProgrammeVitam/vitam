@@ -1064,19 +1064,6 @@
                     "type": "date",
                     "format": "strict_date_optional_time"
                   },
-                  "ClassificationLevel": {
-                    "type": "keyword"
-                  },
-                  "ClassificationOwner": {
-                    "type": "text"
-                  },
-                  "ClassificationReassessingDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "NeedReassessingAuthorization": {
-                    "type": "boolean"
-                  },
                   "Rule": {
                     "type": "keyword"
                   },
@@ -1101,6 +1088,9 @@
               },
               "ClassificationOwner": {
                 "type": "text"
+              },
+              "ClassificationAudience": {
+                "type":"keyword"
               },
               "ClassificationReassessingDate": {
                 "type": "date",

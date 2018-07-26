@@ -1551,6 +1551,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 .setClassificationAudience(
                     globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE).asText());
         }
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE)) {
+            ruleCategoryModel
+                .setClassificationReassessingDate(
+                    globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE).asText());
+        }
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION)) {
+            ruleCategoryModel
+                .setNeedReassessingAuthorization(
+                    globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION).asBoolean());
+        }
+
         JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
             ruleCategoryModel.setFinalAction(finalAction.asText());

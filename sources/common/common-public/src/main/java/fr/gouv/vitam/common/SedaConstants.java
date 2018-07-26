@@ -444,11 +444,11 @@ public class SedaConstants {
     /**
      * tag of ClassificationReassessingDate
      */
-    public static final String TAG_RULE_REASSESSING_DATE = "ClassificationReassessingDate";
+    public static final String TAG_RULE_CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
     /**
      * tag of NeedReassessingAuthorization
      */
-    public static final String TAG_RULE_NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
+    public static final String TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
     /**
      * tag of NeedAuthorization
      */
