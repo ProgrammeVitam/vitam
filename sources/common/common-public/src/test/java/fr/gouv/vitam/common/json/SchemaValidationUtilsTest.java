@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -513,11 +515,11 @@ public class SchemaValidationUtilsTest {
     }
 
     @Test
-    public void should_have_no_error_with_date_iso8601() throws Exception {
+    public void should_have_no_error_with_date_xsd_date_and_xsd_datetime() throws Exception {
         // Given
         SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         Map<String, OntologyModel> ontologyModelMap = Collections.singletonMap("MyDate", new OntologyModel().setType(DATE).setIdentifier("MyDate"));
-        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyDate\" : \"2018-07-20\"}");
+        JsonNode jsonArcUnit = JsonHandler.getFromString("{\"MyField\":[{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00Z\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"12045-01-01\"},{\"MyDate\":\"2004-04-12-05:00\"},{\"MyDate\":\"2004-04-12Z\"}]}");
 
         ArrayList<String> errors = new ArrayList<>();
 
