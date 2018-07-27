@@ -9,51 +9,50 @@ La collection ObjectGroup contient les informations relatives aux groupes d'obje
 Exemple de XML
 ==============
 
-Ci-après, la porpartietion d'un bordereau de transfert (manifest.xml) utilisée pour compléter les champs du JSON correspondant à un groupe d'objets.
+Ci-après, un extrait d'un bordereau de transfert (manifest.xml) utilisé pour compléter les champs du JSON correspondant à un groupe d'objets.
 
 ::
-
-  <PhysicalDataObject id="ID109">
-      <DataObjectGroupReferenceId>ID0009</DataObjectGroupReferenceId>
-      <DataObjectVersion>PhysicalMaster</DataObjectVersion>
-      <PhysicalId>1 Num 1/191-3</PhysicalId>
-      <PhysicalDimensions>
-          <Height unit="centimetre">10.5</Height>
-          <Length unit="centimetre">14.8</Length>
-          <Thickness unit="micrometre">350</Thickness>
-          <Weight unit="gram">3</Weight>
-      </PhysicalDimensions>
-      <Extent>1 carte imprimée</Extent>
-      <Dimensions>10,5cm x 14,8cm</Dimensions>
-      <Color>Noir et blanc</Color>
-      <Framing>Paysage</Framing>
-      <Technique>Phototypie</Technique>
-  </PhysicalDataObject>
-  <BinaryDataObject id="ID9">
-      <DataObjectGroupId>ID0009</DataObjectGroupId>
-      <DataObjectVersion>BinaryMaster</DataObjectVersion>
-      <Uri>Content/1NUM_9.JPG</Uri>
-      <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
-      <Size>7702</Size>
-      <FormatIdentification>
-          <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
-          <MimeType>image/jpeg</MimeType>
-          <FormatId>fmt/43</FormatId>
-      </FormatIdentification>
-      <FileInfo>
-          <Filename>1NUM_9.JPG</Filename>
-      </FileInfo>
-      <Metadata>
-          <Image>
-              <Dimensions>117x76</Dimensions>
-              <Width>117px</Width>
-              <Height>76px</Height>
-              <VerticalResolution>96ppp</VerticalResolution>
-              <HorizontalResolution>96ppp</HorizontalResolution>
-              <ColorDepth>24</ColorDepth>
-          </Image>
-      </Metadata>
-  </BinaryDataObject>
+  <DataObjectGroupId id="ID0009">
+    <PhysicalDataObject id="ID109">
+        <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+        <PhysicalId>1 Num 1/191-3</PhysicalId>
+        <PhysicalDimensions>
+            <Height unit="centimetre">10.5</Height>
+            <Length unit="centimetre">14.8</Length>
+            <Thickness unit="micrometre">350</Thickness>
+            <Weight unit="gram">3</Weight>
+        </PhysicalDimensions>
+        <Extent>1 carte imprimée</Extent>
+        <Dimensions>10,5cm x 14,8cm</Dimensions>
+        <Color>Noir et blanc</Color>
+        <Framing>Paysage</Framing>
+        <Technique>Phototypie</Technique>
+    </PhysicalDataObject>
+    <BinaryDataObject id="ID9">
+        <DataObjectVersion>BinaryMaster</DataObjectVersion>
+        <Uri>Content/1NUM_9.JPG</Uri>
+        <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+        <Size>7702</Size>
+        <FormatIdentification>
+            <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+            <MimeType>image/jpeg</MimeType>
+            <FormatId>fmt/43</FormatId>
+        </FormatIdentification>
+        <FileInfo>
+            <Filename>1NUM_9.JPG</Filename>
+        </FileInfo>
+        <Metadata>
+            <Image>
+                <Dimensions>117x76</Dimensions>
+                <Width>117px</Width>
+                <Height>76px</Height>
+                <VerticalResolution>96ppp</VerticalResolution>
+                <HorizontalResolution>96ppp</HorizontalResolution>
+                <ColorDepth>24</ColorDepth>
+            </Image>
+        </Metadata>
+    </BinaryDataObject>
+  </DataObjectGroupId>
 
 Exemple de JSON stocké en base
 ==============================
@@ -102,11 +101,7 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
                       "Color": "Noir et blanc",
                       "Framing": "Paysage",
                       "Technique": "Phototypie",
-                      "_storage": {
-                          "_nbc": 0,
-                          "offerIds": [],
-                          "strategyId": "default"
-                      }
+                      "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq"
                   }
               ]
           },
@@ -136,6 +131,7 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
                               "ColorDepth": 24
                           }
                       },
+                      "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
                       "Size": 7702,
                       "Uri": "Content/1NUM_9.JPG",
                       "MessageDigest": "0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9",
@@ -172,26 +168,27 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
           ],
           "strategyId": "default"
       },
-      "_v": 1
+      "_v": 1,
+      "_glpd": "2018-07-05T13:55:39.779"
   }
 
 Détail des champs du JSON
 =========================
 
 **"_id":** identifiant du groupe d'objets.
-      
+
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_tenant":** identifiant du tenant.
-      
+
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_profil":** catégorie de l'objet.
-      
+
   * Repris du nom de la balise présente dans le bloc Metadata du DataObjectPackage présent dans le bordereau de transfert au niveau du BinaryMaster.
 
   Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
@@ -202,14 +199,14 @@ Détail des champs du JSON
 **"FileInfo":** : informations sur le fichier constituant l'objet-données numérique de référence.
 
   * reprend le bloc FileInfo du BinaryMaster présent dans le bordereau de transfert.
-  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminée (en application de règle de gestion).
+  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminée (en application des règles de gestion).
   * Cardinalité : 1-1
 
 **"_qualifiers":** tableau de structures décrivant les objets inclus dans ce groupe d'objets. Il est composé comme suit :
 
   - "qualifier": usage de l'objet.
 
-    Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>, c'est la valeur "BinaryMaster" qui est reportée.
+    Il correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau de transfert. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>, c'est la valeur "BinaryMaster" qui est reportée.
 
     - "_nbc": nombre d'objets correspondant à cet usage.
     - "versions": tableau des objets par version (une version = une entrée dans le tableau).
@@ -226,8 +223,8 @@ Détail des champs du JSON
         - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
         - "FormatId" : PUID du format de l'objet. Il est défini par la solution logicielle Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK) et correspondant à la valeur du champ PUID de la collection FileFormat.
 
-      - "FileInfo": Contient les informations sur les fichiers.
-          
+      - "FileInfo": Contient les informations sur le fichier.
+
           - "Filename": nom de l'objet.
           - "CreatingApplicationName": nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
           - "CreatingApplicationVersion": numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
@@ -237,80 +234,103 @@ Détail des champs du JSON
           - "Size": taille de l'objet (en octet). Ce champ contient un nombre entier.
 
       - "PhysicalDimensions" : Ce champ contient les différentes informations concernant un objet physique (DataObjectVersion = PhysicalMaster). Il pourra donner des informations sur la taille, le poids, etc... de l'objet.
-         
+
          - "Width" : largeur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Height" : hauteur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
-         - "Depth" : profondeur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)         
+         - "Depth" : profondeur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Diameter" : diamètre de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Length" : longueur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Thickness" : épaisseur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Weight" : poids de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
-         - "Shape" : forme de l'objet. Ce champ contient est de type String      
-      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, de l'une extension du schéma SEDA du message  ArchiveTransfer.
-          
-         
+         - "Shape" : forme de l'objet. Ce champ contient est de type String
+      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, de l'une extension du schéma SEDA du message  ArchiveTransfer. Cardinalité 0-1.
+
+
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
 
-        Chaîne de caractères
+        * Chaîne de caractères
+        * Cardinalité 0 (objet physique) ou 1 (objet binaire)
 
       - "MessageDigest": empreinte du fichier correspondant à l'objet. La valeur est calculée par la solution logicielle Vitam.
 
-        Chaîne de caractères
+        * Chaîne de caractères
+        * Cardinalité 0 (objet physique) ou 1 (objet binaire)
 
       - "Algorithm": algorithme utilisé pour réaliser l'empreinte du fichier correspondant à l'objet.
 
-        Chaîne de caractères
+        * Chaîne de caractères
+        * Cardinalité 0 (objet physique) ou 1 (objet binaire)
 
       - "_storage": contient trois champs qui permettent d'identifier les offres  de stockage.
-          
+
           - "strategyId": identifiant de la stratégie de stockage.
           - "offerIds": liste des offres de stockage pour une stratégie donnée
           - "_nbc": nombre d'offres.
+          - Cardinalité 0 (objet physique) ou 1 (objet binaire)
 
-**"_up" (unit up):** tableau identifiant les unités archivistiques représentée par ce groupe d'objets.
-        
+**"_up" (unit up):** tableau identifiant les unités archivistiques représentées par ce groupe d'objets.
+
   * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id des unités archivistiques enregistrées dans la collection Unit.
   * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
-**"_nbc" (nbobjects):** nombre d'objets dans le groupe d'objets.
-        
+**"_nbc" (nombre d'objets):** nombre d'objets dans le groupe d'objets.
+
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_ops" (operations):** tableau des identifiants d'opérations auxquelles ce groupe d'objets a participé.
-        
+
   * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id d'opération enregistré dans la collection LogBookOperation.
   * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
 **"_opi" :** identifiant de l'opération à l'origine de la création de ce GOT.
-        
-  * Il s'agit d'une chaînes de 36 caractères correspondant au GUID contenue dans le champ _id de la collection LogBookOperation.
+
+  * Il s'agit d'une chaînes de 36 caractères correspondant au GUID contenue dans le champ _id de la collection LogbookOperation.
   * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
 **"_sp":** service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
-        
+
   * Il s'agit d'une chaîne de caractères.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_sps":** service producteur d'origine déclaré lors de la prise en charge du groupe d'objets par la solution logicielle Vitam.
-        
-  * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objets.    
+
+  * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objets.
   * Il s'agit d'un tableau de chaînes de caractères.
   * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
-**"_v":** version de l'enregistrement décrit.
-        
-  * Il s'agit d'un entier.
+**"_storage":** contient trois champs qui permettent d'identifier les offres  de stockage.
+
+  * "strategyId": identifiant de la stratégie de stockage.
+  * "offerIds": liste des offres de stockage pour une stratégie donnée
+  * "_nbc": nombre d'offres.
+  * Cardinalité 0 (objet physique) ou 1 (objet binaire)
+
+**"_glpd":** Date de la dernière modification du graph dont l'objet dépend
+
+  * Il s'agit d'une date.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+**"_us":** Reprend l'union de tous les champs _us de toutes les unités archivistiques possédant le groupe d'objets.
+
+  * Tableau de chaînes de 36 caractères.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_v":** version de l'enregistrement décrit.
+
+  * Il s'agit d'un entier.
   * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1

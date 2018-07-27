@@ -374,7 +374,7 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
 
 **"_graph" :** Tableau des chemins de l'unité archivistique
 
-  * Il s'agit d'un tableau contenant tous les chemins pour accéder à l'unité archivistique depuis les racines. Ces chemins sont composés sous la forme id1/id2/id3/.../idn Où chaque id est un identifiant d'unité archivistique et où idn est l'identifiant de l'unité consultée.
+  * Il s'agit d'un tableau contenant tous les chemins pour accéder à l'unité archivistique depuis les racines. Ces chemins sont composés sous la forme id1/id2/id3/.../idn Où chaque id est un identifiant d'unité archivistique. id1 étant l'unité courante et où idn est l'identifiant de l'unité de plus haut niveau.
   * Cardinalité 1-1
 
 **"_us_sp":** Liste des unités archivistique parentes concernant tous les niveaux de parentalité
@@ -415,9 +415,9 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_glpd":** Date de la dernière modification de la partie _graph
+**"_glpd":** Date de la dernière modification du graph dont l'unité dépend
 
-  * Il s'agit d'une chaîne de 36 caractères correspondant à une date.
+  * Il s'agit d'une date.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
