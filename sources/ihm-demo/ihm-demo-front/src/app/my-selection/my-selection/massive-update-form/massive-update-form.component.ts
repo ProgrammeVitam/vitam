@@ -63,7 +63,7 @@ export class MassiveUpdateFormComponent implements OnInit {
 
   getMetadataActionLabel(action: MetadataAction) {
     switch(action) {
-      case MetadataAction.ADD: return 'Ajout';
+      case MetadataAction.PATTERN: return 'Modification de chaîne de caractères';
       case MetadataAction.UPDATE: return 'Mise à jour';
       case MetadataAction.DELETE: return 'Vider';
     }
@@ -71,7 +71,7 @@ export class MassiveUpdateFormComponent implements OnInit {
 
   getMetadataActionIcon(action: MetadataAction) {
     switch (action) {
-      case MetadataAction.ADD: return 'fa fa-plus';
+      case MetadataAction.PATTERN: return 'fa fa-pencil';
       case MetadataAction.UPDATE: return 'fa fa-pencil';
       case MetadataAction.DELETE: return 'fa fa-times';
       default: return '';
@@ -190,6 +190,7 @@ export class MassiveUpdateFormComponent implements OnInit {
   }
 
   getMetadataUpdates(): boolean {
+    let patterns = [];
     let updates = [];
     let deletions = [];
     let nbErrors = 0;
@@ -197,9 +198,22 @@ export class MassiveUpdateFormComponent implements OnInit {
 
     for (let field of this.internalSavedMetadata) {
       switch(field.Action) {
-        case MetadataAction.UPDATE: case MetadataAction.ADD:
+        case MetadataAction.PATTERN:
+          if(!field.FieldName || !field.FieldValue || !field.FieldPattern) {
+            console.log('Une métadonnée modifiée par pattern ne renseigne pas de nom, de pattern ou de valeur.');
+            nbErrors++;
+            break;
+          }
+          patterns.push({
+            FieldName: field.FieldName,
+            FieldValue: field.FieldValue,
+            FieldPattern: field.FieldPattern
+          });
+          nbUpdates++;
+          break;
+        case MetadataAction.UPDATE:
           if (!field.FieldName || !field.FieldValue) {
-            console.log('Une métadonnée ajoutée ne renseigne pas de nom ou de valeur.');
+            console.log('Une métadonnée modifiée ne renseigne pas de nom ou de valeur.');
             nbErrors++;
             break;
           }
@@ -235,6 +249,7 @@ export class MassiveUpdateFormComponent implements OnInit {
     if (nbUpdates > 0) {
       this.form.updateMetadata = {
         updates: updates,
+        patterns: patterns,
         deletions: deletions
       };
     } else {

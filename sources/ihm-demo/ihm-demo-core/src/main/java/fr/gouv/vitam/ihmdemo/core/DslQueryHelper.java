@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.SetregexAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -70,6 +71,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.QueryPattern;
 import fr.gouv.vitam.common.model.RequestFacetItem;
 
 /**
@@ -823,7 +825,24 @@ public final class DslQueryHelper {
         JsonNode threshold = modifiedFields.get("threashold");
         JsonNode metadataModifications = modifiedFields.get("metadataUpdates");
 
-        // Handle Updates on metadata:
+        // Handle pattern Updates on metadata
+        JsonNode metadataPatterns = metadataModifications.get("patterns");
+        for (final JsonNode modifiedField: metadataPatterns) {
+            String fieldName = modifiedField.get("FieldName").textValue();
+            String patternControll = modifiedField.get("FieldValue").textValue();
+            String patternUpdate = modifiedField.get("FieldPattern").textValue();
+            if (fieldName == null || patternControll == null || patternUpdate == null) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            ObjectNode actionNode = JsonHandler.createObjectNode();
+            actionNode.set("$target", modifiedField.get("FieldName"));
+            actionNode.set("$controlPattern", modifiedField.get("FieldPattern"));
+            actionNode.set("$updatePattern", modifiedField.get("FieldValue"));
+            update.addActions(new SetregexAction(actionNode));
+        }
+
+        // Handle other Updates on metadata:
         JsonNode metadataUpdates = metadataModifications.get("updates");
         for (final JsonNode modifiedField: metadataUpdates) {
             String fieldName = modifiedField.get("FieldName").textValue();
@@ -859,7 +878,6 @@ public final class DslQueryHelper {
             fullQuery.set(BuilderToken.GLOBAL.THRESOLD.exactToken(), threshold);
         }
         fullQuery.set(BuilderToken.GLOBAL.ACTION.exactToken(), update.getFinalUpdate().get(BuilderToken.GLOBAL.ACTION.exactToken()));
-
 
         return fullQuery;
     }
