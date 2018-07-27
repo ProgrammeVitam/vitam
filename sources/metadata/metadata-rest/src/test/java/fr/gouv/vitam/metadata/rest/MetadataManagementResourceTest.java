@@ -138,7 +138,7 @@ public class MetadataManagementResourceTest {
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
-        Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
+        Response response = reconstructionResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -159,7 +159,7 @@ public class MetadataManagementResourceTest {
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService);
         // When
-        Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
+        Response response = reconstructionResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());

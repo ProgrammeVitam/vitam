@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -227,9 +229,12 @@ public class MetadataManagementResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response computeGraphByDSL(JsonNode queryDsl) {
+    public Response computeGraphByDSL(@HeaderParam(GlobalDataRest.X_TENANT_ID) Integer xTenantId, JsonNode queryDsl) {
 
         try {
+            ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
+
             GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
             return Response.ok().entity(response).build();
         } catch (Exception e) {

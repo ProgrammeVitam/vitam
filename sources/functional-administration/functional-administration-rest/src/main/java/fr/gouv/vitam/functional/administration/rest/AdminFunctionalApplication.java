@@ -83,21 +83,6 @@ public class AdminFunctionalApplication extends Application {
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
-            List<VitamCollection> collections =
-                Lists.newArrayList(FunctionalAdminCollections.FORMATS.getVitamCollection(),
-                    FunctionalAdminCollections.RULES.getVitamCollection(),
-                    FunctionalAdminCollections.AGENCIES.getVitamCollection(),
-                    FunctionalAdminCollections.PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.ONTOLOGY.getVitamCollection(),
-                    FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.INGEST_CONTRACT.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESS_CONTRACT.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
-                    FunctionalAdminCollections.CONTEXT.getVitamCollection(),
-                    FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
-
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
