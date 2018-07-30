@@ -26,45 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
-import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
-import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.exception.VitamException;
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -75,12 +39,13 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -94,11 +59,43 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.common.utils.JsonSorter;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Fail;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
+import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * step defining access glue
@@ -108,6 +105,7 @@ public class AccessStep {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
     public static final String CONTEXT_IDENTIFIER = "CT-000001";
     public static final String INGEST_CONTRACT_IDENTIFIER = "contrat_de_rattachement_TNR";
+    private static final String INHERITED_RULES = "InheritedRules";
 
     private static final String UNIT_GUID = "UNIT_GUID";
     private static String CONTRACT_WITH_LINK = "[{" +
@@ -130,6 +128,7 @@ public class AccessStep {
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
 
     private List<JsonNode> results;
+    private JsonNode selectedInheritedCategoryResult;
 
     private List<FacetResult> facetResults;
 
@@ -147,8 +146,8 @@ public class AccessStep {
      * Check facet bucket value count
      *
      * @param facetName facet name
-     * @param count     bucket count
-     * @param value     bucket value
+     * @param count bucket count
+     * @param value bucket value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
@@ -167,7 +166,7 @@ public class AccessStep {
      * Check facet does not contains bucket for value
      *
      * @param facetName facet name
-     * @param value     value
+     * @param value value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
@@ -195,7 +194,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable    dataTable
+     * @param dataTable dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -208,6 +207,13 @@ public class AccessStep {
             String resultAsStringTransformed = transformUnitTitleToGuid(resultAsString);
             transformedResults.add(JsonHandler.getFromString(resultAsStringTransformed));
         }
+        DataTable transformedDataTable = getTransformedDataTable(dataTable);
+
+
+        world.getAccessService().checkResultsForParticularData(transformedResults, resultNumber, transformedDataTable);
+    }
+
+    private DataTable getTransformedDataTable(DataTable dataTable) throws Throwable {
         // Transform validation data
         List<List<String>> modifiedRaws = new ArrayList<>();
         List<List<String>> raws = dataTable.raw();
@@ -218,10 +224,8 @@ public class AccessStep {
             }
             modifiedRaws.add(modifiedSubRaws);
         }
-        List<String> topCells = modifiedRaws.isEmpty() ? Collections.<String>emptyList() : modifiedRaws.get(0);
-        DataTable transformedDataTable = dataTable.toTable(modifiedRaws, topCells.toArray(new String[topCells.size()]));
-
-        world.getAccessService().checkResultsForParticularData(transformedResults, resultNumber, transformedDataTable);
+        List<String> topCells = modifiedRaws.isEmpty() ? Collections.emptyList() : modifiedRaws.get(0);
+        return dataTable.toTable(modifiedRaws, topCells.toArray(new String[0]));
     }
 
     /**
@@ -282,7 +286,6 @@ public class AccessStep {
         }
     }
 
-
     private String transformUnitTitleToGuid(String result) throws Throwable {
 
         Matcher matcher = Pattern.compile(REGEX)
@@ -292,13 +295,11 @@ public class AccessStep {
         while (matcher.find()) {
             String unit = matcher.group(1);
             String unitTitle = unit.substring(2, unit.length() - 2).replace(UNIT_PREFIX, "").trim();
-            String unitGuid = "";
+            String unitGuid;
             if (unitToGuid.get(unitTitle) != null) {
                 unitGuid = unitToGuid.get(unitTitle);
             } else {
-                unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-                    world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(),
-                    unitTitle);
+                unitGuid = getUnitGuidByTitle(unitTitle);
                 unitToGuid.put(unitTitle, unitGuid);
             }
             resultCopy = resultCopy.replace(unit, unitGuid);
@@ -306,10 +307,19 @@ public class AccessStep {
         return resultCopy;
     }
 
+    private String getUnitGuidByTitle(String unitTitle) throws InvalidCreateOperationException, VitamClientException {
+        String unitGuid;
+        unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
+            world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(),
+            unitTitle);
+        return unitGuid;
+    }
+
+
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -407,7 +417,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value     the valeur to replace the parameter
+     * @param value the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -542,6 +552,154 @@ public class AccessStep {
         }
     }
 
+    /**
+     * search an archive unit with inherited rules
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les unités archivistiques avec leurs règles de gestion héritées$")
+    public void search_archive_units_with_inherited_rules() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnitsWithInheritedRules(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+            selectedInheritedCategoryResult = null;
+            facetResults = requestResponseOK.getFacetResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnitsWithInheritedRules return an error: " + vitamError.getCode());
+        }
+    }
+
+    /**
+     * Select unit rule category
+     */
+    @When("^je sélectionne la catégorie (.*) pour l'unité (.*)$")
+    public void metadata_are_for_particular_result(String category, String unitTitle)
+        throws Throwable {
+
+        JsonNode unitJson = selectUnitInheritedRulesByTitle(unitTitle);
+
+        JsonNode categoryJson = unitJson.get(category);
+        if (categoryJson == null) {
+            Fail.fail("No such category " + category);
+        }
+
+        selectedInheritedCategoryResult = categoryJson;
+    }
+
+    @Then("^la catégorie contient (\\d+) règles et (\\d+) propriétés héritées$")
+    public void rule_category_rules_and_properties_count_check(int nbRules, int nbProperties) throws Throwable {
+
+        assertThat(selectedInheritedCategoryResult.get("Rules")).hasSize(nbRules);
+        assertThat(selectedInheritedCategoryResult.get("Properties")).hasSize(nbProperties);
+    }
+
+    @Then("^la catégorie contient une règle (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
+    public void check_rule_metadata(String ruleId, String unitTitle, DataTable dataTable) throws Throwable {
+
+        String unitGuid = getUnitGuidByTitle(unitTitle);
+
+        JsonNode rule = null;
+        for (JsonNode foundRule : selectedInheritedCategoryResult.get("Rules")) {
+            if (foundRule.get("UnitId").asText().equals(unitGuid) && foundRule.get("Rule").asText().equals(ruleId)) {
+                rule = foundRule;
+                break;
+            }
+        }
+
+        if (rule == null) {
+            Fail.fail("No such rule " + ruleId + " inherited from unit " + unitTitle);
+        }
+
+        DataTable transformedDataTable = getTransformedDataTable(dataTable);
+        world.getAccessService().checkResultsForParticularData(rule, transformedDataTable);
+    }
+
+    @Then("^la catégorie contient une propriété (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
+    public void check_property_metadata(String propertyName, String unitTitle, DataTable dataTable) throws Throwable {
+
+        String unitGuid = getUnitGuidByTitle(unitTitle);
+
+        JsonNode property = null;
+        for (JsonNode foundProperty : selectedInheritedCategoryResult.get("Properties")) {
+            if (foundProperty.get("UnitId").asText().equals(unitGuid) &&
+                foundProperty.get("PropertyName").asText().equals(propertyName)) {
+                property = foundProperty;
+                break;
+            }
+        }
+
+        if (property == null) {
+            Fail.fail("No such property " + propertyName + " inherited from unit " + unitTitle);
+        }
+
+        DataTable transformedDataTable = getTransformedDataTable(dataTable);
+        world.getAccessService().checkResultsForParticularData(property, transformedDataTable);
+    }
+
+    @Then("^les règles hérités de l'unité (.*) correspondent au fichier json (.*)$")
+    public void check_unit_inherited_rules_json(String unitTitle, String filename) throws Throwable {
+
+        JsonNode actualJson = selectUnitInheritedRulesByTitle(unitTitle);
+
+        Path file = Paths.get(world.getBaseDirectory(), filename);
+        JsonNode expectedJson;
+        try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
+
+            String refJsonWithUnitTitles = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+            String refJsonWithUnitGuids = transformUnitTitleToGuid(refJsonWithUnitTitles);
+
+            expectedJson = JsonHandler.getFromString(refJsonWithUnitGuids);
+        }
+
+        // Check json
+        List<String> orderedKeys = Arrays.asList("PropertyName", "Rule", "UnitId");
+        JsonSorter.sortJsonEntriesByKeys(actualJson, orderedKeys);
+        JsonSorter.sortJsonEntriesByKeys(expectedJson, orderedKeys);
+
+        String actual = JsonHandler.unprettyPrint(actualJson);
+        String expected = JsonHandler.unprettyPrint(expectedJson);
+
+        try {
+            JsonAssert.assertJsonEquals(expected, actual,
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+        } catch (AssertionError e) {
+            System.out.println("Actual  : " + actual);
+            System.out.println("Expected: " + expected);
+            throw e;
+        }
+    }
+
+    private JsonNode selectUnitInheritedRulesByTitle(String unitTitle) throws InvalidCreateOperationException, VitamClientException {
+        String unitGuid = getUnitGuidByTitle(unitTitle);
+        if (unitGuid == null) {
+            Fail.fail("No such unit with title '" + unitTitle + "'");
+        }
+
+        JsonNode unitJson = null;
+        for (JsonNode result : results) {
+            if (result.get(VitamFieldsHelper.id()).asText().equals(unitGuid)) {
+                unitJson = result;
+                break;
+            }
+        }
+
+        if (unitJson == null) {
+            Fail.fail("No such unit with id '" + unitGuid + "' (title: " + unitTitle + ") in result set");
+        }
+
+        if (!unitJson.has(INHERITED_RULES)) {
+            Fail.fail("Expected inherited rules definition");
+        }
+
+        return unitJson.get(INHERITED_RULES);
+    }
 
     /**
      * search an archive unit according to the query define before
@@ -713,8 +871,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -773,11 +931,11 @@ public class AccessStep {
                     inputStream, filename);
             status = response.getHttpCode();
         } else if (AGENCIES.equals(adminCollection)) {
-             response =
-                    world.getAdminClient().createAgencies(
-                            new VitamContext(world.getTenantId())
-                                    .setApplicationSessionId(world.getApplicationSessionId()),
-                            inputStream, filename);
+            response =
+                world.getAdminClient().createAgencies(
+                    new VitamContext(world.getTenantId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, filename);
             status = response.getHttpCode();
         }
         if (response != null) {

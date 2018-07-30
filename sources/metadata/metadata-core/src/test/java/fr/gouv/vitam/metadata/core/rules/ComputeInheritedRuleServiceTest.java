@@ -1,11 +1,10 @@
 package fr.gouv.vitam.metadata.core.rules;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.utils.JsonSorter;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitRuleModel;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -14,13 +13,10 @@ import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ComputeInheritedRuleServiceTest {
 
@@ -156,9 +152,15 @@ public class ComputeInheritedRuleServiceTest {
         Map<String, UnitInheritedRulesResponseModel> response, String filename)
         throws IOException, InvalidParseOperationException {
 
-        String actual = JsonHandler.unprettyPrint(reorderRulesAndProperties(JsonHandler.toJsonNode(response)));
-        String expected = JsonHandler.unprettyPrint(reorderRulesAndProperties(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename))));
+        JsonNode actualJson = JsonHandler.toJsonNode(response);
+        JsonNode expectedJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename));
+
+        List<String> orderedKeys = Arrays.asList("PropertyName", "Rule", "UnitId");
+        JsonSorter.sortJsonEntriesByKeys(actualJson, orderedKeys);
+        JsonSorter.sortJsonEntriesByKeys(expectedJson, orderedKeys);
+
+        String actual = JsonHandler.unprettyPrint(actualJson);
+        String expected = JsonHandler.unprettyPrint(expectedJson);
 
         try {
             JsonAssert.assertJsonEquals(expected, actual,
@@ -169,55 +171,5 @@ public class ComputeInheritedRuleServiceTest {
             throw e;
         }
     }
-
-    private JsonNode reorderRulesAndProperties(JsonNode jsonNode) {
-
-        List<String> sortKeys = Arrays.asList("PropertyName", "Rule", "UnitId");
-
-        if (jsonNode == null)
-            return null;
-
-        for (Iterator<JsonNode> it = jsonNode.elements(); it.hasNext(); ) {
-            JsonNode value = it.next();
-            reorderRulesAndProperties(value);
-        }
-
-        if (jsonNode.isObject()) {
-            ObjectNode objectNode = (ObjectNode) jsonNode;
-
-            TreeMap<String, JsonNode> entries = new TreeMap<>();
-            objectNode.fields().forEachRemaining(
-                i -> entries.put(i.getKey(), i.getValue())
-            );
-
-            objectNode.removeAll();
-            objectNode.setAll(entries);
-        }
-
-        if (jsonNode.isArray() && jsonNode.size() > 1 && jsonNode.get(0).isObject()) {
-
-            ArrayNode arrayNode = (ArrayNode) jsonNode;
-
-            List<ObjectNode> items = new ArrayList<>();
-            jsonNode.forEach(i -> items.add((ObjectNode) i));
-
-            items.sort((node1, node2) -> {
-
-                for (String sortKey : sortKeys) {
-                    if (node1.get(sortKey) != null && node2.get(sortKey) != null) {
-                        int sort = node1.get(sortKey).asText().compareTo(node2.get(sortKey).asText());
-                        if (sort != 0)
-                            return sort;
-                    }
-                }
-
-                return 1;
-            });
-
-            arrayNode.removeAll();
-            arrayNode.addAll(items);
-        }
-
-        return jsonNode;
-    }
 }
+;
