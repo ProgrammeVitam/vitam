@@ -64,6 +64,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void feature(Feature feature) {
+        System.out.println("\n\n########\nFEATURE: " + feature.getName() + " - " + feature.getId());
         currentFeature = feature.getName();
     }
 
@@ -83,6 +84,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void scenario(Scenario scenario) {
+        System.out.println("- Scenario: " + scenario.getName() + " (line: " + scenario.getLine() + ")");
         report = new Report();
         report.setDescription(scenario.getName());
         report.setFeature(currentFeature);
@@ -90,7 +92,9 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void step(Step step) {}
+    public void step(Step step) {
+        System.out.println("  > " + step.getName());
+    }
 
     @Override
     public void endOfScenarioLifeCycle(Scenario scenario) {
@@ -99,6 +103,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void done() {
+        System.out.println("##### Done ####");
         reports.setEnd(LocalDateTime.now());
         output.append(JsonHandler.prettyPrint(reports));
     }
@@ -116,6 +121,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void result(Result result) {
+        System.out.println("  < " + result.getStatus());
         if (result.getStatus().equals(Result.FAILED)) {
             report.addError(result.getErrorMessage());
         }
