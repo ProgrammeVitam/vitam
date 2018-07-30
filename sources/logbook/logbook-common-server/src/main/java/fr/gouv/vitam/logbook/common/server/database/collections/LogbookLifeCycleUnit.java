@@ -89,9 +89,4 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
     		JsonNode content) {
     	return new LogbookLifeCycleUnit(content);
     }
-
-    @Override
-    protected LogbookLifeCycleUnitParameters getLogbookParameters() {
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-    }
 }

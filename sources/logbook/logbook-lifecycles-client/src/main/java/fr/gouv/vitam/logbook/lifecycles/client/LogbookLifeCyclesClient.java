@@ -29,8 +29,10 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -39,6 +41,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -455,5 +458,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      */
     void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
         throws LogbookClientBadRequestException, LogbookClientServerException;
+
+    void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
+
+    void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
 
 }

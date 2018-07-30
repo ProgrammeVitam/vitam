@@ -90,9 +90,4 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     	return new LogbookLifeCycleObjectGroup(content);
     }
 
-    @Override
-    protected LogbookLifeCycleObjectGroupParameters getLogbookParameters() {
-        return LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-    }
-
 }

@@ -29,10 +29,12 @@ package fr.gouv.vitam.logbook.common.parameters;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
  * Common abstract class for LogbookLifeCycle Units and ObjectGroups Parameters
  */
-public abstract class LogbookLifeCycleParameters extends AbstractParameters {
+public class LogbookLifeCycleParameters extends AbstractParameters {
 
     /**
      * @param mandatory set of logbook parameter
@@ -44,6 +46,7 @@ public abstract class LogbookLifeCycleParameters extends AbstractParameters {
     /**
      * @param map of parameter
      */
+    @JsonCreator
     public LogbookLifeCycleParameters(Map<String, String> map) {
         super(map);
     }

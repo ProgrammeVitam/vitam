@@ -47,7 +47,7 @@ public class LogbookTransformData {
     /**
      * Replace the "evDetData" value in the document and the sub-events from a string by a json object
      *
-     * @param ocument logbook document
+     * @param document logbook document
      */
     public void transformDataForElastic(Document document) {
         if (document.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {

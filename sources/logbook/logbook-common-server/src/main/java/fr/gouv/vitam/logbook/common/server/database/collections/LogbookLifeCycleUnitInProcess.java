@@ -79,11 +79,6 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
         super(content);
     }
 
-    @Override
-    protected LogbookLifeCycleUnitParameters getLogbookParameters() {
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-    }
-    
     public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(
     		JsonNode content) {
     	return new LogbookLifeCycleUnitInProcess(content);

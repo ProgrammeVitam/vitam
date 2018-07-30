@@ -33,7 +33,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+
 import fr.gouv.vitam.common.SingletonUtils;
 
 /**
@@ -82,7 +82,7 @@ public class WorkFlow {
         this.identifier = identifier;
         this.typeProc = typeProc;
         this.comment = comment;
-        this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.ENABLED);
+        this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.TEMPORARY);
         this.steps = steps;
         steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
     }

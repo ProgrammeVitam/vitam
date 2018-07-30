@@ -45,7 +45,7 @@ import org.bson.conversions.Bson;
  * 
  * @param <T> template 
  */
-public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
+public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
 
     /**
@@ -79,6 +79,11 @@ public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle
      */
     public LogbookLifeCycle(Document content) {
         super(content);
+    }
+
+    @Override
+    public VitamDocument<LogbookLifeCycle<T>> newInstance(JsonNode content) {
+        return new LogbookLifeCycle<>(content);
     }
 
     /**
@@ -116,56 +121,10 @@ public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle
         return getString(getIdName().getDbname());
     }
 
-    /**
-     *
-     * @return the corresponding LogbookParameters implementation
-     */
-    abstract protected T getLogbookParameters();
-
-    /**
-     *
-     * @return the equivalent unique Lifecycle
-     */
-    @SuppressWarnings("unchecked")
-    private T getLifeCycle(Bson object) {
-        final LogbookParameters parameters = (LogbookParameters) getLogbookParameters();
-        final Map<LogbookParameterName, String> map = parameters.getMapParameters();
-        if (object instanceof BasicDBObject) {
-            for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
-                map.put(name.getLogbookParameterName(),
-                    ((BasicDBObject) object).getString(name.getDbname()));
-            }
-        } else if (object instanceof Document) {
-            for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
-                map.put(name.getLogbookParameterName(),
-                    ((Document) object).getString(name.getDbname()));
-            }
-        }
-        return (T) parameters;
+    public List<Document> events() {
+        return (ArrayList<Document>) get(LogbookDocument.EVENTS);
     }
 
-    /**
-     * Get back LogbookParameters (LifeCycles)
-     *
-     * @param all If true returns all items, if false return the first item and last item if any
-     * @return the list of LifeCyles
-     */
-    public final List<T> getLifeCycles(boolean all) {
-        @SuppressWarnings("unchecked")
-        final ArrayList<Document> events = (ArrayList<Document>) get(LogbookDocument.EVENTS);
-        final int nb = all ? events.size() : events.isEmpty() ? 1 : 2;
-        final List<T> list = new ArrayList<>(nb);
-        list.add(getLifeCycle(this));
-        if (all) {
-            for (final Document eventob : events) {
-                list.add(getLifeCycle(eventob));
-            }
-        } else {
-            final Document eventob = events.get(events.size() - 1);
-            list.add(getLifeCycle(eventob));
-        }
-        return list;
-    }
 
     /**
      * Initialize indexes for Collection

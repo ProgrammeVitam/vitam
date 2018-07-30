@@ -655,8 +655,7 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(2, lifeCycle.getLifeCycles(true).size());
-            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+            assertThat(lifeCycle.events()).hasSize(1);
         }
         // non sliced
         try (MongoCursor<LogbookLifeCycle> cursor =
@@ -664,8 +663,7 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(5, lifeCycle.getLifeCycles(true).size());
-            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+            assertThat(lifeCycle.events()).hasSize(4);
         }
         // full
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
@@ -675,15 +673,14 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(5, lifeCycle.getLifeCycles(true).size());
-            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+            assertThat(lifeCycle.events()).hasSize(4);
         }
 
 
         LogbookLifeCycleUnit lifeCycle = mongoDbAccess.getLogbookLifeCycleUnit(oi2);
         assertNotNull(lifeCycle);
-        assertEquals(5, lifeCycle.getLifeCycles(true).size());
-        assertEquals(2, lifeCycle.getLifeCycles(false).size());
+        assertThat(lifeCycle.events()).hasSize(4);
+
         lifeCycle = mongoDbAccess.getLogbookLifeCycleUnit(oi2);
         assertNotNull(lifeCycle);
         lifeCycle = mongoDbAccess
@@ -934,13 +931,12 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(2, lifeCycle.getLifeCycles(true).size());
-            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+            assertThat(lifeCycle.events()).hasSize(1);
         }
         LogbookLifeCycleObjectGroup lifeCycle = mongoDbAccess.getLogbookLifeCycleObjectGroup(oi);
         assertNotNull(lifeCycle);
-        assertEquals(5, lifeCycle.getLifeCycles(true).size());
-        assertEquals(2, lifeCycle.getLifeCycles(false).size());
+        assertThat(lifeCycle.events()).hasSize(4);
+
         lifeCycle = mongoDbAccess.getLogbookLifeCycleObjectGroup(
             parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi);
         assertNotNull(lifeCycle);
