@@ -9,7 +9,7 @@ La collection Unit contient les informations relatives aux unités archivistique
 Exemple de XML en entrée
 ========================
 
-Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour compléter les champs du JSON. Il s'agit des informations situées entre les balises <ArchiveUnit>.
+Ci-après, la portion d'un bordereau de transfert (manifest.xml) utilisée pour compléter les champs du JSON. Il s'agit des informations situées entre les balises <ArchiveUnit>.
 
 .. code-block:: xml
 
@@ -34,138 +34,91 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour compléter le
       </ArchiveUnit>
   </ArchiveUnit>
 
-Exemple de Json stocké dans la collection Unit
+Exemple de JSON stocké dans la collection Unit
 ==============================================
 
-Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/api_v2/doc.html
+Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/
 
 
 .. code-block:: json
 
-    {
-      "_id": "aeaqaaaaaahccnklabtgyak7pkvypgyaaacq",
+  {
+      "_id": "aeaqaaaaamhad455abcwsalep4lzf2iaaaea",
+      "_og": "aebaaaaaamhad455abcwsalep4lzfvaaaaca",
       "_mgt": {
-          "DisseminationRule": {
+          "AccessRule": {
               "Rules": [
                   {
-                      "Rule": "DIS-00002",
+                      "Rule": "ACC-00002",
                       "StartDate": "2000-01-01",
-                      "EndDate": "2075-01-01"
+                      "EndDate": "2025-01-01"
                   }
-              ],
-              "Inheritance": {
-                  "PreventRulesId": [
-                      "DIS-00001"
-                  ]
-              }
-          },
-          "OriginatingAgency": "RATP"
+              ]
+          }
       },
-      "DescriptionLevel": "RecordGrp",
-      "Title": "Gare du Nord",
-      "Titles": {
-          "fr": "Gare du Nord"
-      },
-      "Description": "Cette unité de description hérite de son parent de la règle ACC-00003 avec pour StartDate 01/01/2000, bloque l'héritage de la règle DIS-00001 mais déclare la règle DIS-00002 avec pour StartDate 01/01/2000",
-      "Descriptions": {
-          "fr": "Cette unité de description hérite de son parent de la règle ACC-00003 avec pour StartDate 01/01/2000, bloque l'héritage de la règle DIS-00001 mais déclare la règle DIS-00002 avec pour StartDate 01/01/2000"
-      },
-      "StartDate": "2017-04-05T08:11:56",
-      "EndDate": "2017-04-05T08:11:56",
+      "DescriptionLevel": "Item",
+      "Title": "Stalingrad.txt",
+      "TransactedDate": "2017-04-04T08:07:06",
       "SedaVersion": "2.1",
       "ImplementationVersion": "1.7.0-SNAPSHOT",
       "_storage": {
           "_nbc": 2,
-          "strategyId": "default",
           "offerIds": [
-              "vitam-iaas-app-02.int",
-              "vitam-iaas-app-03.int"
-          ]
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+          ],
+          "strategyId": "default"
       },
       "_sps": [
           "RATP"
       ],
       "_sp": "RATP",
       "_ops": [
-          "aedqaaaaacfeavznabdrgak7pkvyhgiaaaaq"
+          "aeeaaaaaaohi422caa4paalep4lxwoyaaaaq",
+          "aeeaaaaaaohi422caaieaalesqjo5hqaaaaq",
+          "aeeaaaaaaohi422caaieaalesqkbhnaaaaaq",
+          "aeeaaaaaaohi422caaieaalesqml2vyaaaaq"
       ],
-      "_opi": "aedqaaaaacfeavznabdrgak7pkvyhgiaaaaq",
+      "_opi": "aeeaaaaaaohi422caa4paalep4lxwoyaaaaq",
       "_unitType": "INGEST",
-
-      "_max": 4,
-      "_min": 1,
       "_up": [
-          "aeaqaaaaaahccnklabtgyak7pkvypgyaaaba"
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaada"
       ],
-      "_nbc": 1,
       "_us": [
-          "aeaqaaaaaahccnklabtgyak7pkvypgqaaaba",
-          "aeaqaaaaaahccnklabtgyak7pkvypgqaaacq",
-          "aeaqaaaaaahccnklabtgyak7pkvypgyaaaba"
+          "aeaqaaaaamhad455abcwsalep4lzf2aaaaeq",
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaada",
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
       ],
-
-   "_uds": {
-       "1": ["aeaqaaaaaahccnklabtgyak7pkvypgyaaaba"],
-       "2": ["aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"],
-       "3": ["aeaqaaaaaahccnklabtgyak7pkvypgqaaaba"],
-   },
-	]
-      "_v": 1,
-      "_tenant": 0
-    }
-
-
-Voici un autre extrait de détail JSON :
-
-
-.. code-block:: json
-
-   { .....
-   "_sp": "SP1",
-   "_up": [
-       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
-       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba"
-   ],
-
-   "_us": [
-       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
-       "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
-       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba"
-   ],
-   "_sps": [
-       "SP1",
-       "SP2"
-   ],
-   "_graph": [
-       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq/aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
-       "aeaqaaaaaahjgl36aazigaldnxdkiviaaaba/aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
-       "aeaqaaaaaahjgl36aazigaldnxdkiviaaaba/aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
-       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba/aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"
-   ],
-   "_uds": {
-       "1": [
-           "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
-           "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq"
-       ],
-       "2": [
-           "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"
-       ]
-   },
-   "_us_sp": {
-       "SP1": [
-           "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
-           "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq"
-       ],
-       "SP2": [
-           "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
-       ]
-   },
-   "_min": 1,
-   "_max": 3,
-   "_glpd": "2018-05-17T11:05:38.705"
-   }
-
-
+      "_graph": [
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaabq/aeaqaaaaamhad455abcwsalep4lzf2aaaaeq",
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaaea/aeaqaaaaamhad455abcwsalep4lzf2iaaada",
+          "aeaqaaaaamhad455abcwsalep4lzf2iaaada/aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
+      ],
+      "_uds": {
+          "1": [
+              "aeaqaaaaamhad455abcwsalep4lzf2iaaada"
+          ],
+          "2": [
+              "aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
+          ],
+          "3": [
+              "aeaqaaaaamhad455abcwsalep4lzf2aaaaeq"
+          ]
+      },
+      "_us_sp": {
+          "RATP": [
+              "aeaqaaaaamhad455abcwsalep4lzf2aaaaeq",
+              "aeaqaaaaamhad455abcwsalep4lzf2iaaada",
+              "aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
+          ]
+      },
+      "_min": 1,
+      "_max": 4,
+      "_glpd": "2018-07-09T12:50:30.733",
+      "_v": 3,
+      "_tenant": 3,
+      "Description": ""
+  }
 
 Détail du JSON
 ==============
@@ -185,180 +138,18 @@ Cette transposition se fait comme suit :
   * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champ _id du groupe d'objets de la collection objectGroup.
   * Cardinalité : 0-1
 
-**"DescriptionLevel":** niveau de description archivistique de l'unité archivistique.
+**"_mgt":** contient les balises contenues dans le bloc <Management> du bordereau de transfert pour cette unité archivistique (le champ peut donc être vide).
 
-  * Il s'agit d'une chaîne de caractères.
-  * Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> présentes dans le bordereau de transfert.
-  * Cardinalité : 1-1
+  * Il contient un tableau de catégories de règles de gestion appliquées à cette unité archivistique. Ces catégories sont, exhaustivement :
 
-**"Title":** titre de l'unité archivistique.
+    - AccessRule (délai de communicabilité)
+    - AppraisalRule (durée d'utilité administrative)
+    - ClassificationRule (durée de classification)
+    - DisseminationRule (durée de diffusion)
+    - ReuseRule (durée de réutilisation)
+    - StorageRule (durée d'utilité courante)
 
-  * Il s'agit d'une chaîne de caractères.
-  * Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau de transfert.
-  * Cardinalité : 1-1
-
-**"Titles":** titres de l'unité archivistique par langue.
-
-  * Il s'agit d'un tableau JSON.
-  * Les titres sont organisés sous la forme de clef / valeur, la clef étant l'indicatif de la langue, la valeur le titre. Par exemple : "fr": "Ceci est un titre."
-  * Cardinalité : 0-1
-
-**"Description":** description de l'unité archivistique.
-
-  * Il s'agit d'une chaîne de caractères.
-  * Ce champ est renseigné avec les informations situées entre les balises <Description> de l'unité archivistique concernée dans le bordereau de transfert.
-  * Cardinalité : 0-1
-
-**"Descriptions":** description de l'unité archivistique par langue.
-
-  * Il s'agit d'un tableau JSON
-  * Les descriptions sont organisées sous la forme de clef / valeur, la clef étant l'indicatif de la langue, la valeur la description. Par exemple : "fr": "Ceci est une description."
-  * Cardinalité : 0-n
-
-**"XXXXX":** des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau au niveau du Content de chaque unité archivistique.
-
-  * Se reporter à la documentation descriptive du SEDA 2.1 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives.
-
-**"_storage":** contient trois champs qui permettent d'identifier les offres  de stockage.
-
-  * Il s'agit d'un JSON constitué des champs suivants :
-
-    * "strategyId": identifiant de la stratégie de stockage.
-    * "offerIds": liste des offres de stockage pour une stratégie donnée
-    * "_nbc": nombre d'offres.
-
-  * Ne peut être vide
-  * Cardinalité : 1-1
-
-**"_sps":** services producteurs liés à l'unité archivistique suite à un rattachement et ayant des droits d'accès sur celle-ci.
-
-  * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs référençant l'unité archivistique.
-  * Il s'agit d'un tableau de chaînes de caractères.
-  * Ne peut être vide. Il comprend au minimum le service versant déclaré dans le bordereau de transfert.
-  * Cardinalité : 1-1
-
-**"_sp":** service producteur d'origine déclaré lors de la prise en charge de l'unité archivistique par la solution logicielle Vitam.
-
-  * Il s'agit du service producteur inscrit dans le bordereau lié au transfert de l'unité archivistique et déclaré via une extension du schéma <OtherManagementAbstract>, la balise <OriginatingAgencyIdentifier>.
-  * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
-
-**"_ops"** (operations): tableau contenant les identifiants d'opérations auxquelles cette unité archivistique a participé.
-
-  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champ _id de l'opération enregistré dans la collection LogBookOperation.
-  * Ne peut être vide.
-  * Cardinalité : 1-1
-
-**"_opi"** : identifiant de l'opération à l'origide de la création de cette unité archivistique.
-
-  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champs _id de la collection LogBookOperation.
-  * Ne peut être vide
-  * Cardinalité : 1-1
-
-**"_unitType":** champ indiquant le type d'unité archivistique concerné.
-
-  * Il s'agit d'une chaîne de caractères.
-  * La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
-
-      * INGEST : unité archivistique issue d'un SIP
-      * FILING_UNIT : unité archivistique issue d'un plan de classement
-      * HOLDING_UNIT : unité archivistique issue d'un arbre de positionnement
-
-  * Cardinalité : 1-1
-
-**"_v":** version de l'enregistrement décrit.
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
-
-**"_tenant":** identifiant du tenant.
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"SedaVersion":** version du SEDA utilisé lors de l'entrée de cette unité archivistique.
-
-    * Champ peuplé par la solution logicielle Vitam.
-    * Cardinalité : 1-1
-    * Exemple de valeur : "2.1"
-
-**"ImplementationVersion":** version du modèle de donnée actuellement utilisé par l'unité archivistique.
-
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-  * Exemple de valeur : "1.7.0-SNAPSHOT"
-
-**"_max":** profondeur maximale de l'unité archivistique par rapport à une racine.
-
-  * Calculée, cette profondeur correspond au maximum des profondeurs, quels que soient les racines concernées et les chemins possibles.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_min":** profondeur minimum de l'unité archivistique par rapport à une racine.
-
-  * Calculée, cette profondeur correspond au le minimum des profondeurs, quels que soient les racines concernées et les chemins possibles.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_up" (unit up):** tableau recenssant les _id des unités archivistiques parentes (parents immédiats).
-
-  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID. Valeur du champ _id d'une unité archivistique enregistré dans la collection Unit.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_nbc" :** nombre d'enfants immédiats de l'unité archivistique.
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_us":** tableau contenant la parentalité, c'est à dire l'ensemble des unités archivistiques parentes, indexé de la manière suivante : [ GUID1, GUID2, ... ].
-
-  * Tableau de chaînes de 36 caractères.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Ne peut être vide
-  * Cardinalité : 1-1
-
-**"_uds":** tableau contenant la parentalité, c'est à dire l'ensemble des unités archivistiques parentes, ainsi que le niveau de profondeur relative.
-
-  * Ces informations sont réunies dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }].
-  * Il s'agit d'un tableau de JSON.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_us_sp":** Liste des AU parents concernant tous les niveaux de parentalité
-
-  * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs de tous les parents liées à l'unité archivistique.
-  * Il s'agit d'un tableau de chaînes de caractères.
-  * Ne peut être vide. Il comprend au minimum le service versant déclaré dans le bordereau de transfert.
-  * Cardinalité : 1-1
-
-**"_glpd":** Date de la dernière modification de la partie _graph
-
-  * Il s'agit d'une chaîne de 36 caractères correspondant à une date.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-
-**_profil:** Profil d'archivage utilisé lors de l'entrée.
-
-  * Correspond à ArchiveProfile, le profil d'archivage utilisé lors de l'entrée. Sa valeur correspond à l'identifiant métier d'un profil enregistré dans la collection ArchiveProfil.
-  * Chaîne de caractères.
-  * Cardinalité : 0-1
-
-**"_mgt":** contient les balises contenues dans le bloc <Management> du bordereau de tranfert pour cette unité archivistique.
-
-Une catégorie de règles de gestion appliquées à cette unité archivistique. Ces catégories sont, exhaustivement (cardinalité 0-1 pour chaque catégorie) :
-
-  - AccessRule (délai de communicabilité)
-  - AppraisalRule (durée d'utilité administrative)
-  - ClassificationRule (durée de classification)
-  - DisseminationRule (durée de diffusion)
-  - ReuseRule (durée de réutilisation)
-  - StorageRule (durée d'utilité courante)
+  * Cardinalité 0-1 ,pour chaque catégorie.
 
 Chaque catégorie peut contenir :
 
@@ -366,9 +157,9 @@ Chaque catégorie peut contenir :
 
       Chacune des règles de ce tableau est elle-même composée de plusieurs informations :
 
-      + **"Rule"**: identifiant de la règle, qui correspond à une valeur du champ RuleId de la collection FileRules. (cardinalité 1-1)
-      + **"StartDate"** : "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfer ou ajoutée *a posteriori* par une modification de l'unité archivistique. (cardinalité 1-1)
-      + **"EndDate**": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam. Celui ci consiste en l'ajout du délai correspondant à la règle dans la collection FileRules à la valeur du champ startDate (EndDate = StartDate + Durée) (cardinalité 1-1)
+      + **"Rule"**: identifiant de la règle, qui correspond à une valeur du champ RuleId de la collection FileRules. (cardinalité 0-1)
+      + **"StartDate"** : "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfer ou ajoutée *a posteriori* par une modification de l'unité archivistique. (cardinalité 0-1)
+      + **"EndDate**": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam. Celui ci consiste en l'ajout du délai correspondant à la règle dans la collection FileRules à la valeur du champ startDate (EndDate = StartDate + Durée) (cardinalité 0-1)
 
     2. Des données spécifiques aux catégories :
 
@@ -386,8 +177,13 @@ Chaque catégorie peut contenir :
 
     3. Des paramètres de gestion d'héritage de règles, dans un objet nommé **"Inheritance"** (cardinalité 0-1). Cet objet peut avoir comme valeur :
 
-      + **"PreventInheritance"** : "true" ou "false", utilisé pour bloquer l'héritage de toutes les règles de gestion de la même catégorie (cardinalité 0-1)
-      + **"PreventRulesId"** : est un tableau d'identifiants de règles de gestion qui ne doivent pas être héritées d'un parent (cardinalité 0-1)
+      + **"PreventInheritance"** :
+        * "true" ou "false", utilisé pour bloquer l'héritage de toutes les règles de gestion de la même catégorie
+        * Cardinalité 1-1 à partir du moment où le champ Inheritance existe
+      + **"PreventRulesId"** :
+        * Tableau d'identifiants de règles de gestion qui ne doivent pas être héritées d'un parent
+        * A l'entrée il s'agit de la valeur de la balise <RefNonRuleId> du SEDA
+        * Cardinalité 1-1 à partir du moment où le champ Inheritance existe
 
 
 Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles de gestions :
@@ -446,3 +242,194 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
               ]
           }
       },
+
+
+**"DescriptionLevel":** niveau de description archivistique de l'unité archivistique.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> présentes dans le bordereau de transfert.
+  * Cardinalité : 1-1
+
+**"Title":** titre de l'unité archivistique.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau de transfert.
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title_
+
+**"Title_":** titres de l'unité archivistique par langue
+
+  * Il s'agit d'un tableau JSON.
+  * Les titres sont organisés sous la forme de clef : valeur, la clef étant l'indicatif de la langue en xml:lang et la valeur le titre. Par exemple : "fr": "Ceci est un titre."
+
+.. code-block:: json
+
+  {
+      "fr": "FrenchMySIP",
+      "en": "EnglishMySIP"
+  },
+
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title_
+
+**"Description":** description de l'unité archivistique.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les informations situées entre les balises <Description> de l'unité archivistique concernée dans le bordereau de transfert.
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description_
+
+**"Description_":** description de l'unité archivistique par langue.
+
+  * Il s'agit d'un tableau JSON
+  * Les titres sont organisés sous la forme de clef : valeur, la clef étant l'indicatif de la langue en xml:lang et la valeur la description. Par exemple : "fr": "Ceci est une description."
+
+.. code-block:: json
+
+  "Description_": {
+      "fr": "Une autre description",
+      "en": "another description"
+  },
+
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description_
+
+**"XXXXX":** des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau de transfert au niveau du Content de chaque unité archivistique.
+
+  * Se reporter à la documentation descriptive du SEDA 2.1 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives.
+
+**ArchiveUnitProfile:** Profil d'archivage de l'unité archivistique utilisé lors de l'entrée.
+
+  * Correspond à l'identifiant du profil d'archivage associé à l'unité archivistique
+  * Chaîne de caractères.
+  * Cardinalité : 0-1
+
+**"SedaVersion":** version du SEDA utilisé lors de l'entrée de cette unité archivistique.
+
+    * Champ peuplé par la solution logicielle Vitam.
+    * Cardinalité : 1-1
+    * Exemple de valeur : "2.1"
+
+**"ImplementationVersion":** version du modèle de donnée actuellement utilisé par l'unité archivistique.
+
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+  * Exemple de valeur : "1.7.0-SNAPSHOT"
+
+**"_storage":** contient trois champs qui permettent d'identifier les offres  de stockage.
+
+  * Il s'agit d'un JSON constitué des champs suivants :
+
+    * "strategyId": identifiant de la stratégie de stockage.
+    * "offerIds": liste des offres de stockage pour une stratégie donnée
+    * "_nbc": nombre d'offres.
+
+  * Ne peut être vide
+  * Cardinalité : 1-1
+
+**"_sps":** services producteurs liés à l'unité archivistique suite à un rattachement et ayant des droits d'accès sur celle-ci.
+
+  * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs référençant l'unité archivistique.
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Ne peut être vide. Il comprend au minimum le service versant déclaré dans le bordereau de transfert.
+  * Cardinalité : 1-1
+
+**"_sp":** service producteur d'origine déclaré lors de la prise en charge de l'unité archivistique par la solution logicielle Vitam.
+
+  * Il s'agit du service producteur inscrit dans le bordereau de transfert lié au transfert de l'unité archivistique et déclaré dans la balise <OriginatingAgencyIdentifier> du message ArchiveTransfer.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
+
+**"_ops" (operations)**: tableau contenant les identifiants d'opérations auxquelles cette unité archivistique a participé.
+
+  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champ _id de l'opération enregistré dans la collection LogbookOperation.
+  * Ne peut être vide.
+  * Cardinalité : 1-1
+
+**"_opi"** : identifiant de l'opération à l'origine de la création de cette unité archivistique.
+
+  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champs _id de la collection LogbookOperation.
+  * Ne peut être vide.
+  * Cardinalité : 1-1
+
+**"_unitType":** champ indiquant le type d'unité archivistique concerné.
+
+  * Il s'agit d'une chaîne de caractères.
+  * La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
+
+      * INGEST : unité archivistique issue d'un SIP
+      * FILING_UNIT : unité archivistique issue d'un plan de classement
+      * HOLDING_UNIT : unité archivistique issue d'un arbre de positionnement
+
+  * Cardinalité : 1-1
+
+**"_up" (unit up):** tableau recensant les _id des unités archivistiques parentes (parents immédiats).
+
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID. Valeur du champ _id d'une unité archivistique enregistré dans la collection Unit.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_us":** tableau contenant la parentalité, c'est à dire l'ensemble des unités archivistiques parentes, indexé de la manière suivante : [ GUID1, GUID2, ... ].
+
+  * Tableau de chaînes de 36 caractères.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Vide pour la racine uniquement
+  * Cardinalité : 1-1
+
+**"_graph" :** Tableau des chemins de l'unité archivistique
+
+  * Il s'agit d'un tableau contenant tous les chemins pour accéder à l'unité archivistique depuis les racines. Ces chemins sont composés sous la forme id1/id2/id3/.../idn Où chaque id est un identifiant d'unité archivistique. id1 étant l'unité courante et où idn est l'identifiant de l'unité de plus haut niveau.
+  * Cardinalité 1-1
+
+**"_us_sp":** Liste des unités archivistique parentes concernant tous les niveaux de parentalité
+
+  * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs de tous les parents liées à l'unité archivistique.
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Vide uniquement si l'unité archivistique n'a pas de parents
+  * Cardinalité : 1-1
+
+**"_uds":** tableau contenant la parentalité, c'est à dire l'ensemble des unités archivistiques parentes, ainsi que le niveau de profondeur relative.
+
+  * Il s'agit d'un tableau de JSON.
+  * Ces informations sont réunies dans le tableau sous la forme de clef/valeur, la clé étant la profondeur du parent (de type entier), la valeur étant elle même un tableau d'identifiant d'unité archivistique. Exemple d'une unité qui a un parent direct, lui même ayant deux parents.
+
+.. code-block:: json
+
+  "1": [
+      "aeaqaaaaamhad455abcwsalep4lzf2iaaada"
+  ],
+  "2": [
+      "aeaqaaaaamhad455abcwsalep4lzf2iaaabq",
+      "aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
+  ],
+
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_min":** profondeur minimum de l'unité archivistique par rapport à une racine.
+
+  * Calculée, cette profondeur correspond au minimum des profondeurs, quels que soient les racines concernées et les chemins possibles.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+
+**"_max":** profondeur maximale de l'unité archivistique par rapport à une racine.
+
+  * Calculée, cette profondeur correspond au maximum des profondeurs, quels que soient les racines concernées et les chemins possibles.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_glpd":** Date de la dernière modification du graph dont l'unité dépend
+
+  * Il s'agit d'une date.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_v":** version de l'enregistrement décrit.
+
+  * Il s'agit d'un entier.
+  * Champ peuplé par la solution logicielle Vitam.
+  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
+  * Cardinalité : 1-1
+
+**"_tenant":** identifiant du tenant.
+
+  * Il s'agit d'un entier.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
