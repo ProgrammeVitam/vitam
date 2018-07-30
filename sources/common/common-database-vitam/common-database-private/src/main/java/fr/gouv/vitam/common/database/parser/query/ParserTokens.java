@@ -77,7 +77,7 @@ public class ParserTokens extends BuilderToken {
         "OtherMetadata", "_nbc",
         "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "EndDate", "Rule", "PreventInheritance", "StartDate", "FinalAction",
-        "ClassificationLevel", "ClassificationOwner", "ClassificationReassessingDate", "NeedReassessingAuthorization"
+        "ClassificationLevel", "ClassificationOwner", "ClassificationAudience", "ClassificationReassessingDate", "NeedReassessingAuthorization"
     });
 
     /**
@@ -223,15 +223,13 @@ public class ParserTokens extends BuilderToken {
         "_mgt.AppraisalRule.Rules.StartDate",
         "_mgt.ClassificationRule.Inheritance.PreventInheritance",
         "_mgt.ClassificationRule.Inheritance.PreventRulesId",
-        "_mgt.ClassificationRule.Rules.ClassificationLevel",
-        "_mgt.ClassificationRule.Rules.ClassificationReassessingDate",
         "_mgt.ClassificationRule.Rules.EndDate",
-        "_mgt.ClassificationRule.Rules.NeedReassessingAuthorization",
         "_mgt.ClassificationRule.Rules.Rule",
         "_mgt.ClassificationRule.Rules.StartDate",
         "_mgt.DisseminationRule.Inheritance.PreventInheritance",
         "_mgt.DisseminationRule.Inheritance.PreventRulesId",
         "_mgt.ClassificationRule.ClassificationLevel",
+        "_mgt.ClassificationRule.ClassificationAudience",
         "_mgt.ClassificationRule.ClassificationReassessingDate",
         "_mgt.ClassificationRule.NeedReassessingAuthorization",
         "_mgt.DisseminationRule.Rules.EndDate",

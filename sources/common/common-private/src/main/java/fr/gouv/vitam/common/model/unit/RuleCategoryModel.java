@@ -52,6 +52,16 @@ public class RuleCategoryModel {
      */
     private String classificationOwner;
 
+    /**
+     * classificationReassessingDate
+     */
+    private String classificationReassessingDate;
+
+    /**
+     * needReassessingAuthorization
+     */
+    private Boolean needReassessingAuthorization;
+
 
     @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
@@ -157,5 +167,37 @@ public class RuleCategoryModel {
      */
     public void setClassificationAudience(String classificationAudience) {
         this.classificationAudience = classificationAudience;
+    }
+
+    /**
+     * getter for classificationReassessingDate
+     *
+     * @return classificationReassessingDate value
+     */
+    public String getClassificationReassessingDate() {
+        return classificationReassessingDate;
+    }
+
+    /**
+     * set classificationReassessingDate
+     */
+    public void setClassificationReassessingDate(String classificationReassessingDate) {
+        this.classificationReassessingDate = classificationReassessingDate;
+    }
+
+    /**
+     * getter for needReassessingAuthorization
+     *
+     * @return needReassessingAuthorization value
+     */
+    public Boolean isNeedReassessingAuthorization() {
+        return needReassessingAuthorization;
+    }
+
+    /**
+     * set needReassessingAuthorization
+     */
+    public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
+        this.needReassessingAuthorization = needReassessingAuthorization;
     }
 }

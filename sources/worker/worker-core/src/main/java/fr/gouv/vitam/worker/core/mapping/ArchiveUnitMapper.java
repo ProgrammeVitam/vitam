@@ -173,18 +173,33 @@ public class ArchiveUnitMapper {
         ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
         RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
 
-        if (classificationRule != null &&
-            (classificationRule.getClassificationLevel() != null ||
-            classificationRule.getClassificationOwner() != null ||
-            classificationRule.getClassificationAudience() != null)
-            ) {
+        if (classificationRule != null) {
 
             if (classificationRuleCategory == null ) {
                 classificationRuleCategory = new RuleCategoryModel();
             }
-            classificationRuleCategory.setClassificationLevel(classificationRule.getClassificationLevel());
-            classificationRuleCategory.setClassificationOwner(classificationRule.getClassificationOwner());
-            classificationRuleCategory.setClassificationAudience(classificationRule.getClassificationAudience());
+
+            if (classificationRule.getClassificationLevel() != null) {
+                classificationRuleCategory.setClassificationLevel(classificationRule.getClassificationLevel());
+            }
+
+            if (classificationRule.getClassificationOwner() != null) {
+                classificationRuleCategory.setClassificationOwner(classificationRule.getClassificationOwner());
+            }
+
+            if (classificationRule.getClassificationAudience() != null) {
+                classificationRuleCategory.setClassificationAudience(classificationRule.getClassificationAudience());
+            }
+
+            if (classificationRule.getClassificationReassessingDate() != null) {
+                classificationRuleCategory.setClassificationReassessingDate(
+                    classificationRule.getClassificationReassessingDate().toString());
+            }
+
+            if (classificationRule.isNeedReassessingAuthorization() != null) {
+                classificationRuleCategory.setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
+            }
+
         }
 
         if (archiveUnit.getManagement().getClassification() != null) {
@@ -193,18 +208,6 @@ public class ArchiveUnitMapper {
             archiveUnit.getManagement().setClassification(classificationRuleCategory);
         }
 
-        if (archiveUnit.getManagement().getClassification() != null &&
-            archiveUnit.getManagement().getClassification().getRules().size() > 0) {
-            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getClassification().getRules());
-            if (classificationRule != null) {
-                if (classificationRule.getClassificationReassessingDate() != null) {
-                    lastRule
-                        .setClassificationReassessingDate(
-                            classificationRule.getClassificationReassessingDate().toString());
-                }
-                lastRule.setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
-            }
-        }
     }
 
     private void fillReuseRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {

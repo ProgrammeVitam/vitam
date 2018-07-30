@@ -70,24 +70,24 @@ public class RuleMapper {
                 XMLGregorianCalendar xmlGregorianCalendar = newInstance().newXMLGregorianCalendar(startDate);
                 ruleAndStartDate.add(xmlGregorianCalendar);
             }
-
-            // Case ClassificationRuleType manage other fields
-            if (commonRule instanceof ClassificationRuleType) {
-                ClassificationRuleType crt = (ClassificationRuleType) commonRule;
-                crt.setClassificationAudience(ruleCategory.getClassificationAudience());
-                crt.setClassificationLevel(ruleCategory.getClassificationLevel());
-                crt.setClassificationOwner(ruleCategory.getClassificationOwner());
-                crt.setNeedReassessingAuthorization(rule.isNeedReassessingAuthorization());
-                String classificationReassessingDate = rule.getClassificationReassessingDate();
-                if (ParametersChecker.isNotEmpty(classificationReassessingDate)) {
-                    XMLGregorianCalendar xmlGregorianCalendar =
-                        newInstance().newXMLGregorianCalendar(classificationReassessingDate);
-                    crt.setClassificationReassessingDate(xmlGregorianCalendar);
-                }
-            }
         }
 
         commonRule.getRuleAndStartDate().addAll(ruleAndStartDate);
+
+        // Case ClassificationRuleType manage other fields
+        if (commonRule instanceof ClassificationRuleType) {
+            ClassificationRuleType crt = (ClassificationRuleType) commonRule;
+            crt.setClassificationAudience(ruleCategory.getClassificationAudience());
+            crt.setClassificationLevel(ruleCategory.getClassificationLevel());
+            crt.setClassificationOwner(ruleCategory.getClassificationOwner());
+            crt.setNeedReassessingAuthorization(ruleCategory.isNeedReassessingAuthorization());
+            String classificationReassessingDate = ruleCategory.getClassificationReassessingDate();
+            if (ParametersChecker.isNotEmpty(classificationReassessingDate)) {
+                XMLGregorianCalendar xmlGregorianCalendar =
+                    newInstance().newXMLGregorianCalendar(classificationReassessingDate);
+                crt.setClassificationReassessingDate(xmlGregorianCalendar);
+            }
+        }
 
         // FinalAction for StorageRuleType and AppraisalRuleType
         String finalAction = ruleCategory.getFinalAction();
