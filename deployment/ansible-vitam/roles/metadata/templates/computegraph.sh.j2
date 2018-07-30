@@ -2,7 +2,7 @@
 set -e
 
 CURRENT_DIR="$( cd "$( readlink -f $(dirname ${BASH_SOURCE[0]}) )" ; pwd )"
-COMPUTE_GRAPH_URL="http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/graphbuilder"
+COMPUTE_GRAPH_URL="http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/computegraph"
 
 function log() {
     LEVEL=${1}
