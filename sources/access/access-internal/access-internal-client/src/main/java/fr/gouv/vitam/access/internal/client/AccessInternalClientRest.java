@@ -27,12 +27,6 @@
 
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -53,6 +47,12 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Access client <br>
@@ -85,6 +85,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
     private static final String UNITS = "units/";
+    private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
     private static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
         "[Consistency ERROR] : An internal data consistency error has been detected !";
     private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
@@ -681,6 +682,41 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new fr.gouv.vitam.common.exception.BadRequestException(FORBIDDEN_OPERATION);
             }
             LOGGER.debug("DEBUG: end selectObjects {}", response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
+        throws InvalidParseOperationException,
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+
+        Response response = null;
+        LOGGER.debug("DEBUG: start selectUnitsWithInheritedRules {}", selectQuery);
+        try {
+            response = performRequest(HttpMethod.GET, UNITS_WITH_INHERITED_RULES, null, selectQuery,
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamDBException(
+                    CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+                throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            } else if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+                throw new fr.gouv.vitam.common.exception.BadRequestException(FORBIDDEN_OPERATION);
+            }
+            LOGGER.debug("DEBUG: end selectUnitsWithInheritedRules {}", response);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common

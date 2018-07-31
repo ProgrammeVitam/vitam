@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -41,6 +38,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
+import javax.ws.rs.core.Response;
 
 /**
  * Access External Client Interface
@@ -181,7 +180,7 @@ public interface AccessExternalClient extends BasicClient {
      * getDIPById<br>
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     * 
+     *
      * @param vitamContext the vitam context
      * @param dipId the previously generated DIP id to download the DIP
      * @return Response including InputStream
@@ -222,8 +221,18 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> selectObjects(VitamContext vitamContext, JsonNode selectQuery)
-            throws VitamClientException;
+        throws VitamClientException;
 
+    /**
+     * Select units with inherited rules by select query (DSL)
+     *
+     * @param vitamContext the vitam context
+     * @param selectQuery the select query
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> selectUnitsWithInheritedRules(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException;
 }
 
 

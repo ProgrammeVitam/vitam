@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * POJO of simplified of Unit
+ * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitSimplified {
     private String id;

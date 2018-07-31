@@ -19,6 +19,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+@Deprecated
 public class UnitNodeTest {
 
     private static final String AU2_ID = "AU2";

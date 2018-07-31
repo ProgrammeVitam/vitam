@@ -267,6 +267,46 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return Response.status(Status.OK).entity(result).build();
     }
 
+    /**
+     * Select units with inherited rules
+     *
+     * @param queryDsl as JsonNode
+     * @return an archive unit result list with inherited rules
+     */
+    @Override
+    @GET
+    @Path("/unitsWithInheritedRules")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectUnitsWithInheritedRules(JsonNode queryDsl) {
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
+        Status status;
+        JsonNode result;
+        LOGGER.debug("DEBUG: start selectUnitsWithInheritedRules {}", queryDsl);
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+            result = accessModule.selectUnitsWithInheritedRules(
+                AccessContractRestrictionHelper.applyAccessContractRestrictionForUnit(queryDsl,
+                    VitamThreadUtils.getVitamSession().getContract()));
+            LOGGER.debug("DEBUG {}", result);
+            resetQuery(result, queryDsl);
+            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final AccessInternalExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
 
     /**
      * get Archive Unit list by query based on identifier

@@ -1,0 +1,59 @@
+[
+  {
+    "#id": "guid1",
+    "#originating_agency": "sp1",
+    "#unitups": [],
+    "#management": {
+      "StorageRule": {
+        "Rules": [
+          {
+            "Rule": "STO-00001",
+            "StartDate": "2015-01-01",
+            "EndDate": "2016-01-01"
+          },
+          {
+            "Rule": "STO-00002",
+            "StartDate": "2016-01-01",
+            "EndDate": "2017-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
+      },
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00049",
+            "StartDate": "2016-01-01",
+            "EndDate": "2017-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Destroy"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          {
+            "Rule": "CLASS-00001",
+            "StartDate": "2015-06-03",
+            "EndDate": "2025-06-03"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "ClassificationAudience": "ClassificationAudience0",
+        "ClassificationLevel": "Confidentiel Défense",
+        "ClassificationOwner": "ClassificationOwner0",
+        "ClassificationReassessingDate": "2016-06-03",
+        "NeedReassessingAuthorization": true
+      }
+    }
+  }
+]

@@ -296,4 +296,16 @@ public interface MetaDataClient extends BasicClient {
      */
     void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
         String objectGroupsToUpdateChainedFileName) throws VitamClientException, MetaDataExecutionException;
+
+    /**
+     * Select units with inherited rules by select query (DSL)
+     * @param selectQuery : select query
+     * @return Json object
+     * @throws InvalidParseOperationException
+     * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws MetaDataClientServerException
+     */
+    JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery)
+        throws MetaDataDocumentSizeException,
+        InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 }

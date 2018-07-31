@@ -1,0 +1,34 @@
+[
+  {
+    "#id": "guid_2",
+    "#unitups": [
+      "guid_1"
+    ],
+    "#originating_agency": "sp2",
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00049",
+            "StartDate": "2016-01-01",
+            "EndDate": "2017-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": true,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Destroy"
+      }
+    }
+  },
+  {
+    "#id": "guid_4",
+    "#unitups": [
+      "guid_1",
+      "guid_3"
+    ],
+    "#originating_agency": "sp4",
+    "#management": {}
+  }
+]

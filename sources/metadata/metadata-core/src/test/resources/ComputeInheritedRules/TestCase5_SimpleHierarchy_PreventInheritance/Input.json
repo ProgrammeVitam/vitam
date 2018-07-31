@@ -1,0 +1,40 @@
+[
+  {
+    "#id": "guid1",
+    "#originating_agency": "sp1",
+    "#unitups": [],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          { "Rule": "APP-00048", "StartDate": "2015-01-01", "EndDate": "2016-01-01" },
+          { "Rule": "APP-00049", "StartDate": "2016-01-01", "EndDate": "2017-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Destroy"
+      }
+    }
+  },
+  {
+    "#id": "guid2",
+    "#originating_agency": "sp2",
+    "#unitups": [
+      "guid1"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          { "Rule": "APP-00049", "StartDate": "2010-01-01", "EndDate": "2011-01-01" },
+          { "Rule": "APP-00050", "StartDate": "2011-01-01", "EndDate": "2012-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": true,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Keep"
+      }
+    }
+  }
+]

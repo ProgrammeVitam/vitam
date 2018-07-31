@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import fr.gouv.vitam.common.json.JsonHandler;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.NiceAppendable;
@@ -42,12 +39,18 @@ import gherkin.formatter.model.Scenario;
 import gherkin.formatter.model.ScenarioOutline;
 import gherkin.formatter.model.Step;
 
+import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
 public class VitamReporter implements Reporter, Formatter {
 
     private NiceAppendable output;
     private Reports reports = new Reports();
     private Report report;
     private String currentFeature;
+    private Queue<Step> steps = new LinkedList<>();
 
     public VitamReporter(Appendable appendable) {
         output = new NiceAppendable(appendable);
@@ -60,18 +63,23 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void uri(String s) {}
-
-    @Override
-    public void feature(Feature feature) {
-        currentFeature = feature.getName();
+    public void uri(String s) {
     }
 
     @Override
-    public void scenarioOutline(ScenarioOutline scenarioOutline) {}
+    public void feature(Feature feature) {
+        System.out.println("\n\n########\nFEATURE: " + feature.getName() + " - " + feature.getId());
+        currentFeature = feature.getName();
+        steps.clear();
+    }
 
     @Override
-    public void examples(Examples examples) {}
+    public void scenarioOutline(ScenarioOutline scenarioOutline) {
+    }
+
+    @Override
+    public void examples(Examples examples) {
+    }
 
     @Override
     public void startOfScenarioLifeCycle(Scenario scenario) {
@@ -79,18 +87,23 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void background(Background background) {}
+    public void background(Background background) {
+    }
 
     @Override
     public void scenario(Scenario scenario) {
+        System.out.println("- SCENARIO: " + scenario.getName() + " (line: " + scenario.getLine() + ")");
         report = new Report();
         report.setDescription(scenario.getName());
         report.setFeature(currentFeature);
         reports.add(report);
+        steps.clear();
     }
 
     @Override
-    public void step(Step step) {}
+    public void step(Step step) {
+        steps.add(step);
+    }
 
     @Override
     public void endOfScenarioLifeCycle(Scenario scenario) {
@@ -99,6 +112,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void done() {
+        System.out.println("##### DONE ####");
         reports.setEnd(LocalDateTime.now());
         output.append(JsonHandler.prettyPrint(reports));
     }
@@ -109,26 +123,36 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void eof() {}
+    public void eof() {
+    }
 
     @Override
-    public void before(Match match, Result result) {}
+    public void before(Match match, Result result) {
+    }
 
     @Override
     public void result(Result result) {
+
+        Step step = steps.poll();
+        System.out.println("  * " + result.getStatus().toUpperCase() +
+            (step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : ""));
+
         if (result.getStatus().equals(Result.FAILED)) {
             report.addError(result.getErrorMessage());
         }
     }
 
     @Override
-    public void after(Match match, Result result) {}
+    public void after(Match match, Result result) {
+    }
 
     @Override
-    public void match(Match match) {}
+    public void match(Match match) {
+    }
 
     @Override
-    public void embedding(String s, byte[] bytes) {}
+    public void embedding(String s, byte[] bytes) {
+    }
 
     @Override
     public void write(String operationId) {

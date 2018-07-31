@@ -26,42 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
-import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -111,6 +81,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -142,6 +113,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -166,6 +139,32 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -284,6 +283,9 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
 
+    private static String OK_RULES_COMPLEX_COMPLETE_SIP =
+        "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
+
     private static LogbookElasticsearchAccess esClient;
 
     @BeforeClass
@@ -369,77 +371,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         RestAssured.port = runner.PORT_SERVICE_ACCESS_INTERNAL;
         RestAssured.basePath = ACCESS_INTERNAL_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }
-
-    /**
-     * To check unit tree (ancestors _up, _us and _uds)
-     *
-     * @param unit           the unit to check
-     * @param metadataClient the metadataclient
-     * @param upIds          the wanted up ids list
-     * @param usIds          the wanted us ids list
-     * @param udsIds         the wanted uds ids / depth map
-     * @throws Exception
-     */
-    private void checkUnitTree(JsonNode unit, MetaDataClient metadataClient, List<String> upIds, List<String> usIds,
-        Map<String, Integer> udsIds)
-        throws Exception {
-        SelectMultiQuery query = new SelectMultiQuery();
-        query.setProjection(JsonHandler.getFromString("{\"$fields\": {\"Title\": 1}}"));
-        // _up / # up
-        final JsonNode up = unit.get("#unitups");
-        assertNotNull(up);
-        assertEquals(upIds.size(), up.size());
-        // Check ids
-        JsonNode result;
-        for (int i = 0; i < up.size(); i++) {
-            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), up.get(i).asText());
-            assertNotNull(result);
-            assertNotNull(result.get("$results"));
-            assertEquals(1, result.get("$results").size());
-            assertNotNull(result.get("$results").get(0).get("Title"));
-            assertTrue(upIds.remove(result.get("$results").get(0).get("Title").asText()));
-        }
-        // _us / #us
-        final JsonNode us = unit.get("#allunitups");
-        assertNotNull(us);
-        assertEquals(usIds.size(), us.size());
-        // Check ids
-        for (int i = 0; i < us.size(); i++) {
-            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), us.get(i).asText());
-            assertNotNull(result);
-            assertNotNull(result.get("$results"));
-            assertEquals(1, result.get("$results").size());
-            assertNotNull(result.get("$results").get(0).get("Title"));
-            assertTrue(usIds.remove(result.get("$results").get(0).get("Title").asText()));
-        }
-
-        // _uds / #uds
-        assertThat(unit.get("#uds")).isNull();
-        assertThat(unit.get(Unit.UNITDEPTHS)).isNull();
-        FindIterable<Document> documents =
-            MetadataCollections.UNIT.getCollection()
-                .find(com.mongodb.client.model.Filters.eq("_id", unit.get("#id").asText()));
-        Document first = documents.iterator().next();
-
-        final JsonNode uds = JsonHandler.getFromString(first.toJson()).get(Unit.UNITDEPTHS);
-
-        assertNotNull(uds);
-        assertEquals(udsIds.size(), uds.size());
-        // Check ids and depth
-        String fieldName;
-        Iterator fieldNames = uds.fieldNames();
-        while (fieldNames.hasNext()) {
-            fieldName = (String) fieldNames.next();
-            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), fieldName);
-            assertNotNull(result);
-            assertEquals(1, result.get("$results").size());
-            assertNotNull(result.get("$results").get(0).get("Title"));
-            assertNotNull(udsIds.get(result.get("$results").get(0).get("Title").asText()));
-            assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(),
-                uds.get(fieldName)
-                    .asInt());
-        }
     }
 
     @RunWithCustomExecutor
@@ -2042,7 +1973,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     /**
      * Check error report
      *
-     * @param fileInputStreamToImport   the given FileInputStream
+     * @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
@@ -2368,6 +2299,127 @@ public class IngestInternalIT extends VitamRuleRunner {
             fail("should not throw exception");
         }
 
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSipWithComplexRules() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        final Response response2 = client.uploadInitialLogbook(params);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+        // init workflow before execution
+        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+        wait(operationGuid.toString());
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        // Select single unit with inherited rules
+
+        SelectMultiQuery select1 = new SelectMultiQuery();
+        select1.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "Buttes-Chaumont"))
+            .add(QueryHelper.in("#operations", operationGuid.toString())));
+        // Get AU
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        final JsonNode results1 = metadataClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
+
+        assertNotNull(results1);
+        assertNotNull(results1.get("$results"));
+        assertThat(results1.get("$results")).hasSize(1);
+        JsonNode unitButtesChaumont1 = results1.get("$results").get(0);
+
+        validateButtesChaumontInheritedRules(unitButtesChaumont1);
+
+        // Select multiple units with inherited rules
+
+        SelectMultiQuery select2 = new SelectMultiQuery();
+        select2.addQueries(QueryHelper.in("#operations", operationGuid.toString()));
+        // Get AU
+        final JsonNode results2 = metadataClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+
+        assertNotNull(results2);
+        assertNotNull(results2.get("$results"));
+        assertThat(results2.get("$results")).hasSize(28);
+
+        JsonNode unitButtesChaumont2 = null;
+        for (JsonNode jsonNode : results2.get("$results")) {
+            if(jsonNode.get("Title").asText().equals("Buttes-Chaumont")) {
+                unitButtesChaumont2 = jsonNode;
+            }
+        }
+
+        validateButtesChaumontInheritedRules(unitButtesChaumont2);
+
+    }
+
+    private void validateButtesChaumontInheritedRules(JsonNode unitButtesChaumont)
+        throws InvalidParseOperationException {
+
+        assertThat(unitButtesChaumont.get("Title").asText()).isEqualTo("Buttes-Chaumont");
+        UnitInheritedRulesResponseModel unitInheritedRules =
+            JsonHandler.getFromJsonNode(unitButtesChaumont.get("InheritedRules"),
+                UnitInheritedRulesResponseModel.class);
+
+        InheritedRuleCategoryResponseModel storageRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_STORAGE);
+        assertThat(storageRuleCategory.getProperties()).hasSize(0);
+        assertThat(storageRuleCategory.getRules()).hasSize(0);
+
+        InheritedRuleCategoryResponseModel appraisalRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
+        assertThat(appraisalRuleCategory.getProperties()).hasSize(0);
+        assertThat(appraisalRuleCategory.getRules()).hasSize(0);
+
+        InheritedRuleCategoryResponseModel reuseRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_REUSE);
+        assertThat(reuseRuleCategory.getProperties()).hasSize(0);
+        assertThat(reuseRuleCategory.getRules()).hasSize(0);
+
+        InheritedRuleCategoryResponseModel classificationRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_CLASSIFICATION);
+        assertThat(classificationRuleCategory.getProperties()).hasSize(0);
+        assertThat(classificationRuleCategory.getRules()).hasSize(0);
+
+
+        InheritedRuleCategoryResponseModel disseminationRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_DISSEMINATION);
+        assertThat(disseminationRuleCategory.getProperties()).hasSize(0);
+        assertThat(disseminationRuleCategory.getRules()).hasSize(1);
+        assertThat(disseminationRuleCategory.getRules().get(0).getPaths()).hasSize(2);
+        assertThat(disseminationRuleCategory.getRules().get(0).getRuleId()).isEqualTo("DIS-00001");
+        assertThat(disseminationRuleCategory.getRules().get(0).getStartDate()).isEqualTo("2000-01-01");
+        assertThat(disseminationRuleCategory.getRules().get(0).getEndDate()).isEqualTo("2025-01-01");
+
+        InheritedRuleCategoryResponseModel accessRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_ACCESS);
+        assertThat(accessRuleCategory.getProperties()).hasSize(0);
+        assertThat(accessRuleCategory.getRules()).hasSize(3);
     }
 
 }

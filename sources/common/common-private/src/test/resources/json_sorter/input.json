@@ -1,0 +1,43 @@
+{
+  "obj": {
+    "subObj": {
+      "arrayOfObjects": [
+        {
+          "field1": "a",
+          "field2": "c",
+          "field3": "z1"
+        },
+        {
+          "field1": "a",
+          "field3": "z2"
+        },
+        {
+          "field1": "a",
+          "field2": "b",
+          "field3": "z3"
+        },
+        {
+          "field1": "a",
+          "field2": null,
+          "field3": "z4"
+        }
+      ]
+    }
+  },
+  "emptyField": [],
+  "nullField": null,
+  "int": 1,
+  "long": 123456789123456,
+  "bool": false,
+  "arrayOfValues": [
+    2147483647,
+    2147483648,
+    9223372036854775807,
+    -9223372036854775808,
+    0,
+    -0,
+    0.0,
+    3.13e-10,
+    12.99999999
+  ]
+}

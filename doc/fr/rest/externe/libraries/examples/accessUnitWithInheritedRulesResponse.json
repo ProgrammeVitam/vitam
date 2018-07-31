@@ -1,0 +1,74 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "size": 3,
+    "offset": 0,
+    "limit": 1000
+  },
+  "$context": {
+    "$roots": [ "id0" ],
+    "$query": [
+      { "$match": { "title": "Arpajon" }, "$depth": 4 }
+    ],
+    "$filter": { "$limit": 1000, "$offset": 10 },
+    "$projection": { "$fields": { "#id": 1, "title": 1 } }
+  },
+  "$results": [
+    {
+      "Title": "Arpajon",
+      "#id": "aeaqaaaaaaftcq6raam3galew4bftjiaaaba",
+      "InheritedRules": {
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaaftcq6raam3galew4bftjiaaaba",
+              "OriginatingAgency": "SNCF",
+              "Paths": [
+                [
+                  "aeaqaaaaaaftcq6raam3galew4bftjiaaaba"
+                ]
+              ],
+              "Rule": "APP-00049",
+              "StartDate": "2014-01-01",
+              "EndDate": "2015-01-01"
+            }
+          ],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaaftcq6raam3galew4bftjiaaaba",
+              "OriginatingAgency": "SNCF",
+              "Paths": [
+                [
+                  "aeaqaaaaaaftcq6raam3galew4bftjiaaaba"
+                ]
+              ],
+              "PropertyName": "FinalAction",
+              "PropertyValue": "Destroy"
+            }
+          ]
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    }
+  ]
+}

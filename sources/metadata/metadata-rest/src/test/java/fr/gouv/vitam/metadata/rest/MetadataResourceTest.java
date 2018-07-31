@@ -287,7 +287,20 @@ public class MetadataResourceTest {
     public void givenInsertComplexUnitGraphThenCheckGraph() throws Exception {
 
         /*
-         * Test case : 1(sp1) 2(sp2) 3(sp3) | / | | | / | | | / | | 4(sp1) 5(sp2) 6(sp4) | / | / | / 7(sp1) | | | 8(sp1)
+         * Test case :
+         * 1(sp1)  2(sp2)  3(sp3)
+         * |     / |       |
+         * |   /   |       |
+         * | /     |       |
+         * 4(sp1)  5(sp2)  6(sp4)
+         * |     /
+         * |   /
+         * | /
+         * 7(sp1)
+         * |
+         * |
+         * |
+         * 8(sp1)
          */
 
         // Given

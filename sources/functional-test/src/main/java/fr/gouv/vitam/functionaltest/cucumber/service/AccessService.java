@@ -29,6 +29,7 @@ package fr.gouv.vitam.functionaltest.cucumber.service;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public class AccessService {
         String auId = "";
         SelectMultiQuery searchQuery = new SelectMultiQuery();
         searchQuery.addQueries(
-            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), operationId)));
+            and().add(match(TITLE, "\"" + auTitle + "\"")).add(in(VitamFieldsHelper.operations(), operationId)));
         RequestResponse requestResponse =
             accessClient.selectUnits(
                 new VitamContext(tenantId).setAccessContract(contractId)
@@ -116,6 +117,10 @@ public class AccessService {
         throws Throwable {
         JsonNode jsonNode = Iterables.get(results, resultNumber);
 
+        checkResultsForParticularData(jsonNode, dataTable);
+    }
+
+    public void checkResultsForParticularData(JsonNode jsonNode, DataTable dataTable) throws Throwable {
         List<List<String>> raws = dataTable.raw();
 
         for (List<String> raw : raws) {

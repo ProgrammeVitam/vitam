@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+@Deprecated
 public class UnitInheritedRuleTest {
 
     private final static String EXPECTED_RESULT = "UnitInheritedRule/EXPECTED_RESULT.json";

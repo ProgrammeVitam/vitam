@@ -11,6 +11,7 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -193,5 +194,10 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
         String objectGroupsToUpdateChainedFileName) {
         throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery) {
+        throw new UnsupportedOperationException("Stop using mocks in production");
     }
 }

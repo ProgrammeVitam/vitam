@@ -26,13 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 public class RuleCategoryModel {
+
+    private static final String CLASSIFICATION_AUDIENCE = "ClassificationAudience";
+    private static final String CLASSIFICATION_LEVEL = "ClassificationLevel";
+    private static final String CLASSIFICATION_OWNER = "ClassificationOwner";
+    private static final String FINAL_ACTION = "FinalAction";
+    private static final String CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
+    private static final String NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
 
     @JsonProperty("Rules")
     private List<RuleModel> rules;
@@ -40,33 +50,38 @@ public class RuleCategoryModel {
     /**
      * Classification Audience
      */
+    @JsonProperty(CLASSIFICATION_AUDIENCE)
     private String classificationAudience;
 
     /**
      * classification level
      */
+    @JsonProperty(CLASSIFICATION_LEVEL)
     private String classificationLevel;
 
     /**
      * classification owner
      */
+    @JsonProperty(CLASSIFICATION_OWNER)
     private String classificationOwner;
 
     /**
      * classificationReassessingDate
      */
+    @JsonProperty(CLASSIFICATION_REASSESSING_DATE)
     private String classificationReassessingDate;
 
     /**
      * needReassessingAuthorization
      */
+    @JsonProperty(NEED_REASSESSING_AUTHORIZATION)
     private Boolean needReassessingAuthorization;
 
 
     @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
 
-    @JsonProperty("FinalAction")
+    @JsonProperty(FINAL_ACTION)
     private String finalAction;
 
     public RuleCategoryModel() {
@@ -199,5 +214,18 @@ public class RuleCategoryModel {
      */
     public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
         this.needReassessingAuthorization = needReassessingAuthorization;
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getProperties() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(CLASSIFICATION_AUDIENCE, this.classificationAudience);
+        properties.put(CLASSIFICATION_LEVEL, this.classificationLevel);
+        properties.put(CLASSIFICATION_OWNER, this.classificationOwner);
+        properties.put(CLASSIFICATION_REASSESSING_DATE, this.classificationReassessingDate);
+        properties.put(NEED_REASSESSING_AUTHORIZATION, this.needReassessingAuthorization);
+        properties.put(FINAL_ACTION, this.finalAction);
+        properties.values().removeIf(Objects::isNull);
+        return properties;
     }
 }

@@ -1,0 +1,205 @@
+[
+  {
+    "#id": "guid1",
+    "#originating_agency": "sp1",
+    "#unitups": [],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Keep"
+      },
+      "StorageRule": {
+      },
+      "ClassificationRule": {
+      }
+    }
+  },
+  {
+    "#id": "guid2",
+    "#originating_agency": "sp2",
+    "#unitups": [
+      "guid1"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "Keep"
+      },
+      "StorageRule": {
+        "Rules": [
+          {
+            "Rule": "ST-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "Transfer"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          {
+            "Rule": "CLASS-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "ClassificationLevel": "CL1",
+        "ClassificationOwner": "CO1",
+        "NeedReassessingAuthorization": true
+      }
+    }
+  },
+  {
+    "#id": "guid3",
+    "#originating_agency": "sp3",
+    "#unitups": [
+      "guid1"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "StorageRule": {
+        "Rules": [
+          {
+            "Rule": "ST-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "RestrictAccess"
+      },
+      "ClassificationRule": {}
+    }
+  },
+  {
+    "#id": "guid4",
+    "#originating_agency": "sp4",
+    "#unitups": [
+      "guid1",
+      "guid2",
+      "guid3"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": [
+            "APP-00001",
+            "UNUSED"
+          ]
+        },
+        "FinalAction": "Keep"
+      },
+      "StorageRule": {},
+      "ClassificationRule": {}
+    }
+  },
+  {
+    "#id": "guid5",
+    "#originating_agency": "sp5",
+    "#unitups": [
+      "guid4"
+    ],
+    "#management": {
+      "AppraisalRule": {},
+      "StorageRule": {
+        "FinalAction": "Copy"
+      },
+      "ClassificationRule": {}
+    }
+  },
+  {
+    "#id": "guid6",
+    "#originating_agency": "sp6",
+    "#unitups": [
+      "guid4"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002"
+          }
+        ],
+        "FinalAction": "Keep"
+      },
+      "StorageRule": {},
+      "ClassificationRule": {}
+    }
+  },
+  {
+    "#id": "guid7",
+    "#originating_agency": "sp7",
+    "#unitups": [
+      "guid5",
+      "guid6"
+    ],
+    "#management": {}
+  },
+  {
+    "#id": "guid8",
+    "#originating_agency": "sp8",
+    "#unitups": [
+      "guid7"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Inheritance": {
+          "PreventInheritance": true
+        },
+        "FinalAction": "Destroy"
+      },
+      "StorageRule": {
+        "Inheritance": {
+          "PreventInheritance": true
+        },
+        "FinalAction": "Transfer"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          {
+            "Rule": "CLASS-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "ClassificationLevel": "CL2",
+        "ClassificationAudience": "CA2",
+        "ClassificationReassessingDate": "2016-06-03",
+        "NeedReassessingAuthorization": true
+      }
+    }
+  },
+  {
+    "#id": "guid9",
+    "#originating_agency": "sp9",
+    "#unitups": [
+      "guid8"
+    ],
+    "#management": {}
+  }
+]

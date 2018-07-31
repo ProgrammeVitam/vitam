@@ -104,6 +104,7 @@ public class AccessInternalResourceImplTest {
     private static final String ACCESS_CONF = "access-test.conf";
     private static final String ACCESS_RESOURCE_URI = "access-internal/v1";
     private static final String ACCESS_UNITS_URI = "/units";
+    private static final String ACCESS_UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
 
@@ -627,6 +628,57 @@ public class AccessInternalResourceImplTest {
         objectMapper.registerModule(module);
 
         return objectMapper;
+    }
+
+    /**
+     * Checks if the send parameter doesn't have Json format
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithNotJsonRequest_ThenReturnError_UnsupportedMediaType()
+        throws Exception {
+        given()
+            .contentType(ContentType.XML)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    /**
+     * Checks if the send parameter is a bad request
+     *
+     * @throws Exception
+     */
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithBadRequest_ThenReturnError_BadRequest()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions(QUERY_TEST, "test")).when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithJsonContainsHtml_ThenReturnError_BadRequest()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithRoots(DATA_HTML)).when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithEmptyQuery_ThenReturnError_Forbidden()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Status.FORBIDDEN.getStatusCode());
     }
 }
 

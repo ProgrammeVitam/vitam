@@ -26,18 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.api;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+
+import javax.ws.rs.core.Response;
 
 /**
  * AccessModule interface for database operations in select
@@ -139,4 +137,16 @@ public interface AccessInternalModule {
      */
     JsonNode selectObjects(JsonNode queryJson)
             throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException;
+
+    /**
+     * Select units by DSL and computes inherited rules for matching units
+     *
+     * @param jsonQuery the query DSL
+     * @return the selected units with there inherited rules
+     * @throws IllegalArgumentException Throw if json format is not correct
+     * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitsWithInheritedRules(JsonNode jsonQuery)
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException;
 }

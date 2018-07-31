@@ -233,7 +233,6 @@ public enum VitamCode {
         Status.INTERNAL_SERVER_ERROR,
         "Access external client not found."),
 
-
     // MASS UPDATE units
     ACCESS_EXTERNAL_MASS_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "40",
         Status.BAD_REQUEST,
@@ -359,6 +358,10 @@ public enum VitamCode {
     ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "37",
         Status.BAD_REQUEST,
         "Admin external client error in updateOntology method."),
+
+    ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "38",
+        Status.BAD_REQUEST,
+        "Access external client error in selectUnitsWithInheritedRules method."),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,

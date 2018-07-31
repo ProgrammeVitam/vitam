@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Object to build the graph of unit
+ * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
  */
 public class UnitRuleCompute extends UnitNode {
 

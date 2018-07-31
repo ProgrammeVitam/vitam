@@ -217,4 +217,9 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         }
         return new RequestResponseOK().addResult(res);
     }
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery) {
+        throw new UnsupportedOperationException("Stop using mocks in production");
+    }
 }

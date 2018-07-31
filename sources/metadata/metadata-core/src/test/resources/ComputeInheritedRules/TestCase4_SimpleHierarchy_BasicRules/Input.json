@@ -1,0 +1,88 @@
+[
+  {
+    "#id": "guid1",
+    "#originating_agency": "sp1",
+    "#unitups": [],
+    "#management": {
+      "StorageRule": {
+        "Rules": [
+          { "Rule": "STO-00001", "StartDate": "2015-01-01", "EndDate": "2016-01-01" },
+          { "Rule": "STO-00002", "StartDate": "2016-01-01", "EndDate": "2017-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
+      },
+      "AppraisalRule": {
+        "Rules": [
+          { "Rule": "APP-00049", "StartDate": "2016-01-01", "EndDate": "2017-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Destroy"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          {
+            "Rule": "CLASS-00001", "StartDate": "2015-06-03", "EndDate": "2025-06-03"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "ClassificationLevel": "Confidentiel Défense",
+        "ClassificationOwner": "ClassificationOwner0",
+        "ClassificationReassessingDate": "2016-06-03",
+        "NeedReassessingAuthorization": true
+      }
+    }
+  },
+  {
+    "#id": "guid2",
+    "#originating_agency": "sp2",
+    "#unitups": [
+      "guid1"
+    ],
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          { "Rule": "APP-00049", "StartDate": "2010-01-01", "EndDate": "2011-01-01" },
+          { "Rule": "APP-00050", "StartDate": "2011-01-01", "EndDate": "2012-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "FinalAction": "Keep"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          { "Rule": "CLASS-00002", "StartDate": "2010-01-01", "EndDate": "2020-01-01" }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        },
+        "ClassificationAudience": "ClassificationAudience1",
+        "ClassificationLevel": "Secret Défense"
+      },
+      "ReuseRule": {
+        "Rules": [
+          {
+            "Rule": "REU-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2010-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
+      }
+    }
+  }
+]
