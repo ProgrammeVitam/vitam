@@ -31,7 +31,7 @@ package fr.gouv.vitam.metadata.api.model;
  */
 public class UnitPerOriginatingAgency {
     private String id;
-    private int count;
+    private int count = 0;
 
     /**
      * Default constructor

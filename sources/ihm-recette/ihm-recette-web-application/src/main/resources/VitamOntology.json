@@ -1697,32 +1697,8 @@
         ]
     },
     {
-        "Identifier": "attached",
-        "ApiField": "attached",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Total",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
         "Identifier": "deleted",
         "ApiField": "deleted",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Supprimé",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
-        "Identifier": "detached",
-        "ApiField": "detached",
         "Description": "Mapping : accessionregisterdetail-es-mapping.json",
         "Type": "LONG",
         "Origin": "INTERNAL",
@@ -1747,18 +1723,6 @@
     {
         "Identifier": "remained",
         "ApiField": "remained",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Restant",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
-        "Identifier": "symbolicRemained",
-        "ApiField": "symbolicRemained",
         "Description": "Mapping : accessionregisterdetail-es-mapping.json",
         "Type": "LONG",
         "Origin": "INTERNAL",
@@ -1809,17 +1773,6 @@
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Service versant",
-        "Collections": [
-            "AccessionRegisterDetail"
-        ]
-    },
-    {
-        "Identifier": "Symbolic",
-        "ApiField": "Symbolic",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "BOOLEAN",
-        "Origin": "INTERNAL",
-        "ShortName": "Fonds symboliques",
         "Collections": [
             "AccessionRegisterDetail"
         ]

@@ -886,7 +886,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);
+        List<Document> documents = metaData.selectOwnAccessionRegisterOnUnitByOperationId(operationId);
 
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -904,7 +904,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaData.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+        List<Document> documents = metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -914,7 +914,6 @@ public class MetadataResource extends ApplicationStatusResource {
             objectGroupPerOriginatingAgency.setOperation(doc.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
             objectGroupPerOriginatingAgency.setAgency(doc.getString(MetaDataImpl.ORIGINATING_AGENCY));
 
-            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBOLIC));
 
             Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
             objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());

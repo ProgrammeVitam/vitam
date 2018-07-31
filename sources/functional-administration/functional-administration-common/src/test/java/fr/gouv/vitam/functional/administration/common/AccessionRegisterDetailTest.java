@@ -34,8 +34,8 @@ public class AccessionRegisterDetailTest {
     @Test
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel().setIngested(0).setDeleted(0);
         final String id = GUIDFactory.newGUID().getId();
         List<String> ids = new ArrayList<>();
         ids.add(id);

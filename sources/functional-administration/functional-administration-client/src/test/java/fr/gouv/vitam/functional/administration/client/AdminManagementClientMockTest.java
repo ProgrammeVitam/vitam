@@ -208,8 +208,7 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void getFundRegisterTest()
-        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        AccessUnauthorizedException, IOException {
+        throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -226,30 +225,25 @@ public class AdminManagementClientMockTest {
             assertEquals(1, results.size());
             final AccessionRegisterSummaryModel item = results.get(0);
             assertEquals(1035126, item.getObjectSize().getIngested());
-            assertEquals(1035126, item.getObjectSize().getSymbolicRemained());
-            assertEquals(1035126, item.getObjectSize().getAttached());
-            assertEquals(0, item.getObjectSize().getDetached());
             assertEquals(0, item.getObjectSize().getDeleted());
+            assertEquals(1035126, item.getObjectSize().getRemained());
+
             assertEquals(3, item.getTotalObjectsGroups().getIngested());
-            assertEquals(3, item.getTotalObjectsGroups().getSymbolicRemained());
-            assertEquals(3, item.getTotalObjectsGroups().getAttached());
-            assertEquals(0, item.getTotalObjectsGroups().getDetached());
             assertEquals(0, item.getTotalObjectsGroups().getDeleted());
+            assertEquals(3, item.getTotalObjectsGroups().getRemained());
+
             assertEquals(12, item.getTotalObjects().getIngested());
-            assertEquals(12, item.getTotalObjects().getSymbolicRemained());
-            assertEquals(12, item.getTotalObjects().getAttached());
-            assertEquals(0, item.getTotalObjects().getDetached());
             assertEquals(0, item.getTotalObjects().getDeleted());
+            assertEquals(12, item.getTotalObjects().getRemained());
+
             assertEquals(3, item.getTotalUnits().getIngested());
-            assertEquals(3, item.getTotalUnits().getSymbolicRemained());
-            assertEquals(3, item.getTotalUnits().getAttached());
-            assertEquals(0, item.getTotalUnits().getDetached());
             assertEquals(0, item.getTotalUnits().getDeleted());
+            assertEquals(3, item.getTotalUnits().getRemained());
         } else {
             fail("should be ok");
         }
     }
-    
+
     @Test
     public void getAccessionRegisterDetailTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,

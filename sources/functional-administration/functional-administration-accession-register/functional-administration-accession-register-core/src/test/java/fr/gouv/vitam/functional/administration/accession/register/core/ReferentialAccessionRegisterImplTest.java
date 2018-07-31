@@ -69,7 +69,7 @@ import org.junit.rules.TemporaryFolder;
 
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
-    static String FILE_TO_TEST_SYMBOLIC_OK = "accession-register_detached.json";
+    static String FILE_TO_TEST_2_OK = "accession-register_2.json";
     private static final Integer TENANT_ID = 0;
 
     @ClassRule
@@ -189,7 +189,7 @@ public class ReferentialAccessionRegisterImplTest {
         FileNotFoundException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_SYMBOLIC_OK),
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_2_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
 
@@ -207,8 +207,5 @@ public class ReferentialAccessionRegisterImplTest {
         assertEquals(1, item.getTotalObjects().getRemained());
         assertEquals(1, item.getTotalObjects().getIngested());
         assertEquals(0, item.getTotalObjects().getDeleted());
-        assertEquals(1, item.getTotalObjects().getAttached());
-        assertEquals(0, item.getTotalObjects().getDetached());
-        assertEquals(1, item.getTotalObjects().getSymbolicRemained());
     }
 }

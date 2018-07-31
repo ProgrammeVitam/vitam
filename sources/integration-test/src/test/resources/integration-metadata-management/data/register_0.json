@@ -4,10 +4,7 @@
 			"ObjectSize": {
 				"ingested": 29403,
 				"deleted": 0,
-				"remained": 29403,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 29403
 			},
 			"_id": "aehaaaaabahs6u2aaadqyalbty2ya3qaaaaq",
 			"Identifier": "FRAN_NP_005568",
@@ -22,31 +19,21 @@
 			"TotalObjectGroups": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"TotalUnits": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"TotalObjects": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"OperationIds": [
 				"aecaaaaaaceeytj5abrzmalbvy426faaaaaq"
 			],
-			"Symbolic": false,
     		"_v": 0,
     		"_tenant": 0
 		}

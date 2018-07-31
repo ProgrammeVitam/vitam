@@ -2,10 +2,7 @@
 	"ObjectSize": {
 		"ingested": 58806,
 		"deleted": 0,
-		"remained": 58806,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 58806
 	},
 	"#id": "aehaaaaaaeexmt3iabyeqalb2grhupyaaaaq",
 	"OriginatingAgency": "DGFIP",
@@ -18,29 +15,19 @@
 	"TotalObjectGroups": {
 		"ingested": 2,
 		"deleted": 0,
-		"remained": 2,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 2
 	},
 	"TotalUnits": {
 		"ingested": 5,
 		"deleted": 0,
-		"remained": 5,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 5
 	},
 	"TotalObjects": {
 		"ingested": 2,
 		"deleted": 0,
-		"remained": 2,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 2
 	},
 	"OperationIds": [
 		"aeeaaaaaagghkzkeaacimalb2grgctiaaaaq"
-	],
-	"Symbolic": false
+	]
 }

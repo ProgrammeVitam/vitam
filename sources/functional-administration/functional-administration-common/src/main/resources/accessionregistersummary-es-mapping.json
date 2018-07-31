@@ -17,15 +17,6 @@
         },
         "remained": {
           "type": "long"
-        },
-        "attached": {
-          "type": "long"
-        },
-        "detached": {
-          "type": "long"
-        },
-        "symbolicRemained": {
-          "type": "long"
         }
       }
     },
@@ -38,15 +29,6 @@
           "type": "long"
         },
         "remained": {
-          "type": "long"
-        },
-        "attached": {
-          "type": "long"
-        },
-        "detached": {
-          "type": "long"
-        },
-        "symbolicRemained": {
           "type": "long"
         }
       }
@@ -61,15 +43,6 @@
         },
         "remained": {
           "type": "long"
-        },
-        "attached": {
-          "type": "long"
-        },
-        "detached": {
-          "type": "long"
-        },
-        "symbolicRemained": {
-          "type": "long"
         }
       }
     },
@@ -82,15 +55,6 @@
           "type": "long"
         },
         "remained": {
-          "type": "long"
-        },
-        "attached": {
-          "type": "long"
-        },
-        "detached": {
-          "type": "long"
-        },
-        "symbolicRemained": {
           "type": "long"
         }
       }

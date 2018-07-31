@@ -35,13 +35,13 @@ public class ReferentialAccessionRegisterSummaryUtil {
 
     /**
      * Init AccessionRegisterSummary
-     * 
+     *
      * @param originatingAgency originating Agency
-     * @param id id
+     * @param id                id
      * @return return AccessionRegisterSummary
      */
     public AccessionRegisterSummary initAccessionRegisterSummary(String originatingAgency, String id) {
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel();
         final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
         accessionRegister
             .setId(id)
@@ -56,7 +56,7 @@ public class ReferentialAccessionRegisterSummaryUtil {
 
     /**
      * Generate update query on summary from register detail
-     * 
+     *
      * @param registerDetail AccessionRegisterDetail
      * @return update query
      * @throws InvalidCreateOperationException parsing query exception
@@ -72,7 +72,7 @@ public class ReferentialAccessionRegisterSummaryUtil {
 
     /**
      * Add action for summary from register detail
-     * 
+     *
      * @param registerDetail AccessionRegisterDetail
      * @return query actions
      * @throws InvalidCreateOperationException parsing query exception
@@ -88,27 +88,12 @@ public class ReferentialAccessionRegisterSummaryUtil {
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectGroups().getRemained()));
 
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectGroups().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectGroups().getAttached()));
-        actions.add(new IncAction(
-            AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjectGroups().getSymbolicRemained()));
-
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalObjects().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjects().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjects().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjects().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjects().getAttached()));
-        actions.add(
-            new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-                registerDetail.getTotalObjects().getSymbolicRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalUnits().getIngested()));
@@ -116,13 +101,6 @@ public class ReferentialAccessionRegisterSummaryUtil {
             registerDetail.getTotalUnits().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalUnits().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalUnits().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalUnits().getAttached()));
-        actions
-            .add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-                registerDetail.getTotalUnits().getSymbolicRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalObjectSize().getIngested()));
@@ -130,13 +108,6 @@ public class ReferentialAccessionRegisterSummaryUtil {
             registerDetail.getTotalObjectSize().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectSize().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectSize().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectSize().getAttached()));
-        actions
-            .add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-                registerDetail.getTotalObjectSize().getSymbolicRemained()));
         return actions;
     }
 }

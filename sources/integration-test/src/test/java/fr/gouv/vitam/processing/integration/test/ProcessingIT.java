@@ -667,10 +667,10 @@ public class ProcessingIT extends VitamRuleRunner {
             register.setIdentifier("Identifier");
             register.setOperationGroup("OP_GROUP");
             register.setOriginatingAgency("Vitam");
-            register.setTotalObjects(new RegisterValueDetailModel(1, 0, 0));
-            register.setTotalObjectsGroups(new RegisterValueDetailModel(1, 0, 0));
-            register.setTotalUnits(new RegisterValueDetailModel(1, 0, 0));
-            register.setObjectSize(new RegisterValueDetailModel(1, 0, 0));
+            register.setTotalObjects(new RegisterValueDetailModel().setIngested(1));
+            register.setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(1));
+            register.setTotalUnits(new RegisterValueDetailModel().setIngested(1));
+            register.setObjectSize(new RegisterValueDetailModel().setIngested(1));
             register.setEndDate("01/01/2017");
             register.setStartDate("01/01/2017");
             register.setLastUpdate("01/01/2017");
@@ -868,7 +868,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2776,37 +2776,17 @@ public class ProcessingIT extends VitamRuleRunner {
         Document accessRegDoc = accessReg.first();
         // 2 units are attached - 1 was previously added
         // TODO: have to review this double (have to be a long)
-        assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.ATTACHED).toString());
         assertEquals("1.0",
             ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.REMAINED).toString());
 
-        // 1 object is attached - 1 was previously added
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED)
-                .toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.ATTACHED).toString());
         assertEquals("1.0",
             ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 1 Got is attached - 1 was previously added
-        assertEquals("1.0", ((Document) accessRegDoc.get("TotalObjectGroups"))
-            .get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.ATTACHED).toString());
         assertEquals("1.0",
             ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 285804 octets is attached - 4109 was previously added
-        assertEquals("285804.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("285804.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.ATTACHED).toString());
         assertEquals("4109.0",
             ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
 

@@ -157,20 +157,22 @@ public class MongoDbAccessMetadataImplTest {
         unit.insertOne(
             new Document("_id", "1").append("_ops", Arrays.asList(operationId))
                 .append("_opi", Arrays.asList(operationId))
+                .append("_sp", "sp2")
                 .append("_sps", Arrays.asList("sp1", "sp2")));
         unit.insertOne(
             new Document("_id", "2").append("_ops", Arrays.asList(operationId))
                 .append("_opi", Arrays.asList(operationId))
+                .append("_sp", "sp1")
                 .append("_sps", Arrays.asList("sp1")));
         unit.insertOne(
             new Document("_id", "3").append("_ops", Arrays.asList("otherOperationId"))
                 .append("_opi", Arrays.asList("otherOperationId"))
                 .append("_sps", Arrays.asList("sp2")));
         // When
-        final List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);
+        final List<Document> documents = metaData.selectOwnAccessionRegisterOnUnitByOperationId(operationId);
 
         // Then
-        assertThat(documents).containsExactlyInAnyOrder(new Document("_id", "sp1").append("count", 2),
+        assertThat(documents).containsExactlyInAnyOrder(new Document("_id", "sp1").append("count", 1),
             new Document("_id", "sp2").append("count", 1));
 
     }
@@ -196,18 +198,15 @@ public class MongoDbAccessMetadataImplTest {
         objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
             "/object_other_operation_id.json"))));
         // When
-        final List<Document> documents = metaData.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+        final List<Document> documents = metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         // Then
         assertThat(documents).containsExactlyInAnyOrder(
             new Document("originatingAgency", "sp1")
-                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", true)
-                .append("totalSize", 120).append("totalGOT", 1).append("totalObject", 2),
-            new Document("originatingAgency", "sp1")
-                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", false)
+                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq")
                 .append("totalSize", 200).append("totalGOT", 1).append("totalObject", 3),
             new Document("originatingAgency", "sp2")
-                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", false)
+                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq")
                 .append("totalSize", 380).append("totalGOT", 3).append("totalObject", 6));
     }
 

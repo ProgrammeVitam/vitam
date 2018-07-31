@@ -26,19 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.bson.Document;
 
 /**
  * Accession Register Summary document
@@ -79,18 +74,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * the remained field of accession register
      */
     public static final String REMAINED = "remained";
-    /**
-     * the detached field of accession register
-     */
-    public static final String DETACHED = "detached";
-    /**
-     * the attached field of accession register
-     */
-    public static final String ATTACHED = "attached";
-    /**
-     * the symbolic Remained field of accession register
-     */
-    public static final String SYMBOLIC_REMAINED = "symbolicRemained";
     /**
      * the creationDate field of accession register
      */
@@ -213,7 +196,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     *
      * @return String
      */
     public RegisterValueDetailModel getTotalObjectSize() {
@@ -247,7 +229,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     *
      * @return String
      */
     public String getOriginatingAgency() {

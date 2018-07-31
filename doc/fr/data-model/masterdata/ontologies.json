@@ -1295,15 +1295,6 @@
  "ShortName" : "ArchivalAgreement",
  "Collections" : [ "AccessionRegisterDetail" ]
 }, {
- "Identifier" : "attached",
- "SedaField" : "attached",
- "ApiField" : "attached",
- "Description" : "accessionregisterdetail-es-mapping.json",
- "Type" : "LONG",
- "Origin" : "INTERNAL",
- "ShortName" : "attached",
- "Collections" : [ "AccessionRegisterDetail", "AccessionRegisterSummary" ]
-}, {
  "Identifier" : "deleted",
  "SedaField" : "deleted",
  "ApiField" : "deleted",
@@ -1311,15 +1302,6 @@
  "Type" : "LONG",
  "Origin" : "INTERNAL",
  "ShortName" : "deleted",
- "Collections" : [ "AccessionRegisterDetail", "AccessionRegisterSummary" ]
-}, {
- "Identifier" : "detached",
- "SedaField" : "detached",
- "ApiField" : "detached",
- "Description" : "accessionregisterdetail-es-mapping.json",
- "Type" : "LONG",
- "Origin" : "INTERNAL",
- "ShortName" : "detached",
  "Collections" : [ "AccessionRegisterDetail", "AccessionRegisterSummary" ]
 }, {
  "Identifier" : "ingested",
@@ -1338,15 +1320,6 @@
  "Type" : "LONG",
  "Origin" : "INTERNAL",
  "ShortName" : "remained",
- "Collections" : [ "AccessionRegisterDetail", "AccessionRegisterSummary" ]
-}, {
- "Identifier" : "symbolicRemained",
- "SedaField" : "symbolicRemained",
- "ApiField" : "symbolicRemained",
- "Description" : "accessionregisterdetail-es-mapping.json",
- "Type" : "LONG",
- "Origin" : "INTERNAL",
- "ShortName" : "symbolicRemained",
  "Collections" : [ "AccessionRegisterDetail", "AccessionRegisterSummary" ]
 }, {
  "Identifier" : "OperationIds",
@@ -1374,15 +1347,6 @@
  "Type" : "KEYWORD",
  "Origin" : "INTERNAL",
  "ShortName" : "SubmissionAgency",
- "Collections" : [ "AccessionRegisterDetail" ]
-}, {
- "Identifier" : "Symbolic",
- "SedaField" : "Symbolic",
- "ApiField" : "Symbolic",
- "Description" : "accessionregisterdetail-es-mapping.json",
- "Type" : "BOOLEAN",
- "Origin" : "INTERNAL",
- "ShortName" : "Symbolic",
  "Collections" : [ "AccessionRegisterDetail" ]
 }, {
  "Identifier" : "ControlSchema",

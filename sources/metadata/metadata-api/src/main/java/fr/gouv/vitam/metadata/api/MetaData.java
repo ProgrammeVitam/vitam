@@ -73,7 +73,7 @@ public interface MetaData {
      * @param operationId the operation identifier
      * @return the list of documents
      */
-    List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
+    List<Document> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId);
 
 
     /**
@@ -209,7 +209,7 @@ public interface MetaData {
      * @param operationId operation id
      * @return the list of documents
      */
-    List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId);
+    List<Document> selectOwnAccessionRegisterOnUnitByOperationId(String operationId);
 
 
     /**

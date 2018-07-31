@@ -31,7 +31,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -93,7 +92,6 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("EndDate")
     private String endDate;
-    // TODO date object
     /**
      * start date
      */
@@ -138,7 +136,7 @@ public class AccessionRegisterDetailModel {
 
 
     /**
-     * Identifier or creation of the accessionRegisterDetail
+     * Identifier of creation of the accessionRegisterDetail
      */
     @JsonProperty("Identifier")
     private String identifier;
@@ -155,9 +153,6 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("OperationIds")
     private List<String> operationsIds;
-
-    @JsonProperty("Symbolic")
-    private Boolean symbolic;
 
     /**
      * Constructor without fields use for jackson
@@ -493,19 +488,4 @@ public class AccessionRegisterDetailModel {
         return this;
     }
 
-    /**
-     * @param symbolic specify if a detail is a main detail or a symbolic detail.
-     * @return
-     */
-    public AccessionRegisterDetailModel setSymbolic(Boolean symbolic) {
-        this.symbolic = symbolic;
-        return this;
-    }
-
-    /**
-     * @return symbolic
-     */
-    public Boolean isSymbolic() {
-        return symbolic;
-    }
 }

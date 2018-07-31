@@ -60,7 +60,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String OPERATION_GROUP = "OperationGroup";
     private static final String OPERATION_IDS = "OperationIds";
     private static final String TENANT = "_tenant";
-    private static final String SYMBOLIC = "Symbolic";
 
     /**
      * Empty Constructor
@@ -299,10 +298,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
-    public String getOperationGroup() {
-        return (String) get(OPERATION_GROUP);
-    }
-
     public AccessionRegisterDetail setOperationIds(List<String> operationIds) {
         if (!operationIds.isEmpty()) {
             final List<String> ids = new ArrayList<>();
@@ -312,12 +307,4 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
-    public List<String> getOperationIds() {
-        return (List<String>) get(OPERATION_IDS);
-    }
-
-    public AccessionRegisterDetail setSymbolic(boolean symbolic) {
-        append(SYMBOLIC, symbolic);
-        return this;
-    }
 }

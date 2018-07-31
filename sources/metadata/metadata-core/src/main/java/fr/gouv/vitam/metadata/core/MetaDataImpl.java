@@ -69,7 +69,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.Symbolic;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -81,6 +80,7 @@ import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import org.bson.Document;
 
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -117,7 +117,6 @@ public class MetaDataImpl implements MetaData {
     public static final String TOTAL_GOT = "totalGOT";
     public static final String COUNT = "count";
     public static final String SP = "sp";
-    public static final String SYMBOLIC = "symbolic";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -197,31 +196,36 @@ public class MetaDataImpl implements MetaData {
         }
     }
 
+    /**
+     * We can use a simple find by filter instead of aggregation with goupBy.
+     * But we use aggregation because, perhaps, somme operations can acts on multiple originating agencies
+     *
+     * @param operationId operation id
+     * @return
+     */
     @Override
-    public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
+    public List<Document> selectOwnAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
             new Document("$match", new Document("$and", Arrays.asList(new Document(MetadataDocument.OPI, operationId),
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
-            new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
-                new Document(ID, "$" + ORIGINATING_AGENCIES).append(COUNT, new Document("$sum", 1)))),
+                new Document(ID, "$" + MetadataDocument.ORIGINATING_AGENCY).append(COUNT, new Document("$sum", 1)))),
             Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
 
 
     @Override
-    public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
+    public List<Document> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId) {
         AggregateIterable<Document> aggregate =
             MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
                 new Document("$match", new Document(OPS, operationId)),
                 new Document("$unwind", "$" + QUALIFIERS),
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
-                new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+                new Document("$match", new Document(QUALIFIERS + ".versions._opi", operationId)),
                 new Document("$group",
                     new Document(ID,
-                        new Document(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCIES)
-                            .append(OPI, "$" + MetadataDocument.OPI)
+                        new Document(OPI, "$" + MetadataDocument.OPI)
                             .append(SP, "$" + MetadataDocument.ORIGINATING_AGENCY)
                             .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
                         .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
@@ -238,7 +242,10 @@ public class MetaDataImpl implements MetaData {
 
         List<Document> documents = Lists.newArrayList(aggregate.iterator());
 
-        Map<String, Map<Symbolic, Document>> map = new HashMap<>();
+        // For each originating agencies, compute total
+        // In case of ingest, we will have only one originating agency.
+        // We group by _opi to prevent compute object group multiple time (in case where we add object to existing GOT)
+        Map<String, Document> totalByOriginatingAgencies = new HashMap<>();
 
         for (Document doc : documents) {
 
@@ -248,55 +255,39 @@ public class MetaDataImpl implements MetaData {
             String opi = id.getString(MetaDataImpl.OPI);
             String _sp = id.getString(MetaDataImpl.SP);
             String qualifierVersionOpi = id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI);
-            String agency = id.getString(MetaDataImpl.ORIGINATING_AGENCY);
-
 
             doc.put(QUALIFIER_VERSION_OPI, qualifierVersionOpi);
-            doc.put(ORIGINATING_AGENCY, agency);
+            doc.put(ORIGINATING_AGENCY, _sp);
+
             // Count only object but not GOTs
             if (!opi.equals(qualifierVersionOpi)) {
                 doc.put(MetaDataImpl.TOTAL_GOT, 0l);
             }
 
-            boolean symbolic = false;
-            if (!_sp.equals(agency)) {
-                symbolic = true;
-            }
-            doc.put(MetaDataImpl.SYMBOLIC, symbolic);
-
-
-            Map<Symbolic, Document> subMap =
-                map.getOrDefault(qualifierVersionOpi, new HashMap<>());
-
-            if (subMap.isEmpty()) {
-                map.put(qualifierVersionOpi, subMap);
-            }
-
-            Symbolic key = new Symbolic(agency, symbolic);
-            Document ino = subMap.get(key);
-            if (null == ino) {
-                subMap.put(key, doc);
+            Document _sp_total_doc = totalByOriginatingAgencies.get(_sp);
+            if (null == _sp_total_doc) {
+                totalByOriginatingAgencies.put(_sp, doc);
             } else {
                 // After un-count GOT where opi != qualifierVersionOpi
                 // Sum all ObjectGroupPerOriginatingAgency of the same agency
                 Number totalGOT_doc = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-                Number totalGOT_ino = ino.get(MetaDataImpl.TOTAL_GOT, Number.class);
+                Number totalGOT_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
 
                 Number totalObject_doc = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-                Number totalObject_ino = ino.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+                Number totalObject_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
 
                 Number totalSize_doc = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-                Number totalSize_ino = ino.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+                Number totalSize_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
 
-                ino.put(MetaDataImpl.TOTAL_GOT, totalGOT_doc.longValue() + totalGOT_ino.longValue());
-                ino.put(MetaDataImpl.TOTAL_OBJECT, totalObject_doc.longValue() + totalObject_ino.longValue());
-                ino.put(MetaDataImpl.TOTAL_SIZE, totalSize_doc.longValue() + totalSize_ino.longValue());
+                _sp_total_doc.put(MetaDataImpl.TOTAL_GOT, totalGOT_doc.longValue() + totalGOT_ino.longValue());
+                _sp_total_doc.put(MetaDataImpl.TOTAL_OBJECT, totalObject_doc.longValue() + totalObject_ino.longValue());
+                _sp_total_doc.put(MetaDataImpl.TOTAL_SIZE, totalSize_doc.longValue() + totalSize_ino.longValue());
             }
 
             doc.remove(ID);
         }
 
-        return documents;
+        return new ArrayList<>(totalByOriginatingAgencies.values());
     }
 
     @Override

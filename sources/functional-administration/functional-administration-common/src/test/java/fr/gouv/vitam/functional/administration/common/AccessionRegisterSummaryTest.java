@@ -31,10 +31,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.bson.Document;
-import org.junit.Rule;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -42,6 +38,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.bson.Document;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AccessionRegisterSummaryTest {
 
@@ -54,7 +53,7 @@ public class AccessionRegisterSummaryTest {
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel();
         AccessionRegisterSummary register = new AccessionRegisterSummary();
         final String id = GUIDFactory.newAccessionRegisterSummaryGUID(TENANT_ID).getId();
         register
@@ -77,29 +76,17 @@ public class AccessionRegisterSummaryTest {
         documentMap.put("_id", id);
         register = new AccessionRegisterSummary(new Document(documentMap));
         assertEquals(1, register.getTotalObjectGroups().getIngested());
-        assertEquals(1, register.getTotalObjectGroups().getAttached());
         assertEquals(1, register.getTotalObjectGroups().getRemained());
-        assertEquals(1, register.getTotalObjectGroups().getSymbolicRemained());
         assertEquals(0, register.getTotalObjectGroups().getDeleted());
-        assertEquals(0, register.getTotalObjectGroups().getDetached());
         assertEquals(1, register.getTotalUnits().getIngested());
-        assertEquals(1, register.getTotalUnits().getSymbolicRemained());
         assertEquals(1, register.getTotalUnits().getRemained());
-        assertEquals(1, register.getTotalUnits().getAttached());
         assertEquals(0, register.getTotalUnits().getDeleted());
-        assertEquals(0, register.getTotalUnits().getDetached());
         assertEquals(1, register.getTotalObjects().getIngested());
-        assertEquals(1, register.getTotalObjects().getAttached());
-        assertEquals(1, register.getTotalObjects().getSymbolicRemained());
         assertEquals(1, register.getTotalObjects().getRemained());
         assertEquals(0, register.getTotalObjects().getDeleted());
-        assertEquals(0, register.getTotalObjects().getDetached());
         assertEquals(1, register.getTotalObjectSize().getIngested());
-        assertEquals(1, register.getTotalObjectSize().getAttached());
-        assertEquals(1, register.getTotalObjectSize().getSymbolicRemained());
         assertEquals(1, register.getTotalObjectSize().getRemained());
         assertEquals(0, register.getTotalObjectSize().getDeleted());
-        assertEquals(0, register.getTotalObjectSize().getDetached());
 
     }
 

@@ -14,40 +14,27 @@
             "ArchivalAgreement": "ArchivalAgreement0",
             "EndDate": "2018-02-19T14:59:21.976",
             "StartDate": "2018-02-19T14:59:21.976",
-            "Symbolic": false,
             "Status": "STORED_AND_COMPLETED",
             "LastUpdate": "2018-02-19T14:59:21.976",
             "TotalObjectGroups": {
                 "ingested": 6,
                 "deleted": 0,
-                "remained": 6,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
+                "remained": 6
             },
             "TotalUnits": {
                 "ingested": 32,
                 "deleted": 0,
-                "remained": 32,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
+                "remained": 32
             },
             "TotalObjects": {
                 "ingested": 6,
                 "deleted": 0,
-                "remained": 6,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
+                "remained": 6
             },
             "ObjectSize": {
                 "ingested": 176418,
                 "deleted": 0,
-                "remained": 176418,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
+                "remained": 176418
             },
             "OperationIds": [
                 "aeeaaaaaagghkzkeaacimalb2grgctiaaaaq"

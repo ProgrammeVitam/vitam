@@ -32,68 +32,69 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class RegisterValueDetailModel {
+public class RegisterValueEventModel {
 
-    @JsonProperty("ingested")
-    private long ingested = 0;
-    @JsonProperty("deleted")
-    private long deleted = 0;
-    @JsonProperty("remained")
-    private long remained = 0;
+    @JsonProperty("operation")
+    private String operation;
+
+    @JsonProperty("total")
+    private long total;
+
+    @JsonProperty("CreationDate")
+    private String creationdate;
 
     /**
      * Constructor without fields
      *
      * use for jackson
      */
-    public RegisterValueDetailModel() {
+    public RegisterValueEventModel() {
     }
 
     /**
-     * @return ingested
+     * Get operation id
+     * @return operation
      */
-    public long getIngested() {
-        return ingested;
+    public String getOperation() {
+        return operation;
     }
 
     /**
-     * @param ingested value to set field
-     * @return this
+     * Set operation id
+     * @param operation
      */
-    public RegisterValueDetailModel setIngested(long ingested) {
-        this.ingested = ingested;
+    public RegisterValueEventModel setOperation(String operation) {
+        this.operation = operation;
         return this;
     }
 
     /**
-     * @return deleted value to set field
+     * Get total of modified elements
+     * @return total
      */
-    public long getDeleted() {
-        return deleted;
+    public long getTotal() {
+        return total;
     }
 
-    /**
-     * @param deleted value to set field
-     * @return this
-     */
-    public RegisterValueDetailModel setDeleted(long deleted) {
-        this.deleted = deleted;
+    public RegisterValueEventModel setTotal(long total) {
+        this.total = total;
         return this;
     }
 
     /**
-     * @return remained
+     * Get create date of this instance
+     * @return creationdate
      */
-    public long getRemained() {
-        return remained;
+    public String getCreationdate() {
+        return creationdate;
     }
 
     /**
-     * @param remained value to set field
-     * @return this
+     * Set creationDate
+     * @param creationdate
      */
-    public RegisterValueDetailModel setRemained(long remained) {
-        this.remained = remained;
+    public RegisterValueEventModel setCreationdate(String creationdate) {
+        this.creationdate = creationdate;
         return this;
     }
 }
