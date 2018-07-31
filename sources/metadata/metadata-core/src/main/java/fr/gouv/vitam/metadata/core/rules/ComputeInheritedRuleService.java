@@ -75,13 +75,16 @@ public class ComputeInheritedRuleService {
     private void computeUnitInheritedRules(String unitId, Map<String, UnitRuleModel> unitRulesById,
         Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap) {
 
+        if (unitInheritedRulesByUnitIdMap.containsKey(unitId)) {
+            // Already computed
+            return;
+        }
+
         UnitRuleModel unitRuleModel = unitRulesById.get(unitId);
 
         // Ensure parent units have been proceeded before self
         for (String parentUnit : unitRuleModel.getUp()) {
-            if (!unitInheritedRulesByUnitIdMap.containsKey(parentUnit)) {
-                computeUnitInheritedRules(parentUnit, unitRulesById, unitInheritedRulesByUnitIdMap);
-            }
+            computeUnitInheritedRules(parentUnit, unitRulesById, unitInheritedRulesByUnitIdMap);
         }
 
         // Compute unit inherited rules
