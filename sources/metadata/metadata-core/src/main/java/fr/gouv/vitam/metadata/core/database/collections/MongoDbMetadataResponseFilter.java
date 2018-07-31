@@ -102,6 +102,9 @@ public class MongoDbMetadataResponseFilter {
                 case QUALIFIERS:
                     filterQualifiers(document);
                     break;
+                case FILE_INFO:
+                    filterFileName(document);
+                    break;
                 case TYPE:
                     replace(document, MetadataDocument.TYPE, VitamFieldsHelper.type());
                     break;
@@ -189,10 +192,19 @@ public class MongoDbMetadataResponseFilter {
                             replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
                             replace((Document) version, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
                         }
+
+                        filterFileName((Document) version);
                     }
                     ((Document) qualifier).put(VERSION, versions);
                 }
             }
+        }
+    }
+
+    private static final void filterFileName(Document document) {
+        Object fileInfo = document.get(ObjectGroup.FILE_INFO);
+        if (fileInfo != null) {
+            remove((Document) fileInfo, ObjectGroup.FILE_NAME);
         }
     }
 }
