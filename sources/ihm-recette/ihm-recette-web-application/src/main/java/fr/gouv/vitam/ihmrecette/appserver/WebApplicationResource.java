@@ -152,6 +152,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final String X_REQUESTED_COLLECTION = "X-Requested-Collection";
     private static final String X_OBJECT_ID = "X-Object-Id";
+    private static final String X_REQUEST_ID = "X-Request-Id";
 
     private static final String UNIT_COLLECTION = "UNIT";
     private static final String LOGBOOK_COLLECTION = "LOGBOOK";
@@ -583,7 +584,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 RequestResponse response =
                     accessExternalClient.reclassification(getVitamContext(request), query);
                 if (response != null && response instanceof RequestResponseOK) {
-                    return Response.status(Status.OK).entity(response).build();
+                	return Response.status(Status.OK).entity(response)
+                    		.header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID)).build();
                 }
                 if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());
