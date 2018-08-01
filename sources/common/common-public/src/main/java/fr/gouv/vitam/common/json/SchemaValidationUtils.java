@@ -59,8 +59,13 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,11 +75,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
 import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 /**
  * SchemaValidationUtils
@@ -152,8 +158,9 @@ public class SchemaValidationUtils {
     public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
 
 
-    private static final Pattern SPECIFIC_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}[zZ])$");
-    private static final Pattern PATTERN_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2})");
+    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
+        .appendPattern("u-MM-dd['T'HH:mm:ss[.SSS][.SS][.S][xxx][X]][xxx][X]")
+        .toFormatter();
 
     private static final String TYPE = "type";
     private static final String ARRAY = "array";
@@ -706,7 +713,8 @@ public class SchemaValidationUtils {
             try {
                 originalFields.set(i, mapFieldToOntology(field, ontology.getType()));
             } catch (IllegalArgumentException e) {
-                errors.add(error(ontology, fieldName, e));
+                errors.add(String.format("Error '%s' on field '%s' should be of type '%s'.", e.getMessage(), fieldName,
+                    ontology.getType().name()));
             }
         }
         return errors;
@@ -718,15 +726,11 @@ public class SchemaValidationUtils {
             String field = archiveUnitFragment.asText();
             try {
                 objectNodeParent.set(ontology.getIdentifier(), mapFieldToOntology(field, ontology.getType()));
-            } catch (IllegalArgumentException e) {
-                return Collections.singletonList(error(ontology, fieldName, e));
+            } catch (IllegalArgumentException | DateTimeParseException e) {
+                return Collections.singletonList(String.format("Error: <%s> on field '%s' should be of type '%s'.", e.getMessage(), fieldName, ontology.getType().name()));
             }
         }
         return Collections.emptyList();
-    }
-
-    private String error(OntologyModel ontology, String fieldName, RuntimeException e) {
-        return String.format("Error '%s' on field '%s' should be of type '%s'.", e.getMessage(), fieldName, ontology.getType().name());
     }
 
     private JsonNode mapFieldToOntology(String field, OntologyType type) {
@@ -734,7 +738,7 @@ public class SchemaValidationUtils {
             case DOUBLE:
                 return new DoubleNode(Double.parseDouble(field));
             case DATE:
-                return new TextNode(mapFieldToDate(field));
+                return new TextNode(mapDateToOntology(field));
             case LONG:
                 return new LongNode(Long.parseLong(field));
             case BOOLEAN:
@@ -745,13 +749,10 @@ public class SchemaValidationUtils {
         }
     }
 
-    private String mapFieldToDate(String field) {
-        if (SPECIFIC_DATE_TZ.matcher(field).find()) {
-            return field.substring(0, field.length() - 1);
-        }
-        if(PATTERN_DATE_TZ.matcher(field).find()) {
-            return field;
-        }
-        throw new IllegalArgumentException(String.format("Error with date '%s'", field));
+    private String mapDateToOntology(String field) {
+        TemporalAccessor parse = XSD_DATATYPE_DATE_FORMATTER.parse(field);
+        return parse.isSupported(HOUR_OF_DAY)
+            ? parse.query(LocalDateTime::from).format(ISO_LOCAL_DATE_TIME)
+            : parse.query(LocalDate::from).format(ISO_LOCAL_DATE);
     }
 }
