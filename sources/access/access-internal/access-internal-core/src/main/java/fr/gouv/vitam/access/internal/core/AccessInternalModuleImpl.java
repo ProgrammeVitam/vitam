@@ -1827,6 +1827,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LOGGER.error("exeption thrown", e);
             throw new AccessInternalExecutionException(e);
         }
+        removeFileName(jsonNode);
         return jsonNode;
     }
 
@@ -1847,6 +1848,32 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (MetaDataDocumentSizeException |
             ProcessingException | MetaDataClientServerException | MetaDataExecutionException  e) {
             throw new AccessInternalExecutionException(e);
+        }
+    }
+
+    private void removeFileName(JsonNode rootNode) {
+        JsonNode results = rootNode.get("$results");
+        if(results != null) {
+            for (JsonNode result : results) {
+                JsonNode globalFileInfo = result.get("FileInfo");
+                if(globalFileInfo != null) {
+                    ((ObjectNode) globalFileInfo).remove("Filename");
+                }
+                JsonNode qualifiers = result.get("#qualifiers");
+                if(qualifiers != null) {
+                    for(JsonNode qualifier : qualifiers) {
+                        JsonNode versions = qualifier.get("versions");
+                        if(versions != null) {
+                            for(JsonNode version : versions) {
+                                JsonNode fileInfo = version.get("FileInfo");
+                                if(fileInfo != null) {
+                                    ((ObjectNode) fileInfo).remove("Filename");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -607,10 +607,6 @@ public class ParserTokens extends BuilderToken {
          */
         QUALIFIERS("qualifiers"),
         /**
-         * FileInfo field
-         */
-        FILE_INFO("FileInfo"),
-        /**
          * Object size
          */
         SIZE("size"),
