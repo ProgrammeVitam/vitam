@@ -39,8 +39,6 @@ La fin du processus peut prendre plusieurs statuts :
 
 
 
-
-
 Si le type de modification concerne une métadonnée de règle de gestion et descriptive: STP_UPDATE_UNIT_DESC ((AccessInternalModuleImpl.java)
 --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,13 +46,11 @@ La fin du processus peut prendre plusieurs statuts :
 
 * **Statuts** :
 
-  + OK : la mise à jour de l'unité archivistique a bien été effectuée (STP_UPDATE_UNIT_DESC.OK = Succès du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
+  + OK : la mise à jour de l'unité archivistique a bien été effectuée. (STP_UPDATE_UNIT_DESC.OK = Succès du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
 
   + KO : la mise à jour de l'unité archivistique n'a pas été effectuée en raison d'une erreur (STP_UPDATE_UNIT_DESC.KO = Échec du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
 
   + FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT_DESC.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
-
-
 
 
 Vérification des permissions de modifications UNIT_METADATA_UPDATE_CHECK_PERMISSION
@@ -109,7 +105,7 @@ Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInt
 Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 -----------------------------------------------------------------------------
 
-  + **Règle** : Indexation des métadonnées des unités archivistiques dans les bases internes de la solution logicielle Vitam, c'est à dire le titre des unités, leurs descriptions, leurs dates extrêmes, etc. C'est également dans cette tâche que le journal du cycle de vie est enregistré dans la base de données.
+  + **Règle** : Indexation des métadonnées des unités archivistiques dans les bases internes de la solution logicielle Vitam, c'est à dire le titre des unités, leurs descriptions, leurs dates extrêmes, etc. C'est également dans cette tâche que le journal du cycle de vie est enregistré dans la base de données. Si la modification touche une métadonnée à historiser, alors un historique est créé. 
 
   + **Type** : bloquant
 
@@ -124,6 +120,32 @@ Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
     - FATAL : Erreur fatale lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.FATAL=Erreur fatale lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
 
     - WARNING : Avertissement lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.WARNING=Avertissement lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
+
+**A propos de l'historique des données** :
+
+Il existe un fichier permettant de configurer les métadonnées à historiser dans :
+
+vitam/sources/metadata/metadata-core/src/main/resources/history-triggers.json
+
+Ce fichier contient deux variables par objet :
+  - FieldPathTriggeredForHistory : champ dont la modification déclenche une historisation
+  - ObjectPathForHistory : champ à historiser
+
+Quand ce champ correspondant à FieldPathTriggeredForHistory est modifié, alors le champ contenu dans "ObjectPathForHistory" est enregistré dans un bloc nommé "history" dans le modèle de données.
+
+Par défaut dans Vitam, la configuration de history-triggers.json est :
+
+.. code-block:: JSON
+
+  [
+   {
+     "FieldPathTriggeredForHistory": "_mgt.ClassificationRule.ClassificationLevel",
+     "ObjectPathForHistory": "_mgt.ClassificationRule"
+   }
+  ]
+
+Lorsqu'un niveau de classification est modifié, alors l'intégralité de la catégorie de règle de classification est enregistré dans le bloc _history de l'unité archivistique.
+
 
 
 Enregistrement du journal du cycle de vie des unités archivistiques
