@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -74,6 +75,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.Response;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -198,17 +200,22 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 throw new TraceabilityException("Unable to get the given object " + fileName, e);
             }
             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-            InputStream stream = response.readEntity(InputStream.class);
-            byte[] fileContent = IOUtils.toByteArray(stream);
-            byte[] hash = digest.update(fileContent).digest();
+            InputStream stream = null;
+            try {
+                stream = response.readEntity(InputStream.class);
+                byte[] hash = digest.update(stream).digest();
 
-            ObjectNode fileInfo = JsonHandler.createObjectNode();
-            fileInfo.put("FileName", fileName);
-            fileInfo.put("Hash", hash);
-            byte[] bytes = CanonicalJsonFormatter.serializeToByteArray(fileInfo);
+                ObjectNode fileInfo = JsonHandler.createObjectNode();
+                fileInfo.put("FileName", fileName);
+                fileInfo.put("Hash", hash);
+                byte[] bytes = CanonicalJsonFormatter.serializeToByteArray(fileInfo);
 
-            file.storeLog(bytes);
-            algo.addLeaf(bytes);
+                file.storeLog(bytes);
+                algo.addLeaf(bytes);
+            } finally {
+                StreamUtils.closeSilently(stream);
+                StreamUtils.consumeAnyEntityAndClose(response);
+            }
         }
 
         file.closeStoreLog();
