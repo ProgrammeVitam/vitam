@@ -61,8 +61,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -197,8 +195,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         ReconstructionRequestItem reconstructionItem2;
         Response<List<ReconstructionResponseItem>> response;
         JsonNode logbookResponse;
-        RequestResponse<AccessionRegisterSummaryModel> accessionRegisterSummaryRsp;
-        RequestResponse<AccessionRegisterDetailModel> accessionRegisterDetailRsp;
         LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
@@ -297,20 +293,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat((logbookOK).getFirstResult().get("evId").asText()).isEqualTo(LOGBOOK_0_GUID);
         assertThat((logbookOK).getFirstResult().get("_v").asInt()).isEqualTo(1);
 
-        accessionRegisterSummaryRsp =
-            adminManagementClient.getAccessionRegister(getQueryDsOriginatinAgencylId("FRAN_NP_005568"));
-        assertThat(accessionRegisterSummaryRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults().size())
-            .isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getIngested()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getRemained()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getIngested()).isEqualTo(29403);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getRemained()).isEqualTo(29403);
-
         // 2. relaunch reconstruct operations
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
@@ -321,20 +303,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(2L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-
-        accessionRegisterSummaryRsp =
-            adminManagementClient.getAccessionRegister(getQueryDsOriginatinAgencylId("FRAN_NP_005568"));
-        assertThat(accessionRegisterSummaryRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults().size())
-            .isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getIngested()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getRemained()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getIngested()).isEqualTo(29403);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getRemained()).isEqualTo(29403);
 
 
         // 3. reconstruct next operation
@@ -359,21 +327,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         }).isInstanceOf(LogbookClientNotFoundException.class);
         logbookResponse = client.selectOperationById(LOGBOOK_2_GUID);
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
-
-        accessionRegisterSummaryRsp =
-            adminManagementClient.getAccessionRegister(getQueryDsOriginatinAgencylId("FRAN_NP_005568"));
-        assertThat(accessionRegisterSummaryRsp.isOk()).isTrue();
-        assertThat(
-            ((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults().size())
-            .isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getIngested()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getRemained()).isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getIngested()).isEqualTo(29403);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getRemained()).isEqualTo(29403);
 
         // 4. reconstruct nothing for logbook operation
         reconstructionItems = new ArrayList<>();
@@ -411,52 +364,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-
-        accessionRegisterDetailRsp =
-            adminManagementClient.getAccessionRegisterDetail("FRAN_NP_005568", getQueryDslOperationId(LOGBOOK_0_GUID));
-        assertThat(accessionRegisterDetailRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterDetailModel>) accessionRegisterDetailRsp).getResults().size())
-            .isEqualTo(1);
-
-        accessionRegisterDetailRsp =
-            adminManagementClient.getAccessionRegisterDetail("FRAN_NP_005568", getQueryDslOperationId(LOGBOOK_1_GUID));
-        assertThat(accessionRegisterDetailRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterDetailModel>) accessionRegisterDetailRsp).getResults().size())
-            .isEqualTo(1);
-
-        accessionRegisterDetailRsp =
-            adminManagementClient.getAccessionRegisterDetail("MICHEL_MERCIER", getQueryDslOperationId(LOGBOOK_1_GUID));
-        assertThat(accessionRegisterDetailRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterDetailModel>) accessionRegisterDetailRsp).getResults().size())
-            .isEqualTo(1);
-
-        accessionRegisterSummaryRsp =
-            adminManagementClient.getAccessionRegister(getQueryDsOriginatinAgencylId("FRAN_NP_005568"));
-        assertThat(accessionRegisterSummaryRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults().size())
-            .isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getIngested()).isEqualTo(2);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjects().getRemained()).isEqualTo(2);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getIngested()).isEqualTo(58806);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getObjectSize().getRemained()).isEqualTo(58806);
-
-        accessionRegisterSummaryRsp =
-            adminManagementClient.getAccessionRegister(getQueryDsOriginatinAgencylId("MICHEL_MERCIER"));
-        assertThat(accessionRegisterSummaryRsp.isOk()).isTrue();
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults().size())
-            .isEqualTo(1);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjectsGroups().getIngested()).isEqualTo(244);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalObjectsGroups().getRemained()).isEqualTo(244);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalUnits().getIngested()).isEqualTo(249);
-        assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) accessionRegisterSummaryRsp).getResults()
-            .get(0).getTotalUnits().getRemained()).isEqualTo(249);
     }
 
     private JsonNode getQueryDslOperationId(String operationId) throws InvalidCreateOperationException {

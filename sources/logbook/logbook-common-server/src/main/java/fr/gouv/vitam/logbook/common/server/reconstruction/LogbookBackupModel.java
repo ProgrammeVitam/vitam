@@ -47,11 +47,6 @@ public class LogbookBackupModel {
     private Document logbookOperation;
 
     /**
-     * AccessionRegisters
-     */
-    private List<JsonNode> accessionRegisters = new ArrayList<JsonNode>();
-
-    /**
      * Offset.
      */
     private Long offset;
@@ -78,9 +73,5 @@ public class LogbookBackupModel {
 
     public void setOffset(Long offset) {
         this.offset = offset;
-    }
-
-    public List<JsonNode> getAccessionRegisters() {
-        return accessionRegisters;
     }
 }

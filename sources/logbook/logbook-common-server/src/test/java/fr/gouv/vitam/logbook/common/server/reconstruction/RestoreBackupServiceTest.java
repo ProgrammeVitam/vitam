@@ -188,24 +188,6 @@ public class RestoreBackupServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_get_null_when_loading_and_storage_returns_file_invalid_register()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
-        // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
-            .thenReturn(
-                new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid_register.json"),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
-        // when + then
-        assertThatCode(() -> restoreBackupService.loadData(STRATEGY_ID, "100.json", 100L))
-            .isInstanceOf(VitamRuntimeException.class);
-
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void should_get_null_when_loading_and_storage_not_ok()
         throws StorageServerClientException, StorageNotFoundException {
         // given

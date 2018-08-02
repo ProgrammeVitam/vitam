@@ -193,7 +193,6 @@ public class ReconstructionService {
                 // reconstruct Vitam collection from the backup datas.
                 if (!bulkData.isEmpty()) {
                     reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
-                    reconstructCollectionAccessionRegister(bulkData);
                     LogbookBackupModel last = Iterables.getLast(bulkData);
                     newOffset = last.getOffset();
                 }
@@ -210,12 +209,6 @@ public class ReconstructionService {
                 DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
-        } catch (ReferentialException | VitamClientException re) {
-            LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} accession register on the tenant {%s} from {offset:%s}",
-                DataCategory.BACKUP_OPERATION.name(), tenant, offset), re);
-            newOffset = offset;
-            response.setStatus(StatusCode.KO);
         } catch (StorageException se) {
             LOGGER.error(se.getMessage());
             newOffset = offset;
@@ -225,25 +218,6 @@ public class ReconstructionService {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
-    }
-
-    /**
-     * Reconstruct accession Register
-     * 
-     * @param bulk list of items to back up
-     * @throws VitamClientException
-     * @throws ReferentialException
-     */
-    private void reconstructCollectionAccessionRegister(List<LogbookBackupModel> bulk)
-        throws ReferentialException, VitamClientException {
-        LOGGER.info("[Reconstruction]: Back up of accessionRegister bulk");
-        for (LogbookBackupModel item : bulk) {
-            for (JsonNode register : item.getAccessionRegisters()) {
-                try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-                    adminManagementClient.createorUpdateAccessionRegisterRaw(register);
-                }
-            }
-        }
     }
 
     /**
