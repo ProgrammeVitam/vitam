@@ -26,7 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Facet bucket
@@ -35,7 +38,7 @@ public class FacetBucket {
     @JsonProperty("value")
     private String value;
     @JsonProperty("count")
-    private long count;
+    private long count = 0l;
 
     /**
      * Constructor
@@ -86,4 +89,25 @@ public class FacetBucket {
         this.count = count;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        FacetBucket that = (FacetBucket) o;
+        return Objects.equals(value, that.value) &&
+            Objects.equals(count, that.count);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, count);
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.createObjectNode().put("value", value).put("count", count).toString();
+    }
 }

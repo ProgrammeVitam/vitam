@@ -466,7 +466,7 @@ public class ProcessingIT extends VitamRuleRunner {
             query.setLimitFilter(0, 1);
             RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
-            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
 
             // check if unit is valid
@@ -580,7 +580,7 @@ public class ProcessingIT extends VitamRuleRunner {
             query.setLimitFilter(0, 1);
             RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
-            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
 
             // check if unit is valid

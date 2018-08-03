@@ -27,6 +27,28 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -34,12 +56,17 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
@@ -59,45 +86,28 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
-
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -197,26 +207,61 @@ public class MetaDataImpl implements MetaData {
     }
 
     /**
-     * We can use a simple find by filter instead of aggregation with goupBy.
-     * But we use aggregation because, perhaps, somme operations can acts on multiple originating agencies
-     *
      * @param operationId operation id
-     * @return
+     * @return List of FacetBucket
      */
     @Override
-    public List<Document> selectOwnAccessionRegisterOnUnitByOperationId(String operationId) {
-        AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(MetadataDocument.OPI, operationId),
-                new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
-            new Document("$group",
-                new Document(ID, "$" + MetadataDocument.ORIGINATING_AGENCY).append(COUNT, new Document("$sum", 1)))),
-            Document.class);
-        return Lists.newArrayList(aggregate.iterator());
+    public List<FacetBucket> selectOwnAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataExecutionException {
+
+        final SelectParserMultiple request = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        final SelectMultiQuery select = new SelectMultiQuery();
+        try {
+
+            BooleanQuery query = and().add(
+                eq(PROJECTIONARGS.INITIAL_OPERATION.exactToken(), operationId),
+                ne(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name())
+            );
+
+            select.addQueries(query);
+
+            Facet facet = FacetHelper
+                .terms(AccessionRegisterDetail.class.getSimpleName(), PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
+                    Integer.MAX_VALUE,
+                    FacetOrder.ASC);
+            select.addFacets(facet);
+
+            select.setLimitFilter(0, 1);
+
+            request.parse(select.getFinalSelect());
+
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            throw new MetaDataExecutionException(e);
+        }
+
+        try {
+
+            Result result = DbRequestFactoryImpl.getInstance().create().execRequest(request);
+            List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
+
+            if (!CollectionUtils.isEmpty(facetResults)) {
+                FacetResult facetResult = facetResults.iterator().next();
+                if (null != facetResult && !CollectionUtils.isEmpty(facetResult.getBuckets())) {
+                    return facetResult.getBuckets();
+                }
+            }
+
+        } catch (InvalidParseOperationException | BadRequestException | VitamDBException e) {
+            throw new MetaDataExecutionException(e);
+        }
+
+        return new ArrayList<>();
     }
 
 
     @Override
-    public List<Document> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId) {
+    public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(
+        String operationId) {
         AggregateIterable<Document> aggregate =
             MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
                 new Document("$match", new Document(OPS, operationId)),
@@ -245,46 +290,46 @@ public class MetaDataImpl implements MetaData {
         // For each originating agencies, compute total
         // In case of ingest, we will have only one originating agency.
         // We group by _opi to prevent compute object group multiple time (in case where we add object to existing GOT)
-        Map<String, Document> totalByOriginatingAgencies = new HashMap<>();
+        Map<String, ObjectGroupPerOriginatingAgency> totalByOriginatingAgencies = new HashMap<>();
 
         for (Document doc : documents) {
 
             Document id = doc.get(ID, Document.class);
-
-
             String opi = id.getString(MetaDataImpl.OPI);
             String _sp = id.getString(MetaDataImpl.SP);
             String qualifierVersionOpi = id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI);
-
-            doc.put(QUALIFIER_VERSION_OPI, qualifierVersionOpi);
-            doc.put(ORIGINATING_AGENCY, _sp);
 
             // Count only object but not GOTs
             if (!opi.equals(qualifierVersionOpi)) {
                 doc.put(MetaDataImpl.TOTAL_GOT, 0l);
             }
 
-            Document _sp_total_doc = totalByOriginatingAgencies.get(_sp);
+            Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
+            Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+            Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+
+            ObjectGroupPerOriginatingAgency _sp_total_doc = totalByOriginatingAgencies.get(_sp);
             if (null == _sp_total_doc) {
-                totalByOriginatingAgencies.put(_sp, doc);
+
+                ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
+
+                objectGroupPerOriginatingAgency.setOperation(qualifierVersionOpi);
+                objectGroupPerOriginatingAgency.setAgency(_sp);
+
+                objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());
+
+                objectGroupPerOriginatingAgency.setNumberOfObject(totalObject.longValue());
+
+                objectGroupPerOriginatingAgency.setSize(totalSize.longValue());
+
+                totalByOriginatingAgencies.put(_sp, objectGroupPerOriginatingAgency);
             } else {
                 // After un-count GOT where opi != qualifierVersionOpi
                 // Sum all ObjectGroupPerOriginatingAgency of the same agency
-                Number totalGOT_doc = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-                Number totalGOT_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-
-                Number totalObject_doc = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-                Number totalObject_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-
-                Number totalSize_doc = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-                Number totalSize_ino = _sp_total_doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-
-                _sp_total_doc.put(MetaDataImpl.TOTAL_GOT, totalGOT_doc.longValue() + totalGOT_ino.longValue());
-                _sp_total_doc.put(MetaDataImpl.TOTAL_OBJECT, totalObject_doc.longValue() + totalObject_ino.longValue());
-                _sp_total_doc.put(MetaDataImpl.TOTAL_SIZE, totalSize_doc.longValue() + totalSize_ino.longValue());
+                _sp_total_doc.setNumberOfGOT(totalGOT.longValue() + _sp_total_doc.getNumberOfGOT());
+                _sp_total_doc.setNumberOfObject(totalObject.longValue() + _sp_total_doc.getNumberOfObject());
+                _sp_total_doc.setSize(totalSize.longValue() + _sp_total_doc.getSize());
             }
-
-            doc.remove(ID);
         }
 
         return new ArrayList<>(totalByOriginatingAgencies.values());

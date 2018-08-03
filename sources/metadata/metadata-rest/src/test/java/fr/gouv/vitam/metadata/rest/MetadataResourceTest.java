@@ -26,63 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.parameter.IndexParameters;
-import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import net.javacrumbs.jsonunit.JsonAssert;
-import net.javacrumbs.jsonunit.core.Option;
-import org.apache.commons.lang3.StringUtils;
-import org.bson.Document;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.MarshalException;
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
@@ -90,7 +33,63 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assume.assumeTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.MarshalException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class MetadataResourceTest {
     private static final String DATA =
@@ -100,58 +99,50 @@ public class MetadataResourceTest {
     private static final String INVALID_DATA = "{ \"INVALID\": true }";
 
     private static final String DATA_URI = "/metadata/v1";
-    private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
+
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String HOST_NAME = "127.0.0.1";
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-DB",
+            MetadataCollections.UNIT.getName(),
+            MetadataCollections.OBJECTGROUP.getName());
 
-    private static final String SERVER_HOST = "localhost";
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
+            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
+            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1"
+        );
     private static JunitHelper junitHelper;
-    private static int dataBasePort;
     private static int serverPort;
 
-    private static MetadataMain application;
-    private static ElasticsearchTestConfiguration config = null;
+    private static MetadataMain metadataMain;
     static final int tenantId = 0;
     static final List tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         junitHelper = JunitHelper.getInstance();
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-
-        dataBasePort = junitHelper.findAvailablePort();
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
-        // TODO: using configuration file ? Why not ?
+        mongo_nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+            new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
+                elasticsearchRule.getClusterName(), nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -160,8 +151,8 @@ public class MetadataResourceTest {
 
         PropertiesUtils.writeYaml(configurationFile, configuration);
 
-        application = new MetadataMain(configurationFile.getAbsolutePath());
-        application.start();
+        metadataMain = new MetadataMain(configurationFile.getAbsolutePath());
+        metadataMain.start();
         JunitHelper.unsetJettyPortSystemProperty();
 
         RestAssured.port = serverPort;
@@ -170,30 +161,19 @@ public class MetadataResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (config == null) {
-            return;
-        }
-        JunitHelper.stopElasticsearchForTest(config);
         try {
-            application.stop();
+            metadataMain.stop();
         } catch (final Exception e) {
             // ignore
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
 
-    @Before
-    public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", config != null);
-    }
 
     @After
     public void tearDown() {
-        MetadataCollections.UNIT.getCollection().drop();
-        MetadataCollections.OBJECTGROUP.getCollection().drop();
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
@@ -375,7 +355,7 @@ public class MetadataResourceTest {
     @Test(expected = MarshalException.class)
     public void shouldReturnErrorIfContentTypeIsNotJson() throws Exception {
         given()
-            .contentType("application/xml")
+            .contentType("metadataMain/xml")
             .body(buildDSLWithOptions(DATA)).when()
             .post("/units").then()
             .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
@@ -476,17 +456,31 @@ public class MetadataResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_find_accession_register_on_unit() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         String operationId = "1234";
-        MetadataCollections.UNIT.getCollection().insertOne(
-            new Document("_id", "1").append("_ops", singletonList(operationId))
-                .append("_opi", singletonList(operationId))
-                .append("_sps", Arrays.asList("sp1", "sp2")));
+
+        VitamRepositoryFactory factory = VitamRepositoryFactory.get();
+        VitamMongoRepository mongo =
+            factory.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
+        Document doc = new Document("_id", "1")
+            .append("_ops", singletonList(operationId))
+            .append("_tenant", 0)
+            .append("_max", 1)
+            .append("_sp", "sp1")
+            .append("_opi", operationId)
+            .append("_sps", Arrays.asList("sp1", "sp2"));
+        mongo.save(doc);
+
+        VitamElasticsearchRepository es = factory.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection());
+        es.save(doc);
+
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/accession-registers/units/" + operationId).then()
-            .body("$results.size()", equalTo(2))
+            .body("$results.size()", equalTo(1))
             .statusCode(Status.OK.getStatusCode());
 
     }

@@ -38,11 +38,13 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import org.bson.Document;
 
 /**
@@ -73,7 +75,7 @@ public interface MetaData {
      * @param operationId the operation identifier
      * @return the list of documents
      */
-    List<Document> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId);
+    List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId);
 
 
     /**
@@ -209,7 +211,7 @@ public interface MetaData {
      * @param operationId operation id
      * @return the list of documents
      */
-    List<Document> selectOwnAccessionRegisterOnUnitByOperationId(String operationId);
+    List<FacetBucket> selectOwnAccessionRegisterOnUnitByOperationId(String operationId) throws MetaDataExecutionException;
 
 
     /**

@@ -27,34 +27,31 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -147,33 +144,72 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
-        // Given
-        final MongoCollection unit = MetadataCollections.UNIT.getCollection();
+        VitamThreadUtils.getVitamSession().setTenantId(0);
 
+        mongoDbAccess =
+            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
+                esClient, tenantList);
+
+        // Given
         final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
 
         final String operationId = "1234";
-        unit.insertOne(
-            new Document("_id", "1").append("_ops", Arrays.asList(operationId))
+        ArrayList<Document> units = Lists.newArrayList(
+            new Document("_id", "1")
+                .append("_tenant", 0)
+                .append("_ops", Arrays.asList(operationId))
                 .append("_opi", Arrays.asList(operationId))
                 .append("_sp", "sp2")
-                .append("_sps", Arrays.asList("sp1", "sp2")));
-        unit.insertOne(
-            new Document("_id", "2").append("_ops", Arrays.asList(operationId))
+                .append("_max", 1)
+                .append("_sps", Arrays.asList("sp1", "sp2")),
+            new Document("_id", "2")
+                .append("_tenant", 0)
+                .append("_ops", Arrays.asList(operationId))
                 .append("_opi", Arrays.asList(operationId))
                 .append("_sp", "sp1")
-                .append("_sps", Arrays.asList("sp1")));
-        unit.insertOne(
-            new Document("_id", "3").append("_ops", Arrays.asList("otherOperationId"))
+                .append("_max", 1)
+                .append("_sps", Arrays.asList("sp1")),
+
+            new Document("_id", "5")
+                .append("_tenant", 0)
+                .append("_ops", Arrays.asList(operationId))
+                .append("_opi", Arrays.asList(operationId))
+                .append("_sp", "sp1")
+                .append("_max", 1)
+                .append("_sps", Arrays.asList("sp1")),
+            new Document("_id", "4")
+                .append("_tenant", 0)
+                .append("_ops", Arrays.asList(operationId))
+                .append("_opi", Arrays.asList(operationId))
+                .append("_sp", "sp1")
+                .append("_max", 1)
+                .append("_unitType", "HOLDING_UNIT")
+                .append("_sps", Arrays.asList("sp1")),
+            new Document("_id", "3")
+                .append("_tenant", 0)
+                .append("_ops", Arrays.asList("otherOperationId"))
+                .append("_max", 1)
+                .append("_sp", "sp1")
                 .append("_opi", Arrays.asList("otherOperationId"))
                 .append("_sps", Arrays.asList("sp2")));
+
+        VitamRepositoryFactory factory = VitamRepositoryFactory.get();
+        VitamMongoRepository mongo = factory.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
+        mongo.save(units);
+
+        VitamElasticsearchRepository es =
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection());
+        es.save(units);
+
         // When
-        final List<Document> documents = metaData.selectOwnAccessionRegisterOnUnitByOperationId(operationId);
+        List<FacetBucket> documents =
+            metaData.selectOwnAccessionRegisterOnUnitByOperationId(operationId);
 
         // Then
-        assertThat(documents).containsExactlyInAnyOrder(new Document("_id", "sp1").append("count", 1),
-            new Document("_id", "sp2").append("count", 1));
+        assertThat(documents).containsExactlyInAnyOrder(new FacetBucket("sp1", 2),
+            new FacetBucket("sp2", 1));
 
     }
 
@@ -181,6 +217,11 @@ public class MongoDbAccessMetadataImplTest {
     @RunWithCustomExecutor
     public void should_aggregate_object_group_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        mongoDbAccess =
+            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
+                esClient, tenantList);
+
         // Given
         final MongoCollection objectGroup = MetadataCollections.OBJECTGROUP.getCollection();
 
@@ -198,16 +239,16 @@ public class MongoDbAccessMetadataImplTest {
         objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
             "/object_other_operation_id.json"))));
         // When
-        final List<Document> documents = metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
+        List<ObjectGroupPerOriginatingAgency> documents =
+            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         // Then
-        assertThat(documents).containsExactlyInAnyOrder(
-            new Document("originatingAgency", "sp1")
-                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq")
-                .append("totalSize", 200).append("totalGOT", 1).append("totalObject", 3),
-            new Document("originatingAgency", "sp2")
-                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq")
-                .append("totalSize", 380).append("totalGOT", 3).append("totalObject", 6));
+
+        assertThat(documents).extracting("operation", "agency", "numberOfObject", "numberOfGOT",
+            "size")
+            .contains(tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp1", 3L, 1l, 200l),
+                tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp2", 6l, 3l, 380l));
+
     }
 
 }

@@ -533,8 +533,8 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             client.selectAccessionRegisterOnUnitByOperationId("122345");
 
         // Then
-        assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("id", "count")
-            .contains(tuple("sp1", 3), tuple("sp2", 4));
+        assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("value", "count")
+            .contains(tuple("sp1", 3l), tuple("sp2", 4l));
     }
 
     @Test
@@ -563,7 +563,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         assertThat(unitPerOriginatingAgencies).hasSize(2)
             .extracting("operation", "agency", "numberOfObject", "numberOfGOT",
                 "size")
-            .contains(tuple("op1", "sp1", 3L, 2L, 2000L), tuple("op1", true, "sp2", 4L, 1L, 3400L));
+            .contains(tuple("op1", "sp1", 3L, 2L, 2000L), tuple("op1", "sp2", 4L, 1L, 3400L));
     }
 
     @Test
