@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -266,44 +265,6 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
         return ClientMockResultHelper.createReponse(detailBuider);
-    }
-
-
-
-    @Override
-    public RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
-        throws VitamClientException {
-        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel().setIngested(1).setRemained(1);
-        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel().setIngested(1).setRemained(1);
-        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel().setIngested(4).setRemained(4);
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(345042).setRemained(345042);
-        ParametersChecker.checkParameter("operationId is a mandatory parameter", operationId);
-        LOGGER.debug("get document Accession Register request:");
-
-        try {
-            AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
-            detailBuider.setId(operationId)
-                .setTenant(0)
-                .setOpc("Identifier")
-                .setOpi("OP_GROUP")
-                .setOriginatingAgency(originatingAgency)
-                .setSubmissionAgency("FRAN_NP_005061")
-                .setArchivalAgreement("Something")
-                .setEndDate("2016-11-04T21:40:47.912+01:00")
-                .setStartDate("2016-11-04T21:40:47.912+01:00")
-                .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
-                .setTotalObjects(totalObjects)
-                .setTotalObjectsGroups(totalObjectsGroups)
-                .setTotalUnits(totalUnits)
-                .setObjectSize(objectSize)
-                .setOperationsIds(Arrays.asList(operationId));
-            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(detailBuider);
-            jsonNode.put("_id", operationId);
-            jsonNode.remove("#id");
-            return ClientMockResultHelper.createReponse(jsonNode);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(e);
-        }
     }
 
     @Override
@@ -544,13 +505,6 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException {
         return new RequestResponseOK();
-    }
-
-    @Override
-    public void createorUpdateAccessionRegisterRaw(JsonNode accessionRegisterDetail)
-        throws ReferentialException, AdminManagementClientServerException, VitamClientException {
-        LOGGER.debug("createorUpdateAccessionRegisterRaw ");
-        ParametersChecker.checkParameter("accessionRegisterDetail is a mandatory parameter", accessionRegisterDetail);
     }
 
     @Override

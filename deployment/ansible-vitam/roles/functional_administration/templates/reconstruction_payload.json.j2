@@ -1,0 +1,15 @@
+[
+    {% for tenant  in vitam_tenant_ids %}
+    {
+        "collection": "ACCESSION_REGISTER_DETAIL",
+        "tenant": {{ tenant }},
+        "limit": 1000
+    },
+    {
+        "collection": "ACCESSION_REGISTER_SYMBOLIC",
+        "tenant": {{ tenant }},
+        "limit": 1000
+    }
+    {% if not loop.last %},{% endif %}
+    {% endfor %}
+]

@@ -235,9 +235,6 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
-            .thenThrow(new VitamClientException("It happens..."));
-
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
             .thenThrow(new DatabaseConflictException("DatabaseConflictException"));
 

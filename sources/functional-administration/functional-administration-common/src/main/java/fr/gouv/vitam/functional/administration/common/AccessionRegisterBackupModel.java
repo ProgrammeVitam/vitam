@@ -24,45 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.api;
+package fr.gouv.vitam.functional.administration.common;
 
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
-import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bson.Document;
 
 /**
- * Reconstrution of Vitam Collections interface.<br>
+ * Description of metadata collection Backup model. <br/>
  */
-public interface ReconstructionService {
+public class AccessionRegisterBackupModel {
 
     /**
-     * Reconstrut Vitam collection by tenant.
-     *
-     * @param collection the collection to reconstruct.
-     * @param tenant the given tenant.
-     * @throws DatabaseException in case error with database occurs
+     * Metadatas.
      */
-    public void reconstruct(FunctionalAdminCollections collection, Integer... tenant) throws DatabaseException;
+    @JsonProperty("accessionregister")
+    private Document accessionRegister;
 
     /**
-     * Reconstrut Vitam collection.
-     *
-     * @param collection the collection to reconstruct.
-     * @throws DatabaseException in case error with database occurs
+     * Offset.
      */
-    public void reconstruct(FunctionalAdminCollections collection) throws DatabaseException;
+    @JsonProperty("offset")
+    private Long offset;
 
-    /**
-     * Reconstruct a collection
-     *
-     * @param reconstructionItem request for reconstruction
-     * @return response of reconstruction
-     * @throws DatabaseException        database exception
-     * @throws IllegalArgumentException invalid input
-     */
-    ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem);
+    public Document getAccessionRegister() {
+        return accessionRegister;
+    }
 
-    void computeAccessionRegisterSummary(String originatingAgency, Integer tenant);
+    @JsonProperty("accessionregisterdetail")
+    public void setAccessionRegisterDetail(Document registerDetail) {
+        this.accessionRegister = registerDetail;
+    }
+
+    @JsonProperty("accessionregistersymbolic")
+    public void setAccessionRegisterSympbolic(Document registerSympbolic) {
+        this.accessionRegister = registerSympbolic;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Long offset) {
+        this.offset = offset;
+    }
 
 }

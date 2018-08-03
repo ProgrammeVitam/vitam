@@ -13,6 +13,22 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.script_permission }}"
 
+- name: Copy the functional_administration accession register reconstruction script
+  template:
+    src: "accession_register_reconstruction.sh.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/script/functional-administration/accession_register_reconstruction.sh"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.script_permission }}"
+
+- name: Copy the functional_administration accession register reconstruction input script
+  template:
+    src: "reconstruction_payload.json.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/script/functional-administration/accession_register_reconstruction.sh"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.script_permission }}"
+
 - name: Copy the functional_administration reconstruction conf
   template:
     src: "reconstruction.conf.j2"
@@ -41,6 +57,13 @@
         enabled: "no"
         state: "stopped"
 
+    - name: Ensure vitam-functional-administration-accession-register-reconstruction timer is stopped
+      systemd:
+        name: "vitam-functional-administration-accession-register-reconstruction.timer"
+        daemon_reload: "yes"
+        enabled: "no"
+        state: "stopped"
+
   when: primary_site | lower == "true"
 
 # Secondary site block
@@ -56,6 +79,14 @@
     - name: Ensure vitam-functional-administration-reconstruction timer is started
       systemd:
         name: "vitam-functional-administration-reconstruction.timer"
+        daemon_reload: "yes"
+        enabled: "yes"
+        state: "started"
+      when: inventory_hostname == groups["hosts-functional-administration"] | last
+
+    - name: Ensure vitam-functional-administration-accession-register-reconstruction timer is started
+      systemd:
+        name: "vitam-functional-administration-accession-register-reconstruction.timer"
         daemon_reload: "yes"
         enabled: "yes"
         state: "started"

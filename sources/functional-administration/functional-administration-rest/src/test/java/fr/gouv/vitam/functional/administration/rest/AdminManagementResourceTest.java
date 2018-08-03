@@ -47,6 +47,7 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import org.jhades.JHades;
@@ -336,6 +337,8 @@ public class AdminManagementResourceTest {
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID);
+        register.setId(guid.toString());
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
@@ -345,15 +348,15 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.CONFLICT.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void findAccessionRegisterDetail() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID1));
 
         String contractId = "contractId";
 
@@ -370,8 +373,10 @@ public class AdminManagementResourceTest {
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID1);
+        register.setId(guid.toString());
         given().contentType(ContentType.JSON).body(register)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
         register.setTotalObjects(null);
@@ -379,7 +384,7 @@ public class AdminManagementResourceTest {
         Select select = new Select();
 
         given().contentType(ContentType.JSON).body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractId)
             .when().post("accession-register/detail/" + originatingAgency)
             .then()

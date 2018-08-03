@@ -271,29 +271,6 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void getAccessionRegisterDetailRawTest()
-        throws VitamClientException {
-        AdminManagementClientFactory.changeMode(null);
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-        final RequestResponse<JsonNode> detailResponse =
-            client.getAccessionRegisterDetailRaw("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", "FRAN_NP_005061");
-
-        if (detailResponse.isOk()) {
-            RequestResponseOK<JsonNode> responseOK =
-                (RequestResponseOK<JsonNode>) detailResponse;
-
-            assertNotNull(responseOK);
-
-            List<JsonNode> results = responseOK.getResults();
-
-            assertNotNull(results);
-            assertEquals(1, results.size());
-            final JsonNode item = results.get(0);
-            assertEquals("FRAN_NP_005061", item.get("OriginatingAgency").asText());
-        }
-    }
-
-    @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenImportIngestContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -353,7 +330,6 @@ public class AdminManagementClientMockTest {
         assertThat(((RequestResponseOK) resp).isOk());
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
-
 
 
     @Test

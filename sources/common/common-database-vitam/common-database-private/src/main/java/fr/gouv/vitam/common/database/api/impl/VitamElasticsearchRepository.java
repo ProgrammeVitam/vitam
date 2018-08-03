@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.mongodb.util.JSON;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -156,7 +157,10 @@ public class VitamElasticsearchRepository implements VitamRepository {
             Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
             internalDocument.remove(VitamDocument.ID);
             internalDocument.remove(VitamDocument.SCORE);
-            final String source = internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+
+            //  Document.toJson produces non-standard JSON even if JsonMode.STRICT is used see : bug https://jira.mongodb.org/browse/JAVA-2173
+            //internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final String source = JSON.serialize(internalDocument);
 
             String index = indexName;
             if (indexByTenant) {

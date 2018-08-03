@@ -518,7 +518,7 @@ public class ReconstructionService {
 
                 nbRetry--; // Retry after optimistic lock problem
                 reconstructCollectionMetadatas(collection, dataFromOffer, nbRetry);
-
+                return;
             } else {
                 throw e;
             }

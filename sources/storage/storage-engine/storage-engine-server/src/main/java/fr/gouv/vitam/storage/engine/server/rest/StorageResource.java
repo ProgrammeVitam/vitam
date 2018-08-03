@@ -444,7 +444,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     @Path(
         "/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGEACCESSLOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
-            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH|DISTRIBUTIONREPORTS}")
+            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH|DISTRIBUTIONREPORTS|ACCESSION_REGISTER_DETAIL|ACCESSION_REGISTER_SYMBOLIC}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -480,7 +480,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     @Path(
         "/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
-            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH|DISTRIBUTIONREPORTS}/logs")
+            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH|DISTRIBUTIONREPORTS|ACCESSION_REGISTER_DETAIL|ACCESSION_REGISTER_SYMBOLIC}/logs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -2042,5 +2042,105 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public void close() {
         storageLogService.close();
         distribution.close();
+    }
+
+    /**
+     * Post a new unit metadata
+     * @param httpServletRequest http servlet request to get requester
+     * @param headers http header
+     * @param fileName the file name of the Accession Register Detail
+     * @param createObjectDescription the workspace description of the unit to be created
+     * @return Response containing result infos
+     */
+    // TODO P1: remove httpServletRequest when requester information sent by
+    // header (X-Requester)
+    @Path("/accessionregistersdetail/{fileName}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createAccessionRegisterDetail(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+                                       @PathParam("fileName") String fileName, ObjectDescription createObjectDescription) {
+        return createObjectByType(headers, fileName, createObjectDescription, DataCategory.ACCESSION_REGISTER_DETAIL,
+                httpServletRequest.getRemoteAddr());
+    }
+
+    /**
+     * Get a unit
+     *
+     * @param headers    http header
+     * @param fileName the file name of the Accession Register Detail
+     * @return the stream
+     */
+    @Path("/accessionregistersdetail/{fileName}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public Response getAccessionRegisterDetail(@Context HttpHeaders headers, @PathParam("fileName") String fileName) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                    getByCategory(fileName, DataCategory.ACCESSION_REGISTER_DETAIL, strategyId, vitamCode, null),
+                    Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
+    /**
+     * Post a new unit metadata
+     * @param httpServletRequest http servlet request to get requester
+     * @param headers http header
+     * @param fileName the file name of the Accession Register Symbolic
+     * @param createObjectDescription the workspace description of the unit to be created
+     * @return Response containing result infos
+     */
+    // TODO P1: remove httpServletRequest when requester information sent by
+    // header (X-Requester)
+    @Path("/accessionregisterssymbolic/{fileName}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createAccessionRegisterSymbolic(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+                                                  @PathParam("fileName") String fileName, ObjectDescription createObjectDescription) {
+        return createObjectByType(headers, fileName, createObjectDescription, DataCategory.ACCESSION_REGISTER_SYMBOLIC,
+                httpServletRequest.getRemoteAddr());
+    }
+
+    /**
+     * Get a unit
+     *
+     * @param headers    http header
+     * @param fileName the file name of the Accession Register Symbolic
+     * @return the stream
+     */
+    @Path("/accessionregisterssymbolic/{fileName}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public Response getAccessionRegisterSymbolic(@Context HttpHeaders headers, @PathParam("fileName") String fileName) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                    getByCategory(fileName, DataCategory.ACCESSION_REGISTER_SYMBOLIC, strategyId, vitamCode, null),
+                    Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
     }
 }

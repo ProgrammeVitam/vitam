@@ -685,6 +685,12 @@ public class StorageDistributionImpl implements StorageDistribution {
             case OBJECTGROUP_GRAPH:
                 description.append("OBJECTGROUP_GRAPH ");
                 break;
+            case ACCESSION_REGISTER_DETAIL:
+                description.append("ACCESSION_REGISTER_DETAIL ");
+                break;
+            case ACCESSION_REGISTER_SYMBOLIC:
+                description.append("ACCESSION_REGISTER_SYMBOLIC ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }

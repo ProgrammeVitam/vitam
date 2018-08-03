@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -46,8 +47,11 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
+import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
+import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -65,6 +69,8 @@ public class AdminReconstructionResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminReconstructionResource.class);
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
+
+    private final String ACCESSION_REGISTER_RECONSTRUCTION_URI = "/accessionregisterreconstruction";
 
     /**
      * Error/Exceptions messages.
@@ -146,5 +152,40 @@ public class AdminReconstructionResource {
         }
 
         return Response.ok().build();
+    }
+
+    /**
+     * API to access and launch the Vitam reconstruction service for Accession Register.<br/>
+     *
+     * @param reconstructionItems list of reconstruction request items
+     * @return the response
+     */
+    @Path(ACCESSION_REGISTER_RECONSTRUCTION_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response reconstructCollection(List<ReconstructionRequestItem> reconstructionItems) {
+        ParametersChecker.checkParameter(RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG, reconstructionItems);
+
+        List<ReconstructionResponseItem> responses = new ArrayList<>();
+        if (!reconstructionItems.isEmpty()) {
+            LOGGER.debug(String
+                    .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
+
+            reconstructionItems.forEach(item -> {
+                LOGGER.debug(String.format(
+                        "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
+                        item.getCollection(), item.getTenant(), item.getLimit()));
+                try {
+                    responses.add(reconstructionService.reconstruct(item));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
+                    responses.add(new ReconstructionResponseItem(item, StatusCode.KO));
+                }
+            });
+        }
+
+        return Response.ok().entity(responses).build();
     }
 }

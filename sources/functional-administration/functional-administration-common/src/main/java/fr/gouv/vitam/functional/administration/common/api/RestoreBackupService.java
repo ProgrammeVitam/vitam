@@ -26,11 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.api;
 
-import java.util.Optional;
-
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Service used to recover a Backup copy of the given Vitam collection.<br/>
@@ -58,5 +63,32 @@ public interface RestoreBackupService {
      */
     Optional<CollectionBackupModel> readLatestSavedFile(final String strategy,
         final FunctionalAdminCollections collection);
+
+    /**
+     * Retrieve list of offer log defining objects to reconstruct from offer log
+     *
+     * @param strategy storage strategy
+     * @param category collection
+     * @param offset   offset
+     * @param limit    limit
+     * @return list of offer log by bulk
+     * @throws VitamRuntimeException    storage error
+     * @throws IllegalArgumentException input error
+     */
+    List<OfferLog> getListing(String strategy, DataCategory category, Long offset, int limit, Order order);
+
+    /**
+     * Load data from storage
+     *
+     * @param strategy   storage strategy
+     * @param collection collection
+     * @param filename   name of file to load
+     * @param offset     offset
+     * @return data
+     * @throws VitamRuntimeException    storage error
+     * @throws IllegalArgumentException input error
+     */
+    public AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection, String filename,
+                             long offset);
 
 }

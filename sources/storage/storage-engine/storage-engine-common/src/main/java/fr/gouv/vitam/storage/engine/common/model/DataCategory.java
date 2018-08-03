@@ -136,7 +136,16 @@ public enum DataCategory {
     /**
      * distribution_reports files
      */
-    DISTRIBUTIONREPORTS("distributionreports", "distribution_reports", true, true);
+    DISTRIBUTIONREPORTS("distributionreports", "distribution_reports", true, true),
+
+    /**
+     * Accession Register Detail
+     */
+    ACCESSION_REGISTER_DETAIL("accessionregistersdetail", "accessionregisterdetail", true, true),
+    /**
+     * Accession Register Detail
+     */
+    ACCESSION_REGISTER_SYMBOLIC("accessionregisterssymbolic", "accessionregistersymbolic", true, true);
 
     /**
      * Collection name

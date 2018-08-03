@@ -56,7 +56,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -230,29 +229,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
-
-    /**
-     * Create the accession register details as raw Data
-     *
-     * @param accessionRegisterDetail accession Register Detail
-     * @throws ReferentialException
-     * @throws AdminManagementClientServerException
-     * @throws VitamClientException
-     */
-    void createorUpdateAccessionRegisterRaw(JsonNode accessionRegisterDetail)
-        throws ReferentialException, AdminManagementClientServerException, VitamClientException;
-
-
-    /**
-     * Get the accession register details as raw Data
-     *
-     * @param operationId operation Id linked to accession register detail
-     * @param originatingAgency originatingAgency linked to accessing register detail
-     * @return The AccessionregisterDetails as a response jsonNode
-     * @throws VitamClientException
-     */
-    RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
-        throws VitamClientException;
 
     /**
      * Import a set of ingest contracts after passing the validation steps If all the contracts are valid, they are

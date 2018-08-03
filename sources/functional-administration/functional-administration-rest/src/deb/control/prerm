@@ -20,6 +20,11 @@ case "$1" in
       systemctl stop vitam-create-accession-register-symbolic.timer >/dev/null 2>&1 || true
       systemctl --no-reload disable vitam-create-accession-register-symbolic.service >/dev/null 2>&1 || true
       systemctl stop vitam-create-accession-register-symbolic.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-functional-administration-accession-register-reconstruction.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-functional-administration-accession-register-reconstruction.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-functional-administration-accession-register-reconstruction.service >/dev/null 2>&1 || true
+      systemctl stop vitam-functional-administration-accession-register-reconstruction.service >/dev/null 2>&1 || true
     fi
     ;;
 
