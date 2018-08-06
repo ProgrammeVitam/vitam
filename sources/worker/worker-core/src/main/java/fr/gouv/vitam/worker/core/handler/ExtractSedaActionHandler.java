@@ -1557,7 +1557,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION)) {
             ruleCategoryModel
                 .setNeedReassessingAuthorization(
-                    globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION).asBoolean());
+                    globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION)
+                        .asBoolean());
         }
 
         JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
@@ -2551,10 +2552,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 handlerIO.transferFileToWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
                     tmpFile, true, asyncIO);
-                if (!existingGot) {
-                    // Create unreferenced object group
-                    createObjectGroupLifeCycle(objectGroupGuid, containerId, typeProcess);
+                // Create unreferenced object group
+                createObjectGroupLifeCycle(objectGroupGuid, containerId, typeProcess);
 
+                if (!existingGot) {
                     // Update Object Group lifeCycle creation event
                     // Set new eventId for task and set status then update delegate
                     String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
