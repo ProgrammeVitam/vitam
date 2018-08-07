@@ -37,8 +37,9 @@ public enum StorageProvider {
     /**
      * Swift storage offer (ceph or openStack)
      * authent v1
+     * DO NOT CHANGE THE VALUE OF THIS VAR AS JCLOUDS IS EXPECTING THIS EXACT VALUE
      */
-    SWIFT_AUTH_V1("openstack-swift-v1"),
+    SWIFT_AUTH_V1("openstack-swift"),
     /**
      * Swift storage offer
      * authent v2
