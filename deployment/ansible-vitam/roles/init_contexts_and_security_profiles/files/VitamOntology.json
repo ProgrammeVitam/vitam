@@ -163,7 +163,6 @@
         "Collections": [
             "Unit",
             "AccessContract",
-            "AccessionRegisterDetail",
             "Agencies",
             "ArchiveUnitProfile",
             "Context",
@@ -1548,6 +1547,7 @@
         "Collections": [
             "AccessContract",
             "AccessionRegisterSummary",
+            "AccessionRegisterDetail",
             "ArchiveUnitProfile",
             "Context",
             "IngestContract",
@@ -1745,12 +1745,78 @@
         ]
     },
     {
-        "Identifier": "OperationGroup",
-        "ApiField": "OperationGroup",
+        "Identifier": "Opi",
+        "ApiField": "Opi",
         "Description": "Mapping : accessionregisterdetail-es-mapping.json. Identifiant de l’opération d’entrée ayant versé les archives recensées dans ce détail du registre des fonds",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Identifiant de l'opération",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Opc",
+        "ApiField": "Opc",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Identifiant de l’opération courante (Ingest, Elimination,...) ayant modifié les archives recensées dans ce détail du registre des fonds",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Identifiant de l'opération courante",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "OpType",
+        "ApiField": "OpType",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Le type de l'opération (Ingest, Elimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Type de l'opération",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Gots",
+        "ApiField": "Gots",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des groupes d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des groupes d'objets",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Units",
+        "ApiField": "Units",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des unités archivistiques modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des unités archivistiques",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Objects",
+        "ApiField": "Objects",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des objets",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "ObjSize",
+        "ApiField": "ObjSize",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total de poids d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des poids d'objets",
         "Collections": [
             "AccessionRegisterDetail"
         ]

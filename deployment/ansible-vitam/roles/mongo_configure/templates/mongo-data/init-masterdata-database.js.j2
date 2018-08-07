@@ -18,7 +18,9 @@ db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "_tenant" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "SubmissionAgency" : 1 } )
-db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1, "Identifier" : 1, "_tenant" : 1} , { unique: true } )
+db.AccessionRegisterDetail.createIndex( { "Opc" : 1 } )
+db.AccessionRegisterDetail.createIndex( { "Opi" : 1 } )
+db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1, "Opi" : 1, "_tenant" : 1} , { unique: true } )
 
 db.IngestContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 

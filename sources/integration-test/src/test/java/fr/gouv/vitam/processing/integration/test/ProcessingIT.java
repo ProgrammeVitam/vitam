@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -71,6 +72,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -664,16 +666,17 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookClient.update(newLogbookOperationParameters);
 
             AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
-            register.setIdentifier("Identifier");
-            register.setOperationGroup("OP_GROUP");
+            register.setOpc("OP_GROUP");
+            register.setOpi("OP_GROUP");
+            register.setTenant(tenantId);
             register.setOriginatingAgency("Vitam");
             register.setTotalObjects(new RegisterValueDetailModel().setIngested(1));
             register.setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(1));
             register.setTotalUnits(new RegisterValueDetailModel().setIngested(1));
             register.setObjectSize(new RegisterValueDetailModel().setIngested(1));
-            register.setEndDate("01/01/2017");
-            register.setStartDate("01/01/2017");
-            register.setLastUpdate("01/01/2017");
+            register.setEndDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
+            register.setStartDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
+            register.setLastUpdate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             functionalClient.createorUpdateAccessionRegister(register);
 
             // Test Audit

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import org.bson.Document;
 
 /**
@@ -43,23 +44,24 @@ import org.bson.Document;
 public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDetail> {
 
     private static final long serialVersionUID = 3439757375656161919L;
-    private static final String ACQUISITION_INFORMATION = "AcquisitionInformation";
-    private static final String LEGAL_STATUS = "LegalStatus";
-    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
-    private static final String SUBMISSION_AGENCY = "SubmissionAgency";
-    private static final String ARCHIVALAGREEMENT = "ArchivalAgreement";
-    private static final String START_DATE = "StartDate";
-    private static final String END_DATE = "EndDate";
-    private static final String LAST_UPDATE = "LastUpdate";
-    private static final String TOTAL_UNITS = "TotalUnits";
-    private static final String TOTAL_OBJECTGROUPS = "TotalObjectGroups";
-    private static final String TOTAL_OBJECTS = "TotalObjects";
-    private static final String OBJECT_SIZE = "ObjectSize";
-    private static final String STATUS = "Status";
-    private static final String IDENTIFIER = "Identifier";
-    private static final String OPERATION_GROUP = "OperationGroup";
-    private static final String OPERATION_IDS = "OperationIds";
-    private static final String TENANT = "_tenant";
+    public static final String ACQUISITION_INFORMATION = "AcquisitionInformation";
+    public static final String LEGAL_STATUS = "LegalStatus";
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    public static final String SUBMISSION_AGENCY = "SubmissionAgency";
+    public static final String ARCHIVALAGREEMENT = "ArchivalAgreement";
+    public static final String START_DATE = "StartDate";
+    public static final String END_DATE = "EndDate";
+    public static final String LAST_UPDATE = "LastUpdate";
+    public static final String TOTAL_UNITS = "TotalUnits";
+    public static final String TOTAL_OBJECTGROUPS = "TotalObjectGroups";
+    public static final String TOTAL_OBJECTS = "TotalObjects";
+    public static final String OBJECT_SIZE = "ObjectSize";
+    public static final String STATUS = "Status";
+    public static final String OPC = "Opc";
+    public static final String OPI = "Opi";
+    public static final String OPERATION_IDS = "OperationIds";
+    public static final String EVENTS = "Events";
+    public static final String TENANT = "_tenant";
 
     /**
      * Empty Constructor
@@ -284,17 +286,17 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
-    public AccessionRegisterDetail setIdentifier(String identifier) {
-        append(IDENTIFIER, identifier);
+    public AccessionRegisterDetail setOpc(String opc) {
+        append(OPC, opc);
         return this;
     }
 
-    public String getIdentifier() {
-        return (String) get(IDENTIFIER);
+    public String getOpc() {
+        return (String) get(OPC);
     }
 
-    public AccessionRegisterDetail setOperationGroup(String operationGroup) {
-        append(OPERATION_GROUP, operationGroup);
+    public AccessionRegisterDetail setOpi(String opi) {
+        append(OPI, opi);
         return this;
     }
 
@@ -303,6 +305,15 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
             final List<String> ids = new ArrayList<>();
             ids.addAll(operationIds);
             append(OPERATION_IDS, ids);
+        }
+        return this;
+    }
+
+    public AccessionRegisterDetail setEvents(List<RegisterValueEventModel> events) {
+        if (!events.isEmpty()) {
+            final List<RegisterValueEventModel> ids = new ArrayList<>();
+            ids.addAll(events);
+            append(EVENTS, ids);
         }
         return this;
     }

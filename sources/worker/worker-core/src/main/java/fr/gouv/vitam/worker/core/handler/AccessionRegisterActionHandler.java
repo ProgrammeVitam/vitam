@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,12 +55,14 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
@@ -398,9 +401,18 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
 
+        RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
+            .setOperation(currentOperation)
+            .setOperationType(LogbookTypeProcess.INGEST.name())
+            .setTotalUnits(totalUnits.getRemained())
+            .setTotalGots(totalObjectsGroups.getRemained())
+            .setTotalObjects(totalObjects.getRemained())
+            .setObjectSize(objectSize.getRemained())
+            .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+
         return new AccessionRegisterDetailModel()
             .setId(guid.toString())
-            .setIdentifier(currentOperation)
+            .setOpc(currentOperation)
             .setOriginatingAgency(unitAgency)
             .setSubmissionAgency(submissionAgency)
             .setArchivalAgreement(archivalAgreement)
@@ -414,7 +426,9 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
             .setObjectSize(objectSize)
-            .setOperationGroup(ingestOperation)
+            .setOpi(ingestOperation)
+            .setOperationType(LogbookTypeProcess.INGEST.name())
+            .addEvent(registerValueEvent)
             .addOperationsId(params.getContainerName());
     }
 

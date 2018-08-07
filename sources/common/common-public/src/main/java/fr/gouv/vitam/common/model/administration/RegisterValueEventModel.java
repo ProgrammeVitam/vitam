@@ -34,13 +34,47 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RegisterValueEventModel {
 
-    @JsonProperty("operation")
+    public static final String OPERATION = "Opc";
+    public static final String OPERATION_TYPE = "OpType";
+    public static final String TOTAL_GOTS = "Gots";
+    public static final String TOTAL_UNITS = "Units";
+    public static final String TOTAL_OBJECTS = "Objects";
+    public static final String TOTAL_OBJECTS_SIZE = "ObjSize";
+    public static final String CREATION_DATE = "CreationDate";
+
+
+    @JsonProperty(OPERATION)
     private String operation;
 
-    @JsonProperty("total")
-    private long total;
+    @JsonProperty(OPERATION_TYPE)
+    private String operationType;
 
-    @JsonProperty("CreationDate")
+    /**
+     * archive number
+     */
+    @JsonProperty(TOTAL_GOTS)
+    private long totalGots = 0l;
+
+    /**
+     * archive unit number
+     */
+    @JsonProperty(TOTAL_UNITS)
+    private long totalUnits = 0l;
+
+    /**
+     * archive object number
+     */
+    @JsonProperty(TOTAL_OBJECTS)
+    private long totalObjects = 0l;
+
+    /**
+     * archive object size
+     */
+    @JsonProperty(TOTAL_OBJECTS_SIZE)
+    private long objectSize = 0l;
+
+
+    @JsonProperty(CREATION_DATE)
     private String creationdate;
 
     /**
@@ -53,6 +87,7 @@ public class RegisterValueEventModel {
 
     /**
      * Get operation id
+     *
      * @return operation
      */
     public String getOperation() {
@@ -61,6 +96,7 @@ public class RegisterValueEventModel {
 
     /**
      * Set operation id
+     *
      * @param operation
      */
     public RegisterValueEventModel setOperation(String operation) {
@@ -69,20 +105,62 @@ public class RegisterValueEventModel {
     }
 
     /**
-     * Get total of modified elements
+     * Get the operation type (INGEST, ELIMINATION, ...)
+     *
      * @return total
      */
-    public long getTotal() {
-        return total;
+    public String getOperationType() {
+        return operationType;
     }
 
-    public RegisterValueEventModel setTotal(long total) {
-        this.total = total;
+    /**
+     * @param operationType
+     * @return RegisterValueEventModel
+     */
+    public RegisterValueEventModel setOperationType(String operationType) {
+        this.operationType = operationType;
+        return this;
+    }
+
+    public long getTotalGots() {
+        return totalGots;
+    }
+
+    public RegisterValueEventModel setTotalGots(long totalGots) {
+        this.totalGots = totalGots;
+        return this;
+    }
+
+    public long getTotalUnits() {
+        return totalUnits;
+    }
+
+    public RegisterValueEventModel setTotalUnits(long totalUnits) {
+        this.totalUnits = totalUnits;
+        return this;
+    }
+
+    public long getTotalObjects() {
+        return totalObjects;
+    }
+
+    public RegisterValueEventModel setTotalObjects(long totalObjects) {
+        this.totalObjects = totalObjects;
+        return this;
+    }
+
+    public long getObjectSize() {
+        return objectSize;
+    }
+
+    public RegisterValueEventModel setObjectSize(long objectSize) {
+        this.objectSize = objectSize;
         return this;
     }
 
     /**
      * Get create date of this instance
+     *
      * @return creationdate
      */
     public String getCreationdate() {
@@ -91,6 +169,7 @@ public class RegisterValueEventModel {
 
     /**
      * Set creationDate
+     *
      * @param creationdate
      */
     public RegisterValueEventModel setCreationdate(String creationdate) {

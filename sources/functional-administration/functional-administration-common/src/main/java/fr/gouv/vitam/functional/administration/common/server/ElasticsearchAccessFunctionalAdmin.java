@@ -31,17 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.functional.administration.common.Ontology;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryBuilder;
-
-import fr.gouv.vitam.common.LocalDateUtil;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -56,8 +47,17 @@ import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
 
 // FIXME refactor with metadata
 
@@ -170,8 +170,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
     /**
      * @param collection
-     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *        values" : [list of id] } }"
+     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *                   values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
      * @throws ReferentialException
@@ -222,7 +222,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         } else if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.equals(collection)) {
             return ElasticsearchUtil.transferJsonToMapping(
                 AccessionRegisterDetail.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
-        } else if(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.equals(collection)) {
+        } else if (FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.equals(collection)) {
             return ElasticsearchUtil.transferJsonToMapping(
                 ArchiveUnitProfile.class.getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
         } else if (FunctionalAdminCollections.ONTOLOGY.equals(collection)) {
@@ -230,5 +230,34 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 Ontology.class.getResourceAsStream(MAPPING_ONTOLOGY_FILE));
         }
         return "";
+    }
+
+
+    private static final BasicDBObject[] accessionRegisterSummaryIndexes = {
+        new BasicDBObject(AccessionRegisterSummary.ORIGINATING_AGENCY, 1).append(AccessionRegisterSummary.TENANT_ID, 1)
+    };
+
+    private static final BasicDBObject[] accessionRegisterDetailIndexes = {
+        new BasicDBObject(AccessionRegisterDetail.ORIGINATING_AGENCY, 1).append(AccessionRegisterDetail.OPI, 1).append(AccessionRegisterDetail.TENANT_ID, 1)
+    };
+
+
+
+    /**
+     * Methods adding Indexes
+     */
+
+    public static void ensureIndex() {
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().dropIndexes();
+        for (final BasicDBObject index : accessionRegisterSummaryIndexes) {
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index,
+                new IndexOptions().unique(true));
+        }
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().dropIndexes();
+        for (final BasicDBObject index : accessionRegisterDetailIndexes) {
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().createIndex(index,
+                new IndexOptions().unique(true));
+        }
     }
 }

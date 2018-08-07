@@ -250,8 +250,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
         detailBuider.setId(id)
             .setTenant(0)
-            .setIdentifier("Identifier")
-            .setOperationGroup("OP_GROUP")
+            .setOpc("Identifier")
+            .setOpi("OP_GROUP")
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")
             .setArchivalAgreement("Something")
@@ -281,8 +281,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
             detailBuider.setId(operationId)
                 .setTenant(0)
-                .setIdentifier("Identifier")
-                .setOperationGroup("OP_GROUP")
+                .setOpc("Identifier")
+                .setOpi("OP_GROUP")
                 .setOriginatingAgency(originatingAgency)
                 .setSubmissionAgency("FRAN_NP_005061")
                 .setArchivalAgreement("Something")

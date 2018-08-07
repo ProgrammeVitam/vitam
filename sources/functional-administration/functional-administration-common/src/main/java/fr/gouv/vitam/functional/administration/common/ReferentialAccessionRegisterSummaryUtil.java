@@ -26,6 +26,7 @@ import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.IncAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 
 /**
@@ -53,6 +54,64 @@ public class ReferentialAccessionRegisterSummaryUtil {
             .setCreationDate(LocalDateUtil.now().toString());
         return accessionRegister;
     }
+
+    /**
+     * Generate update query on summary from register detail
+     *
+     * @param registerDetail AccessionRegisterDetail
+     * @return update query
+     * @throws InvalidCreateOperationException parsing query exception
+     */
+    public Update generateUpdateQuery(AccessionRegisterDetailModel registerDetail) throws InvalidCreateOperationException {
+        List<Action> actions = createActions(registerDetail);
+        Update update = new Update();
+        update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
+            .getOriginatingAgency()));
+        update.addActions(actions.toArray(new IncAction[actions.size()]));
+        return update;
+    }
+
+    /**
+     * Add action for summary from register detail
+     *
+     * @param registerDetail AccessionRegisterDetail
+     * @return query actions
+     * @throws InvalidCreateOperationException parsing query exception
+     */
+    public List<Action> createActions(AccessionRegisterDetailModel registerDetail)
+        throws InvalidCreateOperationException {
+        ArrayList<Action> actions = new ArrayList<>();
+
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalObjectsGroups().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalObjectsGroups().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalObjectsGroups().getRemained()));
+
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalObjects().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalObjects().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalObjects().getRemained()));
+
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalUnits().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalUnits().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalUnits().getRemained()));
+
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getObjectSize().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getObjectSize().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getObjectSize().getRemained()));
+        return actions;
+    }
+
 
     /**
      * Generate update query on summary from register detail

@@ -28,8 +28,8 @@ package fr.gouv.vitam.common.database.builder.query.action;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Push Action: $push : { name : { $each : [ value, value, ... ] } }
- *
  */
 public class PushAction extends Action {
     private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PUSH_ACTION =
@@ -51,7 +50,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value key value
+     * @param value        key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final String... value)
@@ -76,7 +75,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value key value
+     * @param value        key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final long... value)
@@ -94,7 +93,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value key value
+     * @param value        key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final boolean... value)
@@ -112,7 +111,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value key value
+     * @param value        key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final double... value)
@@ -130,7 +129,7 @@ public class PushAction extends Action {
      * Push Action constructor
      *
      * @param variableName key name
-     * @param value key value
+     * @param value        key value
      * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final Date... value)
@@ -143,6 +142,24 @@ public class PushAction extends Action {
         currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
+
+
+    /**
+     * Push Action constructor
+     *
+     * @param variableName key name
+     * @param value        key value
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public PushAction(final String variableName, final JsonNode value)
+        throws InvalidCreateOperationException {
+        super();
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        ((ArrayNode) currentObject).add(value);
+        currentUPDATEACTION = UPDATEACTION.PUSH;
+        setReady(true);
+    }
+
 
     /**
      * Add other Push sub actions to Push Query
@@ -246,4 +263,21 @@ public class PushAction extends Action {
         return this;
     }
 
+
+    /**
+     * Add other Push sub actions to Push Query
+     *
+     * @param value key value
+     * @return the PushAction
+     * @throws InvalidCreateOperationException when query is invalid
+     */
+    public final PushAction add(final JsonNode value)
+        throws InvalidCreateOperationException {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
+            throw new InvalidCreateOperationException(
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PUSH_ACTION + currentUPDATEACTION);
+        }
+        ((ArrayNode) currentObject).add(value);
+        return this;
+    }
 }

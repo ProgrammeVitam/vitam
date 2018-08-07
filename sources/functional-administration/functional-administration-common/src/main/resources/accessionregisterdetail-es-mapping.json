@@ -12,10 +12,10 @@
     "AcquisitionInformation": {
       "type": "keyword"
     },
-    "Identifier": {
+    "Opc": {
       "type": "keyword"
     },
-    "OperationGroup": {
+    "Opi": {
       "type": "keyword"
     },
     "EndDate": {
@@ -32,6 +32,32 @@
     },
     "Status": {
       "type": "keyword"
+    },
+    "Events": {
+      "properties": {
+        "Opc": {
+          "type": "keyword"
+        },
+        "Gots": {
+          "type": "long"
+        },
+        "Units": {
+          "type": "long"
+        },
+        "Objects": {
+          "type": "long"
+        },
+        "ObjSize": {
+          "type": "long"
+        },
+        "OpType": {
+          "type": "keyword"
+        },
+        "CreationDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        }
+      }
     },
     "TotalObjectGroups": {
       "properties": {

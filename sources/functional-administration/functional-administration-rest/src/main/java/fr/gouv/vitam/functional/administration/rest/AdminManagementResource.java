@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -574,7 +575,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessionRegister(AccessionRegisterDetail accessionRegister) {
+    public Response createAccessionRegister(AccessionRegisterDetailModel accessionRegister) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("register ID / Originating Agency: " + accessionRegister.getId() + " / " +
                 accessionRegister.getOriginatingAgency());

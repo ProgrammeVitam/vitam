@@ -24,44 +24,53 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 ::
 
   {
-      "_id": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
-      "OriginatingAgency": "FRAN_NP_009734",
-      "Identifier": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
-      "OperationGroup": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
-      "SubmissionAgency": "FRAN_NP_009734",
-      "AcquisitionInformation": "AcquisitionInformation0"
-      "LegalStatus": "Private Archive"
-      "ArchivalAgreement": "ArchivalAgreement0",
-      "EndDate": "2017-05-19T12:36:52.572+02:00",
-      "StartDate": "2017-05-19T12:36:52.572+02:00",
-      "Status": "STORED_AND_COMPLETED",
-      "LastUpdate": "2017-05-19T12:36:52.572+02:00",
-      "TotalObjectGroups": {
-          "ingested": 0,
-          "deleted": 0,
-          "remained": 0
-      },
-      "TotalUnits": {
-          "ingested": 11,
-          "deleted": 0,
-          "remained": 11
-      },
-      "TotalObjects": {
-          "ingested": 0,
-          "deleted": 0,
-          "remained": 0
-      },
-      "ObjectSize": {
-          "ingested": 0,
-          "deleted": 0,
-          "remained": 0
-      },
-      "OperationIds": [
-          "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
-      ],
-    "_v": 5,
-    "_tenant": 2
-  }
+    "_id": "aehaaaaaaaecjmacabcnualfddjzvpyaaaaq",
+    "OriginatingAgency": "FRAN_NP_051314",
+    "SubmissionAgency": "FRAN_NP_005761",
+    "ArchivalAgreement": "ArchivalAgreement0",
+    "EndDate": "2018-08-08T09:17:25.567",
+    "StartDate": "2018-08-08T09:17:25.567",
+    "LastUpdate": "2018-08-08T09:17:25.567",
+    "Status": "STORED_AND_COMPLETED",
+    "TotalObjectGroups": {
+        "ingested": 2,
+        "deleted": 0,
+        "remained": 2
+    },
+    "TotalUnits": {
+        "ingested": 3,
+        "deleted": 0,
+        "remained": 3
+    },
+    "TotalObjects": {
+        "ingested": 2,
+        "deleted": 0,
+        "remained": 2
+    },
+        "ObjectSize": {
+        "ingested": 12,
+        "deleted": 0,
+        "remained": 12
+    },
+    "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+    "Opi": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+    "Events": [
+        {
+            "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+            "OpType": "INGEST",
+            "Gots": 2,
+            "Units": 3,
+            "Objects": 2,
+            "ObjSize": 12,
+            "CreationDate": "2018-08-08T11:17:25.582"
+        }
+    ],
+    "OperationIds": [
+        "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq"
+    ],
+    "_v": 0,
+    "_tenant": 0
+}
 
 Détail des champs
 =================
@@ -88,15 +97,21 @@ On récupère la valeur FRAN_NP_051314
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 0-1
 
-**"Identifier":** identifiant d'une opération d'entrée
+**"Opc":** identifiant d'une opération courante
 
-    * Il s'agit soit de l'identifiant de l'opération ayant versé les archives recensées dans ce détail du registre des fonds, soit d'une opération d'entrée précédente concernée par l'entrée. Par exemple en cas de rattachement d'une nouvelle unité archivistique AU1 à une autre AU2 déjà existante dans le système, on aura dans ce champ l'identifiant correspondant à l'opération de l'AU1 dans un des documents Mongo et l'identifiant de l'entrée de l'AU2 dans un autre.
+    * Il s'agit soit de l'identifiant de l'opération ayant versé les archives recensées dans ce détail du registre des fonds, soit d'une opération ayant modifié le fonds d'une opération d'ingest opi donnée. Exemple: l'opération de l'élimination
     * Cardinalité 1-1
 
-**"OperationGroup":** : identifiant de l'opération d'entrée ayant versé les archives recensées dans ce détail du registre des fonds
+**"Opi":** : identifiant de l'opération d'entrée ayant versé les archives recensées dans ce détail du registre des fonds
 
     * Dans le cas de SIP faisant des rattachements (par exemple une nouvelle AU à une AU existante), il s'agira toujours de l'identifiant de l'opération de l'entrée en cours (celle générant ces documents Mongo)
     * Cardinalité 1-1
+
+**"OpType":** : Le type de l'opération (INGEST, ELIMINATION, TRANSFER, ...)
+
+    * Il s'agit du type d'opération qui a provoqué le changement du détail du registre des fonds
+    * Cardinalité 1-1
+
 
 **"SubmissionAgency":** contient l'identifiant du service versant.
 
@@ -219,7 +234,7 @@ On récupère la valeur IC-000001.
   * Il s'agit d'un tableau.
   * Ne peut être vide
   * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
+  * Cardinalité : 1-n
 
 **"_v":** version de l'enregistrement décrit
 
@@ -227,3 +242,39 @@ On récupère la valeur IC-000001.
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
   * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
+
+**"Events":** les détails des registres des fonds ayant modifié un lot d'ingest existant.
+
+  * Le premier événement contient les remained de l'opération d'ingest.
+  * Les événements suivants concernent les opérations ayant modifié un lot d'ingest existant (Elimination, Transfer, ...)
+  * Cardinalité : 1-n
+
+**"Events.Opc":** l'id de l'opération courante.
+
+  * Dans le cas d'un ingest, opc égale à l'id de l'opération d'ingest.
+  * Cardinalité : 1-1
+
+**"Events.OpType":** Le type de l'opération (INGEST, ELIMINATION, TRANSFER, ...)
+
+  * Cardinalité : 1-1
+
+**"Events.Gots":**  Nombre total de groupe d'objets impactés par l'opération de l'événement
+
+  * Cardinalité : 1-1
+
+**"Events.Units":**  Nombre total d'unités archivistiques impactées par l'opération de l'événement
+
+  * Cardinalité : 1-1
+
+**"Events.Objects":** Nombre total d'objets impactés par l'opération de l'événement
+
+  * Cardinalité : 1-1
+
+**"Events.ObjSize":** Le poids total de tous les objets impactés par l'opération de l'événement.
+
+  * Dans le cas d'un ingest, opc égale à l'id de l'opération d'ingest.
+  * Cardinalité : 1-1
+
+**"Events.CreationDate":** La date de l'évenement.
+
+  * Cardinalité : 1-1

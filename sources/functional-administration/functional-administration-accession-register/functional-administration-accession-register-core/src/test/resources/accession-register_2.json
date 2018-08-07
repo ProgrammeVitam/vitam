@@ -1,15 +1,21 @@
 {
-  "OriginatingAgency": "OriginatingAgency",
-  "SubmissionAgency": "SubmissionAgency",
-  "StartDate": "StartDate",
-  "EndDate": "EndDate",
-  "LastUpdate": "LastUpdate",
-  "TotalUnits": {
+  "OriginatingAgency": "OG_1",
+  "Opc": "Opi_1",
+  "Opi": "Opi_1",
+  "SubmissionAgency": "FRAN_NP_009734",
+  "ArchivalAgreement": "IC-100",
+  "EndDate": "2018-07-05T06:07:14.924",
+  "StartDate": "2018-07-05T06:07:14.924",
+  "AcquisitionInformation": "Versement",
+  "LegalStatus": "Public Archive",
+  "Status": "STORED_AND_COMPLETED",
+  "LastUpdate": "2018-07-05T06:07:14.924",
+  "TotalObjectGroups": {
     "ingested": 1,
     "deleted": 0,
     "remained": 1
   },
-  "TotalObjectGroups": {
+  "TotalUnits": {
     "ingested": 1,
     "deleted": 0,
     "remained": 1
@@ -24,6 +30,22 @@
     "deleted": 0,
     "remained": 1
   },
-  "IdOperation": "IdOperation",
-  "Status": "STORED_AND_COMPLETED"
+  "OperationIds": [
+    "Opi_1"
+  ],
+  "OpType": "INGEST",
+  "Events": [
+    {
+      "Opc": "Opi_1",
+      "OpType": "INGEST",
+      "Gots": 1,
+      "Units": 1,
+      "Objects": 1,
+      "ObjSize": 1,
+      "CreationDate": "2018-07-05T06:07:14.924"
+
+    }
+  ],
+  "#version": 0,
+  "#tenant": 0
 }

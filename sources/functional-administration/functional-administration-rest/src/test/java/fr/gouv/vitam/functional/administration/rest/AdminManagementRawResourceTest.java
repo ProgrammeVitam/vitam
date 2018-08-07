@@ -226,12 +226,13 @@ public class AdminManagementRawResourceTest {
             (ObjectNode) JsonHandler
                 .getFromInputStream(PropertiesUtils.getResourceAsStream("accession-register-detail.json"));
         accessionRegisterDetail.put("_id", accessionRegisterDetailId);
-        accessionRegisterDetail.set("OperationIds", JsonHandler.createArrayNode().add(operationId));
+        accessionRegisterDetail.put("Opc", operationId);
+        accessionRegisterDetail.put("Opi", operationId);
         FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
             .insertOne(new AccessionRegisterDetail(accessionRegisterDetail));
         Map<String, String> fields = new HashMap<>();
-        fields.put("OperationIds", operationId);
-        fields.put("OriginatingAgency", "FRAN_NP_009734");
+        fields.put("Opi", operationId);
+        fields.put("OriginatingAgency", "OriginatingAgency");
         String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -241,7 +242,7 @@ public class AdminManagementRawResourceTest {
             .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
-        assertThat(responseUnit.get("$results").get(0).get("OriginatingAgency").asText()).isEqualTo("FRAN_NP_009734");
+        assertThat(responseUnit.get("$results").get(0).get("OriginatingAgency").asText()).isEqualTo("OriginatingAgency");
     }
 
     @RunWithCustomExecutor
@@ -250,8 +251,8 @@ public class AdminManagementRawResourceTest {
 
         String operationId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
         Map<String, String> fields = new HashMap<>();
-        fields.put("OperationIds", operationId);
-        fields.put("OriginatingAgency", "FRAN_NP_009734");
+        fields.put("Opi", operationId);
+        fields.put("OriginatingAgency", "OriginatingAgency");
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

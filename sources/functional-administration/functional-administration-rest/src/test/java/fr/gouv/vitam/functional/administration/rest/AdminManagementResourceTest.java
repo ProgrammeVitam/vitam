@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -333,7 +334,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
@@ -367,7 +368,7 @@ public class AdminManagementResourceTest {
             .close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)

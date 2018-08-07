@@ -39,6 +39,24 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AccessionRegisterDetailModel {
 
+    public static final String OPI = "Opi";
+    public static final String OPC = "Opc";
+    public static final String OPERATION_TYPE = "OpType";
+    public static final String OBJECT_SIZE = "ObjectSize";
+    public static final String TOTAL_OBJECTS = "TotalObjects";
+    public static final String TOTAL_UNITS = "TotalUnits";
+    public static final String TOTAL_OBJECT_GROUPS = "TotalObjectGroups";
+    public static final String STATUS = "Status";
+    public static final String LAST_UPDATE = "LastUpdate";
+    public static final String START_DATE = "StartDate";
+    public static final String END_DATE = "EndDate";
+    public static final String LEGAL_STATUS = "LegalStatus";
+    public static final String ACQUISITION_INFORMATION = "AcquisitionInformation";
+    public static final String ARCHIVAL_AGREEMENT = "ArchivalAgreement";
+    public static final String SUBMISSION_AGENCY = "SubmissionAgency";
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    public static final String EVENTS = "Events";
+    public static final String OPERATION_IDS = "OperationIds";
     /**
      * unique id
      */
@@ -60,99 +78,113 @@ public class AccessionRegisterDetailModel {
     /**
      * originating agency
      */
-    @JsonProperty("OriginatingAgency")
+    @JsonProperty(ORIGINATING_AGENCY)
     private String originatingAgency;
 
     /**
      * submission agency
      */
-    @JsonProperty("SubmissionAgency")
+    @JsonProperty(SUBMISSION_AGENCY)
     private String submissionAgency;
 
     /**
      * archival agreement identifier
      */
-    @JsonProperty("ArchivalAgreement")
+    @JsonProperty(ARCHIVAL_AGREEMENT)
     private String archivalAgreement;
 
     /**
      * Acquisition Information
      */
-    @JsonProperty("AcquisitionInformation")
+    @JsonProperty(ACQUISITION_INFORMATION)
     private String AcquisitionInformation;
 
     /**
      * Legal Status
      */
-    @JsonProperty("LegalStatus")
+    @JsonProperty(LEGAL_STATUS)
     private String LegalStatus;
 
     /**
      * end date
      */
-    @JsonProperty("EndDate")
+    @JsonProperty(END_DATE)
     private String endDate;
     /**
      * start date
      */
-    @JsonProperty("StartDate")
+    @JsonProperty(START_DATE)
     private String startDate;
 
     /**
      * last update
      */
-    @JsonProperty("LastUpdate")
+    @JsonProperty(LAST_UPDATE)
     private String lastUpdate;
 
     /**
      * status
      */
-    @JsonProperty("Status")
+    @JsonProperty(STATUS)
     private AccessionRegisterStatus status;
 
     /**
      * archive number
      */
-    @JsonProperty("TotalObjectGroups")
+    @JsonProperty(TOTAL_OBJECT_GROUPS)
     private RegisterValueDetailModel totalObjectsGroups;
 
     /**
      * archive unit number
      */
-    @JsonProperty("TotalUnits")
+    @JsonProperty(TOTAL_UNITS)
     private RegisterValueDetailModel totalUnits;
 
     /**
      * archive object number
      */
-    @JsonProperty("TotalObjects")
+    @JsonProperty(TOTAL_OBJECTS)
     private RegisterValueDetailModel totalObjects;
 
     /**
      * archive object size
      */
-    @JsonProperty("ObjectSize")
+    @JsonProperty(OBJECT_SIZE)
     private RegisterValueDetailModel ObjectSize;
 
 
     /**
-     * Identifier of creation of the accessionRegisterDetail
+     * Operation current
      */
-    @JsonProperty("Identifier")
-    private String identifier;
+    @JsonProperty(OPC)
+    private String opc;
 
 
     /**
-     * Operation that created a group of accession register. Should be in operationsIds
+     * Operation ingest (origin of creation of the current detail
      */
-    @JsonProperty("OperationGroup")
-    private String operationGroup;
+    @JsonProperty(OPI)
+    private String opi;
+
+
+    @JsonProperty(OPERATION_TYPE)
+    private String operationType;
+
+
+    /**
+     * Operation ingest (origin of creation of the current detail
+     */
+    @JsonProperty(EVENTS)
+    private List<RegisterValueEventModel> events;
+
 
     /**
      * Linked ingest operation id
      */
-    @JsonProperty("OperationIds")
+    @JsonProperty(OPERATION_IDS)
     private List<String> operationsIds;
+
+
 
     /**
      * Constructor without fields use for jackson
@@ -204,8 +236,9 @@ public class AccessionRegisterDetailModel {
     /**
      * @param version
      */
-    public void setVersion(Integer version) {
+    public AccessionRegisterDetailModel setVersion(Integer version) {
         this.version = version;
+        return this;
     }
 
     /**
@@ -421,41 +454,68 @@ public class AccessionRegisterDetailModel {
 
 
     /**
-     * Get identifier
+     * Get current operation
      *
-     * @return identifier
+     * @return opc
      */
-    public String getIdentifier() {
-        return identifier;
+    public String getOpc() {
+        return opc;
     }
 
     /**
-     * Set identifier
+     * Set current operation
      *
-     * @param identifier
+     * @param opc
      */
-    public AccessionRegisterDetailModel setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public AccessionRegisterDetailModel setOpc(String opc) {
+        this.opc = opc;
         return this;
     }
 
     /**
-     * Get the operation group
+     * Get the operation of ingest
      *
-     * @return operationGroup
+     * @return opi
      */
-    public String getOperationGroup() {
-        return operationGroup;
+    public String getOpi() {
+        return opi;
     }
 
 
     /**
-     * Set the operation group
+     * Set the operation of ingest
      *
-     * @param operationGroup
+     * @param opi
      */
-    public AccessionRegisterDetailModel setOperationGroup(String operationGroup) {
-        this.operationGroup = operationGroup;
+    public AccessionRegisterDetailModel setOpi(String opi) {
+        this.opi = opi;
+        return this;
+    }
+
+    /**
+     * Set events
+     *
+     * @return
+     */
+    public List<RegisterValueEventModel> getEvents() {
+        return events;
+    }
+
+    /**
+     * Get event
+     *
+     * @param events
+     */
+    public AccessionRegisterDetailModel setEvents(List<RegisterValueEventModel> events) {
+        this.events = events;
+        return this;
+    }
+
+    public AccessionRegisterDetailModel addEvent(RegisterValueEventModel event) {
+        if (events == null) {
+            this.events = new ArrayList<>();
+        }
+        this.events.add(event);
         return this;
     }
 
@@ -488,4 +548,22 @@ public class AccessionRegisterDetailModel {
         return this;
     }
 
+    /**
+     * Getter
+     *
+     * @return operationType
+     */
+    public String getOperationType() {
+        return operationType;
+    }
+
+    /**
+     * Setter
+     *
+     * @param operationType
+     */
+    public AccessionRegisterDetailModel setOperationType(String operationType) {
+        this.operationType = operationType;
+        return this;
+    }
 }

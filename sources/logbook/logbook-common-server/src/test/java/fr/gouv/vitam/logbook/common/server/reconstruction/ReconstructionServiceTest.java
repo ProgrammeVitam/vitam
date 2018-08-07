@@ -317,8 +317,8 @@ public class ReconstructionServiceTest {
         model.getAccessionRegisters()
             .add(JsonHandler
                 .toJsonNode(new AccessionRegisterDetailModel()
-                    .setIdentifier("Identifier")
-                    .setOperationGroup("OP_GROUP").setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
+                    .setOpc("Identifier")
+                    .setOpi("OP_GROUP").setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
                     .setOriginatingAgency("OriginatingAgency").addOperationsId(id)));
         model.setOffset(offset);
         return model;

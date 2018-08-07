@@ -460,7 +460,15 @@ public class ParserTokens extends BuilderToken {
         "SubmissionAgency",
         "ArchivalAgreement",
         "AcquisitionInformation",
-        "OperationGroup",
+        "Opc",
+        "Opi",
+        "Events.Opc",
+        "Events.OpType",
+        "Events.Gots",
+        "Events.Units",
+        "Events.Objects",
+        "Events.ObjSize",
+        "Events.CreationDate",
         "EndDate",
         "StartDate",
         "LastUpdate",
@@ -478,6 +486,7 @@ public class ParserTokens extends BuilderToken {
         "ObjectSize.deleted",
         "ObjectSize.remained",
         "OperationIds",
+        "OpType",
         "_id",
         "_tenant",
         "_v",
@@ -1057,6 +1066,14 @@ public class ParserTokens extends BuilderToken {
             case "ObjectSize.deleted":
             case "ObjectSize.remained":
             case "OriginatingAgency":
+            case "Events.Opc":
+            case "Events.OpType":
+            case "Events.Gots":
+            case "Events.Units":
+            case "Events.Objects":
+            case "Events.ObjSize":
+            case "Events.CreationDate":
+
                 // Sequence
             case "Counter":
                 // Logbook
