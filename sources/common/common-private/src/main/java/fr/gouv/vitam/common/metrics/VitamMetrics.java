@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.elasticsearch.metrics.ElasticsearchReporter;
+import fr.gouv.vitam.common.private.VitamElasticsearchReporter;
 
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
