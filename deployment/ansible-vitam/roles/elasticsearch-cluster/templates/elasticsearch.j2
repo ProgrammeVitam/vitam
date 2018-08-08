@@ -6,7 +6,7 @@
 #ES_HOME=/usr/share/elasticsearch
 
 # Elasticsearch configuration directory
-CONF_DIR={{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}
+ES_PATH_CONF={{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}/elasticsearch.yml
 
 # Elasticsearch data directory
 #DATA_DIR={{ vitam_defaults.folder.root_path }}/data/{{ composant.cluster_name }}
@@ -20,6 +20,16 @@ CONF_DIR={{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}
 # Heap size defaults to 256m min, 1g max
 # Set ES_HEAP_SIZE to 50% of available RAM, but no more than 31g
 #ES_JAVA_OPTS=
+
+################################
+# Elasticsearch service
+################################
+
+# SysV init.d
+#
+# The number of seconds to wait before checking if Elasticsearch started successfully as a daemon process
+ES_STARTUP_SLEEP_TIME=5
+
 
 # Heap new generation
 #ES_HEAP_NEWSIZE=

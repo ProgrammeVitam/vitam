@@ -1,16 +1,16 @@
 {
-  "title": "vitam-type-logback",
-  "description": "",
-  "columns": [
-    "vitam_component",
-    "log_level",
-    "log_message"
-  ],
   "sort": [
     "@timestamp",
     "desc"
   ],
   "kibanaSavedObjectMeta": {
     "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[{\"meta\":{\"negate\":false,\"index\":\"logstash-vitam*\",\"key\":\"logger\",\"value\":\"logback\",\"disabled\":false,\"alias\":null},\"query\":{\"match\":{\"logger\":{\"query\":\"logback\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
-  }
+  },
+  "description": "",
+  "columns": [
+    "vitam_component",
+    "log_level",
+    "log_message"
+  ],
+  "title": "vitam-type-logback"
 }

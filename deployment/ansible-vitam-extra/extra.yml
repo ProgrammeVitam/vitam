@@ -10,25 +10,17 @@
 - import_playbook: browser.yml
 
 # Vitam solution deployment
-- hosts: vitam
-  roles:
-    - {role: metricbeat, when: "{{groups['hosts-elasticsearch-log'] | length > 0}}" }
+- import_playbook: metricbeat.yml
 
 # - hosts: vitam
 #   roles:
 #    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
-- hosts: hosts-elasticsearch-log
-  roles:
-    - curator
+- import_playbook: curator_jobs.yml
 
 - import_playbook: dev-tools.yml
 
-- hosts: library
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.library }}"
+- import_playbook: library.yml
 
 - hosts: ldap
   roles:

@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.elasticsearch.metrics.ElasticsearchReporter;
+
 
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
@@ -139,7 +139,7 @@ public class VitamMetrics {
             additionalFields.put("hostname", ServerIdentity.getInstance().getName());
             additionalFields.put("role", ServerIdentity.getInstance().getRole());
             try {
-                reporter = ElasticsearchReporter.forRegistry(registry)
+                reporter = VitamElasticsearchReporter.forRegistry(registry)
                     .hosts(configuration.getMetricReporterHosts())
                     .index(type.getElasticsearchIndex())
                     .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)

@@ -5,10 +5,9 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+RuntimeDirectory=elasticsearch
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=CONF_DIR=/vitam/conf/elasticsearch-log
-Environment=DATA_DIR=/vitam/data/elasticsearch-log
-Environment=LOG_DIR=/vitam/log/elasticsearch-log
 Environment=PID_DIR=/var/run/elasticsearch-log
 EnvironmentFile=-/vitam/conf/elasticsearch-log/sysconfig/elasticsearch
 
@@ -17,14 +16,11 @@ WorkingDirectory=/usr/share/elasticsearch
 User=vitamdb
 Group=vitam
 
-ExecStartPre=/usr/share/elasticsearch/bin/elasticsearch-systemd-pre-exec
+#ExecStartPre=/usr/share/elasticsearch/bin/elasticsearch-systemd-pre-exec
 
 ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
 	-p ${PID_DIR}/elasticsearch.pid \
-	--quiet \
-	-Edefault.path.logs=${LOG_DIR} \
-	-Edefault.path.data=${DATA_DIR} \
-	-Edefault.path.conf=${CONF_DIR}
+	--quiet 
 
 # StandardOutput is configured to redirect to journalctl since
 # some error messages may be logged in standard output before
@@ -39,7 +35,7 @@ StandardError=inherit
 LimitNOFILE=65536
 
 # Specifies the maximum number of processes
-LimitNPROC=2048
+LimitNPROC=4096
 
 # Specifies the maximum size of virtual memory
 LimitAS=infinity

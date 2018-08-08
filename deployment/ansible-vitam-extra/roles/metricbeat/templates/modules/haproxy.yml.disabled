@@ -1,0 +1,2 @@
+- module: haproxy
+  hosts: ["tcp://127.0.0.1:14567"]

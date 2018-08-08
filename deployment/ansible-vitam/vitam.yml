@@ -48,7 +48,6 @@
   roles:
     - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
 
-
 ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
   any_errors_fatal: true
@@ -57,7 +56,6 @@
     - curator
   vars:
     composant: "{{ elasticsearch.log }}"
-
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
@@ -76,7 +74,6 @@
     elasticsearch_host: "{{ elasticsearch.log.host }}"
     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
     # kibana_port: "{{ kibana.log.port }}"
-
 
 ### RSYSLOG INSTALLATION ###
 # Vitam solution deployment
@@ -127,9 +124,6 @@
 - import_playbook: mongodb_offer.yml
 
 ## VITAM ####################################################################
-
-
-
 - hosts: hosts-storage-offer-default
   any_errors_fatal: true
   roles:
@@ -141,8 +135,6 @@
     password_truststore: "{{truststores.client_storage}}"
     password_grantedstore: "{{grantedstores.client_storage}}"
     vitam_certificate_client_type: "storage"
-
-
 
 - hosts: hosts-storage-engine
   any_errors_fatal: true
@@ -203,8 +195,6 @@
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
 
-
-
 - hosts: hosts-processing
   any_errors_fatal: true
   roles:
@@ -212,8 +202,6 @@
     - processing_create_workflows
   vars:
     vitam_struct: "{{ vitam.processing }}"
-
-
 
 - hosts: hosts-worker
   any_errors_fatal: true
@@ -224,16 +212,12 @@
     vitam_struct: "{{ vitam.worker }}"
     vitam_timestamp_usage: secure-logbook
 
-
-
 - hosts: hosts-access-internal
   any_errors_fatal: true
   roles:
     - vitam
   vars:
     vitam_struct: "{{ vitam.accessinternal }}"
-
-
 
 - hosts: hosts-access-external
   any_errors_fatal: true
@@ -260,15 +244,12 @@
     password_grantedstore: "{{grantedstores.client_external}}"
     vitam_certificate_client_type: "external"
 
-
 - hosts: hosts-ingest-internal
   any_errors_fatal: true
   roles:
     - vitam
   vars:
     vitam_struct: "{{ vitam.ingestinternal }}"
-
-
 
 - hosts: hosts-ingest-external
   any_errors_fatal: true
@@ -285,8 +266,6 @@
     password_truststore: "{{truststores.client_external}}"
     password_grantedstore: "{{grantedstores.client_external}}"
     vitam_certificate_client_type: "external"
-
-
 
 - hosts: hosts-ihm-demo
   any_errors_fatal: true

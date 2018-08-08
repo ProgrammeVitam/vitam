@@ -1,24 +1,19 @@
 ---
 #### Compute variables ####
+- name: Set default directory for CentOS
+  set_fact:
+    sysconfig_dir: "sysconfig"
+    jvm_security_path: "/usr/lib/jvm/jre/lib/security"
+    java_package: "java-1.8.0"
+  when: (ansible_distribution == "CentOS")
 
-# OMA: will need something better
-# - name: remove vitam-{{cluster_name}} package
-#   package:
-#     name: vitam-{{cluster_name}}
-#     state: absent
-#   when: groupe=="log"
+- name: Set default directory for Debian
+  set_fact:
+    sysconfig_dir: "default"
+    jvm_security_path: "/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security"
+    java_package: "openjdk-8-jdk-headless"
+  when: (ansible_distribution == "Debian")
 
-# - name: Ensure elasticsearch directories do not exist
-#   file:
-#     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{cluster_name}}"
-#     state: absent
-#     mode: "{{ vitam_defaults.folder.folder_permission }}"
-#   with_items:
-#     - conf
-#     - data
-#     - log
-#     - lib
-#   when: groupe=="log"
 
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
   set_fact:
@@ -34,22 +29,21 @@
     - ansible_memory_mb.real.total >= 65536
     - elasticsearch_memory == ""
 
-
 #### Elasticsearch installation ####
 
 # Only prerequisite for Debian : install openjdk from jessie-backports
-- name: install openjdk from jessie-backports only when Debian
+- name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
   apt:
-    name: openjdk-8-jdk-headless
+    name: "{{ java_package }}"
     state: latest
     default_release: jessie-backports
   when: ansible_distribution == "Debian"
 
-# - name: install java on CentOS
-#   yum:
-#     name: java-1.8.0-openjdk
-#     state: latest
-#   when: ansible_distribution == "CentOS"
+- name: install openjdk when CentOS (prerequisite for elasticsearch package)
+  package:
+    name: "{{ java_package }}"
+    state: latest
+  when: ansible_distribution == "CentOS"
 
 - name: install vitam-{{composant.cluster_name}} package
   package:
@@ -62,23 +56,13 @@
 # permission javax.management.MBeanTrustPermission "register";
 #
 
-- name: apply java MBean security on CentOS
+- name: apply java MBean security
   blockinfile:
-    path: /usr/lib/jvm/jre/lib/security/java.policy
+    path: "{{ jvm_security_path }}/java.policy"
     marker: "// {mark} ANSIBLE MANAGED BLOCK"
     insertafter: "that can be read by anyone"
     content: |
       permission javax.management.MBeanTrustPermission "register";
-  when: ansible_distribution == "CentOS"
-
-# OMA: to be tested
-- name: apply java MBean security on Debian
-  blockinfile:
-    dest: /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/java.policy
-    marker: "// {mark} ANSIBLE MANAGED BLOCK"
-    insertafter: "that can be read by anyone"
-    content: "permission javax.management.MBeanTrustPermission \"register\";"
-  when: ansible_distribution == "Debian"
 
 - name: ensure /var/run/{{ composant.cluster_name }} exists
   file:
@@ -101,7 +85,17 @@
   notify:
     - restart elasticsearch
 
+- name: ensure defautl config file is readable for anyone
+  file:
+    path: "/etc/{{ sysconfig_dir }}/elasticsearch"
+    mode: 0665
 
+# Change default behavior in this fucking file
+- name: change default config ES_PATH_CONF value
+  lineinfile:
+    path: "/etc/{{ sysconfig_dir }}/elasticsearch"
+    regexp: 'ES_PATH_CONF=/etc/elasticsearch'
+    line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
 #### Configuration ####
 
 - name: Ensure elasticsearch directories exist
@@ -140,6 +134,16 @@
   notify:
     - restart elasticsearch
 
+- name: Configure limits memlock for Elasticsearch
+  blockinfile:
+    path: /etc/security/limits.conf
+    marker: "<!-- {mark} ansible memlock for elasticsearch -->"
+    block: |
+      {{ vitam_defaults.users.vitamdb }} soft memlock unlimited
+      {{ vitam_defaults.users.vitamdb }} hard memlock unlimited
+  notify:
+    - restart elasticsearch
+
 - name: apply elasticsearch configuration yml
   template:
     src: "elasticsearch.{{ composant.groupe }}.yml.j2"
@@ -159,6 +163,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "log4j2.properties"
+    - "jvm.options"
   notify:
     - restart elasticsearch
 
