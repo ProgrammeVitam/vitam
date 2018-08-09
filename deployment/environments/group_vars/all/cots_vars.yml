@@ -57,6 +57,7 @@ curator:
 kibana:
     log:
         baseuri: "kibana_log"
+        api_call_timeout: 120
         groupe: "log"
         port: 5601
         # pour index logstash-*
@@ -70,6 +71,8 @@ kibana:
     # KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
     data:
         baseuri: "kibana_data"
+        # OMA : bugdette : api_call_timeout is used for retries ; should ceate a separate variable rather than this one
+        api_call_timeout: 120
         groupe: "data"
         port: 5601
         shards: 10
