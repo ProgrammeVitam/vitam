@@ -20,6 +20,7 @@
       Host: "{{ ip_service }}"
     url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}{{ vitam.ihm_recette.baseurl }}/v1/api/login"
     validate_certs: no
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
   ignore_errors: true
   run_once: true
   return_content: yes
@@ -36,6 +37,7 @@
       Cookie: "{{ login.set_cookie }}"
     url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}{{ vitam.ihm_recette.baseurl }}/v1/api/delete/deleteTnr"
     validate_certs: no
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
   # TNR are used on tenant 0 & 1 only
   with_items:
     - "0"

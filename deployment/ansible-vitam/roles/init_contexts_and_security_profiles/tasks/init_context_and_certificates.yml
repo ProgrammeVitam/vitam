@@ -15,6 +15,7 @@
     status_code: 200
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/contexts"
     body_format: "json"
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
   run_once: true
   register: context_check
 
@@ -32,6 +33,7 @@
         status_code: 200,201
         url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/contexts"
         body_format: "json"
+        timeout: "{{ vitam_defaults.services.api_call_timeout }}"
         headers:
           X-Tenant-Id: "{{vitam_tenant_admin}}"
       run_once: true
@@ -55,6 +57,7 @@
         method: POST
         body: "{ \"contextId\" : \"{{ functional_adm_json.results[0].Identifier }}\" , \"certificate\" : \"{{ lookup('file','{{inventory_dir}}/certs/client-external/clients/{{ item }}') | b64encode }}\" }"
         status_code: 201
+        timeout: "{{ vitam_defaults.services.api_call_timeout }}"
         url: http://{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}:{{vitam.security_internal.port_admin}}/v1/api/identity
         body_format: "json"
       run_once: true
@@ -66,6 +69,7 @@
         method: POST
         body: "{{ lookup('file','{{inventory_dir}}/certs/client-vitam-users/clients/{{ item }}') }}"
         status_code: 204
+        timeout: "{{ vitam_defaults.services.api_call_timeout }}" 
         url: http://{{hostvars[groups['hosts-security-internal'][0]]['ip_admin']}}:{{vitam.security_internal.port_admin}}/v1/api/personalCertificate
         body_format: "raw"
         headers:
