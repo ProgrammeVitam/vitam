@@ -442,27 +442,15 @@ public class ParserTokens extends BuilderToken {
         "TotalObjects.ingested",
         "TotalObjects.deleted",
         "TotalObjects.remained",
-        "TotalObjects.attached",
-        "TotalObjects.detached",
-        "TotalObjects.symbolicRemained",
         "TotalObjectGroups.ingested",
         "TotalObjectGroups.deleted",
         "TotalObjectGroups.remained",
-        "TotalObjectGroups.attached",
-        "TotalObjectGroups.detached",
-        "TotalObjectGroups.symbolicRemained",
         "TotalUnits.ingested",
         "TotalUnits.deleted",
         "TotalUnits.remained",
-        "TotalUnits.attached",
-        "TotalUnits.detached",
-        "TotalUnits.symbolicRemained",
         "ObjectSize.ingested",
         "ObjectSize.deleted",
         "ObjectSize.remained",
-        "ObjectSize.attached",
-        "ObjectSize.detached",
-        "ObjectSize.symbolicRemained",
         "_id",
         "_tenant",
         "_v",
@@ -472,7 +460,15 @@ public class ParserTokens extends BuilderToken {
         "SubmissionAgency",
         "ArchivalAgreement",
         "AcquisitionInformation",
-        "OperationGroup",
+        "Opc",
+        "Opi",
+        "Events.Opc",
+        "Events.OpType",
+        "Events.Gots",
+        "Events.Units",
+        "Events.Objects",
+        "Events.ObjSize",
+        "Events.CreationDate",
         "EndDate",
         "StartDate",
         "LastUpdate",
@@ -480,29 +476,17 @@ public class ParserTokens extends BuilderToken {
         "TotalObjects.ingested",
         "TotalObjects.deleted",
         "TotalObjects.remained",
-        "TotalObjects.attached",
-        "TotalObjects.detached",
-        "TotalObjects.symbolicRemained",
         "TotalObjectGroups.ingested",
         "TotalObjectGroups.deleted",
         "TotalObjectGroups.remained",
-        "TotalObjectGroups.attached",
-        "TotalObjectGroups.detached",
-        "TotalObjectGroups.symbolicRemained",
         "TotalUnits.ingested",
         "TotalUnits.deleted",
         "TotalUnits.remained",
-        "TotalUnits.attached",
-        "TotalUnits.detached",
-        "TotalUnits.symbolicRemained",
         "ObjectSize.ingested",
         "ObjectSize.deleted",
         "ObjectSize.remained",
-        "ObjectSize.attached",
-        "ObjectSize.detached",
-        "ObjectSize.symbolicRemained",
         "OperationIds",
-        "Symbolic",
+        "OpType",
         "_id",
         "_tenant",
         "_v",
@@ -1069,31 +1053,27 @@ public class ParserTokens extends BuilderToken {
             case "TotalObjectGroups.ingested":
             case "TotalObjectGroups.deleted":
             case "TotalObjectGroups.remained":
-            case "TotalObjectGroups.detached":
-            case "TotalObjectGroups.attached":
-            case "TotalObjectGroups.symbolicRemained":
             case "TotalUnits":
             case "TotalUnits.ingested":
             case "TotalUnits.deleted":
             case "TotalUnits.remained":
-            case "TotalUnits.detached":
-            case "TotalUnits.attached":
-            case "TotalUnits.symbolicRemained":
             case "TotalObjects":
             case "TotalObjects.ingested":
             case "TotalObjects.deleted":
             case "TotalObjects.remained":
-            case "TotalObjects.detached":
-            case "TotalObjects.attached":
-            case "TotalObjects.symbolicRemained":
             case "ObjectSize":
             case "ObjectSize.ingested":
             case "ObjectSize.deleted":
             case "ObjectSize.remained":
-            case "ObjectSize.detached":
-            case "ObjectSize.attached":
-            case "ObjectSize.symbolicRemained":
             case "OriginatingAgency":
+            case "Events.Opc":
+            case "Events.OpType":
+            case "Events.Gots":
+            case "Events.Units":
+            case "Events.Objects":
+            case "Events.ObjSize":
+            case "Events.CreationDate":
+
                 // Sequence
             case "Counter":
                 // Logbook

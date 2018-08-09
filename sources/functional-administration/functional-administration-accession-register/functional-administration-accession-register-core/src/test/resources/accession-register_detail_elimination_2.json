@@ -1,0 +1,39 @@
+{
+  "OriginatingAgency": "OG_1",
+  "Opc": "Opi_3",
+  "Opi": "Opi_1",
+  "SubmissionAgency": "FRAN_NP_009734",
+  "ArchivalAgreement": "IC-000001",
+  "EndDate": "2018-07-05T06:07:14.924",
+  "StartDate": "2018-07-05T06:07:14.924",
+  "AcquisitionInformation": "Versement",
+  "LegalStatus": "Public Archive",
+  "Status": "STORED_AND_COMPLETED",
+  "LastUpdate": "2018-07-05T06:07:14.924",
+  "TotalObjectGroups": {
+    "ingested": 0,
+    "deleted": 800,
+    "remained": -800
+  },
+  "TotalUnits": {
+    "ingested": 0,
+    "deleted": 800,
+    "remained": -800
+  },
+  "TotalObjects": {
+    "ingested": 0,
+    "deleted": 800,
+    "remained": -800
+  },
+  "ObjectSize": {
+    "ingested": 0,
+    "deleted": 9000,
+    "remained": -9000
+  },
+  "OperationIds": [
+    "Opi_1", "Opi_2", "Opi_3"
+  ],
+  "OpType": "ELIMINATION",
+  "#version": 0,
+  "#tenant": 0
+}

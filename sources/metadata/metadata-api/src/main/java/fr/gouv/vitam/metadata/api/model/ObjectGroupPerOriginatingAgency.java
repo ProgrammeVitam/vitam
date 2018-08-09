@@ -33,15 +33,13 @@ public class ObjectGroupPerOriginatingAgency {
 
     private String operation;
 
-    private boolean symbolic;
-
     private String agency;
 
-    private long numberOfObject;
+    private long numberOfObject = 0l;
 
-    private long numberOfGOT;
+    private long numberOfGOT = 0l;
 
-    private long size;
+    private long size = 0l;
 
 
     /**
@@ -53,26 +51,26 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * Constructor
-     * @param operation operation id
-     * @param symbolic is agency symbolic or not
-     * @param agency originating agency
+     *
+     * @param operation      operation id
+     * @param agency         originating agency
      * @param numberOfObject total of objects in the objects groups
-     * @param numberOfGOT total of objects groups
-     * @param size size of al objects
+     * @param numberOfGOT    total of objects groups
+     * @param size           size of al objects
      */
-    public ObjectGroupPerOriginatingAgency(String operation, boolean symbolic, String agency, long numberOfObject, long numberOfGOT,
+    public ObjectGroupPerOriginatingAgency(String operation, String agency, long numberOfObject, long numberOfGOT,
         long size) {
         this.operation = operation;
         this.agency = agency;
         this.numberOfObject = numberOfObject;
         this.numberOfGOT = numberOfGOT;
         this.size = size;
-        this.symbolic = symbolic;
     }
 
 
     /**
      * Getter
+     *
      * @return operation id
      */
     public String getOperation() {
@@ -81,6 +79,7 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * Setter
+     *
      * @param operation
      */
     public void setOperation(String operation) {
@@ -143,22 +142,7 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * Getter
-     * @return symbolic
-     */
-    public boolean isSymbolic() {
-        return symbolic;
-    }
-
-    /**
-     * Setter
-     * @param symbolic
-     */
-    public void setSymbolic(boolean symbolic) {
-        this.symbolic = symbolic;
-    }
-
-    /**
-     * Getter
+     *
      * @return agency
      */
     public String getAgency() {
@@ -167,9 +151,11 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * Setter
+     *
      * @param agency
      */
-    public void setAgency(String agency) {
+    public ObjectGroupPerOriginatingAgency setAgency(String agency) {
         this.agency = agency;
+        return this;
     }
 }

@@ -1,46 +1,48 @@
 {
-	"ObjectSize": {
-		"ingested": 58806,
-		"deleted": 0,
-		"remained": 58806,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
-	},
-	"#id": "aehaaaaaaeexmt3iabyeqalb2grhupyaaaaq",
-	"OriginatingAgency": "DGFIP",
-	"SubmissionAgency": "DGFIP",
-	"ArchivalAgreement": "ArchivalAgreementWithProfil",
-	"EndDate": "2018-02-26T10:22:21.759",
-	"StartDate": "2018-02-26T10:22:21.759",
-	"LastUpdate": "2018-02-26T10:22:21.759",
-	"Status": "STORED_AND_COMPLETED",
-	"TotalObjectGroups": {
-		"ingested": 2,
-		"deleted": 0,
-		"remained": 2,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
-	},
-	"TotalUnits": {
-		"ingested": 5,
-		"deleted": 0,
-		"remained": 5,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
-	},
-	"TotalObjects": {
-		"ingested": 2,
-		"deleted": 0,
-		"remained": 2,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
-	},
-	"OperationIds": [
-		"aeeaaaaaagghkzkeaacimalb2grgctiaaaaq"
-	],
-	"Symbolic": false
+  "#id": "aehaaaaaaaecjmacabcnualfddjzvpyaaaaq",
+  "ObjectSize": {
+    "ingested": 12,
+    "deleted": 0,
+    "remained": 12
+  },
+  "OriginatingAgency": "FRAN_NP_009913",
+  "SubmissionAgency": "FRAN_NP_009913",
+  "ArchivalAgreement": "ArchivalAgreement0",
+  "EndDate": "2018-08-08T09:17:25.567",
+  "StartDate": "2018-08-08T09:17:25.567",
+  "LastUpdate": "2018-08-08T09:17:25.567",
+  "Status": "STORED_AND_COMPLETED",
+  "TotalObjectGroups": {
+    "ingested": 2,
+    "deleted": 0,
+    "remained": 2
+  },
+  "TotalUnits": {
+    "ingested": 3,
+    "deleted": 0,
+    "remained": 3
+  },
+  "TotalObjects": {
+    "ingested": 2,
+    "deleted": 0,
+    "remained": 2
+  },
+  "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+  "Opi": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+  "Events": [
+    {
+      "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+      "OpType": "INGEST",
+      "Gots": 2,
+      "Units": 3,
+      "Objects": 2,
+      "ObjSize": 12,
+      "CreationDate": "2018-08-08T11:17:25.582"
+    }
+  ],
+  "OperationIds": [
+    "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq"
+  ],
+  "#v": 0,
+  "#tenant": 0
 }

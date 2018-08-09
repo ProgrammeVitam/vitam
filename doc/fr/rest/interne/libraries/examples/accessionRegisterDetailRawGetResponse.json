@@ -7,53 +7,53 @@
 	},
 	"$context": {},
 	"$results": [
-		{
-            "_id": "aehaaaaaaafhmqbmabui2albv2jzb6aaaaaq",
-            "OriginatingAgency": "FRAN_NP_009913",
-            "SubmissionAgency": "FRAN_NP_009913",
-            "ArchivalAgreement": "ArchivalAgreement0",
-            "EndDate": "2018-02-19T14:59:21.976",
-            "StartDate": "2018-02-19T14:59:21.976",
-            "Symbolic": false,
-            "Status": "STORED_AND_COMPLETED",
-            "LastUpdate": "2018-02-19T14:59:21.976",
-            "TotalObjectGroups": {
-                "ingested": 6,
-                "deleted": 0,
-                "remained": 6,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
-            },
-            "TotalUnits": {
-                "ingested": 32,
-                "deleted": 0,
-                "remained": 32,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
-            },
-            "TotalObjects": {
-                "ingested": 6,
-                "deleted": 0,
-                "remained": 6,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
-            },
-            "ObjectSize": {
-                "ingested": 176418,
-                "deleted": 0,
-                "remained": 176418,
-                "attached": 0,
-                "detached": 0,
-                "symbolicRemained": 0
-            },
-            "OperationIds": [
-                "aeeaaaaaagghkzkeaacimalb2grgctiaaaaq"
-            ],
-            "_v": 0,
-            "_tenant": 0
-        }
+      {
+        "_id": "aehaaaaaaaecjmacabcnualfddjzvpyaaaaq",
+        "ObjectSize": {
+          "ingested": 12,
+          "deleted": 0,
+          "remained": 12
+        },
+        "OriginatingAgency": "FRAN_NP_009913",
+        "SubmissionAgency": "FRAN_NP_009913",
+        "ArchivalAgreement": "ArchivalAgreement0",
+        "EndDate": "2018-08-08T09:17:25.567",
+        "StartDate": "2018-08-08T09:17:25.567",
+        "LastUpdate": "2018-08-08T09:17:25.567",
+        "Status": "STORED_AND_COMPLETED",
+        "TotalObjectGroups": {
+          "ingested": 2,
+          "deleted": 0,
+          "remained": 2
+        },
+        "TotalUnits": {
+          "ingested": 3,
+          "deleted": 0,
+          "remained": 3
+        },
+        "TotalObjects": {
+          "ingested": 2,
+          "deleted": 0,
+          "remained": 2
+        },
+        "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+        "Opi": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+        "Events": [
+          {
+            "Opc": "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq",
+            "OpType": "INGEST",
+            "Gots": 2,
+            "Units": 3,
+            "Objects": 2,
+            "ObjSize": 12,
+            "CreationDate": "2018-08-08T11:17:25.582"
+          }
+        ],
+        "OperationIds": [
+          "aeeaaaaaacecjmacabdbaalfddjuhciaaaaq"
+        ],
+        "_v": 0,
+        "_tenant": 0
+      }
 	]
 }

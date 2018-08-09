@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 /**
  *
  */
@@ -65,11 +65,13 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 
 
 /**
  * Vitam Field Helper to facilitate the usage of field names
- *
  */
 public class VitamFieldsHelper {
 
@@ -97,13 +99,13 @@ public class VitamFieldsHelper {
     public static final String nbobjects() {
         return NBOBJECTS.exactToken();
     }
-    
+
     /**
      * @return #nbc
      */
     public static final String nbc() {
         return NBCHILD.exactToken();
-    }    
+    }
 
     /**
      * @return #all
@@ -230,6 +232,7 @@ public class VitamFieldsHelper {
     public static final String graph() {
         return GRAPH.exactToken();
     }
+
     /**
      * @return #graph_last_persisted_date
      */
@@ -238,7 +241,6 @@ public class VitamFieldsHelper {
     }
 
     /**
-     *
      * @return #management
      */
     public static final String management() {
@@ -295,7 +297,6 @@ public class VitamFieldsHelper {
     }
 
     /**
-     *
      * @return #usage
      */
     public static final String usage() {
@@ -303,7 +304,6 @@ public class VitamFieldsHelper {
     }
 
     /**
-     *
      * @return #score
      */
     public static final String score() {
@@ -311,17 +311,37 @@ public class VitamFieldsHelper {
     }
 
     /**
-     *
      * @return #lastPersistedDate
      */
     public static final String lastPersistedDate() {
         return LAST_PERSISTED_DATE.exactToken();
     }
-    
+
     /**
      * @return #opi
      */
     public static final String initialOperation() {
         return INITIAL_OPERATION.exactToken();
+    }
+
+
+
+    public static final JsonNode removeHash(JsonNode jsonNode) {
+        ObjectNode objectNode = (ObjectNode) jsonNode;
+        JsonNode hashId = objectNode.remove(VitamFieldsHelper.id());
+        if (hashId != null) {
+            objectNode.set("_id", hashId);
+        }
+        JsonNode hashTenant = objectNode.remove(VitamFieldsHelper.tenant());
+        if (hashTenant != null) {
+            objectNode.set("_tenant", hashTenant);
+        }
+
+        JsonNode hashVersion = objectNode.remove(VitamFieldsHelper.version());
+        if (hashTenant != null) {
+            objectNode.set("_v", hashVersion);
+        }
+
+        return objectNode;
     }
 }

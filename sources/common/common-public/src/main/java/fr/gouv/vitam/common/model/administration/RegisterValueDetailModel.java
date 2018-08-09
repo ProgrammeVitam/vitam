@@ -30,24 +30,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.RegisterValueDetail}
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RegisterValueDetailModel {
 
     @JsonProperty("ingested")
-    private long ingested;
+    private long ingested = 0;
     @JsonProperty("deleted")
-    private long deleted;
+    private long deleted = 0;
     @JsonProperty("remained")
-    private long remained;
-
-    @JsonProperty("attached")
-    private long attached;
-    @JsonProperty("detached")
-    private long detached;
-    @JsonProperty("symbolicRemained")
-    private long symbolicRemained;
+    private long remained = 0;
 
     /**
      * Constructor without fields
@@ -55,50 +47,6 @@ public class RegisterValueDetailModel {
      * use for jackson
      */
     public RegisterValueDetailModel() {
-    }
-
-
-    /**
-     * @param ingested
-     * @param attached
-     */
-    public RegisterValueDetailModel(long ingested, long attached) {
-        this.ingested = ingested;
-        this.remained = ingested - getDeleted();
-        this.attached = attached;
-        this.symbolicRemained = attached - getDetached();
-    }
-
-    /**
-     * Constructor using fields
-     *
-     * @param ingested number of objects
-     * @param deleted  number of deleted object
-     * @param remained number of remaining object
-     */
-    public RegisterValueDetailModel(long ingested, long deleted, long remained) {
-        this.ingested = ingested;
-        this.deleted = deleted;
-        this.remained = remained;
-    }
-
-    /**
-     * Constructor using fields
-     *
-     * @param total         number of objects
-     * @param deleted       number of deleted object
-     * @param remained      number of remaining object
-     * @param totalSymbolic number of symbolic object
-     * @param attached      number of attached object
-     * @param detached      number of detached object
-     * @param symbolic      if the register is symbolic
-     */
-    public RegisterValueDetailModel(long totalSymbolic, long attached, long detached, boolean symbolic) {
-        if (symbolic) {
-            this.attached = totalSymbolic;
-            this.detached = detached;
-            this.symbolicRemained = attached;
-        }
     }
 
     /**
@@ -146,54 +94,6 @@ public class RegisterValueDetailModel {
      */
     public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
-        return this;
-    }
-
-    /**
-     * @return attached
-     */
-    public long getAttached() {
-        return attached;
-    }
-
-    /**
-     * @param attached value to set field
-     * @return this
-     */
-    public RegisterValueDetailModel setAttached(long attached) {
-        this.attached = attached;
-        return this;
-    }
-
-    /**
-     * @return detached
-     */
-    public long getDetached() {
-        return detached;
-    }
-
-    /**
-     * @param detached value to set field
-     * @return this
-     */
-    public RegisterValueDetailModel setDetached(long detached) {
-        this.detached = detached;
-        return this;
-    }
-
-    /**
-     * @return symbolicRemained
-     */
-    public long getSymbolicRemained() {
-        return symbolicRemained;
-    }
-
-    /**
-     * @param symbolicRemained value to set field
-     * @return this
-     */
-    public RegisterValueDetailModel setSymbolicRemained(long symbolicRemained) {
-        this.symbolicRemained = symbolicRemained;
         return this;
     }
 }

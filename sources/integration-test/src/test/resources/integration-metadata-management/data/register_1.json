@@ -4,14 +4,11 @@
 			"ObjectSize": {
 				"ingested": 16392863,
 				"deleted": 0,
-				"remained": 16392863,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 16392863
 			},
 			"_id": "aehaaaaaa4gf2rjkaa4kkalbspwgjtiaaaaq",
-			"Identifier": "MICHEL_MERCIER",
-			"OperationGroup": "MICHEL_MERCIER",
+			"Opc": "MICHEL_MERCIER",
+			"Opi": "MICHEL_MERCIER",
 			"OriginatingAgency": "MICHEL_MERCIER",
 			"SubmissionAgency": "FRAN_NP_005061",
 			"ArchivalAgreement": "ArchivalAgreement0",
@@ -22,31 +19,21 @@
 			"TotalObjectGroups": {
 				"ingested": 244,
 				"deleted": 0,
-				"remained": 244,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 244
 			},
 			"TotalUnits": {
 				"ingested": 249,
 				"deleted": 0,
-				"remained": 249,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 249
 			},
 			"TotalObjects": {
 				"ingested": 244,
 				"deleted": 0,
-				"remained": 244,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 244
 			},
 			"OperationIds": [
 				"aecaaaaaaceeytj5abrzmalbvy42qsaaaaaq"
 			],
-			"Symbolic": false,
     		"_v": 0,
     		"_tenant": 0
 		},
@@ -54,10 +41,7 @@
 			"ObjectSize": {
 				"ingested": 29403,
 				"deleted": 0,
-				"remained": 29403,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 29403
 			},
 			"_id": "aehaaaaaaagvm7jmaalysalbwplb56aaaaaq",
 			"OriginatingAgency": "FRAN_NP_005568",
@@ -70,31 +54,21 @@
 			"TotalObjectGroups": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"TotalUnits": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"TotalObjects": {
 				"ingested": 1,
 				"deleted": 0,
-				"remained": 1,
-				"attached": 0,
-				"detached": 0,
-				"symbolicRemained": 0
+				"remained": 1
 			},
 			"OperationIds": [
 				"aecaaaaaaceeytj5abrzmalbvy42qsaaaaaq"
 			],
-			"Symbolic": false,
     		"_v": 0,
     		"_tenant": 0
 		}

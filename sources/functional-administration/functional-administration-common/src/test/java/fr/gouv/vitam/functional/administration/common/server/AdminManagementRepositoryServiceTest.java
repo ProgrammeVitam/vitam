@@ -32,17 +32,10 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Optional;
 
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import org.bson.Document;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.FindIterable;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -59,6 +52,11 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
+import org.bson.Document;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 public class AdminManagementRepositoryServiceTest {
     @Rule

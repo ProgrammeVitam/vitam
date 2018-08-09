@@ -113,7 +113,7 @@ public class PrepareAuditActionHandlerTest {
         RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
         AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
         register.setOriginatingAgency("originatingAgency");
-        register.setTotalObjects(new RegisterValueDetailModel(1, 0 ,1));
+        register.setTotalObjects(new RegisterValueDetailModel().setIngested(1).setRemained(1));
         registerSummary.addResult(register);
         when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
 
@@ -142,7 +142,7 @@ public class PrepareAuditActionHandlerTest {
         action.addOutIOParameters(out);RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
         AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
         register.setOriginatingAgency("originatingAgency");
-        register.setTotalObjects(new RegisterValueDetailModel(0, 0 ,1));
+        register.setTotalObjects(new RegisterValueDetailModel().setRemained(1));
         registerSummary.addResult(register);
         when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
         final JsonNode searchResults =

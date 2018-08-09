@@ -67,6 +67,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -215,34 +216,22 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
         totalObjects.setIngested(12)
             .setDeleted(0)
-            .setRemained(12)
-            .setSymbolicRemained(12)
-            .setAttached(12)
-            .setDetached(0);
+            .setRemained(12);
         model.setTotalObjects(totalObjects);
 
         totalObjectsGroups.setIngested(3)
             .setDeleted(0)
-            .setRemained(3)
-            .setSymbolicRemained(3)
-            .setAttached(3)
-            .setDetached(0);
+            .setRemained(3);
         model.setTotalObjectsGroups(totalObjectsGroups);
 
         totalUnits.setIngested(3)
             .setDeleted(0)
-            .setRemained(3)
-            .setSymbolicRemained(3)
-            .setAttached(3)
-            .setDetached(0);
+            .setRemained(3);
         model.setTotalUnits(totalUnits);
 
         objectSize.setIngested(1035126)
             .setDeleted(0)
-            .setRemained(1035126)
-            .setSymbolicRemained(1035126)
-            .setAttached(1035126)
-            .setDetached(0);
+            .setRemained(1035126);
         model.setObjectSize(objectSize)
             .setCreationDate("2016-11-04T20:40:49.030");
         return ClientMockResultHelper.createReponse(model);
@@ -251,18 +240,18 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
-        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
-        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
-        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4);
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042);
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel().setIngested(1).setRemained(1);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel().setIngested(1).setRemained(1);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel().setIngested(4).setRemained(4);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(345042).setRemained(345042);
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Accession Register request:");
 
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
         detailBuider.setId(id)
             .setTenant(0)
-            .setIdentifier("Identifier")
-            .setOperationGroup("OP_GROUP")
+            .setOpc("Identifier")
+            .setOpi("OP_GROUP")
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")
             .setArchivalAgreement("Something")
@@ -281,10 +270,10 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
         throws VitamClientException {
-        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
-        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
-        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4);
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042);
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel().setIngested(1).setRemained(1);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel().setIngested(1).setRemained(1);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel().setIngested(4).setRemained(4);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(345042).setRemained(345042);
         ParametersChecker.checkParameter("operationId is a mandatory parameter", operationId);
         LOGGER.debug("get document Accession Register request:");
 
@@ -292,8 +281,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
             detailBuider.setId(operationId)
                 .setTenant(0)
-                .setIdentifier("Identifier")
-                .setOperationGroup("OP_GROUP")
+                .setOpc("Identifier")
+                .setOpi("OP_GROUP")
                 .setOriginatingAgency(originatingAgency)
                 .setSubmissionAgency("FRAN_NP_005061")
                 .setArchivalAgreement("Something")
@@ -403,20 +392,20 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         }
         return var;
     }
-    
+
     @Override
     public RequestResponse createArchiveUnitProfiles(List<ArchiveUnitProfileModel> archiveUnitProfileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
-    
+
     @Override
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(JsonNode query)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find archive unit profiles");
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
-    
+
     @Override
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfilesByID(String requestedId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
@@ -484,7 +473,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<Boolean> securityProfileIsUsedInContexts(String securityProfileId)
-            throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
         RequestResponseOK<Boolean> response = new RequestResponseOK<>();
         response.addResult(false);
         return response;
@@ -576,7 +565,9 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query) throws InvalidParseOperationException, AdminManagementClientServerException {
+    @Override
+    public RequestResponse<OntologyModel> findOntologies(JsonNode query)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find Ontologies");
         return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }

@@ -670,7 +670,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
             .setLastUpdate(DATE));
     }
 
@@ -680,7 +680,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
             .setLastUpdate(DATE));
     }
 
@@ -690,7 +690,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
             .setLastUpdate(DATE));
     }
 
@@ -701,7 +701,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
                 .setLastUpdate(DATE)));
     }
 
@@ -712,7 +712,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
                 .setLastUpdate(DATE)));
     }
 
@@ -723,7 +723,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setIdentifier("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
                 .setLastUpdate(DATE)));
     }
 

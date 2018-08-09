@@ -26,19 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.bson.Document;
 
 /**
  * Accession Register Summary document
@@ -80,26 +75,10 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public static final String REMAINED = "remained";
     /**
-     * the detached field of accession register
-     */
-    public static final String DETACHED = "detached";
-    /**
-     * the attached field of accession register
-     */
-    public static final String ATTACHED = "attached";
-    /**
-     * the symbolic Remained field of accession register
-     */
-    public static final String SYMBOLIC_REMAINED = "symbolicRemained";
-    /**
      * the creationDate field of accession register
      */
     public static final String CREATION_DATE = "CreationDate";
     private static final String TENANT = "_tenant";
-
-    private static final BasicDBObject[] indexes = {
-        new BasicDBObject(ORIGINATING_AGENCY, 1)
-    };
 
     /**
      * Empty Constructor
@@ -213,29 +192,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     *
      * @return String
      */
     public RegisterValueDetailModel getTotalObjectSize() {
         return new ObjectMapper().convertValue(this.get(OBJECT_SIZE), RegisterValueDetailModel.class);
     }
 
-    /**
-     * Methods adding Indexes
-     */
-
-    public static void addIndexes() {
-        // if not set, Unit and Tree are worst
-        for (final BasicDBObject index : indexes) {
-            if (index.containsField(ORIGINATING_AGENCY)) {
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(
-                    ((BasicDBObject) index.copy()).append(TENANT, 1),
-                    new IndexOptions().unique(true));
-            } else {
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index);
-            }
-        }
-    }
 
     /**
      * @param creationDate to set
@@ -247,7 +209,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     *
      * @return String
      */
     public String getOriginatingAgency() {

@@ -4,34 +4,22 @@
     "TotalObjects": {
         "ingested": "TOTAL_DOCUMENTS",
         "deleted": 0,
-        "remained": "TOTAL_DOCUMENTS",
-        "attached": 0,
-        "detached": 0,
-        "symbolicRemained": 0
+        "remained": "TOTAL_DOCUMENTS"
     },
     "TotalObjectGroups": {
         "ingested": "TOTAL_DOCUMENTS",
         "deleted": 0,
-        "remained": "TOTAL_DOCUMENTS",
-        "attached": 0,
-        "detached": 0,
-        "symbolicRemained": 0
+        "remained": "TOTAL_DOCUMENTS"
     },
     "TotalUnits": {
         "ingested": "TOTAL_DOCUMENTS",
         "deleted": 0,
-        "remained": "TOTAL_DOCUMENTS",
-        "attached": 0,
-        "detached": 0,
-        "symbolicRemained": 0
+        "remained": "TOTAL_DOCUMENTS"
     },
     "ObjectSize": {
         "ingested": "TOTAL_OBJECTS_SIZE",
         "deleted": 0,
-        "remained": "TOTAL_OBJECTS_SIZE",
-        "attached": 0,
-        "detached": 0,
-        "symbolicRemained": 0
+        "remained": "TOTAL_OBJECTS_SIZE"
     },
     "_v": 1,
     "_tenant": "TENANT_ID"

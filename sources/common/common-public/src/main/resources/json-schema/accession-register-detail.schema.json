@@ -15,15 +15,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -35,6 +26,15 @@
     },
     "_v": {
       "type": "integer"
+    },
+    "Opc": {
+      "type": "string"
+    },
+    "Opi": {
+      "type": "string"
+    },
+    "OpType": {
+      "type": "string"
     },
     "OriginatingAgency": {
       "type": "string"
@@ -115,15 +115,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -137,15 +128,6 @@
           "type": "number"
         },
         "remained": {
-          "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
           "type": "number"
         }
       }
@@ -161,15 +143,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -179,8 +152,61 @@
         "type": "string"
       }
     },
-    "Symbolic": {
-      "type": "boolean"
+    "Events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Opc": {
+            "type": "string"
+          },
+          "OpType": {
+            "type": "string"
+          },
+          "Gots": {
+            "type": "number"
+          },
+          "Units": {
+            "type": "number"
+          },
+          "Objects": {
+            "type": "number"
+          },
+          "ObjSize": {
+            "type": "number"
+          },
+          "CreationDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string",
+                "format": "date-time-vitam"
+              }
+            ]
+          }
+        }
+      }
     }
-  }
+  },
+  "required": [
+    "_id",
+    "_tenant",
+    "_v",
+    "OriginatingAgency",
+    "Opc",
+    "Opi",
+    "Events",
+    "TotalObjectGroups",
+    "TotalUnits",
+    "TotalObjects",
+    "ObjectSize"
+  ]
 }

@@ -28,22 +28,32 @@ package fr.gouv.vitam.functional.administration.accession.register.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
+import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -56,8 +66,10 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -68,8 +80,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class ReferentialAccessionRegisterImplTest {
+    static String ACCESSION_REGISTER_DETAIL = "accession-register_detail.json";
+    static String ACCESSION_REGISTER_DETAIL_ELIMINATION = "accession-register_detail_elimination.json";
+    static String ACCESSION_REGISTER_DETAIL_ELIMINATION_2 = "accession-register_detail_elimination_2.json";
     static String FILE_TO_TEST_OK = "accession-register.json";
-    static String FILE_TO_TEST_SYMBOLIC_OK = "accession-register_detached.json";
+    static String FILE_TO_TEST_2_OK = "accession-register_2.json";
     private static final Integer TENANT_ID = 0;
 
     @ClassRule
@@ -94,7 +109,7 @@ public class ReferentialAccessionRegisterImplTest {
             FileRules.class.getSimpleName().toLowerCase());
 
     static ReferentialAccessionRegisterImpl accessionRegisterImpl;
-    static AccessionRegisterDetail register;
+    static AccessionRegisterDetailModel register;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -121,38 +136,220 @@ public class ReferentialAccessionRegisterImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testcreateAccessionRegister() throws Exception {
+    public void testCreateAndUpdateAccessionRegister() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
-            AccessionRegisterDetail.class);
-        register.append(AccessionRegisterDetail.TENANT_ID, 0);
-        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+        ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
-        register.setIdentifier("Op1");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
-        assertEquals(1, collection.count());
+        AccessionRegisterDetailModel ardm =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL),
+                AccessionRegisterDetailModel.class);
 
-        register.setIdentifier("Op2");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        assertEquals(1, collection.count());
-        final JsonNode totalUnit =
-            JsonHandler.toJsonNode(collection.find().first().get(AccessionRegisterSummary.TOTAL_UNITS));
-        assertEquals(2, totalUnit.get(AccessionRegisterSummary.INGESTED).asInt());
-        register.setOriginatingAgency("newOriginalAgency");
-        register.setIdentifier("Op3");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        assertEquals(2, collection.count());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
-        VitamThreadUtils.getVitamSession().setTenantId(1);
-        register.setIdentifier("Op4");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        assertEquals(3, collection.count());
-        register.setIdentifier("Op5");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        assertEquals(3, collection.count());
+        // Test idempotence of ingest
+        try {
+            ardm.setId(GUIDFactory.newGUID().getId());
+            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            //Ignore
+        }
+
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
+        RequestResponseOK<AccessionRegisterSummary> response =
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getResults()).hasSize(1);
+        AccessionRegisterSummary summary = response.getResults().iterator().next();
+        assertThat(summary.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalUnits().getDeleted()).isEqualTo(0);
+        assertThat(summary.getTotalUnits().getRemained()).isEqualTo(1000);
+
+        assertThat(summary.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjectGroups().getDeleted()).isEqualTo(0);
+        assertThat(summary.getTotalObjectGroups().getRemained()).isEqualTo(1000);
+
+        assertThat(summary.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjects().getDeleted()).isEqualTo(0);
+        assertThat(summary.getTotalObjects().getRemained()).isEqualTo(1000);
+
+        assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(0);
+        assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(9999);
+
+
+        select = new Select();
+        select.setQuery(
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+
+        RequestResponseOK<AccessionRegisterDetail> detailResponse =
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
+
+        assertThat(detailResponse.isOk()).isTrue();
+        assertThat(detailResponse.getResults()).hasSize(1);
+        AccessionRegisterDetail detail = detailResponse.getResults().iterator().next();
+        assertThat(detail.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalUnits().getDeleted()).isEqualTo(0);
+        assertThat(detail.getTotalUnits().getRemained()).isEqualTo(1000);
+
+        assertThat(detail.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjectGroups().getDeleted()).isEqualTo(0);
+        assertThat(detail.getTotalObjectGroups().getRemained()).isEqualTo(1000);
+
+        assertThat(detail.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjects().getDeleted()).isEqualTo(0);
+        assertThat(detail.getTotalObjects().getRemained()).isEqualTo(1000);
+
+        assertThat(detail.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(detail.getTotalObjectSize().getDeleted()).isEqualTo(0);
+        assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(9999);
+
+        assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(1);
+
+
+        // Add elimination event 1
+        ardm =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION),
+                AccessionRegisterDetailModel.class);
+
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
+
+        // Test idempotence of ingest
+        try {
+            ardm.setId(GUIDFactory.newGUID().getId());
+            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            //Ignore
+        }
+
+
+        select = new Select();
+        select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
+        response =
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getResults()).hasSize(1);
+        summary = response.getResults().iterator().next();
+        assertThat(summary.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalUnits().getDeleted()).isEqualTo(200);
+        assertThat(summary.getTotalUnits().getRemained()).isEqualTo(800);
+
+        assertThat(summary.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjectGroups().getDeleted()).isEqualTo(200);
+        assertThat(summary.getTotalObjectGroups().getRemained()).isEqualTo(800);
+
+        assertThat(summary.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjects().getDeleted()).isEqualTo(200);
+        assertThat(summary.getTotalObjects().getRemained()).isEqualTo(800);
+
+        assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(999);
+        assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(9000);
+
+
+        select = new Select();
+        select.setQuery(
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+
+        detailResponse =
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
+
+        assertThat(detailResponse.isOk()).isTrue();
+        assertThat(detailResponse.getResults()).hasSize(1);
+        detail = detailResponse.getResults().iterator().next();
+        assertThat(detail.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalUnits().getDeleted()).isEqualTo(200);
+        assertThat(detail.getTotalUnits().getRemained()).isEqualTo(800);
+
+        assertThat(detail.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjectGroups().getDeleted()).isEqualTo(200);
+        assertThat(detail.getTotalObjectGroups().getRemained()).isEqualTo(800);
+
+        assertThat(detail.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjects().getDeleted()).isEqualTo(200);
+        assertThat(detail.getTotalObjects().getRemained()).isEqualTo(800);
+
+        assertThat(detail.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(detail.getTotalObjectSize().getDeleted()).isEqualTo(999);
+        assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(9000);
+
+        assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(2);
+
+
+
+        // Add elimination event 1
+        ardm =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION_2),
+                AccessionRegisterDetailModel.class);
+
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
+
+        // Test idempotence of ingest
+        try {
+            ardm.setId(GUIDFactory.newGUID().getId());
+            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            //Ignore
+        }
+
+
+        select = new Select();
+        select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
+        response =
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.getResults()).hasSize(1);
+        summary = response.getResults().iterator().next();
+        assertThat(summary.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalUnits().getDeleted()).isEqualTo(1000);
+        assertThat(summary.getTotalUnits().getRemained()).isEqualTo(0);
+
+        assertThat(summary.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjectGroups().getDeleted()).isEqualTo(1000);
+        assertThat(summary.getTotalObjectGroups().getRemained()).isEqualTo(0);
+
+        assertThat(summary.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(summary.getTotalObjects().getDeleted()).isEqualTo(1000);
+        assertThat(summary.getTotalObjects().getRemained()).isEqualTo(0);
+
+        assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(9999);
+        assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(0);
+
+
+        select = new Select();
+        select.setQuery(
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+
+        detailResponse =
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
+
+        assertThat(detailResponse.isOk()).isTrue();
+        assertThat(detailResponse.getResults()).hasSize(1);
+        detail = detailResponse.getResults().iterator().next();
+        assertThat(detail.getTotalUnits().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalUnits().getDeleted()).isEqualTo(1000);
+        assertThat(detail.getTotalUnits().getRemained()).isEqualTo(0);
+
+        assertThat(detail.getTotalObjectGroups().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjectGroups().getDeleted()).isEqualTo(1000);
+        assertThat(detail.getTotalObjectGroups().getRemained()).isEqualTo(0);
+
+        assertThat(detail.getTotalObjects().getIngested()).isEqualTo(1000);
+        assertThat(detail.getTotalObjects().getDeleted()).isEqualTo(1000);
+        assertThat(detail.getTotalObjects().getRemained()).isEqualTo(0);
+
+        assertThat(detail.getTotalObjectSize().getIngested()).isEqualTo(9999);
+        assertThat(detail.getTotalObjectSize().getDeleted()).isEqualTo(9999);
+        assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(0);
+
+        assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(3);
+
     }
 
     @Test
@@ -163,8 +360,8 @@ public class ReferentialAccessionRegisterImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
-            AccessionRegisterDetail.class);
-        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+            AccessionRegisterDetailModel.class);
+        ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
         register.setOriginatingAgency("testFindAccessionRegisterDetailAgency");
 
@@ -189,26 +386,23 @@ public class ReferentialAccessionRegisterImplTest {
         FileNotFoundException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_SYMBOLIC_OK),
-            AccessionRegisterDetail.class);
-        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_2_OK),
+            AccessionRegisterDetailModel.class);
+        ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
         assertEquals(1, collection.count());
         final Select select = new Select();
-        select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
+        select.setQuery(eq("OriginatingAgency", "OG_1"));
         final RequestResponseOK<AccessionRegisterSummary> summary =
             accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertEquals(1, summary.getResults().size());
         final AccessionRegisterSummary item = summary.getResults().get(0);
-        assertEquals("OriginatingAgency", item.getOriginatingAgency());
+        assertEquals("OG_1", item.getOriginatingAgency());
         assertEquals(1, item.getTotalObjects().getRemained());
         assertEquals(1, item.getTotalObjects().getIngested());
         assertEquals(0, item.getTotalObjects().getDeleted());
-        assertEquals(1, item.getTotalObjects().getAttached());
-        assertEquals(0, item.getTotalObjects().getDetached());
-        assertEquals(1, item.getTotalObjects().getSymbolicRemained());
     }
 }

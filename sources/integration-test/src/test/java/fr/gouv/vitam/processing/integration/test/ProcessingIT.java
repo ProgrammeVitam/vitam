@@ -27,9 +27,11 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
+import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -68,9 +70,9 @@ import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -106,8 +108,7 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -257,6 +258,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private static String SIP_PROD_SERV_A = "integration-processing/Sip_A.zip";
     private static String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
+    private static String ADD_OBJET_TO_GOT = "integration-processing/ADD_OBJET_TO_GOT";
 
     private static String SIP_FULL_SEDA_2_1 = "integration-processing/OK_SIP_FULL_SEDA2.1.zip";
 
@@ -466,7 +468,7 @@ public class ProcessingIT extends VitamRuleRunner {
             query.setLimitFilter(0, 1);
             RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
-            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
 
             // check if unit is valid
@@ -580,7 +582,7 @@ public class ProcessingIT extends VitamRuleRunner {
             query.setLimitFilter(0, 1);
             RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
-            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
 
             // check if unit is valid
@@ -664,16 +666,17 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookClient.update(newLogbookOperationParameters);
 
             AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
-            register.setIdentifier("Identifier");
-            register.setOperationGroup("OP_GROUP");
+            register.setOpc("OP_GROUP");
+            register.setOpi("OP_GROUP");
+            register.setTenant(tenantId);
             register.setOriginatingAgency("Vitam");
-            register.setTotalObjects(new RegisterValueDetailModel(1, 0, 0));
-            register.setTotalObjectsGroups(new RegisterValueDetailModel(1, 0, 0));
-            register.setTotalUnits(new RegisterValueDetailModel(1, 0, 0));
-            register.setObjectSize(new RegisterValueDetailModel(1, 0, 0));
-            register.setEndDate("01/01/2017");
-            register.setStartDate("01/01/2017");
-            register.setLastUpdate("01/01/2017");
+            register.setTotalObjects(new RegisterValueDetailModel().setIngested(1));
+            register.setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(1));
+            register.setTotalUnits(new RegisterValueDetailModel().setIngested(1));
+            register.setObjectSize(new RegisterValueDetailModel().setIngested(1));
+            register.setEndDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
+            register.setStartDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
+            register.setLastUpdate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             functionalClient.createorUpdateAccessionRegister(register);
 
             // Test Audit
@@ -868,7 +871,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1536,11 +1539,11 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.KO, processWorkflow4.getStatus());
 
         // Check that we have an AU where in his up we have idUnit
-        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(Filters.eq("_up", idUnit));
+        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", idUnit));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
         MongoIterable<Document> operation =
-            LogbookCollections.OPERATION.getCollection().find(Filters.eq("_id", containerName4));
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName4));
         assertNotNull(operation);
         assertNotNull(operation.first());
         assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO"));
@@ -1752,7 +1755,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow2.getSteps());
 
         // Check that we have an AU where in his up we have idUnit
-        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(Filters.eq("_up", idUnit));
+        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", idUnit));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
 
@@ -1997,7 +2000,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow2.getSteps());
 
         // check got have to units
-        assertEquals(MetadataCollections.UNIT.getCollection().count(Filters.eq("_og", idGot)), 2);
+        assertEquals(MetadataCollections.UNIT.getCollection().count(eq("_og", idGot)), 2);
 
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
@@ -2668,31 +2671,33 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowAddAttachementAndCheckRegister() throws Exception {
+    public void test_attach_to_au_then_add_object_to_got_then_check_accession_register() throws Exception {
         prepareVitamSession();
         // 1. First we create an AU by sip
-        final String containerName = createOperationContainer();
+        String containerName = createOperationContainer();
 
-        final InputStream zipInputStreamSipObject =
+        InputStream zipStream =
             PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
+            zipStream);
+
+        StreamUtils.closeSilently(zipStream);
+
         // call processing
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret =
+        RequestResponse<JsonNode> requestResponse =
             processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
-        assertNotNull(ret);
+        assertNotNull(requestResponse);
 
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
-
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
@@ -2701,8 +2706,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
-        String zipPath = null;
-        // 2. then we link another SIP to it
+        // 2. Attach to an existing Unit
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         // prepare zip
@@ -2712,109 +2716,169 @@ public class ProcessingIT extends VitamRuleRunner {
         String opiBefore = (String) unit.get("_opi");
         replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-            "/" + zipName;
+        String zipPath =
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_PROD_SERV_B_ATTACHED), zipPath);
 
-        final String containerName2 = createOperationContainer();
+        containerName = createOperationContainer();
 
         // use link sip
-        final InputStream zipStream = new FileInputStream(new File(
+        zipStream = new FileInputStream(new File(
             PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName2);
-        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
 
+        StreamUtils.closeSilently(zipStream);
+
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret2 =
-            processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        requestResponse =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret2);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+        assertNotNull(requestResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
-        wait(containerName2);
-        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
-        assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
-        assertNotNull(processWorkflow2.getSteps());
-
-        MongoIterable<Document> resultUnitsAfter =
-            MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", idUnit));
-        Document unitAfter = resultUnitsAfter.first();
-        String opiAfter = (String) unitAfter.get("_opi");
-
-        assertEquals(opiBefore, opiAfter);
-
-        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        JsonNode logbookResult = logbookClient.selectOperationById(containerName2
-        );
-        assertNotNull(logbookResult.get("$results").get(0));
-        LogbookOperation logOperation =
-            JsonHandler.getFromJsonNode(logbookResult.get("$results").get(0), LogbookOperation.class);
-        List<LogbookEventOperation> events = logOperation.getEvents().stream()
-            .filter(p -> (p.getEvType().equals("ACCESSION_REGISTRATION") && p.getOutcome().equals("OK")))
-            .collect(Collectors.toList());
-        events.forEach((event) -> {
-            assertNotNull(event.getEvDetData());
-            try {
-                assertNotNull(JsonHandler.getFromString(event.getEvDetData()).get("Volumetry"));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        MongoIterable<Document> accessReg =
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .find(Filters.eq("OriginatingAgency", "P-A"));
-        assertNotNull(accessReg);
-        assertNotNull(accessReg.first());
-        Document accessRegDoc = accessReg.first();
-        // 2 units are attached - 1 was previously added
-        // TODO: have to review this double (have to be a long)
-        assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.ATTACHED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.REMAINED).toString());
-
-        // 1 object is attached - 1 was previously added
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED)
-                .toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.ATTACHED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
-
-        // 1 Got is attached - 1 was previously added
-        assertEquals("1.0", ((Document) accessRegDoc.get("TotalObjectGroups"))
-            .get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.ATTACHED).toString());
-        assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
-
-        // 285804 octets is attached - 4109 was previously added
-        assertEquals("285804.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
-        assertEquals("285804.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.ATTACHED).toString());
-        assertEquals("4109.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+        wait(containerName);
+        processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
 
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        // Check _opi does not changed
+        MongoIterable<Document> resultUnitsAfter =
+            MetadataCollections.UNIT.getCollection().find(eq("_id", idUnit));
+        Document unitAfter = resultUnitsAfter.first();
+        String opiAfter = (String) unitAfter.get("_opi");
+        assertEquals(opiBefore, opiAfter);
+
+
+        // Check accession register detail
+        long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
+            eq("OriginatingAgency", "P-A"));
+        assertThat(countDetails).isEqualTo(1);
+
+        long countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
+            eq("OriginatingAgency", "P-A"));
+        assertThat(countSummary).isEqualTo(1);
+
+
+        MongoIterable<Document> accessReg =
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(eq("OriginatingAgency", "P-A"));
+        assertNotNull(accessReg);
+        assertNotNull(accessReg.first());
+        Document accessRegDoc = accessReg.first();
+        // 2 units are attached - 1 was previously added
+        assertEquals("1.0",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        assertEquals("1.0",
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        // 1 Got is attached - 1 was previously added
+        assertEquals("1.0",
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        // 285804 octets is attached - 4109 was previously added
+        assertEquals("4109.0",
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        // 3. Add object to an existing GOT
+        containerName = createOperationContainer();
+        zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            idUnit);
+        zipPath =
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
+
+
+        // use link sip
+        zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        StreamUtils.closeSilently(zipStream);
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        requestResponse =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(requestResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
+
+        wait(containerName);
+        processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Re-check accession register detail
+
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
+            eq("OriginatingAgency", "P-A"));
+        assertThat(countDetails).isEqualTo(2);
+
+        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
+            eq("OriginatingAgency", "P-A"));
+        assertThat(countSummary).isEqualTo(1);
+
+        accessReg =
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(eq("OriginatingAgency", "P-A"));
+        assertNotNull(accessReg);
+        assertNotNull(accessReg.first());
+
+        accessRegDoc = accessReg.first();
+        // 2 units are attached - 1 was previously added
+        assertEquals("2.0",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        assertEquals("2.0",
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        // 1 Got is attached - 1 was previously added
+        assertEquals("1.0",
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+
+        // 285804 octets is attached - 4109 was previously added
+        assertEquals("14077.0",
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+
+
+        // Check global accession register count
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+        assertThat(countDetails).isEqualTo(3);
+
+        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count();
+        assertThat(countSummary).isEqualTo(2);
     }
 
     @RunWithCustomExecutor
@@ -3058,7 +3122,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         MongoIterable<Document> resultUnits =
-            MetadataCollections.UNIT.getCollection().find(Filters.eq("Title", "Porte de Pantin"));
+            MetadataCollections.UNIT.getCollection().find(eq("Title", "Porte de Pantin"));
         final Document unitToAssert = resultUnits.first();
         Document appraisalRule = ((Document) ((Document) unitToAssert.get("_mgt")).get("AppraisalRule"));
         final List<Object> rules = ((List<Object>) appraisalRule.get("Rules"));
@@ -3098,7 +3162,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
         MongoIterable<Document> resultUnits =
-            MetadataCollections.UNIT.getCollection().find(Filters.eq("Title", "monSIP"));
+            MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
         final Document unitToAssert = resultUnits.first();
 
         //AgentType fullname field
@@ -3133,7 +3197,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         //Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf
         MongoIterable<Document> gots = MetadataCollections.OBJECTGROUP.getCollection()
-            .find(Filters.eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
+            .find(eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
         final Document bdoWithMetadataJson = gots.first();
 
         List<Object> qualifiers = (List<Object>) bdoWithMetadataJson.get("_qualifiers");

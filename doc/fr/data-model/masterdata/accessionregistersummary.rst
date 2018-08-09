@@ -29,34 +29,22 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     "TotalObjects": {
         "ingested": 292,
         "deleted": 0,
-        "remained": 292,
-        "attached": 12,
-        "detached": 0,
-        "symbolicRemained": 12
+        "remained": 292
     },
     "TotalObjectGroups": {
         "ingested": 138,
         "deleted": 0,
-        "remained": 138,
-        "attached": 14,
-        "detached": 0,
-        "symbolicRemained": 14
+        "remained": 138
     },
     "TotalUnits": {
         "ingested": 201,
         "deleted": 0,
-        "remained": 201,
-        "attached": 37,
-        "detached": 0,
-        "symbolicRemained": 37
+        "remained": 201
     },
     "ObjectSize": {
         "ingested": 35401855,
         "deleted": 0,
-        "remained": 35401855,
-        "attached": 917440,
-        "detached": 0,
-        "symbolicRemained": 917440
+        "remained": 35401855
     },
       "CreationDate": "2017-04-12T17:01:11.764",
       "_v": 1,
@@ -91,10 +79,7 @@ On récupère la valeur FRAN_NP_051314.
     - "ingested": nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
-    - "attached": nombre total d'objets attachés symboliquement de ce service producteur. La valeur contenue dans le champ est un entier.
-    - "detached": nombre d'objets détachés symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-    - "symbolicRemained": nombre actualisé d'objets attachés symboliquement de ce service producteur et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
-            
+
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 
@@ -104,10 +89,7 @@ On récupère la valeur FRAN_NP_051314.
     - "ingested": nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
-    - "attached": nombre de groupes d'objets attachés symboliquement de ce service producteur. La valeur contenue dans le champ est un entier.
-    - "detached": nombre de groupes d'objets détachés symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-    - "symbolicRemained": nombre actualisé de groupes d'objets rattachés symboliquement de ce service producteur et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
-      
+
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 
@@ -117,10 +99,7 @@ On récupère la valeur FRAN_NP_051314.
     - "ingested": nombre total d'unités archivistiques prises en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
     - "remained": nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
-    - "attached": nombre total d'unités archivistiques attachées symboliquement de ce service producteur. La valeur contenue dans le champ est un entier.
-    - "detached": nombre d'unités archivistiques détachées symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-    - "symbolicRemained": Nombre actualisé d'unités archivistiques attachés symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-            
+
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 
@@ -130,10 +109,7 @@ On récupère la valeur FRAN_NP_051314.
     - "ingested": volume total en octet des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": volume total en octet des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": volume actualisé en octet des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
-    - "attached": volume total en octet des fichiers attachés symboliquement de ce service producteur. La valeur contenue dans le champ est un entier.
-    - "detached": volume total en octet des fichiers détachés symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-    - "symbolicRemained": volume actualisé en octet des fichiers rattachés symboliquement de ce service producteur et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
-            
+
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 

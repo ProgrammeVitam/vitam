@@ -1,48 +1,51 @@
 {
-	"_id": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
-	"_tenant": 2,
-	"OriginatingAgency": "FRAN_NP_009734",
+	"OriginatingAgency": "OG_1",
+	"Opc": "Opi_1",
+	"Opi": "Opi_1",
 	"SubmissionAgency": "FRAN_NP_009734",
-	"ArchivalAgreement": "ArchivalAgreement0",
-	"EndDate": "2017-05-19T12:36:52.572+02:00",
-	"StartDate": "2017-05-19T12:36:52.572+02:00",
-	"Symbolic": true,
+	"ArchivalAgreement": "IC-000001",
+	"EndDate": "2018-07-05T06:07:14.924",
+	"StartDate": "2018-07-05T06:07:14.924",
+	"AcquisitionInformation": "Versement",
+	"LegalStatus": "Public Archive",
 	"Status": "STORED_AND_COMPLETED",
-	"LastUpdate": "2017-05-19T12:36:52.572+02:00",
+	"LastUpdate": "2018-07-05T06:07:14.924",
 	"TotalObjectGroups": {
-		"ingested": 0,
+		"ingested": 1000,
 		"deleted": 0,
-		"remained": 0,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 1000
 	},
 	"TotalUnits": {
-		"ingested": 11,
+		"ingested": 1000,
 		"deleted": 0,
-		"remained": 11,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 1000
 	},
 	"TotalObjects": {
-		"ingested": 0,
+		"ingested": 1000,
 		"deleted": 0,
-		"remained": 0,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 1000
 	},
 	"ObjectSize": {
-		"ingested": 0,
+		"ingested": 9999,
 		"deleted": 0,
-		"remained": 0,
-		"attached": 0,
-		"detached": 0,
-		"symbolicRemained": 0
+		"remained": 9999
 	},
 	"OperationIds": [
-		"aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
+		"Opi_1"
 	],
-	"_v": 5
+	"OpType": "INGEST",
+	"Events": [
+		{
+			"Opc": "Opi_1",
+			"OpType": "INGEST",
+			"Gots": 1000,
+			"Units": 1000,
+			"Objects": 1000,
+			"ObjSize": 9999,
+			"CreationDate": "2018-07-05T06:07:14.924"
+
+		}
+	],
+	"#version": 0,
+	"#tenant": 0
 }

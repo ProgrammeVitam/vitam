@@ -7,34 +7,22 @@
   "TotalUnits": {
     "ingested": 1,
     "deleted": 0,
-    "remained": 1,
-    "symbolicRemained": 1,
-    "attached":1,
-    "detached":0
+    "remained": 1
   },
   "TotalObjectGroups": {
     "ingested": 1,
     "deleted": 0,
-    "remained": 1,
-    "symbolicRemained": 1, 
-    "attached":1,
-    "detached":0
+    "remained": 1
   },
   "TotalObjects": {
     "ingested": 1,
     "deleted": 0,
-    "remained": 1,
-    "symbolicRemained": 1,
-    "attached":1,
-    "detached":0
+    "remained": 1
   },
   "ObjectSize": {
     "ingested": 1,
     "deleted": 0,
-    "remained": 1,
-    "symbolicRemained": 1,
-    "attached":1,
-    "detached":0
+    "remained": 1
   },
   "IdOperation": "IdOperation",
   "Status": "stored and completed"

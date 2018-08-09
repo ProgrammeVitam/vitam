@@ -163,7 +163,6 @@
         "Collections": [
             "Unit",
             "AccessContract",
-            "AccessionRegisterDetail",
             "Agencies",
             "ArchiveUnitProfile",
             "Context",
@@ -964,6 +963,18 @@
         ]
     },
     {
+        "Identifier": "ClassificationAudience",
+        "SedaField": "ClassificationAudience",
+        "Description": "Mapping : unit-es-mapping.json. Permet de gérer les questions de 'diffusion restreinte', de 'spécial France' et de 'Confidentiel Industrie'.",
+        "Type": "TEXT",
+        "Origin": "INTERNAL",
+        "ShortName": "Audience de la classification",
+        "Collections": [
+            "Unit"
+        ]
+    },
+
+    {
         "Identifier": "ClassificationReassessingDate",
         "SedaField": "ClassificationReassessingDate",
         "Description": "Mapping : unit-es-mapping.json. Date de réévaluation de la classification.",
@@ -1536,6 +1547,7 @@
         "Collections": [
             "AccessContract",
             "AccessionRegisterSummary",
+            "AccessionRegisterDetail",
             "ArchiveUnitProfile",
             "Context",
             "IngestContract",
@@ -1697,32 +1709,8 @@
         ]
     },
     {
-        "Identifier": "attached",
-        "ApiField": "attached",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Total",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
         "Identifier": "deleted",
         "ApiField": "deleted",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Supprimé",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
-        "Identifier": "detached",
-        "ApiField": "detached",
         "Description": "Mapping : accessionregisterdetail-es-mapping.json",
         "Type": "LONG",
         "Origin": "INTERNAL",
@@ -1757,24 +1745,78 @@
         ]
     },
     {
-        "Identifier": "symbolicRemained",
-        "ApiField": "symbolicRemained",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "LONG",
-        "Origin": "INTERNAL",
-        "ShortName": "Restant",
-        "Collections": [
-            "AccessionRegisterDetail",
-            "AccessionRegisterSummary"
-        ]
-    },
-    {
-        "Identifier": "OperationGroup",
-        "ApiField": "OperationGroup",
+        "Identifier": "Opi",
+        "ApiField": "Opi",
         "Description": "Mapping : accessionregisterdetail-es-mapping.json. Identifiant de l’opération d’entrée ayant versé les archives recensées dans ce détail du registre des fonds",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Identifiant de l'opération",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Opc",
+        "ApiField": "Opc",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Identifiant de l’opération courante (Ingest, Elimination,...) ayant modifié les archives recensées dans ce détail du registre des fonds",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Identifiant de l'opération courante",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "OpType",
+        "ApiField": "OpType",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Le type de l'opération (Ingest, Elimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Type de l'opération",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Gots",
+        "ApiField": "Gots",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des groupes d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des groupes d'objets",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Units",
+        "ApiField": "Units",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des unités archivistiques modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des unités archivistiques",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "Objects",
+        "ApiField": "Objects",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des objets",
+        "Collections": [
+            "AccessionRegisterDetail"
+        ]
+    },
+    {
+        "Identifier": "ObjSize",
+        "ApiField": "ObjSize",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total de poids d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Total des poids d'objets",
         "Collections": [
             "AccessionRegisterDetail"
         ]
@@ -1809,17 +1851,6 @@
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Service versant",
-        "Collections": [
-            "AccessionRegisterDetail"
-        ]
-    },
-    {
-        "Identifier": "Symbolic",
-        "ApiField": "Symbolic",
-        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-        "Type": "BOOLEAN",
-        "Origin": "INTERNAL",
-        "ShortName": "Fonds symboliques",
         "Collections": [
             "AccessionRegisterDetail"
         ]

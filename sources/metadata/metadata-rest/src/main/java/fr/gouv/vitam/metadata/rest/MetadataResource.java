@@ -26,6 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -43,6 +56,7 @@ import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -52,25 +66,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
-import org.bson.Document;
 import org.elasticsearch.ElasticsearchParseException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 /**
  * Units resource REST API
@@ -500,7 +497,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId the unit id to get
+     * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -515,7 +512,7 @@ public class MetadataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId the id of unit to be update
+     * @param unitId        the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -886,47 +883,31 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);
 
-        RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
-        responseOK.setHttpCode(Status.OK.getStatusCode());
-        for (Document doc : documents) {
-            UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
-            upoa.setId(doc.getString(ID));
-            upoa.setCount(doc.getInteger(MetaDataImpl.COUNT));
-            responseOK.addResult(upoa);
+        try {
+            List<FacetBucket> documents =
+                metaData.selectOwnAccessionRegisterOnUnitByOperationId(operationId);
+
+            RequestResponseOK<FacetBucket> responseOK = new RequestResponseOK<>();
+            responseOK.setHttpCode(Status.OK.getStatusCode());
+            responseOK.addAllResults(documents);
+
+            return responseOK.toResponse();
+        } catch (final MetaDataExecutionException e) {
+            return metadataExecutionExceptionTrace(e);
         }
-
-        return responseOK.toResponse();
     }
 
     @Path("accession-registers/objects/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaData.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+        List<ObjectGroupPerOriginatingAgency> documents =
+            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
-        for (Document doc : documents) {
-            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
-
-            objectGroupPerOriginatingAgency.setOperation(doc.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
-            objectGroupPerOriginatingAgency.setAgency(doc.getString(MetaDataImpl.ORIGINATING_AGENCY));
-
-            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBOLIC));
-
-            Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-            objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());
-
-            Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-            objectGroupPerOriginatingAgency.setNumberOfObject(totalObject.longValue());
-
-            Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-            objectGroupPerOriginatingAgency.setSize(totalSize.longValue());
-
-            responseOK.addResult(objectGroupPerOriginatingAgency);
-        }
+        responseOK.addAllResults(documents);
 
         return responseOK.toResponse();
     }

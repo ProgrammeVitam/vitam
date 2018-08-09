@@ -26,14 +26,30 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.IncAction;
+import fr.gouv.vitam.common.database.builder.query.action.PushAction;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -42,6 +58,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -50,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import org.bson.conversions.Bson;
 
 /**
  * Referential Accession Register Implement
@@ -76,21 +95,34 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @param registerDetail to create in Mongodb
      * @throws ReferentialException throws when insert mongodb error
      */
-    public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)
+    public void createOrUpdateAccessionRegister(AccessionRegisterDetailModel registerDetail)
         throws ReferentialException {
 
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
-        // Store accession register detail
-        try {
-            mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
 
-        } catch (final InvalidParseOperationException | SchemaValidationException e) {
-            LOGGER.info("Create register detail Error", e);
-            throw new ReferentialException(e);
+        // In case of ingest operation, opc is equal to opi
+        // So, we create the accession detail
+        // Else if opc != opi, must be an operation other than INGEST. Elimination, Transfer. In this case just update
+        if (!registerDetail.getOpc().equals(registerDetail.getOpi())) {
+            addEventToAccessionRegisterDetail(registerDetail);
+        } else {
+            try {
+
+                JsonNode doc = VitamFieldsHelper.removeHash(JsonHandler.toJsonNode(registerDetail));
+                mongoAccess.insertDocument(doc,
+                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
+            } catch (final InvalidParseOperationException | SchemaValidationException e) {
+                LOGGER.info("Create register detail Error", e);
+                throw new ReferentialException(e);
+            }
+            updateAccessionRegisterSummary(registerDetail);
         }
 
+    }
+
+    private void updateAccessionRegisterSummary(AccessionRegisterDetailModel registerDetail)
+        throws ReferentialException {
         // store accession register summary
         try {
             final AccessionRegisterSummary accessionRegister = referentialAccessionRegisterSummaryUtil
@@ -120,7 +152,110 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             LOGGER.info("Unknown error", e);
             throw new ReferentialException(e);
         }
+    }
 
+
+    /**
+     * Add event to an existing accession register detail
+     *
+     * @param registerDetail
+     * @throws ReferentialException
+     */
+    private void addEventToAccessionRegisterDetail(AccessionRegisterDetailModel registerDetail)
+        throws ReferentialException {
+
+        ParametersChecker.checkParameter("Param mustn't be null", registerDetail);
+        ParametersChecker.checkParameter("Register opc mustn't be null", registerDetail.getOpc());
+        ParametersChecker.checkParameter("Register opi mustn't be null", registerDetail.getOpi());
+        ParametersChecker.checkParameter("Register tenant mustn't be null", registerDetail.getTenant());
+        ParametersChecker
+            .checkParameter("Register originatingAgency mustn't be null", registerDetail.getOriginatingAgency());
+
+        LOGGER.debug("Update register ID / Originating Agency: {} / {}", registerDetail.getId(),
+            registerDetail.getOriginatingAgency());
+        // Store accession register detail
+        try {
+
+            // We use Mongo query to prevent potential desynchronization between Mongo and ES
+            Bson filterQuery = and(eq(AccessionRegisterDetail.ORIGINATING_AGENCY, registerDetail
+                    .getOriginatingAgency()),
+                eq(AccessionRegisterDetail.OPI, registerDetail.getOpi()),
+                eq(AccessionRegisterDetail.EVENTS + "." + RegisterValueEventModel.OPERATION, registerDetail.getOpc()));
+
+
+            long count = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(filterQuery);
+
+            if (count > 0) {
+                throw new DatabaseException(String.format(
+                    "Accession register detail for originating agency (%s) and opi (%s) found and already contains the detail (%)",
+                    registerDetail.getOriginatingAgency(), registerDetail.getOpi(), registerDetail.getOpc()));
+            }
+
+
+
+            List<Action> actions = new ArrayList<>();
+
+            actions.add(new SetAction(AccessionRegisterDetail.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(
+                LocalDateTime.now())));
+
+            actions.add(
+                new IncAction(AccessionRegisterDetail.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
+                    registerDetail.getTotalObjectsGroups().getIngested()));
+            actions
+                .add(new IncAction(AccessionRegisterDetail.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
+                    registerDetail.getTotalObjectsGroups().getDeleted()));
+            actions.add(
+                new IncAction(AccessionRegisterDetail.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
+                    registerDetail.getTotalObjectsGroups().getRemained()));
+
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
+                registerDetail.getTotalObjects().getIngested()));
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
+                registerDetail.getTotalObjects().getDeleted()));
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
+                registerDetail.getTotalObjects().getRemained()));
+
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
+                registerDetail.getTotalUnits().getIngested()));
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
+                registerDetail.getTotalUnits().getDeleted()));
+            actions.add(new IncAction(AccessionRegisterDetail.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
+                registerDetail.getTotalUnits().getRemained()));
+
+            actions.add(new IncAction(AccessionRegisterDetail.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
+                registerDetail.getObjectSize().getIngested()));
+            actions.add(new IncAction(AccessionRegisterDetail.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
+                registerDetail.getObjectSize().getDeleted()));
+            actions.add(new IncAction(AccessionRegisterDetail.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
+                registerDetail.getObjectSize().getRemained()));
+
+
+            RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
+                .setOperation(registerDetail.getOpc())
+                .setOperationType(registerDetail.getOperationType())
+                .setTotalUnits(registerDetail.getTotalUnits().getRemained())
+                .setTotalGots(registerDetail.getTotalObjectsGroups().getRemained())
+                .setTotalObjects(registerDetail.getTotalObjects().getRemained())
+                .setObjectSize(registerDetail.getObjectSize().getRemained())
+                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+
+            actions.add(new PushAction(AccessionRegisterDetail.EVENTS, JsonHandler.toJsonNode(registerValueEvent)));
+
+            Update update = new Update();
+            update.setQuery(
+                QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, registerDetail
+                    .getOriginatingAgency()), QueryHelper.eq(AccessionRegisterDetail.OPI, registerDetail.getOpi())));
+
+            update.addActions(actions.toArray(new Action[actions.size()]));
+
+            mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
+
+        } catch (final Exception e) {
+            LOGGER.info("Create register detail Error", e);
+            throw new ReferentialException(e);
+        }
+
+        updateAccessionRegisterSummary(registerDetail);
     }
 
 
@@ -169,13 +304,5 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             LOGGER.error(e.getMessage());
             throw e;
         }
-    }
-
-    /**
-     * Reset MongoDB Index (import optimization?)
-     */
-    public static void resetIndexAfterImport() {
-        LOGGER.info("Rebuild indexes");
-        AccessionRegisterSummary.addIndexes();
     }
 }

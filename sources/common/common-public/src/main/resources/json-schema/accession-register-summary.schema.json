@@ -15,15 +15,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -50,15 +41,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -73,15 +55,6 @@
         },
         "remained": {
           "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
-          "type": "number"
         }
       }
     },
@@ -95,15 +68,6 @@
           "type": "number"
         },
         "remained": {
-          "type": "number"
-        },
-        "attached": {
-          "type": "number"
-        },
-        "detached": {
-          "type": "number"
-        },
-        "symbolicRemained": {
           "type": "number"
         }
       }

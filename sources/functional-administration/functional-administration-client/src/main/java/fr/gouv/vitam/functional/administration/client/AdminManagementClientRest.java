@@ -78,6 +78,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -124,7 +125,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
-    private static final String RECTIFICATION_AUDIT ="/rectificationaudit" ;
+    private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -506,7 +507,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_CREATE_URI, null,
-                mappingDetailModelToDetail(register), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -664,78 +665,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } finally {
             consumeAnyEntityAndClose(response);
         }
-    }
-
-    private AccessionRegisterDetail mappingDetailModelToDetail(AccessionRegisterDetailModel model) {
-        ParametersChecker.checkParameter("Parameter identifier is required", model.getIdentifier());
-        ParametersChecker.checkParameter("Parameter originatingAgency is required", model.getOriginatingAgency());
-        AccessionRegisterDetail accessionRegisterDetail = new AccessionRegisterDetail();
-        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel();
-        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
-        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
-        accessionRegisterDetail.setId(model.getId())
-            .setOriginatingAgency(model.getOriginatingAgency())
-            .setIdentifier(model.getIdentifier())
-            .setOperationGroup(model.getOperationGroup())
-            .setSubmissionAgency(model.getSubmissionAgency())
-            .setArchivalAgreement(model.getArchivalAgreement()).setEndDate(model.getEndDate())
-            .setStartDate(model.getStartDate())
-            .setAcquisitionInformation(model.getAcquisitionInformation())
-            .setLegalStatus(model.getLegalStatus());
-        if (model.isSymbolic() != null)
-            accessionRegisterDetail.setSymbolic(model.isSymbolic());
-        if (model.getStatus() != null) {
-            accessionRegisterDetail.setStatus(model.getStatus());
-
-        }
-        accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
-
-        if (model.getTotalObjectsGroups() != null) {
-            totalObjectsGroups.setIngested(model.getTotalObjectsGroups().getIngested())
-                .setRemained(model.getTotalObjectsGroups().getRemained())
-                .setDeleted(model.getTotalObjectsGroups().getDeleted())
-                .setSymbolicRemained(model.getTotalObjectsGroups().getSymbolicRemained())
-                .setAttached(model.getTotalObjectsGroups().getAttached())
-                .setDetached(model.getTotalObjectsGroups().getDetached());
-
-            accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
-        }
-        if (model.getTotalUnits() != null) {
-            totalUnits.setIngested(model.getTotalUnits().getIngested())
-                .setRemained(model.getTotalUnits().getRemained())
-                .setDeleted(model.getTotalUnits().getDeleted())
-                .setAttached(model.getTotalUnits().getAttached())
-                .setSymbolicRemained(model.getTotalUnits().getSymbolicRemained())
-                .setDetached(model.getTotalUnits().getDetached());
-
-            accessionRegisterDetail.setTotalUnits(totalUnits);
-        }
-        if (model.getTotalObjects() != null) {
-            totalObjects.setIngested(model.getTotalObjects().getIngested())
-                .setRemained(model.getTotalObjects().getRemained())
-                .setDeleted(model.getTotalObjects().getDeleted())
-                .setSymbolicRemained(model.getTotalObjects().getSymbolicRemained())
-                .setAttached(model.getTotalObjects().getAttached())
-                .setDetached(model.getTotalObjects().getDetached());
-
-            accessionRegisterDetail.setTotalObjects(totalObjects);
-        }
-        if (model.getObjectSize() != null) {
-            objectSize.setIngested(model.getObjectSize().getIngested())
-                .setRemained(model.getObjectSize().getRemained())
-                .setDeleted(model.getObjectSize().getDeleted())
-                .setAttached(model.getObjectSize().getAttached())
-                .setSymbolicRemained(model.getObjectSize().getSymbolicRemained())
-                .setDetached(model.getObjectSize().getDetached());
-            accessionRegisterDetail.setObjectSize(objectSize);
-        }
-
-        if (model.getOperationsIds() != null) {
-            accessionRegisterDetail.setOperationIds(model.getOperationsIds());
-        }
-
-        return accessionRegisterDetail;
     }
 
     @Override
@@ -1368,7 +1297,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<Boolean> securityProfileIsUsedInContexts(String securityProfileId)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input security profile Id json is mandatory", securityProfileId);
         try {
             final SelectParserSingle parser = new SelectParserSingle();

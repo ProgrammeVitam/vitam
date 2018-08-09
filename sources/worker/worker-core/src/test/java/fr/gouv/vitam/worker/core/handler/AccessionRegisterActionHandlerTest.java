@@ -168,19 +168,6 @@ public class AccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertNotNull(response.getEvDetailData());
-        assertNotNull(JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry"));
-        assertEquals(1, JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry").size());
-        JsonNode register = ((ArrayNode) JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry")).get(0);
-        assertEquals("sp1", register.get("OriginatingAgency").asText());
-        assertEquals("FRAN_NP_005061", register.get("SubmissionAgency").asText());
-        assertEquals("STORED_AND_COMPLETED", register.get("Status").asText());
-        assertEquals(true, register.get("Symbolic").asBoolean());
-        assertEquals(0, register.get("TotalUnits").get("ingested").asInt());
-        assertEquals(3, register.get("TotalUnits").get("attached").asInt());
-        assertEquals(3, register.get("TotalUnits").get("symbolicRemained").asInt());
-        assertEquals("AcquisitionInformation0", register.get("AcquisitionInformation").asText());
-        assertEquals("Public and Private Archive", register.get("LegalStatus").asText());
     }
 
     @Test
@@ -194,16 +181,13 @@ public class AccessionRegisterActionHandlerTest {
         params.setContainerName(operationId.getId());
 
         List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
-        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+        originatingAgencies.add(new UnitPerOriginatingAgency("FRAN_NP_005568", 3));
 
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
-            .thenReturn(
-                VitamCodeHelper.toVitamError(VitamCode.REFERENTIAL_REPOSITORY_DATABASE_ERROR, "database down..."));
 
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
             .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
@@ -244,7 +228,7 @@ public class AccessionRegisterActionHandlerTest {
         params.setContainerName(operationId.getId());
 
         List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
-        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+        originatingAgencies.add(new UnitPerOriginatingAgency("FRAN_NP_005568", 3));
 
         reset(metaDataClient);
         reset(adminManagementClient);

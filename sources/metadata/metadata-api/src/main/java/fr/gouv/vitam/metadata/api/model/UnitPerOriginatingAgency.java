@@ -26,63 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import fr.gouv.vitam.common.model.FacetBucket;
+
 /**
  * contains a aggregate with number of unit per originating agency
  */
-public class UnitPerOriginatingAgency {
-    private String id;
-    private int count;
+public class UnitPerOriginatingAgency extends FacetBucket {
 
-    /**
-     * Default constructor
-     */
     public UnitPerOriginatingAgency() {
-        // empty constructor
+        super();
     }
 
-    /**
-     * Constructor 
-     * @param id the originating agency id
-     * @param count the number of units
-     */
-    public UnitPerOriginatingAgency(String id, int count) {
-        this.id = id;
-        this.count = count;
-    }
-
-    /**
-     * getId
-     * 
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * setId
-     * 
-     * @param _id
-     */
-    public void setId(String _id) {
-        this.id = _id;
-    }
-
-    /**
-     * getCount
-     * 
-     * @return count
-     */
-    public int getCount() {
-        return count;
-    }
-
-    /**
-     * setCount
-     * 
-     * @param count
-     */
-    public void setCount(int count) {
-        this.count = count;
+    public UnitPerOriginatingAgency(String value, long count) {
+        super(value, count);
     }
 }

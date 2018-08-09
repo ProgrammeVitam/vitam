@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
  * Metadata Collection
  */
 public enum MetadataCollections {
-    /**
+    /**vitamCollection
      * Unit Collection
      */
     UNIT(Unit.class),

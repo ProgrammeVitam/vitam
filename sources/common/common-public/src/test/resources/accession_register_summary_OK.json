@@ -4,34 +4,22 @@
 	"TotalObjects": {
 		"ingested": 292,
 		"deleted": 0,
-		"remained": 292,
-		"attached": 12,
-		"detached": 0,
-		"symbolicRemained": 12
+		"remained": 292
 	},
 	"TotalObjectGroups": {
 		"ingested": 138,
 		"deleted": 0,
-		"remained": 138,
-		"attached": 14,
-		"detached": 0,
-		"symbolicRemained": 14
+		"remained": 138
 	},
 	"TotalUnits": {
 		"ingested": 201,
 		"deleted": 0,
-		"remained": 201,
-		"attached": 37,
-		"detached": 0,
-		"symbolicRemained": 37
+		"remained": 201
 	},
 	"ObjectSize": {
 		"ingested": 35401855,
 		"deleted": 0,
-		"remained": 35401855,
-		"attached": 917440,
-		"detached": 0,
-		"symbolicRemained": 917440
+		"remained": 35401855
 	},
 	"CreationDate": "2017-04-12T17:01:11.764",
 	"_v": 1,
