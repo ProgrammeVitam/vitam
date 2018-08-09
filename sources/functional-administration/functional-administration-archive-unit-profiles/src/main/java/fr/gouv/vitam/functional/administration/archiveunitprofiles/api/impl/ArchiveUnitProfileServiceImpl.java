@@ -416,38 +416,39 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             }
         }
 
-        if (schemaUpdate) {
-            try {
-                if (newSchema != null) {
-                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
-                    HashMap<String, ArrayNode> extractFields =
-                        new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
-                    //Get the extra properties (enum and date) for ontologyType comparison
-                    HashMap<String, ArrayNode> extraProperties =
-                        new SchemaValidationUtils().extractExtraPropertyFromSchema(newSchema);
-                    if (checkOntology) {
-                        extractFields.forEach((k, v) -> {
-                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
-                        });
-                    }
-                    ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
-                    ArrayNode fieldsNode = JsonHandler.createArrayNode();
-                    for (String key : extractFields.keySet()) {
-                        fieldsNode.add(key);
-                    }
-                    fieldsObjectNode.set(ArchiveUnitProfileModel.FIELDS, fieldsNode);
-                    ObjectNode setFields = JsonHandler.createObjectNode();
-                    setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), fieldsObjectNode);
-                    ((ArrayNode) actionNode).add(setFields);
-                }
-            } catch (FileNotFoundException | InvalidParseOperationException | ProcessingException e) {
-                LOGGER.error(e);
-                error
-                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                        .setDescription("The archive unit profile name contains bad fields in its schema")
-                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
-            }
-        }
+// TODO à remplacer par le contenu de la story 5010
+//        if (schemaUpdate) {
+//            try {
+//                if (newSchema != null) {
+//                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
+//                    HashMap<String, ArrayNode> extractFields =
+//                        new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
+//                    //Get the extra properties (enum and date) for ontologyType comparison
+//                    HashMap<String, ArrayNode> extraProperties =
+//                        new SchemaValidationUtils().extractExtraPropertyFromSchema(newSchema);
+//                    if (checkOntology) {
+//                        extractFields.forEach((k, v) -> {
+//                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
+//                        });
+//                    }
+//                    ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
+//                    ArrayNode fieldsNode = JsonHandler.createArrayNode();
+//                    for (String key : extractFields.keySet()) {
+//                        fieldsNode.add(key);
+//                    }
+//                    fieldsObjectNode.set(ArchiveUnitProfileModel.FIELDS, fieldsNode);
+//                    ObjectNode setFields = JsonHandler.createObjectNode();
+//                    setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), fieldsObjectNode);
+//                    ((ArrayNode) actionNode).add(setFields);
+//                }
+//            } catch (FileNotFoundException | InvalidParseOperationException | ProcessingException e) {
+//                LOGGER.error(e);
+//                error
+//                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+//                        .setDescription("The archive unit profile name contains bad fields in its schema")
+//                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
+//            }
+//        }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
