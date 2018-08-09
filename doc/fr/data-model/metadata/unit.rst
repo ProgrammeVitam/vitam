@@ -117,7 +117,31 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
       "_glpd": "2018-07-09T12:50:30.733",
       "_v": 3,
       "_tenant": 3,
-      "Description": ""
+      "Description": "",
+      "_history": [
+       {
+         "ud": "2018-07-25T15:28:49.040",
+         "data": {
+           "_v": 0,
+           "_mgt": {
+             "ClassificationRule": {
+               "ClassificationAudience": "ClassificationAudience0",
+               "ClassificationLevel": "Secret Défense",
+               "ClassificationOwner": "ClassificationOwner0",
+               "ClassificationReassessingDate": "2016-06-03",
+               "NeedReassessingAuthorization": true,
+               "Rules": [
+                 {
+                   "Rule": "CLASS-00001",
+                   "StartDate": "2015-06-03",
+                   "EndDate": "2025-06-03"
+                 }
+               ]
+             }
+           }
+         }
+       }
+     ]
   }
 
 Détail du JSON
@@ -311,6 +335,82 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
   * Exemple de valeur : "1.7.0-SNAPSHOT"
+
+**"_history"** : données historiques de l'unité archivistique
+
+  * Champ peuplé par la solution logicielle Vitam au moment d'une mise à jour d'une unité archivistique, uniquement si la mise à jour déclenche une historisation
+  * Cardinalité : 0-1
+  * Ce champ contient les clés suivantes :
+
+    + **"ud"** : date du changement de la métadonnée
+    + **"data"** : les données qui sont historisées. Dans l'exemple ci dessous, on constate qu'au 25 juillet 2018, l'unité archivistique a historisé une règle de classification située dans le bloc management (_mgt) de son modèle.
+
+      - Le champ **data** contient de plus le champ **_v**  qui est la version de l'enregistrement de l'unité archivistique avant modification. Ce champ est repris du champ "_v" à la racine du modèle de données de l'unité archivistique
+
+
+.. code-block:: json
+
+  "_history": [
+   {
+     "ud": "2018-07-25T15:28:49.040",
+     "data": {
+       "_v": 0,
+       "_mgt": {
+         "ClassificationRule": {
+           "ClassificationAudience": "ClassificationAudience0",
+           "ClassificationLevel": "Secret Défense",
+           "ClassificationOwner": "ClassificationOwner0",
+           "ClassificationReassessingDate": "2016-06-03",
+           "NeedReassessingAuthorization": true,
+           "Rules": [
+             {
+               "Rule": "CLASS-00001",
+               "StartDate": "2015-06-03",
+               "EndDate": "2025-06-03"
+             }
+           ]
+         }
+       }
+     }
+   }
+  ]
+
+Le champ **_history** peut également être créé depuis les données contenues dans un bordereau de transfert :
+
+.. code-block:: xml
+
+  <History>
+                <UpdateDate>2018-08-02T14:06:23.374</UpdateDate>
+                <Data>
+                    <Version>0</Version>
+                    <Management>
+                        <ClassificationRule>
+                            <ClassificationLevel>Secret Défense</ClassificationLevel>
+                            <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+                        </ClassificationRule>
+                    </Management>
+                </Data>
+            </History>
+            <History>
+                <UpdateDate>2018-08-02T14:30:20.137</UpdateDate>
+                <Data>
+                    <Version>1</Version>
+                    <Management>
+                        <ClassificationRule>
+                            <ClassificationLevel>Confidentiel Défense</ClassificationLevel>
+                            <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+                        </ClassificationRule>
+                    </Management>
+                </Data>
+    </History>
+
+Le mapping est le suivant :
+
+    - La balise <History> du bordereau devient le tableau "_history" dans la base de données
+    - <Data> devient "data"
+    - <Version> devient "_v"
+    - <Management> devient "_mgt"
+
 
 **"_storage":** contient trois champs qui permettent d'identifier les offres  de stockage.
 

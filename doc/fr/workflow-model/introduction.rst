@@ -27,12 +27,24 @@ Pour chacun de ces éléments, le document décrit :
 - Les statuts de sortie possibles (OK, KO...), avec les raisons de ces sorties et les clés associées
 - Des informations complémentaires, selon le type d'élément traité
 
-Chaque étape, chaque action peuvent avoir les statuts suivants :
+Un "traitement" désigne ci-dessous une opération, une étape ou une tâche. Chaque traitement peut avoir à son issue un des statuts suivant :
 
-- OK : le traitement associé s'est passé correctement. Le workflow continue.
-- WARNING : le traitement associé a généré un avertissement (par exemple le format de l'objet est mal déclaré dans le bordereau de transfert). Le workflow continue.
-- KO : le traitement associé a généré une erreur métier. Le workflow s'arrête si le modèle d'exécution est bloquant (cf. ci-dessous).
-- FATAL : le traitement associé a généré une erreur technique. Le workflow se met en pause.
+- OK : le traitement s'est déroulé comme attendu et le système a été modifié en conséquence.
+
+- Warning : le traitement a atteint son objectif mais le système émet une réserve. Soit :
+
+* Le système suspecte une anomalie lors du déroulement du traitement sans pouvoir le confirmer lui même et lève une alerte à destination de l'utilisateur afin que celui ci puisse valider qu'il s'agit du comportement souhaité.
+Exemple : un SIP versé sans objets provoque une opération en warning car le fait de ne verser qu'une arborescence d'unité archivistiques sans aucun objet peut être suspecte (au sens métier).
+
+* Le système a effectué un traitement entraînant une modification de données initialement non prévue par l'utilisateur.
+Exemple : la solution logicielle Vitam a détecté un format de fichier en contradiction avec le format décrit dans le bordereau de transfert. Elle enregistre alors ses propres valeurs en base de données au lieu de prendre celles du bordereau et utilise le warning pour en avertir l'utilisateur.
+
+* Le système a effectué un traitement dont seule une partie a entraîné une modification de données. L'autre partie de ce traitement s'est terminée en échec sans modification (KO).
+Exemple : une modification de métadonnées en masse d'unité archivistique dont une partie de la modification est OK et une partie est KO : le statut de l'étape et de l'opération sera Warning.
+
+- KO : le traitement s'est terminé en échec et le système n'a pas été modifié en dehors des éléments de traçabilités tels que les journaux et les logs. L'intégralité du traitement pourrait être rejoué sans provoquer l'insertion de doublons.
+
+- Fatal : le traitement s'est terminé en échec a cause d'un problème technique. L'état du système dépend de la nature du traitement en fatal et une intervention humaine est requise pour expertiser et solutionner la situation. Lorsque le statut FATAL survient à l’intérieur d’une étape (par exemple dans une des tâches ou un des actions de l’étape), c’est toute l’étape qui est mise en pause. Si cette étape est rejouée, les objets déjà traités avant le fatal ne sont pas traités à nouveau : le workflow reprend exactement là où il s’était arrêté et commence par rejouer l’action sur l’objet qui a provoqué l’erreur.
 
 Un workflow peut être terminé, en cours d'exécution ou être en pause. Un workflow en pause représente le processus arrêté à une étape donnée. Chaque étape peut être mise en pause : ce choix dépend du mode de versement (le mode pas à pas marque une pause à chaque étape), ou du statut (le statut FATAL met l'étape en pause). Les workflows en pause sont visibles dans l'IHM dans l'écran "Gestion des opérations".
 
