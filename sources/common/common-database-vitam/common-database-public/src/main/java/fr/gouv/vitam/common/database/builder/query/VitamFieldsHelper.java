@@ -65,6 +65,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.HISTORY;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -324,6 +325,14 @@ public class VitamFieldsHelper {
     public static final String initialOperation() {
         return INITIAL_OPERATION.exactToken();
     }
+
+    /**
+     * @return #history
+     */
+    public static final String history() {
+        return HISTORY.exactToken();
+    }
+
 
     /**
      * @return #elimination

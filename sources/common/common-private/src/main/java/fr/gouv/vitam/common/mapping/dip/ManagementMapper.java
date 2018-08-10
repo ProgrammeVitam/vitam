@@ -24,31 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.common.mapping.dip;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 
+import javax.xml.datatype.DatatypeConfigurationException;
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+public class ManagementMapper {
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
+    private RuleMapper ruleMapper;
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    public ManagementMapper(RuleMapper ruleMapper) {
+        this.ruleMapper = ruleMapper;
+    }
 
+    public ManagementType map(ManagementModel managementModel) throws DatatypeConfigurationException {
+        ManagementType managementType = new ManagementType();
+
+        managementType.setNeedAuthorization(managementModel.isNeedAuthorization());
+        managementType.setAccessRule(ruleMapper.fillCommonRule(managementModel.getAccess(), AccessRuleType::new));
+        managementType.setAppraisalRule(ruleMapper.fillCommonRule(managementModel.getAppraisal(), AppraisalRuleType::new));
+        managementType.setClassificationRule(
+                ruleMapper.fillCommonRule(managementModel.getClassification(), ClassificationRuleType::new));
+        managementType.setDisseminationRule(
+                ruleMapper.fillCommonRule(managementModel.getDissemination(), DisseminationRuleType::new));
+        managementType.setReuseRule(ruleMapper.fillCommonRule(managementModel.getReuse(), ReuseRuleType::new));
+        managementType.setStorageRule(ruleMapper.fillCommonRule(managementModel.getStorage(), StorageRuleType::new));
+
+        return managementType;
+    }
 }

@@ -24,31 +24,26 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.metadata.core.trigger;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+public class HistoryTriggerConfig {
 
+    private String fieldPathTriggeredForHistory;
+    private String objectPathForHistory;
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+    public String getFieldPathTriggeredForHistory() {
+        return fieldPathTriggeredForHistory;
+    }
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
+    public void setFieldPathTriggeredForHistory(String fieldPathTriggeredForHistory) {
+        this.fieldPathTriggeredForHistory = fieldPathTriggeredForHistory;
+    }
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    public String getObjectPathForHistory() {
+        return objectPathForHistory;
+    }
 
+    public void setObjectPathForHistory(String objectPathForHistory) {
+        this.objectPathForHistory = objectPathForHistory;
+    }
 }

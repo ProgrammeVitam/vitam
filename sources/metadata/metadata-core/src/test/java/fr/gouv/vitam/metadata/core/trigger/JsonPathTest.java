@@ -24,31 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.metadata.core.trigger;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import org.junit.Assert;
+import org.junit.Test;
 
+import java.util.List;
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+public class JsonPathTest {
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
+    @Test
+    public void testGetTargetOfPathOneLevel() {
+        Assert.assertEquals("_mgt", JsonPath.getTargetOfPath("_mgt"));
+    }
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    @Test
+    public void testGetTargetOfPathTwoLevel() {
+        Assert.assertEquals("ClassificationRule", JsonPath.getTargetOfPath("_mgt.ClassificationRule"));
+    }
 
+    @Test
+    public void testGetPathOneLevel() {
+        Assert.assertTrue(JsonPath.getSplitPath("_mgt").isEmpty());
+    }
+
+    @Test
+    public void testGetPathTwoLevel() {
+        List<String> splitPath = JsonPath.getSplitPath("_mgt.ClassificationRule");
+        Assert.assertEquals(1, splitPath.size());
+        Assert.assertEquals("_mgt", splitPath.get(0));
+    }
+
+    @Test
+    public void testGetPathThreeLevel() {
+        List<String> splitPath = JsonPath.getSplitPath("_mgt.ClassificationRule.ClassificationLevel");
+        Assert.assertEquals(2, splitPath.size());
+        Assert.assertEquals("_mgt", splitPath.get(0));
+        Assert.assertEquals("ClassificationRule", splitPath.get(1));
+    }
 }

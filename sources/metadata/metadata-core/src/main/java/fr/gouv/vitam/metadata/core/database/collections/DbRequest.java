@@ -49,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -151,6 +153,8 @@ public class DbRequest {
     // TODO JE final
     private MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
 
+    private ChangesTrigger changesTrigger = null;
+
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
               MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
@@ -166,6 +170,15 @@ public class DbRequest {
         this(
             new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
+    }
+
+    /**
+     * Constructor
+     */
+    public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
+        this(   new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
+        this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
     }
 
     /**
@@ -867,6 +880,10 @@ public class DbRequest {
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
+
+                if (model == FILTERARGS.UNITS && changesTrigger != null) {
+                    changesTrigger.trigger(jsonDocument, updatedJsonDocument);
+                }
 
                 int newDocumentVersion = incrementDocumentVersionIfRequired(model, mongoInMemory, documentVersion);
                 updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);

@@ -28,10 +28,20 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 /**
  * Map the object DescriptiveMetadataModel generated from Unit data base model To a jaxb object
@@ -40,14 +50,20 @@ import java.util.Collections;
 public class DescriptiveMetadataMapper {
 
     private CustodialHistoryMapper custodialHistoryMapper = new CustodialHistoryMapper();
+    private ManagementMapper managementMapper = new ManagementMapper(new RuleMapper());
+
 
     /**
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
      *
+     *
      * @param metadataModel
+     * @param historyListModel
      * @return a descriptive Metadata Content Type
+     * @throws DatatypeConfigurationException
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel) {
+    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel, List<ArchiveUnitHistoryModel> historyListModel)
+            throws DatatypeConfigurationException {
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
@@ -154,7 +170,33 @@ public class DescriptiveMetadataMapper {
         dmc.getTransmitter().addAll(metadataModel.getTransmitter());
         dmc.getSender().addAll(metadataModel.getSender());
 
+
+        fillHistory(historyListModel, dmc.getHistory());
+
         return dmc;
+    }
+
+    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel, List<ManagementHistoryType> managementHistoryType)
+            throws DatatypeConfigurationException {
+
+        for (ArchiveUnitHistoryModel historyModel : archiveUnitHistoryModel) {
+
+            ManagementHistoryType historyType = new ManagementHistoryType();
+            historyType.setData(new ManagementHistoryDataType());
+            historyType.getData().setVersion(historyModel.getData().getVersion());
+            historyType.getData().setManagement(managementMapper.map(historyModel.getData().getManagement()));
+            historyType.setUpdateDate(stringToXMLGregorianCalendar(historyModel.getUpdateDate()).get());
+
+            managementHistoryType.add(historyType);
+        }
+    }
+
+    private Optional<XMLGregorianCalendar> stringToXMLGregorianCalendar(String date) throws DatatypeConfigurationException {
+        if (ParametersChecker.isNotEmpty(date)) {
+            return Optional.of(newInstance().newXMLGregorianCalendar(date));
+        } else {
+            return Optional.empty();
+        }
     }
 
 }

@@ -2620,6 +2620,17 @@
         ]
     },
     {
+        "Identifier": "ud",
+        "ApiField": "ud",
+        "Description": "Mapping : unit-es-mapping.json",
+        "Type": "DATE",
+        "Origin": "INTERNAL",
+        "ShortName": "Dernière modification",
+        "Collections": [
+            "_history"
+        ]
+    },
+    {
         "Identifier": "OperationId",
         "ApiField": "OperationId",
         "Description": "Mapping : unit-es-mapping.json. Identifiant de l'operation.",

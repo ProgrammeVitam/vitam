@@ -726,7 +726,11 @@ public abstract class BuilderToken {
         /**
          * Last persisted date (logbook operation & lifecycle documents)
          */
-        LAST_PERSISTED_DATE("lastPersistedDate");
+        LAST_PERSISTED_DATE("lastPersistedDate"),
+        /**
+         * history field
+         */
+        HISTORY("history"),;
 
         private final String exactToken;
 

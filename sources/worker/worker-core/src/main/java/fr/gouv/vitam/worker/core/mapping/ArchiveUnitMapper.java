@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeConfigurationException;
-
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
@@ -44,15 +37,24 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionStorageCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
+
+import javax.xml.bind.JAXBElement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * map archive unit to model
@@ -77,7 +79,7 @@ public class ArchiveUnitMapper {
      * @return ArchiveUnitRoot
      */
     public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
-        throws DatatypeConfigurationException, ProcessingMalformedDataException {
+        throws ProcessingMalformedDataException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
         ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -98,15 +100,9 @@ public class ArchiveUnitMapper {
 
         archiveUnit.setDataObjectReference(mapDataObjectReference(archiveUnitType));
 
-        if (archiveUnitType.getManagement() != null) {
-            archiveUnit.getManagement().setUpdateOperationType(archiveUnitType.getManagement().getUpdateOperation());
-            archiveUnit.getManagement().setNeedAuthorization(archiveUnitType.getManagement().isNeedAuthorization());
-            fillAccessRule(archiveUnitType, archiveUnit);
-            fillStorageRule(archiveUnitType, archiveUnit);
-            fillClassificationRule(archiveUnitType, archiveUnit);
-            fillAppraisalRule(archiveUnitType, archiveUnit);
-            fillDisseminationRule(archiveUnitType, archiveUnit);
-            fillReuseRule(archiveUnitType, archiveUnit);
+        fillManagement(archiveUnitType.getManagement(), archiveUnit.getManagement());
+        if (archiveUnitType.getContent() != null && archiveUnitType.getContent().getHistory() != null) {
+            fillHistory(archiveUnitType.getContent().getHistory(), archiveUnit.getHistory());
         }
         return archiveUnitRoot;
     }
@@ -130,19 +126,32 @@ public class ArchiveUnitMapper {
         return Iterables.getOnlyElement(objectReferences, null);
     }
 
-    private void fillAccessRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        AccessRuleType accessRule = archiveUnitType.getManagement().getAccessRule();
-        RuleCategoryModel accessRuleCategory = ruleMapper.fillCommonRule(accessRule);
-        if (archiveUnit.getManagement().getAccess() != null) {
-            archiveUnit.getManagement().getAccess().merge(accessRuleCategory);
-        } else {
-            archiveUnit.getManagement().setAccess(accessRuleCategory);
+    private void fillManagement(ManagementType managementType, ManagementModel managementModel) throws ProcessingMalformedDataException {
+        if (managementType != null) {
+            managementModel.setUpdateOperationType(managementType.getUpdateOperation());
+            managementModel.setNeedAuthorization(managementType.isNeedAuthorization());
+            fillAccessRule(managementType, managementModel);
+            fillStorageRule(managementType, managementModel);
+            fillClassificationRule(managementType, managementModel);
+            fillAppraisalRule(managementType, managementModel);
+            fillDisseminationRule(managementType, managementModel);
+            fillReuseRule(managementType, managementModel);
         }
     }
 
-    private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit)
+    private void fillAccessRule(ManagementType managementType, ManagementModel managementModel) {
+        AccessRuleType accessRule = managementType.getAccessRule();
+        RuleCategoryModel accessRuleCategory = ruleMapper.fillCommonRule(accessRule);
+        if (managementModel.getAccess() != null) {
+            managementModel.getAccess().merge(accessRuleCategory);
+        } else {
+            managementModel.setAccess(accessRuleCategory);
+        }
+    }
+
+    private void fillStorageRule(ManagementType managementType, ManagementModel managementModel)
         throws ProcessingMalformedDataException {
-        StorageRuleType storageRule = archiveUnitType.getManagement().getStorageRule();
+        StorageRuleType storageRule = managementType.getStorageRule();
         RuleCategoryModel storageRuleCategory = ruleMapper.fillCommonRule(storageRule);
         if (storageRule != null && storageRule.getFinalAction() != null && storageRuleCategory == null) {
             // that means we only have FinalAction set in the rule
@@ -153,10 +162,10 @@ public class ArchiveUnitMapper {
             storageRuleCategory.getRules().addAll(rules);
         }
 
-        if (archiveUnit.getManagement().getStorage() != null) {
-            archiveUnit.getManagement().getStorage().merge(storageRuleCategory);
+        if (managementModel.getStorage() != null) {
+            managementModel.getStorage().merge(storageRuleCategory);
         } else {
-            archiveUnit.getManagement().setStorage(storageRuleCategory);
+            managementModel.setStorage(storageRuleCategory);
         }
 
         if (storageRuleCategory != null && storageRule != null) {
@@ -169,8 +178,8 @@ public class ArchiveUnitMapper {
         }
     }
 
-    private void fillClassificationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
+    private void fillClassificationRule(ManagementType managementType, ManagementModel managementModel) {
+        ClassificationRuleType classificationRule = managementType.getClassificationRule();
         RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
 
         if (classificationRule != null) {
@@ -202,37 +211,37 @@ public class ArchiveUnitMapper {
 
         }
 
-        if (archiveUnit.getManagement().getClassification() != null) {
-            archiveUnit.getManagement().getClassification().merge(classificationRuleCategory);
+        if (managementModel.getClassification() != null) {
+            managementModel.getClassification().merge(classificationRuleCategory);
         } else {
-            archiveUnit.getManagement().setClassification(classificationRuleCategory);
+            managementModel.setClassification(classificationRuleCategory);
         }
 
     }
 
-    private void fillReuseRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        ReuseRuleType reuseRule = archiveUnitType.getManagement().getReuseRule();
+    private void fillReuseRule(ManagementType managementType, ManagementModel managementModel) {
+        ReuseRuleType reuseRule = managementType.getReuseRule();
         RuleCategoryModel reuseRuleCategory = ruleMapper.fillCommonRule(reuseRule);
-        if (archiveUnit.getManagement().getReuse() != null) {
-            archiveUnit.getManagement().getReuse().merge(reuseRuleCategory);
+        if (managementModel.getReuse() != null) {
+            managementModel.getReuse().merge(reuseRuleCategory);
         } else {
-            archiveUnit.getManagement().setReuse(reuseRuleCategory);
+            managementModel.setReuse(reuseRuleCategory);
         }
     }
 
-    private void fillDisseminationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
-        DisseminationRuleType disseminationRule = archiveUnitType.getManagement().getDisseminationRule();
+    private void fillDisseminationRule(ManagementType managementType, ManagementModel managementModel) {
+        DisseminationRuleType disseminationRule = managementType.getDisseminationRule();
         RuleCategoryModel disseminationRuleCategory = ruleMapper.fillCommonRule(disseminationRule);
-        if (archiveUnit.getManagement().getDissemination() != null) {
-            archiveUnit.getManagement().getDissemination().merge(disseminationRuleCategory);
+        if (managementModel.getDissemination() != null) {
+            managementModel.getDissemination().merge(disseminationRuleCategory);
         } else {
-            archiveUnit.getManagement().setDissemination(disseminationRuleCategory);
+            managementModel.setDissemination(disseminationRuleCategory);
         }
     }
 
-    private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit)
+    private void fillAppraisalRule(ManagementType managementType, ManagementModel managementModel)
         throws ProcessingMalformedDataException {
-        AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
+        AppraisalRuleType appraisalRule = managementType.getAppraisalRule();
         RuleCategoryModel appraisalRuleCategory = ruleMapper.fillCommonRule(appraisalRule);
 
         if (appraisalRule != null && appraisalRule.getFinalAction() != null && appraisalRuleCategory == null) {
@@ -240,10 +249,10 @@ public class ArchiveUnitMapper {
             appraisalRuleCategory = new RuleCategoryModel();
         }
 
-        if (archiveUnit.getManagement().getAppraisal() != null) {
-            archiveUnit.getManagement().getAppraisal().merge(appraisalRuleCategory);
+        if (managementModel.getAppraisal() != null) {
+            managementModel.getAppraisal().merge(appraisalRuleCategory);
         } else {
-            archiveUnit.getManagement().setAppraisal(appraisalRuleCategory);
+            managementModel.setAppraisal(appraisalRuleCategory);
         }
         if (appraisalRuleCategory != null && appraisalRule != null) {
             FinalActionAppraisalCodeType afa = appraisalRule.getFinalAction();
@@ -255,5 +264,21 @@ public class ArchiveUnitMapper {
         }
     }
 
+    private void fillHistory(List<ManagementHistoryType> managementHistoryType, List<ArchiveUnitHistoryModel> archiveUnitHistoryModel)
+            throws ProcessingMalformedDataException {
+        if (managementHistoryType == null) {
+            return;
+        }
+
+        for (ManagementHistoryType historyType : managementHistoryType) {
+
+            ArchiveUnitHistoryModel historyModel = new ArchiveUnitHistoryModel();
+            historyModel.setUpdateDate(historyType.getUpdateDate().toString());
+            historyModel.getData().setVersion(historyType.getData().getVersion());
+            fillManagement(historyType.getData().getManagement(), historyModel.getData().getManagement());
+
+            archiveUnitHistoryModel.add(historyModel);
+        }
+    }
 
 }

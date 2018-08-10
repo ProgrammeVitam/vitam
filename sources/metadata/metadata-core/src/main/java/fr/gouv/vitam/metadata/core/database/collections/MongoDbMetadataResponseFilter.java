@@ -156,6 +156,9 @@ public class MongoDbMetadataResponseFilter {
                 case PARENT_ORIGINATING_AGENCIES:
                     remove(document, Unit.PARENT_ORIGINATING_AGENCIES);
                     break;
+                case HISTORY:
+                    replace(document, Unit.HISTORY, VitamFieldsHelper.history());
+                    break;
                 case ELIMINATION:
                     replace(document, Unit.ELIMINATION, PROJECTIONARGS.ELIMINATION.exactToken());
                     break;

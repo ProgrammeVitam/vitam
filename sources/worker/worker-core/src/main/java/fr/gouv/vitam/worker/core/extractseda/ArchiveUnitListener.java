@@ -312,7 +312,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ArchiveUnitRoot archiveUnitRoot;
             try {
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
-            } catch (DatatypeConfigurationException | ProcessingMalformedDataException e) {
+            } catch (ProcessingMalformedDataException e) {
                 throw new RuntimeException(e);
             }
 
