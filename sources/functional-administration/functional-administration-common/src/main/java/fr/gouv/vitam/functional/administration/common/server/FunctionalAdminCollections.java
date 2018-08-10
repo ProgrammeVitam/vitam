@@ -72,6 +72,11 @@ public enum FunctionalAdminCollections {
     ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class, true, false),
 
     /**
+     * Accession Register Symbolic Collection
+     */
+    ACCESSION_REGISTER_SYMBOLIC(AccessionRegisterSymbolic.class, true, false),
+
+    /**
      * Ingest contract collection
      */
     INGEST_CONTRACT(IngestContract.class, true, true),
@@ -246,7 +251,7 @@ public enum FunctionalAdminCollections {
         return null;
     }
 
-    
+
     /**
      * Check if the collection is multi tenant or not
      * @param collectionName
@@ -260,5 +265,5 @@ public enum FunctionalAdminCollections {
         }
         return false;
     }
-    
+
 }

@@ -21,7 +21,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   tags:
-    - update_vitam_configuration  
+    - update_vitam_configuration
 
 # Primary site block
 - block:
@@ -62,3 +62,11 @@
       when: inventory_hostname == groups["hosts-functional-administration"] | last
 
   when: primary_site | lower == "false"
+
+- name: Ensure vitam-create-accession-register-symbolic timer is started
+  systemd:
+    name: "vitam-create-accession-register-symbolic.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  when: inventory_hostname == groups["hosts-functional-administration"] | last

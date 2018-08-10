@@ -239,7 +239,20 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
-    
+
+    /**
+     * Create a Accession register summary GUID
+     *
+     * @param tenantId tenant id between 0 and 2^30-1
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newAccessionRegisterSymbolicGUID(final int tenantId) {
+        final int type = GUIDObjectType.ACCESSION_REGISTER_SUMMARY_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
     /**
      * Create a contract GUID
      *
@@ -314,7 +327,7 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
-    
+
     /**
      *
      * @param uuid

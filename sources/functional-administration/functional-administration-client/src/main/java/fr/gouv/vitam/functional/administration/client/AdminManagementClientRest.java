@@ -72,17 +72,21 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 /**
  * AdminManagement client
@@ -143,8 +147,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         Status status = null;
         try {
-            response = performRequest(HttpMethod.POST, FORMAT_CHECK_URL, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, FORMAT_CHECK_URL, null,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -174,8 +178,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
-            response = performRequest(HttpMethod.POST, FORMAT_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, FORMAT_IMPORT_URL, headers,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -206,8 +210,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, FORMAT_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, FORMAT_URL + "/" + id, null,
+                APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -236,8 +240,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, FORMAT_GET_DOCUMENT_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(POST, FORMAT_GET_DOCUMENT_URL, null,
+                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -265,7 +269,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, RULESMANAGER_CHECK_URL, null,
+            response = performRequest(POST, RULESMANAGER_CHECK_URL, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
             return response;
@@ -281,7 +285,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, AGENCIESMANAGER_CHECK_URL, null,
+            response = performRequest(POST, AGENCIESMANAGER_CHECK_URL, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
             return response;
@@ -299,8 +303,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
-            response = performRequest(HttpMethod.POST, RULESMANAGER_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, RULESMANAGER_IMPORT_URL, headers,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -344,8 +348,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
-            response = performRequest(HttpMethod.POST, AGENCIESMANAGER_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, AGENCIESMANAGER_IMPORT_URL, headers,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -379,8 +383,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, AGENCIES_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(GET, AGENCIES_URL, null,
+                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -415,8 +419,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(AgenciesModel.TAG_IDENTIFIER, id));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
-            response = performRequest(HttpMethod.GET, AGENCIES_URL, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(GET, AGENCIES_URL, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
@@ -451,8 +455,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, RULESMANAGER_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, RULESMANAGER_URL + "/" + id, null,
+                APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -481,8 +485,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, RULESMANAGER_GET_DOCUMENT_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(POST, RULESMANAGER_GET_DOCUMENT_URL, null,
+                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -509,9 +513,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_CREATE_URI, null,
-                register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
-                false);
+            response = performRequest(POST, ACCESSION_REGISTER_CREATE_URI, null,
+                register, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case CREATED:
@@ -545,8 +548,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("accessionRegisterDetail is a mandatory parameter", accessionRegisterDetail);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
-                null, accessionRegisterDetail, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
+                null, accessionRegisterDetail, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case CREATED:
@@ -577,8 +580,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null, query,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null, query,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -620,8 +623,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId,
-                null, query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId,
+                null, query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -655,8 +658,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             Map<String, String> filter = new HashMap<>();
             filter.put("OperationIds", operationId);
             filter.put("OriginatingAgency", originatingAgency);
-            response = performRequest(HttpMethod.GET, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
-                null, filter, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
+                null, filter, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
@@ -677,8 +680,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, INGEST_CONTRACTS_URI, null,
-                ingestContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, INGEST_CONTRACTS_URI, null,
+                ingestContractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
 
@@ -698,8 +701,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, ACCESS_CONTRACTS_URI, null,
-                accessContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, ACCESS_CONTRACTS_URI, null,
+                accessContractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
             return status;
@@ -719,8 +722,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ACCESS_CONTRACTS_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -753,8 +756,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-            response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ACCESS_CONTRACTS_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -788,8 +791,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, INGEST_CONTRACTS_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, INGEST_CONTRACTS_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -820,8 +823,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             parser.addCondition(QueryHelper.eq(IngestContract.IDENTIFIER, documentId));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-            response = performRequest(HttpMethod.GET, INGEST_CONTRACTS_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, INGEST_CONTRACTS_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -855,8 +858,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, PROFILE_URI, null,
-                profileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, PROFILE_URI, null,
+                profileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             return RequestResponse.parseFromResponse(response);
 
@@ -878,7 +881,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try {
             response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
 
         } catch (final VitamClientInternalException e) {
@@ -897,7 +900,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         Status status = null;
         try {
-            response = performRequest(HttpMethod.GET, PROFILE_URI + "/" + profileMetadataId, null, null,
+            response = performRequest(GET, PROFILE_URI + "/" + profileMetadataId, null, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -928,8 +931,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, PROFILE_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, PROFILE_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -961,8 +964,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-            response = performRequest(HttpMethod.GET, PROFILE_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, PROFILE_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -997,7 +1000,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_PROFIL_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1023,8 +1026,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, ARCHIVE_UNIT_PROFILE_URI, null,
-                profileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, ARCHIVE_UNIT_PROFILE_URI, null,
+                profileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             return RequestResponse.parseFromResponse(response);
 
@@ -1042,8 +1045,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1075,8 +1078,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-            response = performRequest(HttpMethod.GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1111,7 +1114,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_ARCHIVE_UNIT_PROFILE_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1137,7 +1140,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1161,7 +1164,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1185,8 +1188,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, CONTEXT_URI, null,
-                ContextModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, CONTEXT_URI, null,
+                ContextModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
 
@@ -1212,7 +1215,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
 
             if (status == Status.OK) {
@@ -1236,8 +1239,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, CONTEXT_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, CONTEXT_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1269,8 +1272,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-            response = performRequest(HttpMethod.GET, CONTEXT_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, CONTEXT_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1337,8 +1340,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private RequestResponse<JsonNode> getJsonNodeRequestResponse(JsonNode options, Response response, String auditUri)
         throws AdminManagementClientServerException {
         try {
-            response = performRequest(HttpMethod.POST, auditUri, null, options,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, auditUri, null, options,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
 
@@ -1355,8 +1358,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         RequestResponse result = null;
         try {
-            response = performRequest(HttpMethod.POST, AUDIT_RULE_URI, null, null,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, AUDIT_RULE_URI, null, null,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -1375,8 +1378,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.POST, SECURITY_PROFILES_URI, null,
-                securityProfileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, SECURITY_PROFILES_URI, null,
+                securityProfileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
 
@@ -1395,8 +1398,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, SECURITY_PROFILES_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, SECURITY_PROFILES_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1421,8 +1424,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            response = performRequest(HttpMethod.GET, SECURITY_PROFILES_URI + "/" + identifier, null, null,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, SECURITY_PROFILES_URI + "/" + identifier, null, null,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1453,7 +1456,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, SECURITY_PROFILES_URI + "/" + identifier, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1477,8 +1480,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         RequestResponse result = null;
         try {
-            response = performRequest(HttpMethod.POST, REINDEX_URI, null, options,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, REINDEX_URI, null, options,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response, IndexationResult.class);
 
@@ -1497,8 +1500,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         RequestResponse result = null;
         try {
-            response = performRequest(HttpMethod.POST, ALIASES_URI, null, options,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, ALIASES_URI, null, options,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response, IndexationResult.class);
 
@@ -1523,8 +1526,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws AdminManagementClientServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, RECTIFICATION_AUDIT, null, operationId,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, RECTIFICATION_AUDIT, null, operationId,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
 
@@ -1537,12 +1540,13 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, PROBATIVE_VALUE_URI, null, probativeValueRequest,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, RECTIFICATION_AUDIT, null, probativeValueRequest,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
 
@@ -1554,8 +1558,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-
-    @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
+    @Override
+    public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The ontology json is mandatory", ontologyModelList);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -1563,8 +1567,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ONTOLOGY_URI, headers,
-                ontologyModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(POST, ONTOLOGY_URI, headers,
+                ontologyModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
                 false);
             return RequestResponse.parseFromResponse(response);
 
@@ -1576,13 +1580,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query)
+    @Override
+    public RequestResponse<OntologyModel> findOntologies(JsonNode query)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, ONTOLOGY_URI, null, query,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ONTOLOGY_URI, null, query,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1600,7 +1605,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologyByID(String documentId)
+    @Override
+    public RequestResponse<OntologyModel> findOntologyByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
         Response response = null;
@@ -1612,8 +1618,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             parser.addCondition(QueryHelper.eq(Ontology.IDENTIFIER, documentId));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-            response = performRequest(HttpMethod.GET, ONTOLOGY_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(GET, ONTOLOGY_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -1660,7 +1666,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws AdminManagementClientServerException {
+    public RequestResponse<ProcessPause> removeForcePause(ProcessPause info)
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
         Response response = null;
         try {
@@ -1670,6 +1677,41 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
         } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant)
+        throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
+        Response response = null;
+        try {
+            response = performRequest(POST, "accession-register/symbolic", null, null, null, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<List<AccessionRegisterSymbolic>> getAccessionRegisterSymbolic(Integer tenant,
+        JsonNode queryDsl)
+        throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
+        ParametersChecker.checkParameter("QueryDsl is mandatory.", tenant);
+        Response response = null;
+        try {
+            response = performRequest(POST, "accession-register/symbolic", null, queryDsl, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

@@ -65,6 +65,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -599,5 +600,16 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse removeForcePause(ProcessPause info) {
         return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant) {
+        throw new RuntimeException("Cannot be used");
+    }
+
+    @Override
+    public RequestResponse<List<AccessionRegisterSymbolic>> getAccessionRegisterSymbolic(Integer tenant,
+        JsonNode queryDsl) throws AdminManagementClientServerException {
+        throw new RuntimeException("Cannot be used");
     }
 }

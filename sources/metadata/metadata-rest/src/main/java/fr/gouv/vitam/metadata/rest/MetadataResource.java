@@ -26,19 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -60,6 +47,8 @@ import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -68,6 +57,22 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import org.elasticsearch.ElasticsearchParseException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * Units resource REST API
@@ -107,8 +112,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("units")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response insertUnit(JsonNode insertRequest) {
         Status status;
         try {
@@ -180,8 +185,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("units/bulk")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response insertUnitBulk(List<JsonNode> jsonNodes) {
         Status status;
         try {
@@ -258,8 +263,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("units/updatebulk")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response updateUnitBulk(JsonNode updateQuery) {
         Status status;
         RequestResponse<JsonNode> result;
@@ -278,9 +283,9 @@ public class MetadataResource extends ApplicationStatusResource {
         }
         RequestResponseOK responseOK = new RequestResponseOK(updateQuery);
         responseOK.setHits(1, 0, 1)
-            .setHttpCode(Status.OK.getStatusCode());
+            .setHttpCode(OK.getStatusCode());
 
-        return Response.status(Status.OK)
+        return Response.status(OK)
             .entity(result)
             .build();
     }
@@ -293,8 +298,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("units")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response selectUnit(JsonNode request) throws VitamDBException {
         return selectUnitsByQuery(request);
     }
@@ -369,14 +374,14 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("units")
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response flushUnit() {
         try {
             metaData.flushUnit();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
-            response.setHttpCode(Status.OK.getStatusCode());
-            return Response.status(Status.OK).entity(response).build();
+            response.setHttpCode(OK.getStatusCode());
+            return Response.status(OK).entity(response).build();
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             Status status = Status.PRECONDITION_FAILED;
             LOGGER.error(e);
@@ -398,8 +403,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("objectgroups")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response selectObjectgroups(JsonNode request) {
         return selectObjectgroupsByQuery(request);
     }
@@ -474,14 +479,14 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("objectgroups")
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response flushObjectGroup() {
         try {
             metaData.flushObjectGroup();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
-            response.setHttpCode(Status.OK.getStatusCode());
-            return Response.status(Status.OK).entity(response).build();
+            response.setHttpCode(OK.getStatusCode());
+            return Response.status(OK).entity(response).build();
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             Status status = Status.PRECONDITION_FAILED;
             LOGGER.error(e);
@@ -497,13 +502,13 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId        the unit id to get
+     * @param unitId the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response getUnitById(JsonNode selectRequest, @PathParam("id_unit") String unitId) {
         return selectUnitById(selectRequest, unitId);
     }
@@ -512,13 +517,13 @@ public class MetadataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId        the id of unit to be update
+     * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response updateUnitbyId(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         try {
@@ -668,8 +673,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("objectgroups")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response insertObjectGroup(JsonNode insertRequest) {
         Status status;
         try {
@@ -732,8 +737,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("objectgroups/{id_og}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response getObjectGroupById(JsonNode selectRequest, @PathParam("id_og") String objectGroupId) {
         Status status;
         try {
@@ -761,8 +766,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("objectgroups/{id_og}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response updateObjectGroupById(JsonNode updateRequest, @PathParam("id_og") String objectGroupId) {
         Status status;
         try {
@@ -841,8 +846,8 @@ public class MetadataResource extends ApplicationStatusResource {
                         .setDescription(ve.getMessage()))
                     .build();
             }
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result.setHttpCode(Status.OK.getStatusCode())).build();
+            int st = result.isOk() ? OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result.setHttpCode(OK.getStatusCode())).build();
 
         } catch (final InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(e);
@@ -880,7 +885,7 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     @Path("accession-registers/units/{operationId}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
 
@@ -898,8 +903,32 @@ public class MetadataResource extends ApplicationStatusResource {
         }
     }
 
+    @POST
+    @Path("accession-registers/symbolic")
+    @Produces(APPLICATION_JSON)
+    public Response createAccessionRegisterSymbolic() {
+        try {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            List<AccessionRegisterSymbolic> accessionRegisterSymbolic =
+                metaData.createAccessionRegisterSymbolic(tenantId)
+                    .stream()
+                    .map(AccessionRegisterSymbolic::new)
+                    .collect(Collectors.toList());
+
+            return new RequestResponseOK<AccessionRegisterSymbolic>()
+                .addAllResults(accessionRegisterSymbolic)
+                .setHttpCode(OK.getStatusCode())
+                .toResponse();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return new VitamError(String.valueOf(INTERNAL_SERVER_ERROR.getStatusCode()))
+                .setMessage(e.getMessage())
+                .toResponse();
+        }
+    }
+
     @Path("accession-registers/objects/{operationId}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
         List<ObjectGroupPerOriginatingAgency> documents =
@@ -920,8 +949,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("/reindex")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response reindex(IndexParameters indexParameters) {
         try {
             ParametersChecker.checkParameter("Parameters are mandatory", indexParameters);
@@ -966,8 +995,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("/alias")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response changeIndexes(SwitchIndexParameters switchIndexParameters) {
         try {
             ParametersChecker.checkParameter("parameter is mandatory", switchIndexParameters);
@@ -986,7 +1015,7 @@ public class MetadataResource extends ApplicationStatusResource {
         }
         try {
             metaData.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+            return Response.status(OK).entity(new RequestResponseOK().setHttpCode(OK.getStatusCode()))
                 .build();
         } catch (DatabaseException exc) {
             Status status = Status.INTERNAL_SERVER_ERROR;
@@ -1004,8 +1033,8 @@ public class MetadataResource extends ApplicationStatusResource {
      */
     @Path("unitsWithInheritedRules")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response selectUnitsWithInheritedRules(JsonNode selectRequest) {
 
         Status status;

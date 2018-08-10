@@ -48,7 +48,7 @@ public class ElasticsearchFacetResultHelper {
 
     /**
      * Transform an es Aggregation result to a FacetResult object
-     * 
+     *
      * @param aggregation es aggregation result
      * @return FacetResult
      */
@@ -74,7 +74,7 @@ public class ElasticsearchFacetResultHelper {
 
     /**
      * Transform es filters aggregation buckets to FacetBucket
-     * 
+     *
      * @param aggregation es aggregation
      * @return list of FacetBucket
      */
@@ -88,7 +88,7 @@ public class ElasticsearchFacetResultHelper {
 
     /**
      * Transform es terms aggregation buckets to FacetBucket
-     * 
+     *
      * @param aggregation es aggregation
      * @return list of FacetBucket
      */

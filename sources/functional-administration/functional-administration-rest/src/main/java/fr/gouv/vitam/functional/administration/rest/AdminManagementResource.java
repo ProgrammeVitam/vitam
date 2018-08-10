@@ -26,34 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -110,6 +84,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportI
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -129,12 +104,47 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -221,8 +231,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("format/check")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
     public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         try (ReferentialFormatFileImpl formatManagement =
@@ -234,7 +244,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } finally {
             StreamUtils.closeSilently(xmlPronom);
         }
@@ -244,14 +254,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
-     * @param headers   http headers
+     * @param headers http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
     @Path("format/import")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
     public Response importFormat(@Context HttpHeaders headers, InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
@@ -270,7 +280,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(status)
                 .build();
@@ -289,7 +299,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @GET
     @Path("format/{id_format:.+}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findFileFormatByID(@PathParam("id_format") String formatId, @Context Request request) {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
@@ -325,7 +335,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
     }
@@ -338,8 +348,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("format/document")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findFormats(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileFormat> fileFormatList;
@@ -358,7 +368,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
     }
@@ -371,8 +381,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("rules/check")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_OCTET_STREAM)
     public Response checkRulesFile(InputStream rulesStream) {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         return downloadErrorReport(rulesStream);
@@ -408,7 +418,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.OK,
                     null);
             Map<String, String> headers = new HashMap<>();
-            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
                 Status.OK, headers);
@@ -435,7 +445,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
                 null);
         Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+        headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
         headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
         return new VitamAsyncInputStreamResponse(errorReportInputStream,
             Status.BAD_REQUEST, headers);
@@ -444,14 +454,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the rules file
      *
-     * @param headers     http headers
+     * @param headers http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
      */
     @Path("rules/import")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
     public Response importRulesFile(@Context HttpHeaders headers, InputStream rulesStream) {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
@@ -473,7 +483,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status.getReasonPhrase()).build();
         } finally {
             StreamUtils.closeSilently(rulesStream);
@@ -484,13 +494,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID : find the rules details based on a given Id
      *
-     * @param ruleId  path param as String
+     * @param ruleId path param as String
      * @param request the request
      * @return Response jersey response
      */
     @GET
     @Path("rules/{id_rule}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findRuleByID(@PathParam("id_rule") String ruleId, @Context Request request) {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         FileRules fileRules;
@@ -527,7 +537,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(e.getMessage()).build();
         }
     }
@@ -540,8 +550,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("rules/document")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findDocumentRules(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
@@ -562,7 +572,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
     }
@@ -575,8 +585,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("accession-register")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response createAccessionRegister(AccessionRegisterDetailModel accessionRegister) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("register ID / Originating Agency: " + accessionRegister.getId() + " / " +
@@ -602,7 +612,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
     }
@@ -615,8 +625,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path("accession-register/document")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findDocumentFundsRegister(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
@@ -635,7 +645,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
 
@@ -681,13 +691,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      * @param documentId
-     * @param select     as String the query to find the accession register
+     * @param select as String the query to find the accession register
      * @return Response jersey Response
      */
     @Path("accession-register/detail/{id}")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
@@ -729,7 +739,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
 
@@ -740,8 +750,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     @Path(AUDIT_RULE_URI)
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
         RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
@@ -750,7 +760,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 rulesManagerFileImpl.getRuleFromOffer(tenant), tenant);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
         return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
@@ -765,8 +775,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @Path(AUDIT_URI)
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     public Response launchAudit(JsonNode options) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
         try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
@@ -830,8 +840,58 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } catch (Exception exp) {
             LOGGER.error(exp);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exp.getLocalizedMessage())).build();
+        }
+    }
+
+    @POST
+    @Path("accession-register/symbolic")
+    @Produces(APPLICATION_JSON)
+    public Response createAccessionRegisterSymbolic() {
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
+            new ReferentialAccessionRegisterSummaryUtil())) {
+
+            MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
+            ArrayNode accessionRegisterSymbolic = (ArrayNode) client.createAccessionRegisterSymbolic()
+                .get("$results");
+
+            List<AccessionRegisterSymbolic> accessionRegisterSymbolicsToInsert =
+                StreamSupport.stream(accessionRegisterSymbolic.spliterator(), false)
+                    .map(AccessionRegisterSymbolic::new)
+                    .collect(Collectors.toList());
+
+            if (accessionRegisterSymbolicsToInsert.isEmpty()) {
+                return Response.status(NO_CONTENT).build();
+            }
+
+            service.insertAccessionRegisterSymbolic(accessionRegisterSymbolicsToInsert);
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("accession-register/symbolic")
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response getAccessionRegisterSymbolic(JsonNode queryDsl) {
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
+            new ReferentialAccessionRegisterSummaryUtil())) {
+            List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
+            return Response.status(OK)
+                .entity(accessionRegisterSymbolic)
+                .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build();
         }
     }
 
@@ -861,7 +921,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Remove the pause for the processes specified by ProcessPause info
      *
@@ -887,9 +946,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
-
-
-
 
     private AccessContractModel getContractDetails(String contractId) throws InvalidCreateOperationException {
 
