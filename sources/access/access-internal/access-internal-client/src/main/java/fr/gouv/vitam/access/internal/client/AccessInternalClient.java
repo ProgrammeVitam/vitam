@@ -298,4 +298,17 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+
+    /**
+     * Get Zipped AccessLog files as Stream
+     *
+     * @return a response containing zipped accessLog files as Stream
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested object does not exist
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessUnauthorizedException
+     */
+    Response downloadAccessLogFile(JsonNode params)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException;
 }

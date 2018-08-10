@@ -815,4 +815,47 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     .build();
         }
     }
+
+    @Path("/storageaccesslog")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "storageaccesslog:read:binary", description = "Télécharger les journaux d'accès")
+    public Response getAccessLog(JsonNode params) {
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            final Response response = client.downloadAccessLogFile(params);
+            Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
+            return new VitamAsyncInputStreamResponse(response,
+                Status.OK, headers);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Request unauthorized ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error(REQ_RES_DOES_NOT_EXIST, e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
 }

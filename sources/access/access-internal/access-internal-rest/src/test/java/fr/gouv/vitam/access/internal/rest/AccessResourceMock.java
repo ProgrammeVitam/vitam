@@ -172,6 +172,10 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
+    @Override public Response getAccessLogStreamAsync(HttpHeaders headers, JsonNode params) {
+        return Response.status(200).entity("{\"accessLog\":\"OK_AccessLog\"}").build();
+    }
+
     /**
      * Mass update of archive units with Json query
      *

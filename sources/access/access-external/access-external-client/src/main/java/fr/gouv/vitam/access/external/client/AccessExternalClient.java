@@ -200,7 +200,6 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
         throws VitamClientException;
 
-
     /**
      * Mass update of archive units.
      *
@@ -233,6 +232,14 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse<JsonNode> selectUnitsWithInheritedRules(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException;
+
+    /**
+     * Get AccessLog file matching the given params
+     * @param vitamContext the vitam context
+     * @param params Could contains StartDate and EndDate information for file filter
+     * @return accesslog file
+     * @throws VitamClientException
+     */
+    Response getAccessLog(VitamContext vitamContext, JsonNode params)
+        throws VitamClientException;
 }
-
-

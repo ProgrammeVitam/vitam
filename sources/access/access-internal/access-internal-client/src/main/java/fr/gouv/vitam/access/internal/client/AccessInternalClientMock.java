@@ -189,6 +189,18 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
+    public Response downloadAccessLogFile(JsonNode params) throws AccessInternalClientServerException {
+        //TODO make accesslog.log + InputStream resourceAsStream = getClass().getResourceAsStream("/accesslog.log")
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
     public RequestResponse<JsonNode> exportDIP(JsonNode queryJson) {
         return new RequestResponseOK<>();
     }

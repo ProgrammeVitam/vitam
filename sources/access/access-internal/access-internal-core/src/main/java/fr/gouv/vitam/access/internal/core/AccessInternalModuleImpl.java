@@ -462,6 +462,98 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
+    public Response getAccessLog(Date startDate, Date endDate) throws AccessInternalExecutionException, StorageNotFoundException {
+
+        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+        WorkspaceClient workspaceClient = workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
+        String containerName = DataCategory.STORAGEACCESSLOG.getCollectionName() + "_" + VitamThreadUtils.getVitamSession().getRequestId();
+
+        String outFileName = "accessLog";
+        if (startDate != null) {
+            outFileName += "_" + LocalDateUtil.getFormattedSimpleDate(startDate);
+        }
+        if (endDate != null) {
+            outFileName += "-" + LocalDateUtil.getFormattedSimpleDate(endDate);
+        }
+        outFileName += ".zip";
+
+        Response response = null;
+
+        try {
+            // Get Files in accessLog
+            VitamRequestIterator<JsonNode> filesInfo = storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
+            if (filesInfo.hasNext()) {
+                workspaceClient.createContainer(containerName);
+            }
+            List<String> fileNames = new ArrayList<>();
+
+            // Check matching files that would be exported and put them on workspace
+            while (filesInfo.hasNext()) {
+                String fileName = filesInfo.next().get("objectId").asText();
+                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate)) continue;
+
+                Response fileResponse = getAccessLogFile(fileName);
+
+                InputStream stream = (InputStream) fileResponse.getEntity();
+                workspaceClient.putObject(containerName, fileName, stream);
+                fileNames.add(fileName);
+            }
+
+            // Zip all matching files in workspace and return zipFile
+            zipWorkspace(workspaceClient, outFileName, containerName, fileNames);
+            Response response2 = workspaceClient.getObject(containerName, outFileName);
+            StreamingOutput so = new WorkspaceAutoCleanableStreamingOutput((InputStream)response2.getEntity(), workspaceClient, containerName);
+            return Response.ok(so).build();
+        } catch (final StorageServerClientException | ContentAddressableStorageException e) {
+            // TODO: Handle Exception
+            throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
+            storageClient.consumeAnyEntityAndClose(response);
+        }
+    }
+
+    private void zipWorkspace(WorkspaceClient workspaceClient, String outputFile, String containerName, List<String> inputFiles)
+        throws ContentAddressableStorageException {
+
+        LOGGER.debug("Try to push stream to workspace...");
+
+        // call workspace
+        if (workspaceClient.isExistingContainer(containerName)) {
+            CompressInformation compressInformation = new CompressInformation();
+            compressInformation.setFiles(inputFiles);
+            compressInformation.setOutputFile(outputFile);
+            workspaceClient.compress(containerName, compressInformation);
+        } else {
+            LOGGER.error(containerName + " does not exist");
+            throw new ContentAddressableStorageAlreadyExistException(containerName + " does not exist");
+        }
+
+    }
+
+    private Response getAccessLogFile(String accessLogId) throws StorageNotFoundException, AccessInternalExecutionException {
+        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+
+        try {
+            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, accessLogId,
+                DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Map<String, String> headers = new HashMap<>();
+            // TODO: Set mimetype and contentDisposition ?
+            // headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
+            // headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
+        } catch (final StorageServerClientException e) {
+            throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
+        }
+    }
+
+    @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, IllegalArgumentException, InvalidParseOperationException,
         AccessInternalExecutionException, UpdatePermissionException, AccessInternalRuleExecutionException {

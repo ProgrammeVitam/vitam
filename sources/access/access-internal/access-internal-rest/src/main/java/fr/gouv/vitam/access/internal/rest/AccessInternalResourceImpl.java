@@ -781,6 +781,63 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     @Override
+    @GET
+    @Path("/storageaccesslog")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getAccessLogStreamAsync(@Context HttpHeaders headers, JsonNode params) {
+        MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
+
+        if (!multipleMap.containsKey(GlobalDataRest.X_TENANT_ID)) {
+            LOGGER.error("Header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID.name() + ")");
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED,
+                    "Header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID.name() + ")"))
+                .build();
+        }
+        try {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
+
+            Date startDate = null;
+            JsonNode startNode = params.get("StartDate");
+            if (startNode != null) {
+                String startString = startNode.textValue();
+                if(startString != null) {
+                    startDate = LocalDateUtil.getDate(startString);
+                }
+            }
+
+            Date endDate = null;
+            JsonNode endNode = params.get("EndDate");
+            if (endNode != null) {
+                String endString = endNode.textValue();
+                if(endString != null) {
+                    endDate = LocalDateUtil.getDate(endString);
+                }
+            }
+
+            Response response = accessModule.getAccessLog(startDate, endDate);
+            return response;
+        } catch (IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage()))
+                .build();
+        } catch (ParseException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST, e.getMessage())).build();
+        } catch (final AccessInternalExecutionException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
+                exc.getMessage())).build();
+        } catch (StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
+        }
+    }
+
+    @Override
     @POST
     @Path(UNITS_URI)
     @Consumes(MediaType.APPLICATION_JSON)

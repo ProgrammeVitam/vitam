@@ -119,6 +119,14 @@ public interface AccessInternalModule {
         AccessInternalExecutionException;
 
     /**
+     * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
+     * @return the Storage response for the asked file
+     * @throws StorageNotFoundException
+     * @throws AccessInternalExecutionException
+     */
+    Response getAccessLog(Date startDate, Date endDate) throws AccessInternalExecutionException, StorageNotFoundException;
+
+    /**
      * retrieve a DIP file according to an operationId
      * 
      * @param id operation id

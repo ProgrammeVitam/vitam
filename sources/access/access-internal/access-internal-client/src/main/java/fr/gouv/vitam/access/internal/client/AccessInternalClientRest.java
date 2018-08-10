@@ -47,6 +47,7 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -722,6 +723,45 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response downloadAccessLogFile(JsonNode params)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException {
+
+        Response response = null;
+        Status status = null;
+
+        try {
+            response = performRequest(HttpMethod.GET, DataCategory.STORAGEACCESSLOG.getCollectionName(), null, params,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);
+                case NOT_FOUND:
+                    throw new AccessInternalClientNotFoundException(status.getReasonPhrase());
+                case BAD_REQUEST:
+                    throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+                case OK:
+                    break;
+                case UNAUTHORIZED:
+                    throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AccessInternalClientServerException(
+                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+            }
+            return response;
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            if (status != Status.OK) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 }

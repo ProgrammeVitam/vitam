@@ -426,4 +426,25 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public Response getAccessLog(VitamContext vitamContext, JsonNode params)
+        throws VitamClientException {
+        Response response = null;
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        try {
+            response = performRequest(HttpMethod.GET, "/storageaccesslog", headers,
+                params, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+            return response;
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+    }
 }
