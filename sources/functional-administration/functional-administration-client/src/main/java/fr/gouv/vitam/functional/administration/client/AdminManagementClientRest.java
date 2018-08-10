@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -1545,7 +1546,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
         Response response = null;
         try {
-            response = performRequest(POST, RECTIFICATION_AUDIT, null, probativeValueRequest,
+            response = performRequest(POST, PROBATIVE_VALUE_URI, null, probativeValueRequest,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
@@ -1701,16 +1702,16 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<List<AccessionRegisterSymbolic>> getAccessionRegisterSymbolic(Integer tenant,
+    public RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
         ParametersChecker.checkParameter("QueryDsl is mandatory.", tenant);
         Response response = null;
         try {
-            response = performRequest(POST, "accession-register/symbolic", null, queryDsl, APPLICATION_JSON_TYPE,
+            response = performRequest(GET, "accession-register/symbolic", null, queryDsl, APPLICATION_JSON_TYPE,
                 APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
+            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolicModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

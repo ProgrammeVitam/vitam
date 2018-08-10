@@ -1,12 +1,5 @@
 package fr.gouv.vitam.access.external.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -28,8 +21,8 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -37,6 +30,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -49,6 +43,16 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static fr.gouv.vitam.access.external.api.AdminCollections.ACCESSION_REGISTERS_SYMBOLIC;
 
 /**
  * Rest client implementation for Access External
@@ -140,6 +144,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
+    public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, ACCESSION_REGISTERS_SYMBOLIC, select,
+            AccessionRegisterSymbolicModel.class);
+    }
+
+    @Override
     public RequestResponse<SecurityProfileModel> findSecurityProfiles(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
@@ -148,20 +160,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
 
-    private RequestResponse internalFindDocuments(VitamContext vitamContext, AdminCollections documentType,
-        JsonNode select,
-        Class clazz)
-        throws VitamClientException {
+    private <T> RequestResponse<T> internalFindDocuments(VitamContext vitamContext, AdminCollections documentType, JsonNode select, Class<T> clazz) throws VitamClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
 
         try {
-            response = performRequest(HttpMethod.GET, documentType.getName(), headers,
+            response = performRequest(HttpMethod.GET, documentType.getName(), vitamContext.getHeaders(),
                 select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, clazz);
-
         } catch (IllegalStateException e) {
             LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
@@ -179,9 +185,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.putAll(vitamContext.getHeaders());
 
         try {
             response = performRequest(HttpMethod.POST,
@@ -232,11 +237,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws AccessExternalClientException {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT + id, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT + id, vitamContext.getHeaders(),
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -252,11 +255,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateIngestContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, vitamContext.getHeaders(),
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -273,10 +274,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input profile json is mandatory", profiles, AdminCollections.PROFILE);
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
+            response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), vitamContext.getHeaders(),
                 profiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -295,11 +294,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         ParametersChecker.checkParameter("The input profile stream is mandatory", profile, AdminCollections.PROFILE);
         ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response =
-                performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
+                performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId,
+                    vitamContext.getHeaders(),
                     profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -355,10 +353,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), headers,
+            response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), vitamContext.getHeaders(),
                 contexts, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
@@ -383,10 +379,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         JsonNode queryDsl)
         throws AccessExternalClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT + id, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT + id, vitamContext.getHeaders(),
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -402,10 +396,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl)
         throws AccessExternalClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_PROFILE + profileMetadataId, headers,
+            response = performRequest(HttpMethod.PUT, UPDATE_PROFILE + profileMetadataId, vitamContext.getHeaders(),
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -423,12 +415,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-
-            response = performRequest(HttpMethod.POST, AdminCollections.TRACEABILITY.getCheckURI(), headers, query,
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.POST, AdminCollections.TRACEABILITY.getCheckURI(), vitamContext.getHeaders(),
+                    query,
+                    MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
 
             RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
@@ -473,11 +464,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-
             response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
-                    "/datafiles", headers,
+                    "/datafiles", vitamContext.getHeaders(),
                 null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
@@ -523,9 +511,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    private RequestResponse internalFindDocumentById(VitamContext vitamContext, AdminCollections documentType,
+    private <T> RequestResponse<T> internalFindDocumentById(VitamContext vitamContext, AdminCollections documentType,
         String documentId,
-        Class clazz)
+        Class<T> clazz)
         throws VitamClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -900,11 +888,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private Response internalCheckDocuments(VitamContext vitamContext, AdminCollections documentType,
         InputStream stream)
         throws VitamClientException {
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            return performRequest(HttpMethod.POST, documentType.getCheckURI(), headers,
+            return performRequest(HttpMethod.POST, documentType.getCheckURI(), vitamContext.getHeaders(),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
@@ -918,10 +903,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientException {
         ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.POST, collection.getName(), headers,
+            response = performRequest(HttpMethod.POST, collection.getName(), vitamContext.getHeaders(),
                 contracts, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             // FIXME quick fix for response OK, adapt response for all response types
@@ -957,15 +940,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public Response downloadRulesReport(VitamContext vitamContext, String opId)
         throws VitamClientException {
-
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
 
         Response response;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, AccessExtAPI.RULES_REPORT_API + "/" + opId,
-                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
@@ -980,12 +960,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
 
         Response response;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET,
                 AccessExtAPI.AGENCIES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
-                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
@@ -998,15 +976,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
-
-
         Response response;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET,
                 AccessExtAPI.RULES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
-                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
@@ -1019,13 +993,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode dslQuery)
         throws VitamClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
             response = performRequest(HttpMethod.POST,
                 AccessExtAPI.UNIT_EVIDENCE_AUDIT_API,
-                headers,
+                vitamContext.getHeaders(),
                 dslQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return RequestResponse.parseFromResponse(response);
@@ -1037,16 +1008,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
+    @Override
+    public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
         throws VitamClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
             response = performRequest(HttpMethod.POST,
                 AccessExtAPI.RECTIFICATION_AUDIT,
-                headers,
+                vitamContext.getHeaders(),
                 operationId, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return RequestResponse.parseFromResponse(response);
@@ -1088,10 +1057,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         ParametersChecker.checkParameter("The input profile json is mandatory", archiveUnitProfiles,
             AdminCollections.ARCHIVE_UNIT_PROFILE);
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.POST, AdminCollections.ARCHIVE_UNIT_PROFILE.getName(), headers,
+            response = performRequest(HttpMethod.POST, AdminCollections.ARCHIVE_UNIT_PROFILE.getName(),
+                vitamContext.getHeaders(),
                 archiveUnitProfiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -1122,12 +1090,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         JsonNode queryDSL)
         throws InvalidParseOperationException, AccessExternalClientException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.PUT, UPDATE_AU_PROFILE + archiveUnitprofileId, headers,
-                queryDSL, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.PUT, UPDATE_AU_PROFILE + archiveUnitprofileId, vitamContext.getHeaders(),
+                    queryDSL, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -1143,8 +1110,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         ParametersChecker.checkParameter("The input ontologies json is mandatory", ontologies,
             AdminCollections.ONTOLOGY);
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.FORCE_UPDATE, forceUpdate);
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.ONTOLOGY.getName(), headers,

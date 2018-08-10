@@ -55,6 +55,7 @@ public class AccessionRegisterDetailModel {
     public static final String ARCHIVAL_AGREEMENT = "ArchivalAgreement";
     public static final String SUBMISSION_AGENCY = "SubmissionAgency";
     public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    public static final String ARCHIVAL_PROFILE = "ArchivalProfile";
     public static final String EVENTS = "Events";
     public static final String OPERATION_IDS = "OperationIds";
     /**
@@ -80,6 +81,12 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty(ORIGINATING_AGENCY)
     private String originatingAgency;
+
+    /**
+     * Archival Profile
+     */
+    @JsonProperty(ARCHIVAL_PROFILE)
+    private String archivalProfile;
 
     /**
      * submission agency
@@ -564,6 +571,15 @@ public class AccessionRegisterDetailModel {
      */
     public AccessionRegisterDetailModel setOperationType(String operationType) {
         this.operationType = operationType;
+        return this;
+    }
+
+    public String getArchivalProfile() {
+        return archivalProfile;
+    }
+
+    public AccessionRegisterDetailModel setArchivalProfile(String archivalProfile) {
+        this.archivalProfile = archivalProfile;
         return this;
     }
 }

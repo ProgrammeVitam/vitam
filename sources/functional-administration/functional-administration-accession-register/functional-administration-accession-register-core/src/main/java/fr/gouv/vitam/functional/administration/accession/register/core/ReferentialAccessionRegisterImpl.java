@@ -225,7 +225,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             if (count > 0) {
                 throw new DatabaseException(String.format(
-                    "Accession register detail for originating agency (%s) and opi (%s) found and already contains the detail (%)",
+                    "Accession register detail for originating agency (%s) and opi (%s) found and already contains the detail (%s)",
                     registerDetail.getOriginatingAgency(), registerDetail.getOpi(), registerDetail.getOpc()));
             }
 
@@ -311,8 +311,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
      */
     public RequestResponseOK<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
+        try (DbRequestResult result = mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
             final RequestResponseOK<AccessionRegisterSummary> list =
                 result.getRequestResponseOK(select, AccessionRegisterSummary.class);
             return list;

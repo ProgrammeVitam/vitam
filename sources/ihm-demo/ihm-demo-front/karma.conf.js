@@ -28,7 +28,13 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome', 'PhantomJS'],
-    singleRun: false
+    browsers: process.env.CHROME_BIN ? ['dev_headless_chromium'] : ['PhantomJS'],
+    singleRun: false,
+    customLaunchers: {
+      dev_headless_chromium: {
+        base: 'Chrome',
+        flags: ['--disable-web-security', '--headless', '--disable-gpu', '--remote-debugging-port=9222']
+      }
+    }
   });
 };

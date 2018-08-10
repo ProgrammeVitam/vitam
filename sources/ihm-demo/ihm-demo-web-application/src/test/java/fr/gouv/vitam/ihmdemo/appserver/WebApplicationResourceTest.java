@@ -1390,8 +1390,10 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAccessionRegisterDetailOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), any(), any()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterDetail());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+                .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .contentType(ContentType.JSON).body(OPTIONS).expect()

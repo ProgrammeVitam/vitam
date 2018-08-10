@@ -70,7 +70,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @ApplicationPath("webresources")
 public class ProfileResource {
 
-
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResource.class);
     private static final String PROFILE_JSON_IS_MANDATORY_PATAMETER =

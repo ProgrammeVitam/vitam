@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response.Status;
  * error, there is one HTTP status and one configurable message (String.format style).
  *
  * Use the CodeTest unit test when you add an entry to validate it (avoid duplicate error code or wrong error code)
- * 
+ *
  * Do not remove the TEST error.
  */
 @SuppressWarnings("javadoc")
@@ -238,6 +238,10 @@ public enum VitamCode {
     ACCESS_EXTERNAL_CLIENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "13",
         Status.INTERNAL_SERVER_ERROR,
         "Access external client not found."),
+
+    ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "66",
+            Status.BAD_REQUEST,
+            "Access external client error in getAccessionRegisterSymbolic method."),
 
     // MASS UPDATE units
     ACCESS_EXTERNAL_MASS_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "40",

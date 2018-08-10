@@ -138,6 +138,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             String acquisitionInformation = null;
             String legalStatus = null;
             String archivalAgreement = null;
+            String archivalProfile = null;
 
             final JsonNode sedaParameters =
                 JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
@@ -171,7 +172,10 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         legalStatus = nodeLegalStatus.asText();
                     }
 
-
+                    final JsonNode nodeArchivalProfile = dataObjectNode.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+                    if (nodeArchivalProfile != null && !Strings.isNullOrEmpty(nodeArchivalProfile.asText())) {
+                        archivalProfile = nodeArchivalProfile.asText();
+                    }
                 } else {
                     throw new ProcessingException("No DataObjectPackage found");
                 }
@@ -285,6 +289,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         acquisitionInformation,
                         legalStatus,
                         archivalAgreement,
+                        archivalProfile,
                         tenantId);
 
                     if (null == register) {
@@ -371,6 +376,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         String acquisitionInformation,
         String legalStatus,
         String archivalAgreement,
+        String archivalProfile,
         int tenantId) {
 
         String unitAgency = unitPerOriginatingAgency.getValue();
@@ -418,6 +424,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setArchivalAgreement(archivalAgreement)
             .setAcquisitionInformation(acquisitionInformation)
             .setLegalStatus(legalStatus)
+            .setArchivalProfile(archivalProfile)
             .setEndDate(updateDate)
             .setLastUpdate(updateDate)
             .setStartDate(updateDate)

@@ -742,6 +742,7 @@ public class WebApplicationResourceDelete {
             collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.PROFILE) ||
             collection.equals(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE) ||
+            collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC) ||
             collection.equals(FunctionalAdminCollections.ONTOLOGY) ||
             collection.equals(FunctionalAdminCollections.AGENCIES) ||
             collection.equals(FunctionalAdminCollections.CONTEXT))) {
@@ -820,6 +821,8 @@ public class WebApplicationResourceDelete {
         deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT).close();
 
         deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT).close();
+
+        deleteMasterDataCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC).close();
 
         deleteLifecycleUnits().close();
 

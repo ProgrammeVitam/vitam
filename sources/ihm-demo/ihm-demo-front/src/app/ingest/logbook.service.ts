@@ -21,10 +21,8 @@ export class LogbookService {
               public archiveUnitService: ArchiveUnitService) {
   }
 
-  getResults(body: any, offset: number = 0): Observable<VitamResponse> {
-
-    const headers = new HttpHeaders().set('X-Limit', '125').set('X-Offset', '' + offset);
-
+  getResults(body: any, offset: number = 0, limit: number = 125): Observable<VitamResponse> {
+    const headers = new HttpHeaders().set('X-Limit', `${limit}`).set('X-Offset', `${offset}`);
     return this.resourceService.post(this.LOGBOOK_API, headers, body);
   }
 
@@ -66,8 +64,11 @@ export class LogbookService {
     this.ingestUtilsService.downloadObject(objectId, 'archivetransferreply');
   }
 
-  getDetails(id): Observable<VitamResponse> {
-    return this.resourceService.post(`${this.LOGBOOK_API}/${id}`, null, {});
+  getDetails(id, limit: number = 125, offset: number = 0, body: any = {}): Observable<VitamResponse> {
+    const headers = new HttpHeaders()
+      .set('X-Limit', `${limit}`)
+      .set('X-Offset', `${offset}`);
+    return this.resourceService.post(`${this.LOGBOOK_API}/${id}`, headers, body);
   }
 
   getLastImportAgenciesOkOrStpImportRulesOperation(body: any) {

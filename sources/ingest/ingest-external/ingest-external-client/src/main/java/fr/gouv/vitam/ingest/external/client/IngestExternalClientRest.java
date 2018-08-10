@@ -34,6 +34,7 @@ import java.io.InputStream;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -77,9 +78,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("Stream is a mandatory parameter", stream);
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.putAll(vitamContext.getHeaders());
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
@@ -132,12 +132,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
-        Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        Response response;
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
-                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
@@ -154,9 +152,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("localFile is a mandatory parameter", localFile);
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.putAll(vitamContext.getHeaders());
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 

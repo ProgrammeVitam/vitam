@@ -1,17 +1,17 @@
-import { Injectable } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
-import {Observable} from "rxjs/Observable";
+import {Injectable} from '@angular/core';
+import {HttpHeaders} from '@angular/common/http';
+import {Observable} from 'rxjs/Observable';
 
-import {VitamResponse} from "../common/utils/response";
-import {ResourcesService} from "../common/resources.service";
+import {VitamResponse} from '../common/utils/response';
+import {ResourcesService} from '../common/resources.service';
 
 @Injectable()
 export class ReferentialsService {
 
-  searchAPI : string;
-  ACCESS_CONTRACT = 'accesscontracts';
+  searchAPI: string;
+  ACCESS_CONTRACT: string = 'accesscontracts';
 
-  constructor(private resourceService: ResourcesService) { }
+  constructor(private resourceService: ResourcesService) {}
 
   getResults(body: any): Observable<VitamResponse> {
 
@@ -25,7 +25,7 @@ export class ReferentialsService {
       if (!body.PUID) {
         body.PUID = '';
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'profiles') {
@@ -35,17 +35,17 @@ export class ReferentialsService {
       if (!body.ProfileName) {
         body.ProfileName = 'all';
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'archiveunitprofiles') {
       if (!body.ArchiveUnitProfileID) {
-          body.ArchiveUnitProfileID = 'all';
+        body.ArchiveUnitProfileID = 'all';
       }
       if (!body.ArchiveUnitProfileName) {
-          body.ArchiveUnitProfileName = 'all';
+        body.ArchiveUnitProfileName = 'all';
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'contexts') {
@@ -55,7 +55,7 @@ export class ReferentialsService {
       if (!body.ContextName) {
         body.ContextName = 'all';
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'agencies') {
@@ -68,7 +68,7 @@ export class ReferentialsService {
       if (!body.Description) {
         delete body.Description;
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'admin/rules') {
@@ -81,7 +81,7 @@ export class ReferentialsService {
           for (let index in body.RuleType) {
             ruleType = body.RuleType[index] + ',' + ruleType;
           }
-          body.RuleType =  ruleType;
+          body.RuleType = ruleType;
         }
       }
       if (!body.RuleValue) {
@@ -89,14 +89,14 @@ export class ReferentialsService {
       }
     }
 
-    if (this.searchAPI === 'contracts' || this.searchAPI === 'accesscontracts' ) {
+    if (this.searchAPI === 'contracts' || this.searchAPI === 'accesscontracts') {
       if (!body.ContractID) {
         body.ContractID = 'all';
       }
       if (!body.ContractName) {
         body.ContractName = 'all';
       }
-      body.orderby = {"field":"Name","sortType":"ASC"};
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'admin/accession-register') {
@@ -104,7 +104,7 @@ export class ReferentialsService {
         body.ACCESSIONREGISTER = 'ACCESSIONREGISTER';
         delete body.OriginatingAgency;
       }
-      body.orderby = {"field":"OriginatingAgency","sortType":"ASC"};
+      body.orderby = {'field': 'OriginatingAgency', 'sortType': 'ASC'};
     }
 
     if (this.searchAPI === 'ontologies') {
@@ -120,7 +120,7 @@ export class ReferentialsService {
     return this.resourceService.post(this.searchAPI, headers, body);
   }
 
-  setSearchAPI(api : string) {
+  setSearchAPI(api: string) {
     this.searchAPI = api;
   }
 
@@ -141,7 +141,7 @@ export class ReferentialsService {
     );
   }
 
-  uploadProfile(id : string, file : File) {
+  uploadProfile(id: string, file: File) {
     let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
     return this.resourceService.put('profiles/' + id, header, file, 'text');
   }
@@ -163,62 +163,84 @@ export class ReferentialsService {
     );
   }
 
-  uploadArchiveUnitProfile(id : string, file : File) {
+  uploadArchiveUnitProfile(id: string, file: File) {
     let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
     return this.resourceService.put('archiveunitprofiles/' + id, header, file, 'text');
   }
 
-  uploadOntology(id : string, file : File) {
+  uploadOntology(id: string, file: File) {
     let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
     return this.resourceService.put('ontologies/' + id, header, file, 'text');
   }
 
-  getFormatById(id : string) : Observable<VitamResponse> {
+  getFormatById(id: string): Observable<VitamResponse> {
     return this.resourceService.post('admin/formats/' + decodeURIComponent(id), null, {});
   }
 
-  getRuleById(id : string) : Observable<VitamResponse> {
+  getRuleById(id: string): Observable<VitamResponse> {
     return this.resourceService.post('admin/rules/' + id, null, {});
   }
-  getAccessContractById(id : string) : Observable<VitamResponse> {
+
+  getAccessContractById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('accesscontracts/' + id);
   }
-  getIngestContractById(id : string) : Observable<VitamResponse> {
+
+  getIngestContractById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('contracts/' + id);
   }
-  getProfileById(id : string) : Observable<VitamResponse> {
+
+  getProfileById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('profiles/' + id);
   }
-  getArchiveUnitProfileById(id : string) : Observable<VitamResponse> {
+
+  getArchiveUnitProfileById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('archiveunitprofiles/' + id);
   }
 
-  getOntologyById(id : string) : Observable<VitamResponse> {
+  getOntologyById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('ontologies/' + id);
   }
 
-  getFundRegisterById(id : string) : Observable<VitamResponse> {
-    let searchForm = {"OriginatingAgency":id};
-    return this.resourceService.post('admin/accession-register', null, searchForm);
+  getFundRegisterById(id: string, limit: number): Observable<VitamResponse> {
+    const headers = new HttpHeaders()
+      .set('X-Limit', `${limit}`)
+      .set('X-Offset', '0');
+    return this.resourceService.post('admin/accession-register', headers, {OriginatingAgency: id});
   }
-  getFundRegisterDetailById(id : string) : Observable<VitamResponse> {
-    let searchForm = {"OriginatingAgency":id ,'orderby' : {"field":"EndDate","sortType":"DESC"}};
-    return this.resourceService.post('admin/accession-register/'+ id +'/accession-register-detail', null, searchForm);
+
+  getAccessionRegisterSymbolic(id: string, limit: number = 3, offset: number = 0): Observable<VitamResponse> {
+    const headers = new HttpHeaders()
+      .set('X-Limit', `${limit}`)
+      .set('X-Offset', `${offset}`);
+    const searchForm = {OriginatingAgency: id, orderby: {field: 'CreationDate', sortType: 'DESC'}};
+    return this.resourceService.post('admin/accession-register/symbolic', headers, searchForm);
   }
-  getContextById(id : string) : Observable<VitamResponse> {
+
+  getFundRegisterDetailById(id: string, limit: number, offset: number): Observable<VitamResponse> {
+    const headers = new HttpHeaders()
+      .set('X-Limit', `${limit}`)
+      .set('X-Offset', `${offset}`);
+    const searchForm = {OriginatingAgency: id, orderby: {field: 'EndDate', sortType: 'DESC'}};
+    return this.resourceService.post(`admin/accession-register/${id}/accession-register-detail`, headers, searchForm);
+  }
+
+  getContextById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('contexts/' + id);
   }
-  getAgenciesById(id : string) : Observable<VitamResponse> {
+
+  getAgenciesById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('agencies/' + id);
   }
-  updateDocumentById(collection : string,id : string, body : any) : Observable<VitamResponse> {
+
+  updateDocumentById(collection: string, id: string, body: any): Observable<VitamResponse> {
     return this.resourceService.post(collection + '/' + id, null, body);
   }
 
-  updateProfilById(id : string, body : any) {
+  updateProfilById(id: string, body: any) {
     return this.resourceService.put('profiles/' + id, null, body, 'text');
   }
-  updateArchiveUnitProfileById(id : string, body : any) {
+
+  updateArchiveUnitProfileById(id: string, body: any) {
     return this.resourceService.put('archiveunitprofiles/' + id, null, body, 'text');
   }
 

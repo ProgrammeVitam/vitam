@@ -39,7 +39,7 @@ public enum AdminCollections {
      * Rules Collection
      */
     RULES(AccessExtAPI.RULES, AccessExtAPI.RULESCHECK),
-    
+
     /**
      * Ingest contracts collection
      */
@@ -60,7 +60,7 @@ public enum AdminCollections {
      * Profile collection
      */
     PROFILE(AccessExtAPI.PROFILES, null),
-    
+
     /**
      * Context collection
      */
@@ -70,12 +70,17 @@ public enum AdminCollections {
      * Accession register collection
      */
     ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS, null),
-    
+
+    /**
+     * Accession register collection
+     */
+    ACCESSION_REGISTERS_SYMBOLIC(AccessExtAPI.ACCESSION_REGISTERS_SYMBOLIC, null),
+
     /**
      * Archive unit profile collection
      */
     ARCHIVE_UNIT_PROFILE(AccessExtAPI.ARCHIVE_UNIT_PROFILE, null),
-    
+
     /**
      * Traceability collection
      */
@@ -111,7 +116,7 @@ public enum AdminCollections {
 
     /**
      * Get the checkUri
-     * 
+     *
      * @return the checkUri
      */
     public String getCheckURI() {
@@ -120,7 +125,7 @@ public enum AdminCollections {
 
     /**
      * Compare method
-     * 
+     *
      * @param value as String to compare
      * @return True if the name of the collection equals
      */

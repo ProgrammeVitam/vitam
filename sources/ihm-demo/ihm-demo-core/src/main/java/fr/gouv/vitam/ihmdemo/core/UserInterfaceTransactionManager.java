@@ -26,18 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,8 +37,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
-
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -64,6 +50,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -78,6 +65,20 @@ import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Collections;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+
 /**
  * Manage all the transactions received form the User Interface : a gateway to VITAM intern
  */
@@ -87,8 +88,8 @@ public class UserInterfaceTransactionManager {
     /**
      * Gets search units result
      *
-     * @param parameters   search criteria as DSL query
-     * @param context   Vitamcontext
+     * @param parameters search criteria as DSL query
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -103,8 +104,8 @@ public class UserInterfaceTransactionManager {
      * Gets archive unit details
      *
      * @param preparedDslQuery search criteria as DSL query
-     * @param unitId           archive unit id to find
-     * @param context   Vitamcontext
+     * @param unitId archive unit id to find
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -123,11 +124,12 @@ public class UserInterfaceTransactionManager {
      * Gets archive unit details with inheritedRules
      *
      * @param preparedDslQuery search criteria as DSL query
-     * @param context   Vitamcontext
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode preparedDslQuery, VitamContext context)
+    public static RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode preparedDslQuery,
+        VitamContext context)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitsWithInheritedRules(context, preparedDslQuery);
@@ -138,11 +140,12 @@ public class UserInterfaceTransactionManager {
      * Start elimination analysis
      *
      * @param parameters input for elimination workflow
-     * @param context    Vitamcontext
+     * @param context Vitamcontext
      * @return result    HTTP response
      * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody parameters, VitamContext context)
+    public static RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody parameters,
+        VitamContext context)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.startEliminationAnalysis(context, parameters);
@@ -153,7 +156,7 @@ public class UserInterfaceTransactionManager {
      * Massive AU update
      *
      * @param parameters search criteria as DSL query
-     * @param context    Vitamcontext
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException
      */
@@ -167,9 +170,9 @@ public class UserInterfaceTransactionManager {
     /**
      * Update units result
      *
-     * @param parameters   search criteria as DSL query
-     * @param unitId       unitIdentifier
-     * @param context   Vitamcontext
+     * @param parameters search criteria as DSL query
+     * @param unitId unitIdentifier
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException
      */
@@ -186,8 +189,8 @@ public class UserInterfaceTransactionManager {
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
      * @param preparedDslQuery the query to be executed
-     * @param objectId         the Id of the ObjectGroup
-     * @param context   Vitamcontext
+     * @param objectId the Id of the ObjectGroup
+     * @param context Vitamcontext
      * @return JsonNode object including DSL queries, context and results
      * @throws VitamClientException if the client encountered an exception
      */
@@ -205,19 +208,19 @@ public class UserInterfaceTransactionManager {
     /**
      * Retrieve an Object data as an input stream
      *
-     * @param asyncResponse     the asynchronous response to be used
-     * @param unitId            the Id of the ObjectGroup
-     * @param usage             the requested usage
-     * @param version           the requested version of the usage
-     * @param filename          the name od the file
-     * @param context   Vitamcontext
+     * @param asyncResponse the asynchronous response to be used
+     * @param unitId the Id of the ObjectGroup
+     * @param usage the requested usage
+     * @param version the requested version of the usage
+     * @param filename the name od the file
+     * @param context Vitamcontext
      * @return boolean for test purpose (solve mock issue)
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
-     * @throws VitamClientException         if the client encountered an exception
+     * @throws VitamClientException if the client encountered an exception
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
-    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, 
+    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse,
         String unitId, String usage, int version, String filename, VitamContext context)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
@@ -281,14 +284,15 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param unitLifeCycleId the unit lifecycle id to select
-     * @param context   Vitamcontext
+     * @param context Vitamcontext
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException         if the request with illegal parameter
+     * @throws LogbookClientException if the request with illegal parameter
      * @throws AccessUnauthorizedException
      */
 
-    public static RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String unitLifeCycleId, VitamContext context)
+    public static RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String unitLifeCycleId,
+        VitamContext context)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitLifeCycleById(
@@ -299,8 +303,8 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param query        the select query
-     * @param context   Vitamcontext
+     * @param query the select query
+     * @param context Vitamcontext
      * @return logbook operation result
      * @throws VitamClientException access client exception
      */
@@ -312,8 +316,8 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param operationId  the operation id
-     * @param context   Vitamcontext
+     * @param operationId the operation id
+     * @param context Vitamcontext
      * @return logbook operation result
      * @throws VitamClientException
      */
@@ -344,11 +348,11 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param options      for creating query
-     * @param context   Vitamcontext
+     * @param options for creating query
+     * @param context Vitamcontext
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException            if the request with illegal parameter
-     * @throws InvalidParseOperationException  if json data not well-formed
+     * @throws VitamClientException if the request with illegal parameter
+     * @throws InvalidParseOperationException if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
     public static RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options,
@@ -364,14 +368,34 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param id           the id of accession register
-     * @param options      for creating query
-     * @param  context   Vitamcontext
+     * @param options for creating query
+     * @param context Vitamcontext
+     * @return AccessionRegisterSummaryModel result
+     * @throws VitamClientException if the request with illegal parameter
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws InvalidCreateOperationException if error when create query
+     */
+    public static RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(String options,
+        VitamContext context)
+        throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            return adminExternalClient.findAccessionRegisterSymbolic(
+                context,
+                query);
+        }
+    }
+
+    /**
+     * @param id the id of accession register
+     * @param options for creating query
+     * @param context Vitamcontext
      * @return JsonNode result
-     * @throws InvalidParseOperationException        if json data not well-formed
-     * @throws AccessExternalClientServerException   if access internal server error
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
-     * @throws InvalidCreateOperationException       if error when create query
+     * @throws InvalidCreateOperationException if error when create query
      * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, VitamContext context)
@@ -392,8 +416,8 @@ public class UserInterfaceTransactionManager {
     /**
      * Starts a Verification process based on a given DSLQuery
      *
-     * @param query        DSLQuery to execute
-     * @param context   Vitamcontext
+     * @param query DSLQuery to execute
+     * @param context Vitamcontext
      * @return A RequestResponse contains the created logbookOperation for verification process
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
@@ -441,10 +465,10 @@ public class UserInterfaceTransactionManager {
     /**
      * launch Evidance Audit on selected AU
      *
-     * @param query       search criteria as DSL query to select AU
-     * @param context     VitamContext
+     * @param query search criteria as DSL query to select AU
+     * @param context VitamContext
      * @return a JsonNode for dip results
-     * @throws VitamClientException           access client exception
+     * @throws VitamClientException access client exception
      */
     public static RequestResponse evidenceAudit(JsonNode query, VitamContext context) throws VitamClientException {
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
@@ -461,10 +485,12 @@ public class UserInterfaceTransactionManager {
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse exportProbativeValue(JsonNode query, VitamContext context) throws VitamClientException {
+    public static RequestResponse exportProbativeValue(JsonNode query, VitamContext context)
+        throws VitamClientException {
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(query,Collections.singletonList("BinaryMaster"));
+            ProbativeValueRequest probativeValueRequest =
+                new ProbativeValueRequest(query, Collections.singletonList("BinaryMaster"));
             return client.exportProbativeValue(context, probativeValueRequest);
         }
     }
@@ -474,13 +500,14 @@ public class UserInterfaceTransactionManager {
     /**
      * generate a DIP to be exported
      *
-     * @param dipExportRequest       search criteria as DSL query
-     * @param context     VitamContext
+     * @param dipExportRequest search criteria as DSL query
+     * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
-     * @throws VitamClientException           access client exception
+     * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context) throws InvalidParseOperationException, VitamClientException {
+    public static RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
+        throws InvalidParseOperationException, VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.exportDIP(context, dipExportRequest);
         }
@@ -494,7 +521,8 @@ public class UserInterfaceTransactionManager {
      * @throws UnsupportedEncodingException
      * @throws VitamClientException
      */
-    public static boolean downloadDIP(AsyncResponse asyncResponse, String dipId, VitamContext context) throws UnsupportedEncodingException, VitamClientException {
+    public static boolean downloadDIP(AsyncResponse asyncResponse, String dipId, VitamContext context)
+        throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             response = client.getDIPById(
@@ -538,7 +566,7 @@ public class UserInterfaceTransactionManager {
     }
 
     public static VitamContext getVitamContext(Integer tenantId, String contractId, HttpServletRequest request) {
-        String personalCert  = getPersonalCertificate(request);
+        String personalCert = getPersonalCertificate(request);
         if (personalCert != null) {
             return new VitamContext(tenantId)
                 .setAccessContract(contractId)
