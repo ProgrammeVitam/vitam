@@ -26,39 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.facet.model.FacetOrder;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.FacetDateRangeItem;
-import fr.gouv.vitam.common.model.FacetFiltersItem;
-import fr.gouv.vitam.common.model.FacetType;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.FacetDateRangeItem;
+import fr.gouv.vitam.common.model.FacetFiltersItem;
+import fr.gouv.vitam.common.model.FacetType;
+import org.assertj.core.api.Assertions;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.*;
 
 /**
  * DslQueryHelper junit test
@@ -71,32 +64,32 @@ public class DslQueryHelperTest {
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
 
     private static final String result =
-        "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
-            "{\"$match\":{\"Name\":\"Name\"}},{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
-            "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
-            "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
-            "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
-            "\tProjection: {}";
+            "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
+                    "{\"$match\":{\"Name\":\"Name\"}},{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
+                    "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
+                    "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
+                    "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
+                    "\tProjection: {}";
 
     private static final String result2 =
-        "QUERY: Requests: " + "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
-            "\tFilter: {\"$limit\":10000}\n" +
-            "\tProjection: {}";
+            "QUERY: Requests: " + "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
+                    "\tFilter: {\"$limit\":10000}\n" +
+                    "\tProjection: {}";
 
     private static final String updateAction =
-        "[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
-            "{ $unset : [ 'mavar5', 'mavar6' ] }," + "{ $inc : { mavar7 : 2 } }," + "{ $min : { mavar8 : 3 } }," +
-            "{ $min : { mavar16 : 12 } }," + "{ $max : { mavar9 : 3 } }," + "{ $rename : { mavar10 : 'mavar11' } }," +
-            "{ $push : { mavar12 : { $each : [ 1, 2 ] } } }," + "{ $add : { mavar13 : { $each : [ 1, 2 ] } } }," +
-            "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : { $each : [ 1, 2 ] } } } ]";
+            "[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
+                    "{ $unset : [ 'mavar5', 'mavar6' ] }," + "{ $inc : { mavar7 : 2 } }," + "{ $min : { mavar8 : 3 } }," +
+                    "{ $min : { mavar16 : 12 } }," + "{ $max : { mavar9 : 3 } }," + "{ $rename : { mavar10 : 'mavar11' } }," +
+                    "{ $push : { mavar12 : { $each : [ 1, 2 ] } } }," + "{ $add : { mavar13 : { $each : [ 1, 2 ] } } }," +
+                    "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : { $each : [ 1, 2 ] } } } ]";
 
     private static final String exampleUpdateMd = "{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-        "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-        "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
-        "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-        "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-        "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
-        "$action : " + updateAction + " }";
+            "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
+            "$action : " + updateAction + " }";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -110,7 +103,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testCreateSingleQueryDSL()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
+            throws InvalidCreateOperationException, InvalidParseOperationException {
 
         final HashMap<String, Object> myHashMap = new HashMap();
         myHashMap.put("title", "Archive2");
@@ -140,7 +133,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testCreateSingleQueryDSLEvent()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final HashMap<String, Object> myHashMap = new HashMap();
 
         myHashMap.put("EventID", "all");
@@ -156,7 +149,7 @@ public class DslQueryHelperTest {
 
     @Test
     public void testCreateSelectElasticsearchDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put("titleAndDescription", "Arch");
 
@@ -183,46 +176,46 @@ public class DslQueryHelperTest {
 
     @Test
     public void testCreateFacetDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         List<FacetDateRangeItem> ranges = Arrays.asList(new FacetDateRangeItem("800", "2018"));
         queryMap.put("titleAndDescription", "Arch");
 
         // Title filters
         List<FacetFiltersItem> titlesfilters =
-            Arrays.asList(new FacetFiltersItem("title_fr", QueryHelper.exists("Title_.fr").getCurrentObject()),
-                new FacetFiltersItem("title_en", QueryHelper.exists("Title_.en").getCurrentObject())
-            );
+                Arrays.asList(new FacetFiltersItem("title_fr", QueryHelper.exists("Title_.fr").getCurrentObject()),
+                        new FacetFiltersItem("title_en", QueryHelper.exists("Title_.en").getCurrentObject())
+                );
 
         // Description filters
         List<FacetFiltersItem> descriptionfilters = Arrays
-            .asList(new FacetFiltersItem("Description_fr", QueryHelper.exists("Description_.fr").getCurrentObject()),
-                new FacetFiltersItem("Description_en", QueryHelper.exists("Description_.en").getCurrentObject())
-            );
+                .asList(new FacetFiltersItem("Description_fr", QueryHelper.exists("Description_.fr").getCurrentObject()),
+                        new FacetFiltersItem("Description_en", QueryHelper.exists("Description_.en").getCurrentObject())
+                );
 
         // object filters
         List<FacetFiltersItem> objectfilters = Arrays
-            .asList(new FacetFiltersItem("ExistsObject", QueryHelper.exists("#object").getCurrentObject()),
-                new FacetFiltersItem("MissingObject", QueryHelper.missing("#object").getCurrentObject())
-            );
+                .asList(new FacetFiltersItem("ExistsObject", QueryHelper.exists("#object").getCurrentObject()),
+                        new FacetFiltersItem("MissingObject", QueryHelper.missing("#object").getCurrentObject())
+                );
 
         List<FacetItem> facetItems = Arrays.asList(
-            new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
-                null, null),
-            new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
-                null, null),
+                new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
+                        null, null),
+                new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
+                        null, null),
 
-            new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null),
-            new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null),
+                new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null),
+                new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null),
 
-            new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters),
+                new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters),
 
-            new FacetItem("LanguageFacet", FacetType.TERMS, "Language", 100, FacetOrder.ASC, null,
-                null, null),
+                new FacetItem("LanguageFacet", FacetType.TERMS, "Language", 100, FacetOrder.ASC, null,
+                        null, null),
 
-            new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters),
+                new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters),
 
-            new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters)
+                new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters)
 
         );
 
@@ -248,28 +241,28 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getFacets().size() == 8);
 
         assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
-            "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(1).toString().contains(
-            "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(2).toString().contains(
-            "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+                "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(3).toString().contains(
-            "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+                "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(4).toString().contains(
-            "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
+                "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(5).toString().contains(
-            "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(6).toString().contains(
-            "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+                "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(7).toString().contains(
-            "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"));
+                "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"));
 
     }
 
@@ -329,7 +322,7 @@ public class DslQueryHelperTest {
      */
     @Test(expected = InvalidParseOperationException.class)
     public void testInvalidParseOperationExceptionWithEmptyValue()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "");
         DslQueryHelper.createSelectDSLQuery(queryMap);
@@ -343,7 +336,7 @@ public class DslQueryHelperTest {
      */
     @Test(expected = InvalidParseOperationException.class)
     public void testInvalidParseOperationExceptionWithEmptyKey()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("", "value");
         DslQueryHelper.createSelectDSLQuery(queryMap);
@@ -400,7 +393,7 @@ public class DslQueryHelperTest {
      */
     @Test(expected = InvalidParseOperationException.class)
     public void testUpdateQueryInvalidParseOperationExceptionWithEmptyKey()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, JsonNode> queryMap = new HashMap();
         queryMap.put("", new TextNode("value"));
         final Map<String, JsonNode> rulesMap = new HashMap();
@@ -415,7 +408,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testFundsRegisterDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(ACCESSION_REGISTER, "");
 
@@ -450,7 +443,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testRulesDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(RULES, "");
 
@@ -496,7 +489,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testTraceabilityDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "traceability");
 
@@ -548,7 +541,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testIngestDateDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "INGEST");
 
@@ -590,4 +583,18 @@ public class DslQueryHelperTest {
         assertTrue(orderBy.get("evDateTime").asInt() == -1);
     }
 
+    @Test
+    public void should_return_range_query() throws Exception {
+        // Given
+        HashMap<String, Object> options = new HashMap<>();
+        options.put("startDate", "2018-10-02T15:38:29.900Z");
+        options.put("endDate", "2018-10-02T15:38:42.547Z");
+        options.put("OriginatingAgency", "RATP");
+
+        // When
+        JsonNode query = DslQueryHelper.createSearchQueryAccessionRegister(options);
+
+        // Then
+        assertThat(query.get("$query").toString()).isEqualTo("{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"RATP\"}},{\"$range\":{\"CreationDate\":{\"$gte\":\"2018-10-02T15:38:29.900\",\"$lte\":\"2018-10-02T15:38:42.547\"}}}]}");
+    }
 }

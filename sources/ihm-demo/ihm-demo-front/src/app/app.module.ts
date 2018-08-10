@@ -104,6 +104,7 @@ import { RulesUpdateModeComponent } from './archive-unit/archive-unit-details/ar
 import { NgArrayPipesModule } from 'ngx-pipes';
 import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
 import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
+import {AccessionRegisterSymbolicComponent} from './referentials/details/accession-register-symbolic/accession-register-symbolic.component';
 
 const appRoutes: Routes = [
   {
@@ -203,6 +204,11 @@ const appRoutes: Routes = [
     data: {permission: 'admin:accession-register:read'}
   },
   {
+    path: 'admin/accessionRegister/symbolic/:id',
+    component: AccessionRegisterSymbolicComponent,
+    data: {permission: 'admin:accession-register:read'}
+  },
+  {
     path: 'admin/accessionRegister/:type/:id',
     component: AccessionRegisterComponent,
     data: {permission: 'admin:accession-register:read'}
@@ -280,6 +286,7 @@ const appRoutes: Routes = [
     AuditComponent,
     AccessionRegisterComponent,
     AccessionRegisterSearchComponent,
+    AccessionRegisterSymbolicComponent,
     OperationComponent,
     HoldingschemeComponent,
     ArchiveExportDIPComponent,

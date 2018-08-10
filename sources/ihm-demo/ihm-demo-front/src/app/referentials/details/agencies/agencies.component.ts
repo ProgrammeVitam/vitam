@@ -8,6 +8,7 @@ import {ReferentialsService} from '../../referentials.service';
 import {PageComponent} from '../../../common/page/page-component';
 import {Agency} from './agency';
 import {ErrorService} from '../../../common/error.service';
+import {ArchiveUnitService} from '../../../archive-unit/archive-unit.service';
 
 @Component({
   selector: 'vitam-agencies',
@@ -80,5 +81,4 @@ export class AgenciesComponent extends PageComponent {
       this.router.navigate(['admin/accessionRegister/all/' + this.id]);
     }
   }
-
 }

@@ -12,5 +12,9 @@
     <div class="ui-g-3 ui-g-offset-2" *ngIf="hasUnit">
       <button  pButton type="button" (click)="goToSummaryRegisterPage()" label="Registre des fonds" icon="fa-folder-open" ></button>
     </div>
+
+    <div class="ui-g-3 ui-g-offset-2" *ngIf="hasUnit">
+      <button  pButton type="button" [routerLink]="'/admin/accessionRegister/symbolic/' + id" label="Historique des rattachements" icon="fa-folder-open" ></button>
+    </div>
   </div>
 </p-panel>

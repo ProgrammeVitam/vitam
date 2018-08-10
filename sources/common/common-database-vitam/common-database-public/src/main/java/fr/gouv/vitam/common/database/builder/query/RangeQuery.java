@@ -30,6 +30,8 @@ import java.util.Date;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.fasterxml.jackson.databind.node.TextNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -234,8 +236,8 @@ public class RangeQuery extends Query {
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
-        sub.set(from.exactToken(), GlobalDatas.getDate(valueFrom));
-        sub.set(to.exactToken(), GlobalDatas.getDate(valueTo));
+        sub.set(from.exactToken(), new TextNode(LocalDateUtil.fromDate(valueFrom).toString()));
+        sub.set(to.exactToken(), new TextNode(LocalDateUtil.fromDate(valueTo).toString()));
         currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }

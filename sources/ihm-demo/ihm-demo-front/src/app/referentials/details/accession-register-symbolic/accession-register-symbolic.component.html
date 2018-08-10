@@ -1,0 +1,15 @@
+<p-calendar [(ngModel)]="startDate" placeholder="jj/mm/aaaa"
+            [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+            [yearRange]="'1970:2500'" [locale]="locale"></p-calendar>
+<p-calendar [(ngModel)]="endDate" placeholder="jj/mm/aaaa"
+            [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+            [yearRange]="'1970:2500'" [locale]="locale"></p-calendar>
+
+<button pButton (click)="getAccessionRegisterSymbolic()" label="Select"></button>
+
+<div>
+  <div class="ui-g-6"><canvas id="chart-accession-register-symbolic-OG" width="400" height="400"></canvas></div>
+  <div class="ui-g-6"><canvas id="chart-accession-register-symbolic-AU" width="400" height="400"></canvas></div>
+  <div class="ui-g-6"><canvas id="chart-accession-register-symbolic-BO" width="400" height="400"></canvas></div>
+  <div class="ui-g-6"><canvas id="chart-accession-register-symbolic-BOS" width="400" height="400"></canvas></div>
+</div>

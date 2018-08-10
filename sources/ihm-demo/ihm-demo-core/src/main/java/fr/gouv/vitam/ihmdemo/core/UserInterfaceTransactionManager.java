@@ -395,7 +395,9 @@ public class UserInterfaceTransactionManager {
         throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = optionsMap.containsKey("startDate")
+                    ? DslQueryHelper.createSearchQueryAccessionRegister(optionsMap)
+                    : DslQueryHelper.createSingleQueryDSL(optionsMap);
             return adminExternalClient.findAccessionRegisterSymbolic(
                 context,
                 query);
