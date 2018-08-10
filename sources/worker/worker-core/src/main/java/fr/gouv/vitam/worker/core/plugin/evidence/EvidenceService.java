@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -93,7 +94,6 @@ import java.util.zip.ZipFile;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.lte;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
@@ -412,7 +412,7 @@ public class EvidenceService {
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             response = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK);
+                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
 
                 final File file = File.createTempFile(TMP, ZIP, new File(VitamConfiguration.getVitamTmpFolder()));

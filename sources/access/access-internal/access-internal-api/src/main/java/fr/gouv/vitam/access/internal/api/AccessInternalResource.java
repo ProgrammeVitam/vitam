@@ -147,7 +147,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param idObjectGroup
      * @return response
      */
-    Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup);
+    Response getObjectStreamAsync(@Context HttpHeaders headers, String idObjectGroup, String idUnit);
 
     /**
      * Mass update of archive units with Json query

@@ -30,6 +30,8 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -67,6 +69,7 @@ import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.access.internal.core.OntologyUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.model.DataType;
@@ -99,13 +102,10 @@ import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -123,6 +123,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -350,6 +352,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
 
                 processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), operationId, EXPORT_DIP);
+
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, EXPORT_DIP,
@@ -686,7 +689,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
-        String idObjectGroup, boolean post) {
+        String idObjectGroup, String idUnit, boolean post) {
 
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
@@ -716,13 +719,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier unallowed"))
                 .build();
         }
-
         try {
+
             SanityChecker.checkHeadersMap(multipleMap);
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             SanityChecker.checkParameter(idObjectGroup);
             return accessModule.getOneObjectFromObjectGroup(idObjectGroup, xQualifier,
-                Integer.valueOf(xVersion));
+                Integer.valueOf(xVersion), idUnit);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED)
@@ -764,13 +767,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     @Override
     @GET
-    @Path("/objects/{id_object_group}")
+    @Path("/objects/{id_object_group}/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectStreamAsync(@Context HttpHeaders headers,
-        @PathParam("id_object_group") String idObjectGroup) {
+        @PathParam("id_object_group") String idObjectGroup, @PathParam("id_unit") String idUnit) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-        return asyncObjectStream(multipleMap, idObjectGroup, false);
+        return asyncObjectStream(multipleMap, idObjectGroup, idUnit, false);
     }
 
     @Override

@@ -267,7 +267,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public Response getObject(String objectGroupId, String usage, int version)
+    public Response getObject(String objectGroupId, String usage, int version, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
@@ -280,7 +280,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
-            response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId, headers, null,
+            response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId + "/" + unitId, headers, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -659,8 +659,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery) throws InvalidParseOperationException,
-            AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-            fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
+        fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -668,10 +668,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         LOGGER.debug("DEBUG: start selectObjects {}", selectQuery);
         try {
             response = performRequest(HttpMethod.GET, OBJECTS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new VitamDBException(
-                        CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+                    CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {

@@ -36,6 +36,7 @@ import java.util.stream.StreamSupport;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -110,10 +111,10 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         if (lastBackupVersion.isPresent()) {
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response response =
-                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP);
+                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog());
                 if (null != response && response.getStatus() == Response.Status.OK.getStatusCode()) {
                     final InputStream inputStream =
-                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP)
+                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog())
                             .readEntity(InputStream.class);
 
                     // get backup collections to reconstruct.

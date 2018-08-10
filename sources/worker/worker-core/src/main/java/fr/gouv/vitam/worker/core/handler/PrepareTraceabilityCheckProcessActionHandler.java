@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -149,7 +150,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
             response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory);
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory, AccessLogUtils.getNoLogAccessLog());
 
             // Idempotency - we check if a folder exist
             if (workspaceClient.isExistingContainer(param.getContainerName())) {

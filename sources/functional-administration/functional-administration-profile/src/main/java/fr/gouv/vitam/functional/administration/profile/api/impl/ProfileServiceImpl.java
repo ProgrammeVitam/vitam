@@ -46,6 +46,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -424,7 +425,7 @@ public class ProfileServiceImpl implements ProfileService {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY,
-                profileMetadata.getPath(), DataCategory.PROFILE);
+                profileMetadata.getPath(), DataCategory.PROFILE, AccessLogUtils.getNoLogAccessLog());
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + profileMetadata.getPath());

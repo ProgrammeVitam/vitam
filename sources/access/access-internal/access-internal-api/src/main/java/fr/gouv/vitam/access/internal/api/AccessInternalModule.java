@@ -28,14 +28,15 @@ package fr.gouv.vitam.access.internal.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.core.Response;
+import java.util.Date;
 
 /**
  * AccessModule interface for database operations in select
@@ -113,7 +114,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException For other technical errors
      */
     Response getOneObjectFromObjectGroup(String idObjectGroup,
-        String qualifier, int version)
+        String qualifier, int version, String idUnit)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;
 

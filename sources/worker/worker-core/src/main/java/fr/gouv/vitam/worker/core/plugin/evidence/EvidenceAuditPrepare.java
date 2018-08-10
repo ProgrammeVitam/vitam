@@ -26,11 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -115,7 +115,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
         Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
             String name = operationId + ".json";
-            response = client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT);
+            response = client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));

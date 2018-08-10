@@ -168,7 +168,7 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
-    public Response getObjectStreamAsync(HttpHeaders headers, String idObjectGroup) {
+    public Response getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, String unitId) {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 

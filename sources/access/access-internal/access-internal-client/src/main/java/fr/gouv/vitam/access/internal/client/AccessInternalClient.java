@@ -124,15 +124,16 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * Retrieve an Object data as an input stream
      * @param objectGroupId the Id of the ObjectGroup
-     * @param usage the requested usage
-     * @param version the requested version of the usage
+     * @param usage         the requested usage
+     * @param version       the requested version of the usage
+     * @param unitId        the id used by the user to have access to the object
      * @return Response containing InputStream for the object data
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
-    Response getObject(String objectGroupId, String usage, int version)
+    Response getObject(String objectGroupId, String usage, int version, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException;
 

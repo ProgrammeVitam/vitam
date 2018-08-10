@@ -37,11 +37,8 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.DataLoader;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamRuleRunner;
-import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.*;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -61,12 +58,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -76,13 +68,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -102,11 +88,7 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.database.collections.*;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -134,38 +116,20 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Ingest Internal integration test
@@ -439,7 +403,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final String objectId = valuesAsText.get(0);
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage = storageClient.getContainerAsync("default", objectId,
-                DataCategory.OBJECT);
+                DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
             final long size = StreamUtils.closeSilently(sizedInputStream);
@@ -448,7 +412,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertTrue(size > 1000);
 
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            responseStorage = accessClient.getObject(og, "BinaryMaster", 1);
+            responseStorage = accessClient.getObject(og, "BinaryMaster", 1, "unitId");
             inputStream = responseStorage.readEntity(InputStream.class);
 
             // get initial lfc version
@@ -1974,7 +1938,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     /**
      * Check error report
      *
-     * @param fileInputStreamToImport the given FileInputStream
+     * @param fileInputStreamToImport   the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
@@ -2370,7 +2334,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         JsonNode unitButtesChaumont2 = null;
         for (JsonNode jsonNode : results2.get("$results")) {
-            if(jsonNode.get("Title").asText().equals("Buttes-Chaumont")) {
+            if (jsonNode.get("Title").asText().equals("Buttes-Chaumont")) {
                 unitButtesChaumont2 = jsonNode;
             }
         }

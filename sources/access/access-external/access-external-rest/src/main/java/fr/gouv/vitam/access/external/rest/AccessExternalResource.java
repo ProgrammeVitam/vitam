@@ -469,7 +469,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
             }
             MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-            return asyncObjectStream(multipleMap, idObjectGroup);
+            return asyncObjectStream(multipleMap, idObjectGroup, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.debug(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -647,7 +647,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup) {
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup, String unitId) {
 
         try {
             if (!multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
@@ -676,7 +676,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             final Response response =
-                client.getObject(idObjectGroup, xQualifier, Integer.valueOf(xVersion));
+                client.getObject(idObjectGroup, xQualifier, Integer.valueOf(xVersion), unitId);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);
             headers.put(GlobalDataRest.X_VERSION, xVersion);
