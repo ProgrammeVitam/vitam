@@ -46,6 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -68,10 +71,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -490,8 +490,9 @@ public class LogbookInternalResourceImpl {
             // Get zip file
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
+            AccessLogInfoModel logInfo = AccessLogUtils.getNoLogAccessLog();
             final Response response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory);
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory, logInfo);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);

@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -1048,7 +1049,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public Response getContainerByCategory(String strategyId, String objectId, DataCategory category)
+        public Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AccessLogInfoModel logInfo)
             throws StorageException {
             return getContainerByCategoryResponse();
         }

@@ -60,6 +60,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -73,11 +75,10 @@ public class StorageLogAdministration {
 
     //TODO : could be useful to create a Junit for this
 
-    private static final String STORAGE_LOGBOOK = "storage_logbook";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAdministration.class);
 
-    private static final String STP_OP_SECURISATION = "STORAGE_BACKUP";
+    private static final String STORAGE_WRITE_BACKUP = "STORAGE_BACKUP";
+    private static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
 
     private static final String STRATEGY_ID = "default";
     final StorageLog storageLogService;
@@ -87,7 +88,10 @@ public class StorageLogAdministration {
     }
 
     /**
-     * secure the logbook operation since last securisation.
+     * backup the log files since last backup: <br/>
+     * * Link the appender to a new file in order to continue to log access/write during the operation <br/>
+     * * Copy previous log files from Storage to Offers </br>
+     * * Delete old files from Storage
      *
      * @return the GUID of the operation
      * @throws IOException                         if an IOException is thrown while generating the secure storage
@@ -96,7 +100,7 @@ public class StorageLogAdministration {
      * @throws LogbookClientAlreadyExistsException if the logbook already exists
      * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
      */
-    public synchronized GUID backupStorageLog()
+    public synchronized GUID backupStorageLog(Boolean backupWriteLog)
         throws IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         // TODO: use a distributed lock to launch this function only on one server (cf consul)
@@ -104,15 +108,24 @@ public class StorageLogAdministration {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            createLogbookOperationStarted(helper, eip);
 
-            List<LogInformation> info = storageLogService.rotateLogFile(tenantId);
+            String evType;
 
-            for (LogInformation logInformation : info) {
-                storeLogFile(helper, tenantId, eip, logInformation);
+            if (backupWriteLog) {
+                evType = STORAGE_WRITE_BACKUP;
+            } else {
+                evType = STORAGE_ACCESS_BACKUP;
             }
 
-            createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.OK);
+            createLogbookOperationStarted(helper, eip, evType);
+
+            List<LogInformation> info = storageLogService.rotateLogFile(tenantId, backupWriteLog);
+
+            for (LogInformation logInformation : info) {
+                storeLogFile(helper, tenantId, eip, logInformation, storageLogService, evType, backupWriteLog);
+            }
+
+            createLogbookOperationEvent(helper, eip, evType, StatusCode.OK);
 
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
@@ -124,10 +137,11 @@ public class StorageLogAdministration {
     }
 
     private void storeLogFile(LogbookOperationsClientHelper helper, Integer tenantId, GUID eip,
-        LogInformation logInformation) throws LogbookClientNotFoundException, StorageLogException {
+        LogInformation logInformation, StorageLog storageLogService, String evType, boolean isWriteOperation)
+        throws LogbookClientNotFoundException, StorageLogException {
         LOGGER.info("Storing log file " + logInformation.getPath());
 
-        String fileName = tenantId + "_" + STORAGE_LOGBOOK + "_"
+        String fileName = tenantId + "_" + storageLogService.getFileName(isWriteOperation) + "_"
             + logInformation.getBeginTime().format(getDateTimeFormatter()) + "_"
             + logInformation.getEndTime().format(getDateTimeFormatter()) + "_"
             + eip.toString() + ".log";
@@ -150,13 +164,15 @@ public class StorageLogAdministration {
                     description.setWorkspaceContainerGUID(containerName);
                     description.setWorkspaceObjectURI(fileName);
 
-                    storageClient.storeFileFromWorkspace(
-                        STRATEGY_ID, DataCategory.STORAGELOG, fileName, description);
+                    // TODO ? Should we put accessLog in another DataCategory ?
+                    storageClient.storeFileFromWorkspace(STRATEGY_ID,
+                        isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG,
+                        fileName, description);
 
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException e) {
                     LOGGER.error("unable to store log file", e);
-                    createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
+                    createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
                     throw new StorageLogException(e);
                 }
 
@@ -177,18 +193,18 @@ public class StorageLogAdministration {
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error("Unable to create container", e);
-            createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
+            createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
             throw new StorageLogException(e);
         }
     }
 
-    private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
+    private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip, String evType)
         throws LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_BACKUP,
+            .newLogbookOperationParameters(eip, evType, eip, LogbookTypeProcess.STORAGE_BACKUP,
                 StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(STP_OP_SECURISATION, StatusCode.STARTED), eip);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, STP_OP_SECURISATION +
+                VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED), eip);
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, evType +
             "." + StatusCode.STARTED);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);

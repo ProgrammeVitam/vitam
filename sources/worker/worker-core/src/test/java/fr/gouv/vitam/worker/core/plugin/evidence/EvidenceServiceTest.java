@@ -54,6 +54,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
+import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
@@ -78,10 +79,8 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -172,7 +171,7 @@ public class EvidenceServiceTest {
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
 
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK)))
+        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
             .thenReturn(responseMock);
         when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any()))
             .thenReturn(OFFERS_INFO);
@@ -283,12 +282,12 @@ public class EvidenceServiceTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK)))
+        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
             .thenReturn(responseMock);
         assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip"))
             .isNotNull();
 
-        when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK))
+        when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK, anyObject()))
             .thenThrow(StorageNotFoundException.class);
 
         assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test"))

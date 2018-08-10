@@ -103,6 +103,30 @@ public enum StorageLogbookParameterName {
      * <br>
      * Can be null
      */
-    objectIdentifierIncome
+    objectIdentifierIncome,
+    /**
+     * Object qualifier in the objectGroup
+     */
+    qualifier,
+    /**
+     * Object version in the objectGroup
+     */
+    version,
+    /**
+     * Context Id of the request
+     */
+    contextId,
+    /**
+     * Access Contract Id of the request
+     */
+    contractId,
+    /**
+     * Archive Units ID with contains the object
+     */
+    archivesId,
+    /**
+     * Object Size
+     */
+    objectSize;
 
 }

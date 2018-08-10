@@ -24,48 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.accesslogger;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogStructure;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
-
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 
 /**
- * Storage log provider. It describes methods to be implemented.
+ * Storage log service interface. It describes methods to be implemented.
  */
-public interface StorageLog extends VitamAutoCloseable {
+public interface AccessLogService  {
 
-    /**
-     * Add a storage write operation log entry.
-     *
-     * @param parameters the entry parameters
-     * @throws IOException if an error is encountered
+    /** Create a JSON accessLog with the specified data and level
+     * @param level log level
+     * @param data to log as JSON
      */
-    void appendWriteLog(Integer tenant, StorageLogbookParameters parameters) throws IOException;
+    void logAccess(VitamLogLevel level, AccessLogStructure data) throws StorageAccessLogException ;
 
-    /**
-     * Add a storage access operation log entry.
-     *
-     * @param parameters the entry parameters
-     * @throws IOException if an error is encountered
+    /** Create a JSON accessLog with the specified data with level INFO
+     * @param data to log as JSON
      */
-    void appendAccessLog(Integer tenant, AccessLogParameters parameters) throws IOException;
+    void logAccess(AccessLogStructure data) throws StorageAccessLogException;
 
-    /**
-     * Rotate log file, and return previous log information
-     *
-     * @param tenantId tenant used for the rotation
-     * @param isWriteOperation
-     */
-    List<LogInformation> rotateLogFile(Integer tenantId, boolean isWriteOperation) throws IOException;
-
-    void initializeStorageLogs(Path basePath) throws IOException;
-
-    String getFileName(boolean isWriteOperation);
 }

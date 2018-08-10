@@ -52,6 +52,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
@@ -591,7 +592,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenPreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @RunWithCustomExecutor
@@ -599,7 +600,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @RunWithCustomExecutor
@@ -607,7 +608,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @RunWithCustomExecutor
@@ -615,7 +616,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT)
+        final InputStream stream = client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
             .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);

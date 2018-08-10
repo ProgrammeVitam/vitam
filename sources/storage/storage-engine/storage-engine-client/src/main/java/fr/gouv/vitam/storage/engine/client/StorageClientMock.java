@@ -40,6 +40,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
 
@@ -162,7 +163,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String guid, DataCategory type)
+    public Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException {
 
         if (null != guid && guid.endsWith(".rng")) {
@@ -186,6 +187,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CURSOR, true);
         return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
+    }
+
+    @Override
+    public RequestResponseOK storageAccessLogBackup() throws StorageServerClientException, InvalidParseOperationException {
+        return new RequestResponseOK<String>()
+            .addResult(GUIDFactory.newGUID().toString());
     }
 
     @Override

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -148,13 +149,14 @@ public interface StorageClient extends BasicClient {
      *
      * @param strategyId the storage strategy id
      * @param guid       vitam guid of the object to be returned
-     * @param type the object type to list
+     * @param type       the object type to list
+     * @param logInfo    additional information for accessLog
      * @return the object requested
      * @throws StorageServerClientException if the Server got an internal error
      * @throws StorageNotFoundException     if the Server got a NotFound result, if the container or the object does not
      *                                      exist
      */
-    Response getContainerAsync(String strategyId, String guid, DataCategory type)
+    Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException;
 
     /**
@@ -167,6 +169,16 @@ public interface StorageClient extends BasicClient {
      */
     VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
         throws StorageServerClientException;
+
+
+    /**
+     * Call storage accesslog backup operation.
+     *
+     * @return Storage logbook backup response
+     * @throws StorageServerClientException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK storageAccessLogBackup() throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log backup operation.

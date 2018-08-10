@@ -43,6 +43,9 @@ import java.util.Map;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.model.RequestResponse;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
@@ -53,7 +56,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
@@ -174,7 +176,7 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
             new FakeInboundResponse(Status.OK, IOUtils.toInputStream("Fake Content", Charset.defaultCharset()),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null))
             .when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject());
+            .getContainerAsync(anyObject(), anyObject(), anyObject(), AccessLogUtils.getNoLogAccessLog());
 
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -216,7 +218,7 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
             .selectOperation(anyObject());
         Mockito.doThrow(new StorageNotFoundException("Error with Storage")).when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject());
+            .getContainerAsync(anyObject(), anyObject(), anyObject(), AccessLogUtils.getNoLogAccessLog());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -235,7 +237,7 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
             new FakeInboundResponse(Status.OK, IOUtils.toInputStream("Fake Content", Charset.defaultCharset()),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null))
             .when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject());
+            .getContainerAsync(anyObject(), anyObject(), anyObject(), anyObject());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

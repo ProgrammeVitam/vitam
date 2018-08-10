@@ -921,9 +921,9 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(reponseFinal);
 
         final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
@@ -943,9 +943,9 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
 
         assertNotNull(reponseFinal);
 
@@ -973,9 +973,9 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "Thumbnail", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "Thumbnail", 0, "unit0");
         assertNotNull(reponseFinal);
 
         InputStream entity = (InputStream) reponseFinal.getEntity();
@@ -1007,9 +1007,9 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenReturn(responseMock);
-        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(response);
         InputStream entity = (InputStream) response.getEntity();
     }
@@ -1023,9 +1023,9 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_MULTIPLE_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenReturn(responseMock);
-        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(response);
         InputStream entity = (InputStream) response.getEntity();
     }
@@ -1035,7 +1035,7 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -1044,9 +1044,9 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
     }
 
     @Test

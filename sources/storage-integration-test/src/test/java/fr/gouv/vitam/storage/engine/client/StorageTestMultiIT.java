@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -708,7 +709,7 @@ public class StorageTestMultiIT {
             }
             Response response = null;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                response = storageClient.getContainerAsync("default", storageId.getId(), DataCategory.OBJECT);
+                response = storageClient.getContainerAsync("default", storageId.getId(), DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                 if (status == Status.OK && response.hasEntity()) {
                     return true;

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -185,14 +186,15 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Get a specific Object binary data as an input stream
      * <p>
      *
-     * @param strategyId id of the strategy
-     * @param objectId   id of the object
-     * @param category
+     * @param strategyId     id of the strategy
+     * @param objectId       id of the object
+     * @param category       category of the object
+     * @param logInformation information for accessLog
      * @return an object as a Response with an InputStream
      * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String objectId, DataCategory category) throws StorageException;
+    Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AccessLogInfoModel logInformation) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream
