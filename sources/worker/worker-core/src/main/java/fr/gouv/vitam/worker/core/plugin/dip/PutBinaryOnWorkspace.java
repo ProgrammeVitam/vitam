@@ -36,13 +36,17 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -63,7 +67,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     private static final String PUT_BINARY_ON_WORKSPACE = "PUT_BINARY_ON_WORKSPACE";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
-    static final int GUID_TO_PATH_RANK = 0;
+    static final int GUID_TO_INFO_RANK = 0;
     public static final int NUMBER_OF_RETRY = 3;
 
     /**
@@ -96,7 +100,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(PUT_BINARY_ON_WORKSPACE);
 
         Map<String, Object> guidToPath;
-        try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_PATH_RANK))) {
+        try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_INFO_RANK))) {
 
             guidToPath = JsonHandler.getMapFromInputStream(inputStream);
 
@@ -120,14 +124,19 @@ public class PutBinaryOnWorkspace extends ActionHandler {
         return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
     }
 
-    private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToPath)
+    private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToInfo)
         throws ProcessingException, StorageNotFoundException, StorageServerClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            Response response = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT);
+            Map objectInfo = (Map) guidToInfo.get(param.getObjectName());
 
-            handler.transferInputStreamToWorkspace((String) guidToPath.get(param.getObjectName()),
+            Boolean mustLog = Boolean.valueOf(param.getMapParameters().get(WorkerParameterName.mustLogAccessOnObject));
+            AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
+
+            Response response = storageClient
+                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT, logInfo);
+
+            handler.transferInputStreamToWorkspace((String) objectInfo.get("FILE_NAME"),
                 (InputStream) response.getEntity(), null, false);
         }
     }

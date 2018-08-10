@@ -351,7 +351,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.createContainer(operationId);
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
 
-                processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), operationId, EXPORT_DIP);
+                ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
+                Boolean mustLog = ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
+                processingEntry.getExtraParams().put(
+                    WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
+                processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), processingEntry);
 
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =

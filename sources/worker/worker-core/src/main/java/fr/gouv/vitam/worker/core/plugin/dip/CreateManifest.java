@@ -38,12 +38,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 import javax.xml.bind.JAXBException;
@@ -66,6 +61,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -95,7 +91,7 @@ public class CreateManifest extends ActionHandler {
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
 
     static final int MANIFEST_XML_RANK = 0;
-    static final int GUID_TO_PATH_RANK = 1;
+    static final int GUID_TO_INFO_RANK = 1;
     static final int BINARIES_RANK = 2;
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
@@ -145,7 +141,6 @@ public class CreateManifest extends ActionHandler {
             SelectMultiQuery request = parser.getRequest();
             request.setProjection(projection);
 
-
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createUnitScrollSplitIterator(client,request);
 
@@ -168,17 +163,34 @@ public class CreateManifest extends ActionHandler {
 
                 Select select = new Select();
 
-                Map<String, String> idBinaryWithFileName = new HashMap<>();
+                Map<String, JsonNode> idBinaryWithFileName = new HashMap<>();
 
-                Iterable<List<String>> partitions = partition(ogs.values(), MAX_ELEMENT_IN_QUERY);
-                for (List<String> partition : partitions) {
-                    InQuery in = QueryHelper.in(id(), partition.toArray(new String[partition.size()]));
+                Iterable<List<Map.Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
+                for (List<Map.Entry<String, String>> partition : partitions) {
+
+                    ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
+                        .map(x -> new AbstractMap.SimpleEntry<>(x.getValue(), x.getKey()))
+                        .collect(
+                            ArrayListMultimap::create,
+                            (ArrayListMultimap<String, String> map, AbstractMap.SimpleEntry<String, String> entry) -> {
+                                map.put(entry.getKey(), entry.getValue());
+                            },
+                            (l, r) -> l.putAll(r)
+                        );
+
+                    InQuery in = QueryHelper.in(id(), partition.stream().map(Map.Entry::getValue).toArray(String[]::new));
+
                     select.setQuery(in);
                     JsonNode response = client.selectObjectGroups(select.getFinalSelect());
                     ArrayNode objects = (ArrayNode) response.get("$results");
 
                     for (JsonNode object : objects) {
-                        idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object));
+                        // FIXME Use nicely VarName or any constant for #id field
+                        List<String> linkedUnits = unitsForObjectGroupId.get(
+                            object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
+                        for (String linkedUnit: linkedUnits) {
+                            idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit));
+                        }
                     }
                 }
 
@@ -239,35 +251,35 @@ public class CreateManifest extends ActionHandler {
 
     private void createGraph(ListMultimap<String, String> multimap, Set<String> originatingAgencies,
         Map<String, String> ogs, JsonNode result) {
-        String id = result.get(id()).asText();
+        String archiveUnitId = result.get(id()).asText();
         ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.unitups());
         for (JsonNode node : nodes) {
-            multimap.put(node.asText(), id);
+            multimap.put(node.asText(), archiveUnitId);
         }
         Optional<JsonNode> originatingAgency = Optional.ofNullable(result.get(VitamFieldsHelper.originatingAgency()));
         if(originatingAgency.isPresent()) {
             originatingAgencies.add(originatingAgency.get().asText());
         }
-        JsonNode jsonNode1 = result.get(VitamFieldsHelper.object());
-        if (jsonNode1 != null) {
-            ogs.put(id, jsonNode1.asText());
+        JsonNode objectIdNode = result.get(VitamFieldsHelper.object());
+        if (objectIdNode != null) {
+            ogs.put(archiveUnitId, objectIdNode.asText());
         }
     }
 
-    private void storeBinaryInformationOnWorkspace(HandlerIO handlerIO, Map<String, String> maps)
+    private void storeBinaryInformationOnWorkspace(HandlerIO handlerIO, Map<String, JsonNode> maps)
         throws ProcessingException {
-        File guidToPathFile = handlerIO.getNewLocalFile(handlerIO.getOutput(GUID_TO_PATH_RANK).getPath());
+        File guidToInfo = handlerIO.getNewLocalFile(handlerIO.getOutput(GUID_TO_INFO_RANK).getPath());
         File binaryListFile = handlerIO.getNewLocalFile(handlerIO.getOutput(BINARIES_RANK).getPath());
 
         try {
-            JsonHandler.writeAsFile(maps, guidToPathFile);
+            JsonHandler.writeAsFile(maps, guidToInfo);
             JsonHandler.writeAsFile(maps.keySet(), binaryListFile);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
 
         // put file in workspace
-        handlerIO.addOutputResult(GUID_TO_PATH_RANK, guidToPathFile, true, false);
+        handlerIO.addOutputResult(GUID_TO_INFO_RANK, guidToInfo, true, false);
         handlerIO.addOutputResult(BINARIES_RANK, binaryListFile, true, false);
     }
 

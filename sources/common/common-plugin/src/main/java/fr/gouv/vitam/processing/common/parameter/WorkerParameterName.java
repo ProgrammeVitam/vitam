@@ -141,7 +141,12 @@ public enum WorkerParameterName {
     /**
      * Max event count to select during a single logbook lifecycle traceability workflow.
      */
-    lifecycleTraceabilityMaxEntries;
+    lifecycleTraceabilityMaxEntries,
+
+    /**
+     * Boolean that indicate for Export DIP workflow if the access to an object must be (or not) logged
+     */
+    mustLogAccessOnObject;
 
     public static HashSet<String> getEnums() {
 

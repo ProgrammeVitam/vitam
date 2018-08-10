@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace.GUID_TO_PATH_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace.GUID_TO_INFO_RANK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -38,6 +38,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.Before;
@@ -81,7 +82,7 @@ public class PutBinaryOnWorkspaceTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
         URL url = this.getClass().getResource("/PutBinaryOnWorkspace/guid_to_path.json");
-        given(handlerIO.getInput(GUID_TO_PATH_RANK)).willReturn(new File(url.toURI()));
+        given(handlerIO.getInput(GUID_TO_INFO_RANK)).willReturn(new File(url.toURI()));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -108,7 +109,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
             .willThrow(new StorageServerClientException("transfer failed"))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
@@ -128,7 +129,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
             .willThrow(new StorageServerClientException("transfer failed"));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -141,7 +142,7 @@ public class PutBinaryOnWorkspaceTest {
         verify(handlerIO, never())
             .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
         verify(storageClient, times(3)).
-            getContainerAsync("default", guid, DataCategory.OBJECT);
+            getContainerAsync("default", guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @Test
@@ -149,7 +150,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))
