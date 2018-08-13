@@ -12,3 +12,12 @@ if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
         }
     )
 }
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name].admin.user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
+            roles: [ "root" ]
+        }
+    )
+}

@@ -108,6 +108,12 @@ Pour les composants Vitam standards
 Pour les composants de recette / documentation
     ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
 
+Modifier uniquement la configuration des clusters mongodb
+---------------------------------------------------------
+
+Modifier les options associées puis lancer le playbook de cette manière:
+    ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_mongodb_configuration``
+
 
 Automatisation du chargement de PRONOM
 --------------------------------------
