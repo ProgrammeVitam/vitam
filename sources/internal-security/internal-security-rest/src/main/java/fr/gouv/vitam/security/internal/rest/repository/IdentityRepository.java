@@ -31,6 +31,7 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.security.internal.common.model.CertificateBaseModel;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import org.bson.Document;
@@ -102,7 +103,8 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
     }
 
     private Bson filterBySubjectDNAndSerialNumber(String subjectDN, BigInteger serialNumber) {
-        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber.intValue()));
+        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber.intValue()),
+            eq(CertificateBaseModel.STATUS_TAG, CertificateStatus.VALID.name()));
     }
 
     /**
