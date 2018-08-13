@@ -18,7 +18,7 @@ vitam_offers:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
   offer-swift-1:
-    # provider : openstack-swift-v1 for v1 or openstack-swift-v3 for v3
+    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift-v3
     # swiftKeystoneAuthUrl : URL de connexion à keystone
     swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
@@ -33,7 +33,7 @@ vitam_offers:
     # swiftUrl: https://swift-hostname:port/swift/v1
 
   # example_swift_v1:
-  #    provider: openstack-swift-v1
+  #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
   #    swiftDomain: domain
   #    swiftUser: user
