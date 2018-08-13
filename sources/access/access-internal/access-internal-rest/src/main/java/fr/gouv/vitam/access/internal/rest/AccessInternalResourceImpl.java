@@ -65,6 +65,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
+import fr.gouv.vitam.access.internal.core.OntologyUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -110,6 +111,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -794,7 +796,16 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             if (!(parser instanceof UpdateParserMultiple)) {
                 parser.getRequest().reset();
                 throw new IllegalArgumentException(REQUEST_IS_NOT_AN_UPDATE_OPERATION);
+            } else {
+                try {
+                    OntologyUtils.addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
+                } catch (AdminManagementClientServerException | InvalidCreateOperationException |
+                        InvalidParseOperationException e) {
+                    LOGGER.error(e);
+                    throw new AccessInternalExecutionException("Error while adding ontology information", e);
+                }    
             }
+            
             boolean updateManagement = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
             Contexts context = updateManagement ? Contexts.MASS_UPDATE_UNIT : Contexts.MASS_UPDATE_UNIT_DESC;
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
