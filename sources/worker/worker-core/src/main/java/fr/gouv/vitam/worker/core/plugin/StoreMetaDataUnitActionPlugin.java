@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Stopwatch;
+
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -37,6 +39,7 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -50,6 +53,7 @@ import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Stores MetaData Unit plugin.
@@ -110,11 +114,16 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
 
             //// get metadata
+
+            Stopwatch loadAU = Stopwatch.createStarted();
             JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, metaDataClient);
             MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadAU.elapsed(TimeUnit.MILLISECONDS));
 
             //// get lfc
+            Stopwatch loadLFC = Stopwatch.createStarted();
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadLFC.elapsed(TimeUnit.MILLISECONDS));
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -123,9 +132,12 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             final String fileName = guid + JSON;
             try {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
+                Stopwatch storeWorkspace = Stopwatch.createStarted();
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                         null, false);
+                PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeWorkspace", storeWorkspace.elapsed(TimeUnit.MILLISECONDS));
+
             } catch (ProcessingException e) {
                 LOGGER.error("Could not backup file for " + guid, e);
                 throw new WorkspaceClientServerException(e);
@@ -137,7 +149,11 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
                 new ObjectDescription(DataCategory.UNIT, containerName,
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store metadata object from workspace
+            Stopwatch storeStorage = Stopwatch.createStarted();
+
             storeObject(description, itemStatus);
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage", storeStorage.elapsed(TimeUnit.MILLISECONDS));
+
         }
     }
 }
