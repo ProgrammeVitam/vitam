@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
@@ -43,6 +45,7 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
@@ -60,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -209,7 +213,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 LOGGER.error(err);
                 throw new ArchiveUnitContainSpecialCharactersException(err);
             }
+            Stopwatch ontologyTime = Stopwatch.createStarted();
             handleExternalOntologies(archiveUnit, itemStatus, validator);
+            PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationOntology", ontologyTime.elapsed(TimeUnit.MILLISECONDS));
 
             handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
             if (isUpdateJsonMandatory) {
@@ -217,7 +223,11 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     false, asyncIO);
             }
 
-            return validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
+            Stopwatch validationJson = Stopwatch.createStarted();
+            SchemaValidationStatus schemaValidationStatus = validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
+            PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationJson", validationJson.elapsed(TimeUnit.MILLISECONDS));
+
+            return schemaValidationStatus;
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("File couldnt be converted into json", e);
             return new SchemaValidationStatus("File is not a valid json file",
@@ -252,7 +262,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 return;
             }
             List<String> errors = new ArrayList<>();
+
             validator.verifyAndReplaceFields(archiveUnitData, ontologiesByIdentifier, errors);
+
             if (!errors.isEmpty()) {
                 String error = "Archive unit contains fields declared in ontology with a wrong format : " +
                     String.join(",", errors.toString());
