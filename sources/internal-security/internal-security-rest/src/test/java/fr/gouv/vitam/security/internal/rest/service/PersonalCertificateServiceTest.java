@@ -173,6 +173,7 @@ public class PersonalCertificateServiceTest {
         byte[] certificate = toByteArray(stream);
 
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
+        personalCertificateModel.setCertificate(certificate);
         given(logbookOperationsClientFactory.getClient()).willReturn(mock(LogbookOperationsClient.class));
         given(personalRepository.findPersonalCertificateByHash(any()))
             .willReturn(Optional.of(personalCertificateModel));
@@ -213,6 +214,7 @@ public class PersonalCertificateServiceTest {
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
+        personalCertificateModel.setCertificate(certificate);
         given(personalRepository.findPersonalCertificateByHash(any()))
             .willReturn(Optional.of(personalCertificateModel));
         // When

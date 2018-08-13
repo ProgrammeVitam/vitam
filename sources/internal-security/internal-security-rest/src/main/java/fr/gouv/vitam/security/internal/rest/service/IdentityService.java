@@ -28,13 +28,13 @@ package fr.gouv.vitam.security.internal.rest.service;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 
-import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
@@ -63,8 +63,9 @@ public class IdentityService {
         identityModel.setId(GUIDFactory.newGUID().toString());
         identityModel.setContextId(identityInsertModel.getContextId());
         identityModel.setCertificate(identityInsertModel.getCertificate());
+        identityModel.setCertificateStatus(CertificateStatus.VALID);
 
-        X509Certificate certificate = parseCertificate(identityInsertModel.getCertificate());
+        X509Certificate certificate = X509PKIUtil.parseX509Certificate(identityInsertModel.getCertificate());
 
         identityModel.setSubjectDN(certificate.getSubjectDN().getName());
         identityModel.setIssuerDN(certificate.getIssuerDN().getName());
@@ -81,7 +82,7 @@ public class IdentityService {
      */
     public Optional<IdentityModel> linkContextToIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
-        X509Certificate x509Certificate = parseCertificate(identityInsertModel.getCertificate());
+        X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(identityInsertModel.getCertificate());
 
         Optional<IdentityModel> identityModel = identityRepository.findIdentity(
             x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
@@ -102,14 +103,18 @@ public class IdentityService {
      */
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws CertificateException, InvalidParseOperationException {
-        X509Certificate x509Certificate = parseCertificate(certificate);
-        return identityRepository
-            .findIdentity(x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
-    }
 
-    private X509Certificate parseCertificate(byte[] certificate) throws CertificateException {
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
+        X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(certificate);
+
+        Optional<IdentityModel> identityModelOptional = identityRepository
+            .findIdentity(x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
+
+        //check validity of the  retrieved certificate from VITAM DB
+        if (identityModelOptional.isPresent()) {
+            X509PKIUtil.parseX509Certificate(identityModelOptional.get().getCertificate());
+        }
+
+        return identityModelOptional;
     }
 
     /**
