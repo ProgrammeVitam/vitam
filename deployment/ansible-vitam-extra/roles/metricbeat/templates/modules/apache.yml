@@ -1,0 +1,6 @@
+- module: apache
+  hosts: ["http://{{ ip_admin }}"]
+  server_status_path: "server-status"
+  metricsets: ["status"]
+  period: 20s
+  enabled: true

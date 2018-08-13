@@ -1,0 +1,7 @@
+- module: ceph
+  metricsets: ["cluster_health", "cluster_status", "monitor_health"]
+  period: 10s
+
+- module: ceph
+  metricsets: ["cluster_disk", "osd_tree", "pool_disk"]
+  period: 1m

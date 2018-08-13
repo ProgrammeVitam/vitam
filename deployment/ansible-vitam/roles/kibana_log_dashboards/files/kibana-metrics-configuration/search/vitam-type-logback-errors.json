@@ -1,15 +1,15 @@
 {
-  "title": "vitam-type-logback-errors",
-  "description": "",
-  "columns": [
-    "log_message",
-    "prog_name"
-  ],
   "sort": [
     "@timestamp",
     "desc"
   ],
   "kibanaSavedObjectMeta": {
     "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":null,\"disabled\":true,\"index\":\"logstash-vitam*\",\"key\":\"logger\",\"negate\":false,\"value\":\"logback\"},\"query\":{\"match\":{\"logger\":{\"query\":\"logback\",\"type\":\"phrase\"}}}},{\"$state\":{\"store\":\"appState\"},\"bool\":{\"must\":[{\"term\":{\"log_level\":\"ERROR\"}}]},\"meta\":{\"alias\":\"errors\",\"disabled\":false,\"index\":\"logstash-vitam*\",\"key\":\"bool\",\"negate\":false,\"value\":\"{\\\"must\\\":[{\\\"term\\\":{\\\"log_level\\\":\\\"ERROR\\\"}}]}\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
-  }
+  },
+  "description": "",
+  "columns": [
+    "log_message",
+    "prog_name"
+  ],
+  "title": "vitam-type-logback-errors"
 }

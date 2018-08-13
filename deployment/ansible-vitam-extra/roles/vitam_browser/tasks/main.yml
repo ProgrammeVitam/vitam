@@ -1,46 +1,44 @@
 ---
+- name: Set apache service name for CentOS
+  set_fact:
+    apache_service: "httpd"
+    apache_conf_dir: "conf.d"
+    apache_user: "apache"
+    apache_group: "apache"
+  when: (ansible_distribution == "CentOS")
+
+- name: Set apache service name for Debian
+  set_fact:
+    apache_service: "apache2"
+    apache_conf_dir: "sites-available"
+    apache_user: "www-data"
+    apache_group: "root"
+  when: (ansible_distribution == "Debian")
+
 - name: Install vitam user for /vitam browser
   package:
     name: vitam-user-vitam
     state: latest
 
-- name: Install Apache package for displaying data content
-  package:
-    name: httpd
-  when: (ansible_distribution == "CentOS" )
 
-- name: Install Apache package for displaying data content
+- name: install apache2 for displaying data content
   package:
-    name: apache2
-  when: ( ansible_distribution == "Debian")
+    name: "{{ apache_service }}"
+    state: latest
 
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
 
-- name: Ensure  Apache autostart && Apache is started on Centos
+- name: Ensure  Apache autostart && Apache is started
   service: 
-    name: httpd
+    name: "{{ apache_service }}"
     enabled: yes
     state: started
-  when: (ansible_distribution == "CentOS" )
 
-- name: Ensure  Apache autostart && Apache is started on Debian
-  service: 
-    name: apache2
-    enabled: yes
-    state: started
-  when: (ansible_distribution == "Debian" )
 
-- name: add vitam group to apache user on Centos
+- name: add vitam group to apache user
   user:
-    name: apache
-    groups: vitam
-  when: (ansible_distribution == "CentOS" )
-
-- name: add vitam group to apache user on Centos
-  user:
-    name: www-data
-    groups: vitam
-  when: (ansible_distribution == "Debian" )
+    name: "{{ apache_user }}"
+    groups: "{{ vitam_defaults.users.group }}"
 
 - name: copy theme files
   copy:
@@ -48,36 +46,25 @@
     dest: "{{ vitam_defaults.folder.root_path }}"
     owner: "root"
     mode: 0644
-
-- name: add configuration file for mapping on Centos # + notify httpd restart
-  template:
-    src: "{{ item }}.j2"
-    dest: "/etc/httpd/conf.d/{{ item }}"
-    mode: 0500
-    owner: root
-  when: (ansible_distribution == "CentOS" )
   notify: restart apache
-  with_items:
-  - "httpd-offer-view.conf"
 
-- name: add configuration file for mapping on Debian # + notify httpd restart
+- name: add configuration file for mapping # + notify httpd restart
   template:
     src: "{{ item }}.j2"
-    dest: "/etc/apache2/sites-available/{{ item }}"
+    dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
     mode: 0500
     owner: root
-  when: (ansible_distribution == "Debian" )
-  notify: restart apache2
+  notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
 
 - name: activate offer view in Debian only
   file:
-    src: '/etc/apache2/sites-available/{{ item }}'
-    dest: '/etc/apache2/sites-enabled/{{ item }}'
+    src: '/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}'
+    dest: '/etc/{{ apache_service }}/sites-enabled/{{ item }}'
     state: link
   when: (ansible_distribution == "Debian" )
-  notify: restart apache2
+  notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
 

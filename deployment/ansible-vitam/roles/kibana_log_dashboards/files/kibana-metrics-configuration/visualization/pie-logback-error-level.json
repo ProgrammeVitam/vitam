@@ -1,5 +1,4 @@
-
-  {
+{
       "title": "pie-logback-error-level",
       "visState": "{\"title\":\"pie-logback-error-level\",\"type\":\"pie\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"isDonut\":false,\"legendPosition\":\"right\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"log_level.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"ERROR_LEVEL\"}}],\"listeners\":{}}",
       "uiStateJSON": "{}",
@@ -9,4 +8,4 @@
       "kibanaSavedObjectMeta": {
         "searchSourceJSON": "{\"filter\":[]}"
       }
-  }
+}

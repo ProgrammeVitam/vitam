@@ -1,0 +1,6 @@
+{% if inventory_hostname in groups['hosts-elasticsearch-data'] %}
+- module: elasticsearch
+  period: {{ metricbeat.elasticsearch.period }}s
+  hosts: ["{{ ip_service }}:{{ elasticsearch.data.port_http }}"]
+  metricsets: ["node", "node_stats"]
+{% endif %}

@@ -1,18 +1,18 @@
 {
-  "title": "MongoDB ES synchro errors",
+  "sort": [
+    "@timestamp",
+    "desc"
+  ],
   "description": "",
+  "title": "MongoDB ES synchro errors",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"highlightAll\":true,\"version\":true,\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"log_message:\\\"Consistency Error\\\" AND log_message:\\\"in ES is not in MongoDB anymore\\\"\"}},\"filter\":[]}"
+  },
   "columns": [
     "hostname",
     "vitam_component",
     "logger",
     "log_message"
-  ],
-  "sort": [
-    "@timestamp",
-    "desc"
-  ],
-  "version": 1,
-  "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"highlightAll\":true,\"version\":true,\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"log_message:\\\"Consistency Error\\\" AND log_message:\\\"in ES is not in MongoDB anymore\\\"\"}},\"filter\":[]}"
-  }
+  ]
 }

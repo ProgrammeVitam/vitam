@@ -1,0 +1,5 @@
+---
+
+- hosts: vitam
+  roles:
+    - {role: metricbeat, when: "{{groups['hosts-elasticsearch-log'] | length > 0}}" }

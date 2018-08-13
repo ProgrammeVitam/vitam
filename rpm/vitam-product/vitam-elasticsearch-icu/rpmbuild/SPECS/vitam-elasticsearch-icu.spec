@@ -1,5 +1,5 @@
 Name:          vitam-elasticsearch-analysis-icu
-Version:       5.6.10
+Version:       6.3.2
 Release:       1%{?dist}
 Summary:       The ICU Analysis plugin for ElasticSearch integrates Lucene ICU module into elasticsearch, adding ICU relates analysis components.
 Group:         Applications/File
@@ -26,7 +26,7 @@ true
 # On crée l'arborescence cible
 mkdir -p %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
 # On pousse les fichiers
-cp -rp elasticsearch/* %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
+cp -rp * %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
 
 %pre
 

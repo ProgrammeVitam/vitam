@@ -1,12 +1,16 @@
 ---
 # tasks file for kibana_data_dashboards
 
+# Note pour exporter des dashboards
+# Pour export des dashboards, se mettre dans le dossier des JSON au niveau du rôle ansible, exécuter la commande : 
+# for dashboard in `ls`;do ID=$(echo $dashboard | sed -e "s/\.json//g"); echo $ID; curl "http://172.17.0.2/kibana_log/api/kibana/dashboards/export?dashboard=$ID" >> kibana6_$ID.json;done
+
 #### Kibana dashboards configuration ####
 
 - name: check wether replica number for metrics-vitam is compatible with inventory
   fail: msg="Too much replica defined for default index template in elasticsearch-data"
   when: groups['hosts-elasticsearch-data']|length <= kibana.data.replica and groups['hosts-elasticsearch-data']|length>1
-
+  tags: load_kibana_data
 
 - name: Wait for the kibana port to be open
   wait_for:
@@ -14,89 +18,122 @@
     port: "{{ kibana.data.port }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
+  tags: load_kibana_data
 
 - name: Wait until kibana service is OK
   uri:
     url: 'http://{{ip_service}}:{{ kibana.data.port }}/status'
     method: GET
+    #status_code: 200,302
   register: kibana_result
   until: kibana_result.status != 503
   retries: "{{ kibana.data.api_call_timeout }}"
   delay: 1
+  tags: load_kibana_data
 
-- name: Wait until .kibana index exists
-  uri:
-    url: '{{ elasticsearch.data|client_url }}.kibana'
-    method: HEAD
-    status_code: 200
-  register: kibana_result
-  until: kibana_result.status == 200
-  retries: "{{ kibana.data.api_call_timeout }}"
-  delay: 1
+- name: Modify response & convert to dict...
+  set_fact:
+    kibana_header: "{{ kibana_result |regex_replace('\\-', '_')}}"
+  tags: load_kibana_data
 
-- name: load default index template in Elasticsearch data
-  run_once: true
-  uri:
-    url: "{{ elasticsearch.data|client_url }}_template/all_templates"
-    method: PUT
-    body: "{{ lookup('template', '{{ role_path }}/templates/all_templates.json.j2') }}"
-    body_format: json
-    status_code: 200,201
-    timeout: "{{ kibana.data.api_call_timeout }}"
+#- debug: msg="{{ kibana_header.kbn_version }}"
 
+### elasticsearch data configuration and kibana configuration ###
+# - name: load default index template in Elasticsearch data
+#   run_once: true
+#   uri:
+#     url: "{{ elasticsearch.data|client_url }}_template/all_templates"
+#     method: PUT
+#     body: "{{ lookup('template', '{{ role_path }}/templates/all_templates.json.j2') }}"
+#     body_format: json
+#     status_code: 200,201
+
+# # OMA: this is a beurk task but sometimes, .kibana exists & is populated but nothing seen in webapp
+# - name: delete current .kibana
+#   run_once: true
+#   uri:
+#     url: "{{ elasticsearch.data|client_url }}.kibana"
+#     method: DELETE
+#     status_code: 200,404
 
 # We have a specific task for index pattern to add the "*" at the end of the url
-- name: load index patterns into Elasticsearch data .kibana index
-  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
-  tags: load_kibana_data
-  run_once: true
-  uri:
-    url: '{{ elasticsearch.data|client_url }}.kibana/{{ item.split(".")[0] }}*'
-    method: PUT
-    body: "{{ lookup('file', '{{ role_path }}/files/kibana-data-configuration/{{ item }}') }}"
-    body_format: json
-    status_code: 200, 201
-    timeout: "{{ kibana.data.api_call_timeout }}"
-  with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-  vars:
-    index_pattern_dir: "{{ role_path }}/files/kibana-data-configuration/index-pattern"
-
-- name: load dasboards into Elasticsearch data .kibana index
+- name: load index templates for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_data
   uri:
-    url: '{{ elasticsearch.data|client_url }}.kibana/{{ item.split(".")[0] }}'
-    method: PUT
-    body: "{{ lookup('file', '{{ role_path }}/files/kibana-data-configuration/{{ item }}') }}"
+    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
+    timeout: "{{ kibana.data.api_call_timeout }}"
+  with_fileglob: 
+    - "{{ role_path }}/files/kibana-data-configuration/index-pattern/*.json"
+
+- name: load search into Elasticsearch data .kibana index
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
+  run_once: true
+  tags: load_kibana_data
+  uri:
+    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
     status_code: 200, 201
     timeout: "{{ kibana.data.api_call_timeout }}"
-  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-  vars:
-    search_dir: "{{ role_path }}/files/kibana-data-configuration/search"
-    dashboard_dir: "{{ role_path }}/files/kibana-data-configuration/dashboard"
-    visualization_dir: "{{ role_path }}/files/kibana-data-configuration/visualization"
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
+  with_fileglob: 
+    - "{{ role_path }}/files/kibana-data-configuration/search/*.json"
 
-- name: Get kibana info for default index pattern
-  slurp:
-    src: /usr/share/kibana/package.json
-  register: result
+- name: load visualizations into Elasticsearch data .kibana index
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
+  tags: load_kibana_log
+  uri:
+    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
+    timeout: "{{ kibana.data.api_call_timeout }}"
+  with_fileglob: 
+    - "{{ role_path }}/files/kibana-data-configuration/visualization/*.json"
 
-- name: set fact packagejson
-  set_fact:
-    packagejson: "{{ result['content'] | b64decode | from_json }}"
+- name: load dashboards into Elasticsearch data .kibana index
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
+  tags: load_kibana_log
+  uri:
+    url: "http://{{ip_service}}:{{ kibana.log.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
+    timeout: "{{ kibana.data.api_call_timeout }}"
+  with_fileglob: 
+    - "{{ role_path }}/files/kibana-data-configuration/dashboard/*.json"
 
+# OMA : tout est OK, et pourtant... Ne marche pas !
 - name: set logbookoperation_* as kibana default index pattern
   when: "{{ (groups['hosts-kibana-data'] | length) > 0}}"
   tags: load_kibana_data
   run_once: true
   uri:
-    url: "{{ elasticsearch.data|client_url }}.kibana/config/{{ packagejson.version }}"
-    method: PUT
-    body: '{"defaultIndex": "logbookoperation_*", "buildNum": {{ packagejson.build.number }} }'
+    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/kibana/settings"
+    method: POST
+    body: ' {"changes":{"defaultIndex":"logbookoperation_*"}}'
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
     body_format: json
-    status_code: 200, 201
     timeout: "{{ kibana.data.api_call_timeout }}"
+    status_code: 200, 201
+
+

@@ -1,0 +1,7 @@
+---
+
+- hosts: library
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.library }}"
