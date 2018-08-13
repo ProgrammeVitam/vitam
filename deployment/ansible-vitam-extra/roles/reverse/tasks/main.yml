@@ -126,6 +126,17 @@
   notify:
      - reload apache
 
+- name: limit info in reverse headers
+  copy:
+    src: security.conf
+    dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/security.conf"
+    owner: "root"
+    mode: 0644
+  tags:
+    - update_package_vitam
+  notify:
+     - reload apache
+
 - name: remove default index page on Debian
   file:
     path: /etc/{{ apache_service }}/sites-enabled/000-default.conf
@@ -138,10 +149,13 @@
    
 - name: activate httpd configuration for debian
   file:
-    src: /etc/{{ apache_service }}/sites-available/zz_{{ vitam_reverse_external_dns }}.conf
-    dest: /etc/{{ apache_service }}/sites-enabled/zz_{{ vitam_reverse_external_dns }}.conf
+    src: /etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}
+    dest: /etc/{{ apache_service }}/sites-enabled/{{ item }}
     owner: "root"
     state: link
+  with_items:
+    - "zz_{{ vitam_reverse_external_dns }}.conf"
+    - "security.conf"
   when:  ansible_distribution == "Debian"
   tags:
     - update_package_vitam

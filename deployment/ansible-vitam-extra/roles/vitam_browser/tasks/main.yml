@@ -1,4 +1,5 @@
 ---
+
 - name: Set apache service name for CentOS
   set_fact:
     apache_service: "httpd"
@@ -15,25 +16,23 @@
     apache_group: "root"
   when: (ansible_distribution == "Debian")
 
-- name: Install vitam user for /vitam browser
+- name: Install vitam user for /vitam browser access rights
   package:
     name: vitam-user-vitam
     state: latest
-
-
-- name: install apache2 for displaying data content
+- name: install apache web server
   package:
     name: "{{ apache_service }}"
     state: latest
 
+
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
 
-- name: Ensure  Apache autostart && Apache is started
+- name: Ensure Apache autostart && Apache is started
   service: 
     name: "{{ apache_service }}"
     enabled: yes
     state: started
-
 
 - name: add vitam group to apache user
   user:
@@ -48,15 +47,29 @@
     mode: 0644
   notify: restart apache
 
-- name: add configuration file for mapping # + notify httpd restart
+- name: add configuration file for mapping on Centos # + notify httpd restart
   template:
     src: "{{ item }}.j2"
     dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
     mode: 0500
     owner: root
+  when: (ansible_distribution == "CentOS" )
   notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
+  - "security.conf"
+
+- name: add configuration file for mapping on Debian # + notify httpd restart
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
+    mode: 0500
+    owner: root
+  when: (ansible_distribution == "Debian" )
+  notify: restart apache2
+  with_items:
+  - "httpd-offer-view.conf"
+  - "security.conf"
 
 - name: activate offer view in Debian only
   file:
@@ -64,9 +77,10 @@
     dest: '/etc/{{ apache_service }}/sites-enabled/{{ item }}'
     state: link
   when: (ansible_distribution == "Debian" )
-  notify: restart apache
+  notify: restart apache2
   with_items:
   - "httpd-offer-view.conf"
+  - "security.conf"
 
 - include_tasks: htaccess.yml
   when: inventory_hostname in groups['hosts-storage-offer-default']
