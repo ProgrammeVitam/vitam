@@ -120,13 +120,16 @@ public class SecurityInternalMigrationIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
+        int initialCertifCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size();
+        int initialCertifPersoCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size();
+
         // Given certifcates without Status field in DB
         mongoRule.getMongoCollection(CERTIFICATE_COLLECTION)
             .insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
         mongoRule.getMongoCollection(PERSONAL_COLLECTION).insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
 
-        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(1);
-        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(initialCertifCollectionSize + 1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(initialCertifPersoCollectionSize + 1);
         //with Status filter, no result
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
             CertificateStatus.VALID.name()))).size()).isEqualTo(0);
