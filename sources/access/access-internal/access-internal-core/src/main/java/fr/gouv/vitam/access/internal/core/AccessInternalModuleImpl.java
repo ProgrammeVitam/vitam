@@ -560,7 +560,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
 
             try {
-                addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
+                OntologyUtils.addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
             } catch (AdminManagementClientServerException | InvalidCreateOperationException |
                 InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1740,53 +1740,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
         } catch (InvalidParseOperationException e) {
             return false;
-        }
-    }
-
-    private static void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
-        throws InvalidCreateOperationException, AdminManagementClientServerException,
-        InvalidParseOperationException {
-        UpdateMultiQuery request = updateParser.getRequest();
-        Select selectOntologies = new Select();
-        List<OntologyModel> ontologyModelList = new ArrayList<OntologyModel>();
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            selectOntologies.setQuery(
-                QueryHelper.and()
-                    .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
-                        OntologyType.BOOLEAN.getType(),
-                        OntologyType.DATE.getType(),
-                        OntologyType.LONG.getType()))
-                    .add(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName()))
-            );
-            selectOntologies
-                .setProjection(JsonHandler.getFromString("{\"$fields\": { \"Identifier\": 1, \"Type\": 1}}"));
-            RequestResponse<OntologyModel> responseOntologies =
-                adminClient.findOntologies(selectOntologies.getFinalSelect());
-            if (responseOntologies.isOk() &&
-                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
-                ontologyModelList =
-                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
-            } else {
-                // no external ontology, nothing to do
-                return;
-            }
-            if (ontologyModelList.size() > 0) {
-                ArrayNode ontologyArrayNode = JsonHandler.createArrayNode();
-                ontologyModelList.forEach(ontology -> {
-                    try {
-                        ontologyArrayNode.add(JsonHandler.toJsonNode(ontology));
-                    } catch (InvalidParseOperationException e) {
-                        LOGGER.error("could not parse this ontology", e);
-                    }
-                });
-                Action action =
-                    new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
-                        JsonHandler.unprettyPrint(ontologyArrayNode));
-                request.addActions(action);
-            }
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-            InvalidParseOperationException e) {
-            throw e;
         }
     }
 
