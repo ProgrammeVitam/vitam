@@ -59,15 +59,3 @@ A l'issue de l'installation, puis la validation, un **administrateur fonctionnel
 - à terme, le registre des fonds a été correctement importé
 
 Les chargements sont effectués depuis l':term:`IHM` demo.
-
-
-Cas du référentiel PRONOM
---------------------------
-
-Un playbook a été créé pour charger le référentiel PRONOM dans une version compatible avec celui intégré dans le composant Siegfried.
-
-Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé, permettant d'accélérer l'utilisation de VITAM.
-
-``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --ask-vault-pass``
-
-.. caution:: le playbook termine en erreur (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
