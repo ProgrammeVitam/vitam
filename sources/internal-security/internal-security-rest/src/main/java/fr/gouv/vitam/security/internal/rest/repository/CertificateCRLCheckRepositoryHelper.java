@@ -68,10 +68,18 @@ public class CertificateCRLCheckRepositoryHelper {
      * {@inheritDoc}
      */
     public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
+
+        Bson fieldsToUpdateBson = set(CertificateBaseModel.STATUS_TAG, certificateStatus.name());
+
+        if (certificateStatus.equals(CertificateStatus.REVOKED)) {
+            fieldsToUpdateBson = combine(fieldsToUpdateBson,
+                set(CertificateBaseModel.REVOCATION_DATE_TAG, LocalDateUtil
+                    .getFormattedDateForMongo(LocalDateUtil.now())
+                )
+            );
+        }
         certificateCollection
             .updateMany(in(VitamDocument.ID, certificatesToUpdate),
-                combine(set(CertificateBaseModel.STATUS_TAG, certificateStatus.name()),
-                    set(CertificateBaseModel.REVOKING_DATE_TAG, LocalDateUtil
-                        .getFormattedDateForMongo(LocalDateUtil.now()))));
+                fieldsToUpdateBson);
     }
 }

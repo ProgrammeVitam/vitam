@@ -39,7 +39,7 @@ public class CertificateBaseModel {
 
     public  static final String STATUS_TAG = "Status";
 
-    public  static final String REVOKING_DATE_TAG = "RevokingDate";
+    public  static final String REVOCATION_DATE_TAG = " RevocationDate";
 
     @JsonProperty("_id")
     private String id;
@@ -58,8 +58,8 @@ public class CertificateBaseModel {
     @JsonProperty(STATUS_TAG)
     private String certificateStatus = CertificateStatus.VALID.name();  //Default to 'VALID'
 
-    @JsonProperty(REVOKING_DATE_TAG)
-    private String revokingDate;
+    @JsonProperty(REVOCATION_DATE_TAG)
+    private String revocationDate;
 
     public CertificateBaseModel() {
     }
@@ -129,18 +129,18 @@ public class CertificateBaseModel {
     }
 
     /**
-     * getter for revokingDate
+     * getter for revocationDate
      *
-     * @return revokingDate value
+     * @return revocationDate value
      */
-    public String getRevokingDate() {
-        return revokingDate;
+    public String getRevocationDate() {
+        return revocationDate;
     }
 
     /**
-     * set revokingDate
+     * set revocationDate
      */
-    public void setRevokingDate(String revokingDate) {
-        this.revokingDate = revokingDate;
+    public void setRevocationDate(String revocationDate) {
+        this.revocationDate = revocationDate;
     }
 }
