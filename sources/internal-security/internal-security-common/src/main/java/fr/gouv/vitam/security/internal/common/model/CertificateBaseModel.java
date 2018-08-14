@@ -39,7 +39,7 @@ public class CertificateBaseModel {
 
     public  static final String STATUS_TAG = "Status";
 
-    public  static final String REVOCATION_DATE_TAG = " RevocationDate";
+    public  static final String REVOCATION_DATE_TAG = "RevocationDate";
 
     @JsonProperty("_id")
     private String id;
