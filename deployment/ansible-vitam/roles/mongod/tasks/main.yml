@@ -34,6 +34,8 @@
     - tmp
   notify:
     - restart mongod
+  tags:
+    - update_mongodb_configuration
 
 - name: Create db directory
   file:
@@ -44,6 +46,8 @@
     state: directory
   notify:
     - restart mongod
+  tags:
+    - update_mongodb_configuration
 
 - name: Create the mongod configuration server file
   template:
@@ -54,6 +58,8 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart mongod
+  tags:
+    - update_mongodb_configuration
 
 #### Consul configuration ####
 
@@ -64,6 +70,8 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
     state: directory
+  tags:
+    - update_mongodb_configuration
 
 - name: Deploy consul agent service declaration
   template:
@@ -71,20 +79,25 @@
     dest: "{{ consul_folder_conf }}/service-mongod.json"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}" 
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   tags:
     - consul_conf
+    - update_mongodb_configuration
   notify:
    - reload consul configuration
 
 
 # Ensure that the installation is complete and consul up before contnuing...
 - meta: flush_handlers
+  tags:
+    - update_mongodb_configuration
 
 - name: Ensure service is started
   service:
     name: vitam-mongod
     state: started
+  tags:
+    - update_mongodb_configuration
 
 #### Mongo online configuration ####
 # Note : mongodb needs to be started for these elements to succeed
@@ -98,6 +111,8 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: 0600
+  tags:
+    - update_mongodb_configuration
 
 # Now lest's initiate the replica set
 # Do this only on the first node of the current shard
@@ -114,6 +129,8 @@
         - "hostvars[item]['mongo_cluster_name'] == mongo_cluster_name"
         - "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
       with_items: "{{ groups[group_name] }}"
+      tags:
+        - update_mongodb_configuration
 
     - name: Copy the script which initiate the replica set
       template:
@@ -122,9 +139,13 @@
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - update_mongodb_configuration
 
     - name: Initiate the replica set
       command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
+      tags:
+        - update_mongodb_configuration
 
     # Create the local shard admin user
 
@@ -135,8 +156,12 @@
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - update_mongodb_configuration
 
     - name: Create the local shard user
       command: "mongo --host shard{{ mongo_shard_id }}/{{ ip_service}}:{{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
+      tags:
+        - update_mongodb_configuration
 
   when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"
