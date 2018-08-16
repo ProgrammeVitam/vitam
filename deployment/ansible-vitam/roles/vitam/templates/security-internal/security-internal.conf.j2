@@ -13,3 +13,9 @@ dbPassword: {{ mongodb['mongo-data'].securityInternal.password }}
 jettyConfig: jetty-config.xml
 
 personalCertificatePermissionConfig: personal-certificate-permissions.conf
+
+#Basic Authentication
+adminBasicAuth:
+- userName: {{ admin_basic_auth_user }}
+  password: {{ admin_basic_auth_password }}
+

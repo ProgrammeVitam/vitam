@@ -24,36 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.security.internal.common.model;
+package fr.gouv.vitam.security.internal.rest.repository;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mongodb.client.FindIterable;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.security.internal.common.model.CertificateBaseModel;
+import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
+import org.bson.Document;
+
+import java.util.List;
 
 /**
- * Personal Certificate POJO
+ * Certificate state updater contract for revocation check of VITAM's identity and personal certificates.
  */
-public class PersonalCertificateModel extends CertificateBaseModel {
+public interface CertificateCRLCheckStateUpdater<T extends CertificateBaseModel> {
 
     /**
-     * Hash tag
+     * return list of certificate filtered by issuerDN and certificateStatus
+     *
+     * @param issuerDN
+     * @param certificateStatus
+     * @return list of identity certificate
+     * @throws InvalidParseOperationException
      */
-    public static final String TAG_HASH = "Hash";
-
-    @JsonProperty(TAG_HASH)
-    private String certificateHash;
-
-     /**
-     * @return certificateHash
-     */
-    public String getCertificateHash() {
-        return certificateHash;
-    }
+    FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus)
+        throws InvalidParseOperationException;
 
     /**
-     * @param certificateHash
+     * set state for a given list of certificates
+     *
+     * @param certificatesToUpdate
+     * @param certificateStatus
      */
-    public void setCertificateHash(String certificateHash) {
-        this.certificateHash = certificateHash;
-    }
+    void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus);
 
-
+    /**
+     *
+     * @return certificate model class type
+     */
+    <T extends CertificateBaseModel>  Class<T> getEntityModelType();
 }

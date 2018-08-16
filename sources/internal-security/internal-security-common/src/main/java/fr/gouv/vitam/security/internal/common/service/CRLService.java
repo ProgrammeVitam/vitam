@@ -24,36 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.security.internal.common.model;
+package fr.gouv.vitam.security.internal.common.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+
+import java.security.cert.CRLException;
+import java.security.cert.CertificateException;
 
 /**
- * Personal Certificate POJO
+ * CRL service contract for revocation check of VITAM's identity and personal certificates.
  */
-public class PersonalCertificateModel extends CertificateBaseModel {
+public interface CRLService {
 
     /**
-     * Hash tag
+     * Check all identity and personal certificates against given CRL
+     * @param crlCert CRL certificate (must be in DER format, see
+     * <a href="http://www.ietf.org/rfc/rfc3280.txt">RFC 3280: Internet X.509
+     * Public Key Infrastructure Certificate and CRL Profile</a> )
+     * @throws CertificateException
+     * @throws InvalidParseOperationException
+     * @throws CRLException
      */
-    public static final String TAG_HASH = "Hash";
-
-    @JsonProperty(TAG_HASH)
-    private String certificateHash;
-
-     /**
-     * @return certificateHash
-     */
-    public String getCertificateHash() {
-        return certificateHash;
-    }
-
-    /**
-     * @param certificateHash
-     */
-    public void setCertificateHash(String certificateHash) {
-        this.certificateHash = certificateHash;
-    }
-
-
+    void checkIdentityWithCRL(byte[] crlCert)
+        throws CertificateException, InvalidParseOperationException, CRLException;
 }

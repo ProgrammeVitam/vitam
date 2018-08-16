@@ -47,6 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 
 public class IdentityServiceTest {
 
@@ -88,9 +90,13 @@ public class IdentityServiceTest {
     public void should_read_certificate() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        byte[] certBinary = toByteArray(stream);
+        IdentityModel identityModel = new IdentityModel();
+        identityModel.setCertificate(certBinary);
+        doReturn(Optional.of(identityModel)).when(identityRepository).findIdentity(any(),any());
 
         // When
-        identityService.findIdentity(toByteArray(stream));
+        identityService.findIdentity(certBinary);
 
         // Then
         then(identityRepository).should().findIdentity(

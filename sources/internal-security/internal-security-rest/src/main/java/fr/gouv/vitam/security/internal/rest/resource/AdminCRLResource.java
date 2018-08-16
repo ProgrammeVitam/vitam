@@ -24,36 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.security.internal.common.model;
+package fr.gouv.vitam.security.internal.rest.resource;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.security.internal.common.service.CRLService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.security.cert.CRLException;
+import java.security.cert.CertificateException;
 
 /**
- * Personal Certificate POJO
+ * Admin resource for crl management
  */
-public class PersonalCertificateModel extends CertificateBaseModel {
+@Path("/v1/api/crl")
+public class AdminCRLResource {
 
-    /**
-     * Hash tag
-     */
-    public static final String TAG_HASH = "Hash";
+    private CRLService crlService;
 
-    @JsonProperty(TAG_HASH)
-    private String certificateHash;
-
-     /**
-     * @return certificateHash
-     */
-    public String getCertificateHash() {
-        return certificateHash;
+    public AdminCRLResource(
+        CRLService crlService) {
+        this.crlService = crlService;
     }
 
     /**
-     * @param certificateHash
+     * @param crlCertificate CRL certificate used for validation
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws CertificateException
      */
-    public void setCertificateHash(String certificateHash) {
-        this.certificateHash = certificateHash;
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public void checkIdentityWithCRL(byte[] crlCertificate)
+        throws InvalidParseOperationException, CertificateException, CRLException {
+
+        ParametersChecker.checkParameter("CRL certificate cannot be null", crlCertificate);
+        crlService.checkIdentityWithCRL(crlCertificate);
     }
-
-
 }

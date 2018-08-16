@@ -35,17 +35,20 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import org.bson.Document;
 
+import java.util.List;
 import java.util.Optional;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
  * store Personal certificate in mongo.
  */
-public class PersonalRepository {
+public class PersonalRepository implements CertificateCRLCheckStateUpdater<PersonalCertificateModel> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalRepository.class);
 
@@ -53,8 +56,11 @@ public class PersonalRepository {
 
     private final MongoCollection<Document> personnalCollection;
 
+    private final CertificateCRLCheckRepositoryHelper crlRepositoryHelper;
+
     public PersonalRepository(MongoDbAccess mongoDbAccess) {
         personnalCollection = mongoDbAccess.getMongoDatabase().getCollection(PERSONAL_COLLECTION);
+        crlRepositoryHelper = new CertificateCRLCheckRepositoryHelper(personnalCollection);
     }
 
     /**
@@ -81,7 +87,10 @@ public class PersonalRepository {
     public Optional<PersonalCertificateModel> findPersonalCertificateByHash(String hash)
         throws InvalidParseOperationException {
 
-        FindIterable<Document> models = personnalCollection.find(eq(PersonalCertificateModel.TAG_HASH, hash));
+        FindIterable<Document> models = personnalCollection.find(
+            and(
+                eq(PersonalCertificateModel.TAG_HASH, hash),
+                eq(PersonalCertificateModel.STATUS_TAG, CertificateStatus.VALID.name())));
 
         Document first = models.first();
 
@@ -104,4 +113,31 @@ public class PersonalRepository {
         DeleteResult deleteResult = personnalCollection.deleteOne(eq(PersonalCertificateModel.TAG_HASH, hash));
         LOGGER.debug("Deleted document count: " + deleteResult.getDeletedCount());
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus)
+        throws InvalidParseOperationException {
+        return crlRepositoryHelper.findCertificate(issuerDN, certificateStatus);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
+        crlRepositoryHelper
+            .updateCertificateState(certificatesToUpdate, certificateStatus);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<PersonalCertificateModel> getEntityModelType() {
+        return PersonalCertificateModel.class;
+    }
+
 }

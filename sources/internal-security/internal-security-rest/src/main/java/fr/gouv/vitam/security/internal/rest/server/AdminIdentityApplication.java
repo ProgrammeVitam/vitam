@@ -12,14 +12,21 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.security.internal.common.service.CRLService;
+import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
+import fr.gouv.vitam.security.internal.rest.resource.AdminCRLResource;
 import fr.gouv.vitam.security.internal.rest.resource.AdminIdentityResource;
 import fr.gouv.vitam.security.internal.rest.resource.AdminPersonalCertificateResource;
+import fr.gouv.vitam.security.internal.rest.resource.AdminSecurityDataMigrationResource;
+import fr.gouv.vitam.security.internal.rest.service.CRLServiceImpl;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+import fr.gouv.vitam.security.internal.rest.service.migration.SecurityDataMigrationRepository;
+import fr.gouv.vitam.security.internal.rest.service.migration.SecurityDataMigrationService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -67,6 +74,14 @@ public class AdminIdentityApplication extends Application {
                     LogbookOperationsClientFactory.getInstance(), personalRepository);
                 singletons.add(new AdminPersonalCertificateResource(personalCertificateService));
 
+                CRLService crlService = new CRLServiceImpl(identityRepository, personalRepository);
+                singletons.add(new AdminCRLResource(crlService));
+
+                SecurityDataMigrationRepository securityDataMigrationRepository = new SecurityDataMigrationRepository(mongoDbAccess);
+                SecurityDataMigrationService securityDataMigrationService = new SecurityDataMigrationService(securityDataMigrationRepository);
+                singletons.add(new AdminSecurityDataMigrationResource(securityDataMigrationService));
+
+                singletons.add(new BasicAuthenticationFilter(configuration));
                 singletons.add(new CertificateExceptionMapper());
                 singletons.add(new IllegalArgumentExceptionMapper());
                 singletons.add(new HeaderIdContainerFilter());

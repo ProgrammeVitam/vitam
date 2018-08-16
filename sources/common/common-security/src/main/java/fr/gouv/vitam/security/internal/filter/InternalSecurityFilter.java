@@ -131,7 +131,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
             Optional<IdentityModel> result = internalSecurityClient.findIdentity(cert.getEncoded());
 
             IdentityModel identityModel = result
-                .orElseThrow(() -> new VitamSecurityException("Certificate not found in database."));
+                .orElseThrow(() -> new VitamSecurityException("Certificate revoked or not found in database."));
 
             final ContextModel contextModel = getContext(identityModel);
             String uri = requestContext.getUriInfo().getPath();

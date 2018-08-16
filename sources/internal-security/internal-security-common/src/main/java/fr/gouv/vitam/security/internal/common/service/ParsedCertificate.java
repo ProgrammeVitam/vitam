@@ -26,17 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.security.internal.common.service;
 
-import java.io.ByteArrayInputStream;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-
-import org.apache.commons.codec.binary.Hex;
-
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import org.apache.commons.codec.binary.Hex;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 /**
  * Helper class for certificate parsing X509 certificates.
@@ -52,7 +49,7 @@ public class ParsedCertificate {
 
     /**
      * Constructor
-     * 
+     *
      * @param x509Certificate
      * @param rawCertificate
      * @param certificateHash
@@ -65,7 +62,7 @@ public class ParsedCertificate {
 
     /**
      * Get x509Certificate
-     * 
+     *
      * @return x509Certificate
      */
     public X509Certificate getX509Certificate() {
@@ -74,7 +71,7 @@ public class ParsedCertificate {
 
     /**
      * Get rawCertificate
-     * 
+     *
      * @return rawCertificate
      */
     public byte[] getRawCertificate() {
@@ -83,7 +80,7 @@ public class ParsedCertificate {
 
     /**
      * Get certificateHash
-     * 
+     *
      * @return certificateHash
      */
     public String getCertificateHash() {
@@ -92,7 +89,7 @@ public class ParsedCertificate {
 
     /**
      * Parses a certificate
-     * 
+     *
      * @param certificate
      * @return the ParsedCertificate
      * @throws PersonalCertificateException
@@ -101,9 +98,7 @@ public class ParsedCertificate {
 
         try {
 
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            X509Certificate x509certificate =
-                (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
+            X509Certificate x509certificate = X509PKIUtil.parseX509Certificate(certificate);
 
             byte[] rawCertificate = x509certificate.getEncoded();
             String certificateHash = getCertificateHash(rawCertificate);
@@ -123,7 +118,7 @@ public class ParsedCertificate {
 
     /**
      * Converts a certificate to Hex for logging (Truncated to MAX_CERTIFICATE_LOG_LENGTH)
-     * 
+     *
      * @param certificate
      * @return
      */

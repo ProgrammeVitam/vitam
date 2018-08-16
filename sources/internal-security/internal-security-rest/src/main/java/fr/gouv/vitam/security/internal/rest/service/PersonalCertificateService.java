@@ -51,6 +51,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
+import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 
 /**
@@ -84,7 +85,7 @@ public class PersonalCertificateService {
 
         ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
-        if (personalRepository.findPersonalCertificateByHash(parsedCertificate.getCertificateHash()).isPresent()) {
+        if (findPersonalCertificateByHash(parsedCertificate.getCertificateHash()).isPresent()) {
             LOGGER.info("Personal certificate already exists {0}", parsedCertificate.getCertificateHash());
             return;
         }
@@ -145,7 +146,7 @@ public class PersonalCertificateService {
             throw e;
         }
         Optional<PersonalCertificateModel> model
-            = personalRepository.findPersonalCertificateByHash(parsedCertificate.getCertificateHash());
+            = findPersonalCertificateByHash(parsedCertificate.getCertificateHash());
 
         if (model.isPresent()) {
             // Access  OK
@@ -158,6 +159,26 @@ public class PersonalCertificateService {
         createInvalidPersonalCertificateLogbook(parsedCertificate, permission);
 
         throw new PersonalCertificateException(INVALID_CERTIFICATE);
+    }
+
+    private Optional<PersonalCertificateModel> findPersonalCertificateByHash(String certificateHash)
+        throws InvalidParseOperationException, PersonalCertificateException {
+        //check validity of the  retrieved certificate from VITAM DB
+        Optional<PersonalCertificateModel> personalCertificateModelOptional
+            = personalRepository.findPersonalCertificateByHash(certificateHash);
+
+        //check certificate validity
+        if(personalCertificateModelOptional.isPresent()){
+            try {
+                X509PKIUtil.parseX509Certificate(personalCertificateModelOptional.get().getCertificate());
+            } catch (CertificateException e) {
+                throw new PersonalCertificateException(INVALID_CERTIFICATE);
+            }
+        }
+
+
+        return personalCertificateModelOptional;
+
     }
 
     private void createNoPersonalCertificateLogbook(String permission)

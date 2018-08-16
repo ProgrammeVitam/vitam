@@ -26,17 +26,20 @@
  */
 package fr.gouv.vitam.securityInternal.integration.test;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.io.File;
-import java.io.InputStream;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
-import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRestTestClient;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
+import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
+import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
+import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
+import fr.gouv.vitam.security.internal.rest.IdentityMain;
+import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -49,20 +52,34 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
-import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
-import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
-import fr.gouv.vitam.security.internal.rest.IdentityMain;
-import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+
+import static com.google.common.io.ByteStreams.toByteArray;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.security.internal.common.model.CertificateBaseModel.STATUS_TAG;
+import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository.CERTIFICATE_COLLECTION;
+import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SecurityInternalIT extends VitamRuleRunner {
 
     private static IdentityMain identityMain;
     private static final String IDENTITY_CONF = "security-internal/security-internal-test.conf";
 
+    private final static String EMPTY_CRL_FILE = "/security-internal/ca-intermediate.crl";
+
+    private final static String CRL_SIA_REVOKED_FILE = "/security-internal/ca-intermediate-sia-revoked.crl";
+
+    private final static String IDENTITY_CERT_FILE = "/security-internal/sia-client-external.crt";
+
+    private final static String PERSONAL_CERT_FILE = "/security-internal/personal-client-external.crt";
+
+    private final static String ISSUER_NAME =
+        "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
 
     private static InternalSecurityClient internalSecurityClient;
 
@@ -180,4 +197,52 @@ public class SecurityInternalIT extends VitamRuleRunner {
         assertThat(response.getStatusLine().getStatusCode()).isEqualTo(204);
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(0);
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldControlCertificateWithCRLTransmitted() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        IdentityInsertModel identityInsertModel = new IdentityInsertModel();
+        identityInsertModel.setContextId("CT-00001");
+        identityInsertModel.setCertificate(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)));
+
+        final TestVitamClientFactory<DefaultClient> testClientFactory =
+            new TestVitamClientFactory<>(29003, "/v1/api");
+        VitamRestTestClient restClient = new VitamRestTestClient(testClientFactory);
+
+        restClient.given().body(identityInsertModel, MediaType.APPLICATION_JSON_TYPE).status(
+            Response.Status.CREATED).when().post("/identity");
+
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(1);
+
+        restClient.given().body(toByteArray(getClass().getResourceAsStream(PERSONAL_CERT_FILE)),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.NO_CONTENT).post("/personalCertificate");
+
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
+
+        // When empty CRL
+        restClient.given()
+            .body(toByteArray(getClass().getResourceAsStream(EMPTY_CRL_FILE)), MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            .status(
+                Response.Status.NO_CONTENT).post("/crl");
+        // Then
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+
+
+        //When Non empty CRL revoking sia certificate
+        restClient.given().body(toByteArray(getClass().getResourceAsStream(CRL_SIA_REVOKED_FILE)),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.NO_CONTENT).post("/crl");
+
+        // Then
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
+            CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+
+    }
+
 }

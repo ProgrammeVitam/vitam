@@ -26,45 +26,14 @@
  */
 package fr.gouv.vitam.security.internal.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.math.BigInteger;
-
 /**
  * model for identity
  */
-public class IdentityModel {
-
-    @JsonProperty("_id")
-    private String id;
-
-    private String subjectDN;
+public class IdentityModel extends CertificateBaseModel {
 
     private String contextId;
 
-    private BigInteger serialNumber;
-
-    private String issuerDN;
-
-    private byte[] certificate;
-
     public IdentityModel() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getSubjectDN() {
-        return subjectDN;
-    }
-
-    public void setSubjectDN(String subjectDN) {
-        this.subjectDN = subjectDN;
     }
 
     public String getContextId() {
@@ -73,29 +42,5 @@ public class IdentityModel {
 
     public void setContextId(String contextId) {
         this.contextId = contextId;
-    }
-
-    public BigInteger getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(BigInteger serialNumber) {
-        this.serialNumber = serialNumber;
-    }
-
-    public String getIssuerDN() {
-        return issuerDN;
-    }
-
-    public void setIssuerDN(String issuerDN) {
-        this.issuerDN = issuerDN;
-    }
-
-    public byte[] getCertificate() {
-        return certificate;
-    }
-
-    public void setCertificate(byte[] certificate) {
-        this.certificate = certificate;
     }
 }
