@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -84,6 +85,8 @@ public class ProcessManagementResourceTest {
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
     private static final String OPERATION_ID_URI = "/operations/xyz";
+    private static final String FORCE_PAUSE_URI = "/forcepause";
+    private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
     private static final String ID = "identifier4";
     private static JunitHelper junitHelper;
     private static int port;
@@ -321,5 +324,58 @@ public class ProcessManagementResourceTest {
             .statusCode(Status.OK.getStatusCode()).assertThat()
             .body(containsString(EXITS_WORKFLOW_ID));
 
+    }
+
+
+
+    /**
+     * Apply forced pause tests
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldReturnGoodStatusWhenForcePause() throws Exception {
+        ProcessPause pause = new ProcessPause(null, 0, null);
+        given()
+            .contentType(ContentType.JSON)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(pause).when()
+            .post(FORCE_PAUSE_URI)
+            .then().assertThat()
+            .statusCode(Status.OK.getStatusCode());
+
+        //error when both tenant and type are null
+        pause.setTenant(null);
+        given()
+            .contentType(ContentType.JSON)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(pause).when()
+            .post(FORCE_PAUSE_URI)
+            .then().assertThat()
+            .statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(containsString("be null"));
+
+        pause.setType("INGEST");
+        given()
+            .contentType(ContentType.JSON)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(pause).when()
+            .post(FORCE_PAUSE_URI)
+            .then().assertThat()
+            .statusCode(Status.OK.getStatusCode());
+
+
+        //Inexisting type
+        pause.setType("BAD_INGEST");
+        given()
+            .contentType(ContentType.JSON)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(pause).when()
+            .post(FORCE_PAUSE_URI)
+            .then().assertThat()
+            .statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(containsString("is not a valid process type"));
+        ;
     }
 }

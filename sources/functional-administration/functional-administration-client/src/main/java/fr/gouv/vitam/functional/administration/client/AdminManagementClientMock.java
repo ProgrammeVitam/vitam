@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -586,4 +587,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         return responses;
     }
 
+    @Override
+    public RequestResponse forcePause(ProcessPause info) {
+        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse removeForcePause(ProcessPause info) {
+        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+    }
 }

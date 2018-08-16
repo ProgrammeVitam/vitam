@@ -54,6 +54,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.gouv.vitam.common.model.ProcessPause;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
@@ -493,6 +494,22 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response findArchiveUnitProfiles(JsonNode queryDsl) {
             return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/forcepause")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response forcePause(ProcessPause info) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/removeforcepause")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeForcePause(ProcessPause info) {
+            return expectedResponse.post();
         }
 
     }
@@ -1295,11 +1312,36 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ArchiveUnitProfileModel>()).build());
         RequestResponse resp = client.findArchiveUnitProfilesByID("fakeId");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
     }
 
     private List<ArchiveUnitProfileModel> getArchiveUnitProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profile_ok.json");
         return JsonHandler.getFromFileAsTypeRefence(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testForceUpdate()
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        ProcessPause info = new ProcessPause("INGEST", 0, null);
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+
+        RequestResponse<ProcessPause> resp = client.forcePause(info);
+        assertEquals(Status.OK.getStatusCode(), resp.getHttpCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testRemoveForceUpdate()
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        ProcessPause info = new ProcessPause("INGEST", 0, null);
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+
+        RequestResponse<ProcessPause> resp = client.removeForcePause(info);
+        assertEquals(Status.OK.getStatusCode(), resp.getHttpCode());
     }
 
 }

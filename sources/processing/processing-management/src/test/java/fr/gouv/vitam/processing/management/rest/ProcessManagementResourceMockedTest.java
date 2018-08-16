@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.management.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.reset;
@@ -159,7 +160,7 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessPreconditionFailed() throws Exception {
         reset(mock);
-        when(mock.resume(anyObject(), anyInt()))
+        when(mock.resume(anyObject(), anyInt(), anyBoolean()))
             .thenThrow(new ProcessingException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
@@ -173,7 +174,7 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessUnauthorize() throws Exception {
         reset(mock);
-        when(mock.resume(anyObject(), anyInt()))
+        when(mock.resume(anyObject(), anyInt(), anyBoolean()))
             .thenThrow(new StateNotAllowedException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
@@ -186,7 +187,7 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessInternalServerError() throws Exception {
         reset(mock);
-        when(mock.resume(anyObject(), anyInt()))
+        when(mock.resume(anyObject(), anyInt(), anyBoolean()))
             .thenThrow(new RuntimeException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -200,7 +201,7 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessAccepted() throws Exception {
         reset(mock);
-        when(mock.resume(any(), anyInt())).thenReturn(
+        when(mock.resume(any(), anyInt(), anyBoolean())).thenReturn(
             new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.OK).setLogbookTypeProcess("fake"));
 
 
@@ -219,7 +220,7 @@ public class ProcessManagementResourceMockedTest {
     public void executeVitamProcessAcceptedWarning() throws Exception {
         reset(mock);
 
-        when(mock.resume(any(), anyInt())).thenReturn(
+        when(mock.resume(any(), anyInt(), anyBoolean())).thenReturn(
             new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.WARNING).setLogbookTypeProcess("fake"));
 
 
@@ -238,7 +239,7 @@ public class ProcessManagementResourceMockedTest {
     public void executeVitamProcessAcceptedSubmitted() throws Exception {
         reset(mock);
 
-        when(mock.resume(any(), anyInt())).thenReturn(
+        when(mock.resume(any(), anyInt(), anyBoolean())).thenReturn(
             new ItemStatus().setGlobalState(ProcessState.RUNNING).increment(StatusCode.OK).setLogbookTypeProcess("fake"));
 
         given()

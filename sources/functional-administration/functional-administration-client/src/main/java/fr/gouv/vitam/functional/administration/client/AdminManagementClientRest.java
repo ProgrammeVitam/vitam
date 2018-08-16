@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -126,6 +127,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
+
+    private static final String FORCE_PAUSE_URI = "/forcepause";
+    private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1625,5 +1629,39 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
+    @Override
+    public RequestResponse<ProcessPause> forcePause(ProcessPause info) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, FORCE_PAUSE_URI, null, info,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
+            return RequestResponse.parseFromResponse(response, ProcessPause.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, REMOVE_FORCE_PAUSE_URI, null, info,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, ProcessPause.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

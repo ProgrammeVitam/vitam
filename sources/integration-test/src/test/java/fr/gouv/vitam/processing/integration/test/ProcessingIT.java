@@ -100,6 +100,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -3212,6 +3213,59 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
 
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowWithForcedPause() throws Exception {
+        prepareVitamSession();
+
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        //Add a pause for the tenant on INGEST process
+        ProcessPause info = new ProcessPause("INGEST", tenantId, null);
+        processingClient.forcePause(info);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        // Verify pause
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        //Remove all pause for the tenant
+        ProcessPause remove = new ProcessPause();
+        remove.setTenant(tenantId);
+        processingClient.removeForcePause(remove);
+
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret2 =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        // Verify no pause
+        assertEquals(ProcessState.RUNNING, processWorkflow.getState());
+        assertEquals(StatusCode.UNKNOWN, processWorkflow.getStatus());
     }
 
 }

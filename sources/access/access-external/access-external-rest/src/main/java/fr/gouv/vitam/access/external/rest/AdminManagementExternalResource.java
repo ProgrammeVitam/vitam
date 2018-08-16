@@ -26,14 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,11 +47,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -91,6 +91,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -128,8 +129,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-
-import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
 
 /**
  * Admin Management External Resource
@@ -2539,6 +2538,62 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Pause the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/forcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "forcepause:check", description = "Force la pause sur un type d'operation et/ou sur un tenant")
+    public Response forcePause(ProcessPause info) {
+
+        ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+            RequestResponse requestResponse = client.forcePause(info);
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final AdminManagementClientServerException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Remove the pause for the processes specified by ProcessPause info
+     *
+     * @param info a ProcessPause object indicating the tenant and/or the type of process to pause
+     * @return
+     */
+    @Path("/removeforcepause")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "removeforcepause:check", description = "Retire la pause sur un type d'operation et/ou sur un tenant")
+    public Response removeForcePause(ProcessPause info) {
+
+        ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+            RequestResponse requestResponse = client.removeForcePause(info);
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final AdminManagementClientServerException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
