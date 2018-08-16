@@ -1,5 +1,5 @@
 {
-  "template": "metrics-vitam-*",
+  "index_patterns": "*",
   "settings" : {
     {% if groups['hosts-elasticsearch-log']|length > 1 %}
     "number_of_replicas": {{ kibana.log.logs.replica }},
@@ -7,37 +7,5 @@
     "number_of_replicas": 0,
     {% endif %}
     "number_of_shards": {{ kibana.log.logs.shards }}
-  },
-  "mappings": {
-    "_default_": {
-      "_all": {
-        "enabled": false
-      },
-      "dynamic_templates": [
-        {
-          "string_fields": {
-            "match_mapping_type": "string",
-            "match": "*",
-            "mapping": {
-              "type": "string",
-              "index": "not_analyzed",
-              "omit_norms": true
-            }
-          }
-        }
-      ],
-      "properties": {
-        "@timestamp": {
-          "type": "date"
-        }
-      }
-    },
-    "gauge": {
-       "properties": {
-          "value": {
-            "type": "double"
-          }
-       }
-    }
   }
 }
