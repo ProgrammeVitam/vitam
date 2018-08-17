@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRestTestClient;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
+import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.IdentityMain;
 import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 import org.apache.http.HttpEntity;
@@ -47,15 +49,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.util.Lists;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.mongodb.client.model.Filters.eq;
@@ -64,6 +73,7 @@ import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository
 import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SecurityInternalIT extends VitamRuleRunner {
 
@@ -77,6 +87,9 @@ public class SecurityInternalIT extends VitamRuleRunner {
     private final static String IDENTITY_CERT_FILE = "/security-internal/sia-client-external.crt";
 
     private final static String PERSONAL_CERT_FILE = "/security-internal/personal-client-external.crt";
+
+    private static final String BASIC_AUTHN_USER = "user";
+    private static final String BASIC_AUTHN_PWD = "pwd";
 
     private final static String ISSUER_NAME =
         "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
@@ -243,6 +256,99 @@ public class SecurityInternalIT extends VitamRuleRunner {
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
             CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shoulMigrateCertificateFromV7ToV8Model() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        // initial collections size
+        int initialCertifCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size();
+        int initialCertifPersoCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size();
+
+        // Given certifcates without Status field in DB
+        mongoRule.getMongoCollection(CERTIFICATE_COLLECTION)
+                .insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
+        mongoRule.getMongoCollection(PERSONAL_COLLECTION).insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
+
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(initialCertifCollectionSize + 1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(initialCertifPersoCollectionSize + 1);
+        //with Status filter, no result
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
+                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
+                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+
+        final TestVitamClientFactory<DefaultClient> testAdminClientFactory =
+                new TestVitamClientFactory<>(29003, "/v1/api"),
+                testBusinessClientFactory =
+                        new TestVitamClientFactory<>(8208, "/v1/api");
+
+        VitamRestTestClient adminRestClient = new VitamRestTestClient(testAdminClientFactory),
+                businessRestClient = new VitamRestTestClient(testBusinessClientFactory);
+
+        //Then, when requesting them, we must have no result (Status=VALID filter applied in repositories)
+        businessRestClient.given().body(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+                Response.Status.NOT_FOUND).when().get("identity");
+
+        businessRestClient.given().body(toByteArray(getClass().getResourceAsStream(PERSONAL_CERT_FILE)),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+                Response.Status.UNAUTHORIZED).get("/personalCertificate/personal-certificate-check/permission");
+
+        //###################################
+        //Calling security migration Endpoint to add the missing field
+        adminRestClient.given().status(Response.Status.ACCEPTED).addHeader(HttpHeaders.AUTHORIZATION, getBasicAuthnToken())
+                .post("security/migration");
+
+        awaitTermination(adminRestClient);
+
+        //Then after migration, we must have result with Status filtring
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
+                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
+                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+
+    }
+
+    private Document buildCertificateDocument(String certId, String certFile)
+            throws IOException, CertificateException {
+
+        X509Certificate cert = X509PKIUtil.parseX509Certificate(toByteArray(getClass().getResourceAsStream(certFile)));
+
+        Document identityModelDoc = new Document();
+
+        identityModelDoc.put("_id", certId);
+        identityModelDoc.put("SerialNumber", cert.getSerialNumber().intValue());
+        identityModelDoc.put("IssuerDN", cert.getIssuerDN().getName());
+        identityModelDoc.put("Certificate", cert.getEncoded());
+        identityModelDoc.put("SubjectDN", cert.getSubjectDN().getName());
+
+        return identityModelDoc;
+    }
+
+    private String getBasicAuthnToken() {
+        return "Basic " + Base64.getEncoder()
+                .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void awaitTermination(VitamRestTestClient adminRestClient)
+            throws InterruptedException, IOException, VitamClientInternalException {
+
+        // Wait for 30 seconds max
+        for (int i = 0; i < 30; i++) {
+            Thread.sleep(1000);
+
+            int responseStatus = adminRestClient.given().addHeader("Authorization", getBasicAuthnToken())
+                    .get("/security/migration/status");
+
+            if (responseStatus == Response.Status.NOT_FOUND.getStatusCode())
+                return;
+        }
+
+        fail("Security migration termination took too long");
     }
 
 }
