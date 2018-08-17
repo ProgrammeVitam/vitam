@@ -1,5 +1,5 @@
 {
-  "index_patterns": "*",
+  "index_patterns": ["*"],
   "settings" : {
     {% if groups['hosts-elasticsearch-log']|length > 1 %}
     "number_of_replicas": {{ kibana.log.logs.replica }},

@@ -1,6 +1,5 @@
 {
-  "index_patterns": "*",
-  "order" : 0,
+  "index_patterns": ["*"],
   "settings" : {
     {% if groups['hosts-elasticsearch-data']|length > 1 %}
     "number_of_replicas": {{ kibana.data.replica }},
