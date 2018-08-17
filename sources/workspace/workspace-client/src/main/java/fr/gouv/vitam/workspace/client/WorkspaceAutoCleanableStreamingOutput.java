@@ -26,23 +26,24 @@ public class WorkspaceAutoCleanableStreamingOutput implements StreamingOutput {
 
     @Override public void write(OutputStream outputStream) throws IOException, WebApplicationException {
         try {
+            // TODO: Buffer size ?
             byte[] buff = new byte[1024000];
             int count;
 
+            // Send the stream
             while ((count = inputStream.read(buff, 0, buff.length)) != -1) {
                 outputStream.write(buff, 0, count);
             }
-
             outputStream.flush();
 
+            // Clean workspace
             if (workspaceClient.isExistingContainer(containerName)) {
                 workspaceClient.deleteContainer(containerName, true);
             }
-
-            workspaceClient.close();
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Unable to close or clean workspace");
-
+        } finally {
+            workspaceClient.close();
         }
     }
 }

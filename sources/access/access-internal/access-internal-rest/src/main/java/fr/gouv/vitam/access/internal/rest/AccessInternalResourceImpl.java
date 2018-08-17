@@ -799,26 +799,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             Integer tenantId = ParameterHelper.getTenantParameter();
             ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
 
-            Date startDate = null;
-            JsonNode startNode = params.get("StartDate");
-            if (startNode != null) {
-                String startString = startNode.textValue();
-                if(startString != null) {
-                    startDate = LocalDateUtil.getDate(startString);
-                }
-            }
-
-            Date endDate = null;
-            JsonNode endNode = params.get("EndDate");
-            if (endNode != null) {
-                String endString = endNode.textValue();
-                if(endString != null) {
-                    endDate = LocalDateUtil.getDate(endString);
-                }
-            }
-
-            Response response = accessModule.getAccessLog(startDate, endDate);
-            return response;
+            return accessModule.getAccessLog(params);
         } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED)

@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -287,7 +288,7 @@ public class EvidenceServiceTest {
         assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip"))
             .isNotNull();
 
-        when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK, anyObject()))
+        when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(StorageNotFoundException.class);
 
         assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test"))

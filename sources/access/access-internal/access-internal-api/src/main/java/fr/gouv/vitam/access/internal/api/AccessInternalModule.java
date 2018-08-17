@@ -36,6 +36,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.core.Response;
+import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -106,6 +107,7 @@ public interface AccessInternalModule {
      * @param idObjectGroup The Object Group Id
      * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
      * @param version the version number to get
+     * @param idUnit identifier of the parent archiveunit used to have access to the object
      * @return response
      *
      * @throws MetaDataNotFoundException If the ObjectGroup could not be find
@@ -120,11 +122,12 @@ public interface AccessInternalModule {
 
     /**
      * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
+     * @param params a json containing query on StartDate or EndDate
      * @return the Storage response for the asked file
      * @throws StorageNotFoundException
      * @throws AccessInternalExecutionException
      */
-    Response getAccessLog(Date startDate, Date endDate) throws AccessInternalExecutionException, StorageNotFoundException;
+    Response getAccessLog(JsonNode params) throws AccessInternalExecutionException, StorageNotFoundException, ParseException;
 
     /**
      * retrieve a DIP file according to an operationId

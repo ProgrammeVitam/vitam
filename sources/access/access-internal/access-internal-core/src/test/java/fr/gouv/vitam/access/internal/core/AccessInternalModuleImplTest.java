@@ -28,11 +28,13 @@ package fr.gouv.vitam.access.internal.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -47,6 +49,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -68,6 +71,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
@@ -90,7 +94,9 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.Collections;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
@@ -101,8 +107,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -912,10 +917,17 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "", REQUEST_ID);
     }
 
+    private void setAccessLogInfoInVitamSession() {
+        AccessContractModel contract = new AccessContractModel();
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+    }
+
     @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         final Response responseMock = mock(Response.class);
@@ -938,6 +950,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroupRealData_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_PATH)));
         final Response responseMock = mock(Response.class);
@@ -968,6 +981,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_MULTI_PATH)));
         final Response responseMock = mock(Response.class);
@@ -1002,6 +1016,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_One_Result() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         final Response responseMock = mock(Response.class);
@@ -1018,6 +1033,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_ObjectMapping_Result() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
         final Response responseMock = mock(Response.class);
@@ -1042,6 +1058,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
@@ -1257,4 +1274,85 @@ public class AccessInternalModuleImplTest {
         return parser;
     }
 
+    private VitamRequestIterator<JsonNode> getMockedResponseForListContainer() {
+
+        final List<JsonNode> nodeList = new ArrayList<>();
+        ObjectNode node = JsonHandler.createObjectNode();
+        node.put("objectId", "0_s_a_l_20180810040000000_20180810080000000_id.log");
+        nodeList.add(node);
+        node = JsonHandler.createObjectNode();
+        node.put("objectId", "0_s_a_l_20180810090000000_20180810150000000_id.log");
+        nodeList.add(node);
+        node = JsonHandler.createObjectNode();
+        node.put("objectId", "0_s_a_l_20180810160000000_20180810190000000_id.log");
+        nodeList.add(node);
+
+        return new VitamRequestIterator<JsonNode>(storageClient, "listContainer", "test", JsonNode.class, null, null) {
+            List<JsonNode> nodes = nodeList;
+            Integer actualSize = 0;
+
+            @Override public boolean hasNext() {
+                return actualSize < 3;
+            }
+
+            @Override public JsonNode next() {
+                JsonNode next = nodes.get(actualSize);
+                actualSize++;
+                return next;
+            }
+        };
+    }
+
+    private void initMocksForAccessLog() throws Exception {
+        when(storageClient.listContainer(anyString(), anyObject())).thenReturn(getMockedResponseForListContainer());
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject())).thenReturn(Response.ok(null).build());
+        when(workspaceClient.isExistingContainer(anyString())).thenReturn(true);
+        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
+        doNothing().when(workspaceClient).compress(anyString(), anyObject());
+        doNothing().when(workspaceClient).createContainer(anyString());
+        Response response =
+            Response.ok(new ByteArrayInputStream("ResponseOK".getBytes())).status(Response.Status.OK).build();
+        when(workspaceClient.getObject(anyString(), anyString())).thenReturn(response);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenNoInputDateThenCheckNbFilesPutInWorkspace() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        initMocksForAccessLog();
+
+        ObjectNode params = JsonHandler.createObjectNode();
+
+        accessModuleImpl.getAccessLog(params);
+        verify(workspaceClient, times(3)).putObject(anyString(), anyString(), anyObject());
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInputStartDateAfterFileDateThenCheckNbFilesPutInWorkspace() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        initMocksForAccessLog();
+
+        ObjectNode params = JsonHandler.createObjectNode();
+        params.set("StartDate", new TextNode("2018-08-10T12:00:00.000Z"));
+
+        accessModuleImpl.getAccessLog(params);
+        verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInputEndDateBeforeFileDateThenCheckNbFilesPutInWorkspace() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        initMocksForAccessLog();
+
+        ObjectNode params = JsonHandler.createObjectNode();
+        params.set("EndDate", new TextNode("2018-08-10T12:00:00.000Z"));
+
+        accessModuleImpl.getAccessLog(params);
+        verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
+    }
 }

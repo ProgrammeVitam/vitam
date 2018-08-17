@@ -127,6 +127,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.*;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -462,7 +463,25 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getAccessLog(Date startDate, Date endDate) throws AccessInternalExecutionException, StorageNotFoundException {
+    public Response getAccessLog(JsonNode params) throws AccessInternalExecutionException, StorageNotFoundException, ParseException {
+
+        Date startDate = null;
+        JsonNode startNode = params.get("StartDate");
+        if (startNode != null) {
+            String startString = startNode.textValue();
+            if(startString != null) {
+                startDate = LocalDateUtil.getDate(startString);
+            }
+        }
+
+        Date endDate = null;
+        JsonNode endNode = params.get("EndDate");
+        if (endNode != null) {
+            String endString = endNode.textValue();
+            if(endString != null) {
+                endDate = LocalDateUtil.getDate(endString);
+            }
+        }
 
         final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         WorkspaceClient workspaceClient = workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
@@ -481,7 +500,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         try {
             // Get Files in accessLog
-            VitamRequestIterator<JsonNode> filesInfo = storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
+            Iterator<JsonNode> filesInfo = storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
             if (filesInfo.hasNext()) {
                 workspaceClient.createContainer(containerName);
             }
@@ -505,7 +524,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             StreamingOutput so = new WorkspaceAutoCleanableStreamingOutput((InputStream)response2.getEntity(), workspaceClient, containerName);
             return Response.ok(so).build();
         } catch (final StorageServerClientException | ContentAddressableStorageException e) {
-            // TODO: Handle Exception
             throw new AccessInternalExecutionException(e);
         } finally {
             if (storageClientMock == null && storageClient != null) {
@@ -518,9 +536,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private void zipWorkspace(WorkspaceClient workspaceClient, String outputFile, String containerName, List<String> inputFiles)
         throws ContentAddressableStorageException {
 
-        LOGGER.debug("Try to push stream to workspace...");
-
-        // call workspace
         if (workspaceClient.isExistingContainer(containerName)) {
             CompressInformation compressInformation = new CompressInformation();
             compressInformation.setFiles(inputFiles);
@@ -530,7 +545,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LOGGER.error(containerName + " does not exist");
             throw new ContentAddressableStorageAlreadyExistException(containerName + " does not exist");
         }
-
     }
 
     private Response getAccessLogFile(String accessLogId) throws StorageNotFoundException, AccessInternalExecutionException {

@@ -40,6 +40,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -108,6 +109,7 @@ public class AccessInternalResourceImplTest {
     private static final String ACCESS_UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
+    private static final String ACCESS_ACCESS_LOG_FILE = "/storageaccesslog";
 
     private static AccessInternalMain application;
 
@@ -427,6 +429,64 @@ public class AccessInternalResourceImplTest {
         }
         obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
         return obj.toString();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getAccessLogFilesBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        reset(mock);
+
+        doThrow(new ParseException("Parse Exception Test", 0)).when(mock)
+            .getAccessLog(anyObject());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getAccessLogFilesInternalError() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        reset(mock);
+
+        doThrow(new AccessInternalExecutionException("Internal Error")).when(mock)
+            .getAccessLog(anyObject());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0").body("{}")
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getAccessLogFilesNotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        reset(mock);
+
+        doThrow(new StorageNotFoundException("Storage Not Found")).when(mock)
+            .getAccessLog(anyObject());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void getAccessLogFilesPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get(ACCESS_ACCESS_LOG_FILE).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test

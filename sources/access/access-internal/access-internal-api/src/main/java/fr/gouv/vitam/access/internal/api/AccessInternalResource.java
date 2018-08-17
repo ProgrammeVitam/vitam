@@ -150,8 +150,9 @@ public interface AccessInternalResource extends VitamResource {
     Response getObjectStreamAsync(@Context HttpHeaders headers, String idObjectGroup, String idUnit);
 
     /**
-     * gets accesslog file by id as an InputStream (Async)
-     * @param headers
+     * gets accesslog file by id as an InputStream
+     * @param headers request headers
+     * @param params given params in order to filter accessLog files
      * @return
      */
     Response getAccessLogStreamAsync(HttpHeaders headers, JsonNode params);

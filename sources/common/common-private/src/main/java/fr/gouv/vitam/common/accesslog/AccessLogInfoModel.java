@@ -1,5 +1,9 @@
 package fr.gouv.vitam.common.accesslog;
 
+import com.google.common.base.Strings;
+
+import java.util.Objects;
+
 public class AccessLogInfoModel {
 
     private Boolean mustLog;
@@ -91,5 +95,34 @@ public class AccessLogInfoModel {
 
     public void setSize(Integer size) {
         this.size = size;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (super.equals(o)) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        if (!(o instanceof AccessLogInfoModel)) {
+            return false;
+        }
+
+        AccessLogInfoModel other = (AccessLogInfoModel) o;
+
+        if (!this.mustLog && !other.mustLog) {
+            return true;
+        }
+
+        return Objects.equals(this.mustLog, other.mustLog) &&
+            Objects.equals(this.eventDateTime, other.eventDateTime) &&
+            Objects.equals(this.contextId, other.contextId) &&
+            Objects.equals(this.contractId, other.contractId) &&
+            Objects.equals(this.requestId, other.requestId) &&
+            Objects.equals(this.objectId, other.objectId) &&
+            Objects.equals(this.archiveId, other.archiveId) &&
+            Objects.equals(this.qualifier, other.qualifier) &&
+            Objects.equals(this.version, other.version) &&
+            Objects.equals(this.size, other.size);
     }
 }

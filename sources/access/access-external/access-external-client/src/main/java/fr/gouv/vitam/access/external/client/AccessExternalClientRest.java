@@ -442,9 +442,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
-
     }
 }

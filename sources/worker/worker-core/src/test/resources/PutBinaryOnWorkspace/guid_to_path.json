@@ -1,3 +1,10 @@
 {
-  "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq": "Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"
+  "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq": {
+    "qualifier": "BinaryMaster",
+    "version": 1,
+    "contextId": "contextTest",
+    "archiveId": "UnitTest",
+    "objectSize": 0,
+    "FILE_NAME": "Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"
+  }
 }

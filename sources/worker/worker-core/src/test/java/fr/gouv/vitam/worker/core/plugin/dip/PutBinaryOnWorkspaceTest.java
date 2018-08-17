@@ -39,6 +39,10 @@ import java.io.File;
 import java.net.URL;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.Before;
@@ -61,6 +65,10 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class PutBinaryOnWorkspaceTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -86,7 +94,12 @@ public class PutBinaryOnWorkspaceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_send_object_from_storage_to_workspace() throws Exception {
+        VitamThreadUtils.getVitamSession().setContextId("contextTest");
+        VitamThreadUtils.getVitamSession().setContractId("contractTest");
+        VitamThreadUtils.getVitamSession().setRequestId("requestId");
+
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
@@ -105,7 +118,12 @@ public class PutBinaryOnWorkspaceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_retry_when_transfer_storage_failed_one_times() throws Exception {
+        VitamThreadUtils.getVitamSession().setContextId("contextTest");
+        VitamThreadUtils.getVitamSession().setContractId("contractTest");
+        VitamThreadUtils.getVitamSession().setRequestId("requestId");
+
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
@@ -125,7 +143,12 @@ public class PutBinaryOnWorkspaceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_status_is_fatal_when_storage_failed_many_times() throws Exception {
+        VitamThreadUtils.getVitamSession().setContextId("contextTest");
+        VitamThreadUtils.getVitamSession().setContractId("contractTest");
+        VitamThreadUtils.getVitamSession().setRequestId("requestId");
+
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
@@ -146,7 +169,12 @@ public class PutBinaryOnWorkspaceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_retry_when_transfer_to_workspace_failed_one_times() throws Exception {
+        VitamThreadUtils.getVitamSession().setContextId("contextTest");
+        VitamThreadUtils.getVitamSession().setContractId("contractTest");
+        VitamThreadUtils.getVitamSession().setRequestId("requestId");
+
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});

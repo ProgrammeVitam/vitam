@@ -150,9 +150,18 @@ public class CreateManifestTest {
             JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
 
         assertThat(linkBetweenBinaryIdAndFileName)
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 

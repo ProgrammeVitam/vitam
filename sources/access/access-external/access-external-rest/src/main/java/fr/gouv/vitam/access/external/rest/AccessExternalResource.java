@@ -832,28 +832,28 @@ public class AccessExternalResource extends ApplicationStatusResource {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESS_LOG,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Request unauthorized ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESS_LOG,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(REQ_RES_DOES_NOT_EXIST, e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESS_LOG,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESS_LOG,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         }

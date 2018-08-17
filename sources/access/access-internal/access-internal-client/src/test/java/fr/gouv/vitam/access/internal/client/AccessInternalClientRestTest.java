@@ -277,7 +277,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/storageaccesslog")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getAccessLogStreamAsync(HttpHeaders headers, JsonNode params) {
+        public Response getAccessLogStreamAsync(@Context HttpHeaders headers, JsonNode params) {
             return expectedResponse.get();
         }
 
