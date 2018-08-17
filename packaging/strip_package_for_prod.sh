@@ -36,6 +36,7 @@ rm -f  "deployment/environments/hosts.cots"
 rm -f  "deployment/environments/group_vars/all/vault-extra.example"
 rm -f  "deployment/environments/group_vars/all/vault-keystores.yml"
 rm -f  "deployment/environments/group_vars/all/vault-vitam.yml"
+rm -rf "vitam-conf-dev/"
 
 # Clean up PKI (but keep the lib/functions.sh)
 rm -rf "deployment/pki/ca"
