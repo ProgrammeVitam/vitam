@@ -37,7 +37,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
@@ -106,8 +104,12 @@ public final class DslQueryHelper {
     private static final String ONTOLOGY_NAME = "OntologyName";
     private static final String ONTOLOGY_ID = "OntologyID";
     private static final String ORIGINATING_AGENCY_TAG = "#originating_agency";
+    private static final String ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.DestroyableOriginatingAgencies";
+    private static final String ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.NonDestroyableOriginatingAgencies";
+
     private static final String DESCRIPTION_LEVEL_TAG = "DescriptionLevel";
     private static final String DESCRIPTION = "Description";
+    private static final String ELIMINATION_OPERATION_ID = "EliminationOperationId";
     private static final String TITLE = "Title";
     private static final String TITLE_FR = "Title_.fr";
     private static final String EVENT_DATE_TIME = "evDateTime";
@@ -633,6 +635,10 @@ public final class DslQueryHelper {
                 andQuery.add(eq(UiConstants.ID.getResultCriteria(), (String) searchValue));
                 continue;
             }
+            if (searchKeys.equals(ELIMINATION_OPERATION_ID)) {
+                andQuery.add(eq(VitamFieldsHelper.elimination() + ".OperationId", (String) searchValue));
+                continue;
+            }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
                 andQuery.add(or().add(match(TITLE, (String) searchValue)).add(match(TITLE_FR, (String) searchValue)));
                 continue;
@@ -681,6 +687,8 @@ public final class DslQueryHelper {
                 if (requestFacetItem != null && requestFacetItem.getField() != null &&
                     requestFacetItem.getValue() != null) {
                     switch (requestFacetItem.getField()) {
+                        case ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG:
+                        case ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG:
                         case ORIGINATING_AGENCY_TAG:
                         case DESCRIPTION_LEVEL_TAG:
                             advancedFacetQuery = true;

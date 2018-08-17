@@ -145,7 +145,7 @@ public class AccessInternalResourceTest {
 
         // When
         SelectMultiQuery select = new SelectMultiQuery();
-        select.setQuery(QueryHelper.eq("#id", "test"));
+        select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
         accessInternalResource.exportDIP(select.getFinalSelect());
 
         // Then

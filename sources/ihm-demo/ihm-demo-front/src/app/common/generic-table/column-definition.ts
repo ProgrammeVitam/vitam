@@ -6,7 +6,8 @@ export class ColumnDefinition {
   public icons: string[] = [];
   public httpService: any;
   public sortable: any;
-  public sortFunction: any;
+  public sortFunction: (resultToSort, event?) => any;
+  public additionnalValue?: string;
 
   static makeStaticColumn(field: string, label: string, transform?: (value) => string, computeCss?: () => any, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true) {
     const col = new ColumnDefinition(field, label, []);
@@ -44,7 +45,8 @@ export class ColumnDefinition {
     return col;
   }
 
-  static makeSpecialValueColumn(label: string, getValue: (item) => string, transform?: (value) => string, computeCss?: () => any, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true, field?: string) {
+  static makeSpecialValueColumn(label: string, getValue: (item, col?: ColumnDefinition) => string, transform?: (value) => string,
+                                computeCss?: () => any, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true, field?: string) {
     const col = new ColumnDefinition('', label, []);
     if (transform !== undefined) {
       col.transform = transform;
@@ -90,7 +92,7 @@ export class ColumnDefinition {
   public onClick: (item, iconType?: string) => void = () => null;
   public getLabel: (iconType: string) => string = () => '';
   public transform: (value) => string = (x) => ObjectsService.stringify(x);
-  public getValue: (item) => string = (x) => ObjectsService.stringify(x[this.field]);
+  public getValue: (item, column?: ColumnDefinition) => string = (x) => ObjectsService.stringify(x[this.field]);
   public getIcons: (item, icons: string[]) => string[] = (x, y) => y;
   public shouldDisplay: (item) => boolean = (x) => true;
   public forceIcon: boolean = false;

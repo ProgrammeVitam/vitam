@@ -1,5 +1,3 @@
-import {FormGroup} from '@angular/forms';
-
 export class Preresult {
   public success: boolean;
   public request: any;

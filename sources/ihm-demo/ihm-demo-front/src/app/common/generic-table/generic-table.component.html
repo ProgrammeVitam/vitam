@@ -11,8 +11,9 @@
 
       </ng-template>
       <span *ngIf="col.icons.length === 0 && !col.forceIcon" (click)="col.onClick(item)" [ngClass]="col.computeCss()"
-            title="{{col.transform(col.getValue(item)) }}"> {{col.transform(col.getValue(item)) | translate}}
+            title="{{col.transform(col.getValue(item)) }}"> {{col.transform(col.getValue(item, col)) | translate}}
       </span>
+      <span>{{col.additionnalValue}}</span>
     </ng-template>
   </p-column>
 </p-dataTable>

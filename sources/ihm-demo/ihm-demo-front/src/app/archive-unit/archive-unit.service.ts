@@ -17,6 +17,7 @@ export class ArchiveUnitService {
   EXPORT = 'dipexport';
   AUDIT = 'evidenceaudit';
   OBJECTS = 'objects';
+  ELIMINATION_ANALYSIS = 'elimination/analysis';
 
   static setInputRequest(request) {
     this.inputRequest = request ;
@@ -62,6 +63,10 @@ export class ArchiveUnitService {
 
   audit(body: any): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.AUDIT}`, undefined, body);
+  }
+
+  eliminationAnalysis(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ELIMINATION_ANALYSIS}`, undefined, body);
   }
 
   massUpdate(body: any): Observable<VitamResponse> {
