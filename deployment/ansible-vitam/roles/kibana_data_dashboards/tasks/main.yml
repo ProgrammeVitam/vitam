@@ -39,14 +39,14 @@
 #- debug: msg="{{ kibana_header.kbn_version }}"
 
 ### elasticsearch data configuration and kibana configuration ###
-# - name: load default index template in Elasticsearch data
-#   run_once: true
-#   uri:
-#     url: "{{ elasticsearch.data|client_url }}_template/all_templates"
-#     method: PUT
-#     body: "{{ lookup('template', '{{ role_path }}/templates/all_templates.json.j2') }}"
-#     body_format: json
-#     status_code: 200,201
+- name: load default index template in Elasticsearch data
+  run_once: true
+  uri:
+    url: "{{ elasticsearch.data|client_url }}_template/all_templates"
+    method: PUT
+    body: "{{ lookup('template', '{{ role_path }}/templates/all_templates.json.j2') }}"
+    body_format: json
+    status_code: 200,201
 
 # # OMA: this is a beurk task but sometimes, .kibana exists & is populated but nothing seen in webapp
 # - name: delete current .kibana

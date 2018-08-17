@@ -25,6 +25,11 @@ setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
   #_source.enabled: false
+{% if groups['hosts-elasticsearch-log']|length > 1 %}
+  index.number_of_replicas: {{ kibana.log.logs.replica }}
+{% else %}
+  index.number_of_replicas: 0
+{% endif %}
 
 #================================ General =====================================
 
