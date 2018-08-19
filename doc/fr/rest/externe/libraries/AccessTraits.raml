@@ -42,7 +42,7 @@ traits:
         type: string
         required: true
     body:
-      application/json?:
+      application/json:
         description: Body contient la requête DSL unitaire au format JSON.
         schema: AccessTypes.AccessGetByIdQuery
         example: !include examples/access1UnitQuery.json
@@ -132,7 +132,7 @@ traits:
         type: string
         required: true
     body:
-      application/json?:
+      application/json:
         description: |
           Body contient la requête DSL unitaire au format JSON. Il est utilisé et obligatoire uniquement en présence de Accept: application/json.
           **ONLY VALID with Accept application/json**
@@ -158,7 +158,7 @@ traits:
         type: string
         required: true
     body:
-      application/json?:
+      application/json:
         description: Body contient la requête DSL unitaire de modification au format JSON.
         schema: AccessTypes.AccessUpdateByIdQuery
         example: !include examples/access1UnitUpdateQuery.json
@@ -194,3 +194,27 @@ traits:
         body:
           application/json:
             description: Rapport final du DIP
+
+  EliminationAnalysisResponseAsync:
+    description: Requête d'analyse d'élimination
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contient la requête DSL **multiple** au format JSON ainsi que la date d'analyse.
+        schema: AccessTypes.EliminationAnalysisRequest
+        example: !include examples/eliminationAnalysisRequest.json
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de d'analyse de l'élimination
+        body:
+          application/json:
+            description: Operation d'analyse d'élimination acceptée
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/eliminationAnalysisResponse.json
+      500:
+        description: Renvoie le statut final de l'opération d'analise d'élimination en KO
+        body:
+          application/json:
+            description: Rapport final de l'opération d'analyse d'élimination
