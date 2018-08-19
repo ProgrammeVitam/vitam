@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -172,6 +173,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
         }
+        VitamClientFactory.resetConnections();
     }
 
     private void wait(String operationId) {
