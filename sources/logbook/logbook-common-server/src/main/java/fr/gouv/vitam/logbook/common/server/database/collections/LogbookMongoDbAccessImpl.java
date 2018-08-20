@@ -1566,6 +1566,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         mapIdJson.put(id, esJson);
         final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
         if (bulkResponse.hasFailures()) {
+            LOGGER.error("Could not index " + vitamDocument + " " + collection.getName()
+                + " document" + bulkResponse.buildFailureMessage());
             throw new LogbookExecutionException("Index Elasticsearch has errors");
         }
     }
