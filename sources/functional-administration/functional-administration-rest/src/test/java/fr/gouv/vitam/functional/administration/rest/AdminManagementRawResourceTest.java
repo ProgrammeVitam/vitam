@@ -40,6 +40,7 @@ import java.util.Map;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -209,6 +210,7 @@ public class AdminManagementRawResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

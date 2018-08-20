@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -248,6 +249,7 @@ public class LogbookResourceIT {
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(workspacePort);
+        VitamClientFactory.resetConnections();
     }
 
     @RunWithCustomExecutor

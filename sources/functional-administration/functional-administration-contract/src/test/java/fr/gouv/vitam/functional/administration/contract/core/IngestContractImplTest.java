@@ -33,6 +33,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -167,6 +168,7 @@ public class IngestContractImplTest {
         junitHelper.releasePort(mongoPort);
         client.close();
         ingestContractService.close();
+        VitamClientFactory.resetConnections();
     }
 
     @Before

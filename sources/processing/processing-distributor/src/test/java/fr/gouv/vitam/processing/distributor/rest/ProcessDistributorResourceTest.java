@@ -34,6 +34,7 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -122,6 +123,7 @@ public class ProcessDistributorResourceTest {
     public static void tearDownAfterClass() throws Exception {
         vitamServer.stop();
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

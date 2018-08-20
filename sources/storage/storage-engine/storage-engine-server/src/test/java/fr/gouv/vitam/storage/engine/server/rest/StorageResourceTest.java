@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -175,6 +176,7 @@ public class StorageResourceTest {
     public static void tearDownAfterClass() throws Exception {
         vitamStarter.stop();
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

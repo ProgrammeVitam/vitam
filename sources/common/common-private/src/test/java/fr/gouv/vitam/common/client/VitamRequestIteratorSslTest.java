@@ -219,6 +219,7 @@ public class VitamRequestIteratorSslTest {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

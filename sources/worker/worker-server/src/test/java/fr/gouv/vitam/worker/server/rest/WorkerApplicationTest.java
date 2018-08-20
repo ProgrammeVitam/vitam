@@ -31,6 +31,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -83,6 +84,7 @@ public class WorkerApplicationTest {
         LOGGER.debug("Ending tests");
         junitHelper.releasePort(serverPort);
         VitamServerFactory.setDefaultPort(oldPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

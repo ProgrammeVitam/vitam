@@ -34,6 +34,7 @@ import java.util.Map;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -157,6 +158,7 @@ public class DownStatusResourceImplTest {
 
         JunitHelper.getInstance().releasePort(serverPort);
         JunitHelper.getInstance().releasePort(serverAdminPort);
+        VitamClientFactory.resetConnections();
     }
 
     // Status

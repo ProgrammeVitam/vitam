@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -238,6 +239,7 @@ public class AccessInternalModuleImplTest {
     @AfterClass
     public static void tearDownAfterClass() {
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     // this guid was generated with tenant = 0

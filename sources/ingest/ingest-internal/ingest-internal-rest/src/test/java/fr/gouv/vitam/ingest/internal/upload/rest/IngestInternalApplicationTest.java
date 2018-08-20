@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -49,6 +50,7 @@ public class IngestInternalApplicationTest {
             application.stop();
         }
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test(expected = IllegalArgumentException.class)

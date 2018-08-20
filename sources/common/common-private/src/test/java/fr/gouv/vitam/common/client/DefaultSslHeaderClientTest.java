@@ -224,6 +224,7 @@ public class DefaultSslHeaderClientTest {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     /**

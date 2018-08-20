@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -160,6 +161,7 @@ public class LogbookMongoDbAccessTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

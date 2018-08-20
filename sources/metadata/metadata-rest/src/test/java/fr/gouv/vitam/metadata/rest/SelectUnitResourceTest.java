@@ -40,6 +40,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -252,6 +253,7 @@ public class SelectUnitResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

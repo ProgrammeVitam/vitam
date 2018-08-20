@@ -46,6 +46,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.hamcrest.Matchers;
@@ -170,6 +171,7 @@ public class DefaultOfferResourceTest {
             LOGGER.error(e);
         }
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

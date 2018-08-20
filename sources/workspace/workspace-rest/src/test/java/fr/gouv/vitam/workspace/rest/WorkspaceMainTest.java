@@ -27,6 +27,7 @@
 package fr.gouv.vitam.workspace.rest;
 
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,6 +51,7 @@ public class WorkspaceMainTest {
     @AfterClass
     public static void shutdownAfterClass() {
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @Test(expected = IllegalArgumentException.class)

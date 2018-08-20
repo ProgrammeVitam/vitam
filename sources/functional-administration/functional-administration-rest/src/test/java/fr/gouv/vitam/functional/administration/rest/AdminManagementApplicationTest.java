@@ -85,7 +85,7 @@ public class AdminManagementApplicationTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311

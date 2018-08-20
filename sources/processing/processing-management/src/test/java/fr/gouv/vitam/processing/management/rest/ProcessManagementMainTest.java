@@ -30,6 +30,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.junit.AfterClass;
@@ -79,6 +80,7 @@ public class ProcessManagementMainTest {
     @AfterClass
     public static void shutdownAfterClass() {
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
 

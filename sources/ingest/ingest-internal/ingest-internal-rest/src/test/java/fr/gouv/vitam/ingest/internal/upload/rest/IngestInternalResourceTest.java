@@ -37,6 +37,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -146,7 +147,7 @@ public class IngestInternalResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
+        VitamClientFactory.resetConnections();
     }
 
     @Before

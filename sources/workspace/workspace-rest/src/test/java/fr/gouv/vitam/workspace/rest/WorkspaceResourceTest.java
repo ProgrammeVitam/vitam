@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -108,6 +109,7 @@ public class WorkspaceResourceTest {
     @AfterClass
     public static void shutdownAfterClass() throws VitamApplicationServerException {
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -292,6 +293,7 @@ public class LogbookResourceTest {
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(processingPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

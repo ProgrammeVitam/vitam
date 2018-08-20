@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -152,6 +153,7 @@ public class LogbookApplicationTest {
         junitHelper.releasePort(databasePort);
         VitamServerFactory.setDefaultPort(oldPort);
         JunitHelper.unsetJettyPortSystemProperty();
+        VitamClientFactory.resetConnections();
     }
 
     @Test

@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -101,6 +102,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
             e.printStackTrace();
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     private Set<String> formatMetricsNames(final Set<String> names) {

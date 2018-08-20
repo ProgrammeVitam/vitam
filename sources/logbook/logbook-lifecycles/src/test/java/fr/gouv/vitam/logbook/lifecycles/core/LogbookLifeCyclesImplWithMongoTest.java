@@ -36,6 +36,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -220,6 +221,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

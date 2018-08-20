@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -117,6 +118,7 @@ public class AdminAutotestStatusResourceImplTest {
         }
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(serverAdminPort);
+        VitamClientFactory.resetConnections();
     }
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {

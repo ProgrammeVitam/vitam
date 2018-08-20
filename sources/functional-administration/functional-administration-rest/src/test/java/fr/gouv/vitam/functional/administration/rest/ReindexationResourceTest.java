@@ -39,6 +39,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -218,6 +219,7 @@ public class ReindexationResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Before
