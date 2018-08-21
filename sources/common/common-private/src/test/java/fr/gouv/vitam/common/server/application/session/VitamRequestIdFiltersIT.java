@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.server.application.session;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -85,6 +86,7 @@ public class VitamRequestIdFiltersIT {
         JunitHelper.getInstance().releasePort(serverPort2);
         // Stop server 1
          server1ClientFactory.shutdown();
+        VitamClientFactory.resetConnections();
     }
 
     /**

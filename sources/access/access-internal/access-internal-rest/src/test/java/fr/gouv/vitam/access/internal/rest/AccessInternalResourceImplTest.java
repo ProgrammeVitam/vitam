@@ -50,6 +50,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.apache.shiro.util.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -173,6 +174,7 @@ public class AccessInternalResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        VitamClientFactory.resetConnections();
     }
 
     // Error cases

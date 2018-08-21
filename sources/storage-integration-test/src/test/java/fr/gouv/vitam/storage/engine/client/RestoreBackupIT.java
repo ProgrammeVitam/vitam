@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -237,6 +238,7 @@ public class RestoreBackupIT {
         storageMain.stop();
         JunitHelper.getInstance().releasePort(storageEnginePort);
         folder.delete();
+        VitamClientFactory.resetConnections();
     }
 
     @Before

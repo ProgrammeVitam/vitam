@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -246,6 +247,7 @@ public class LogbookOperationsImplWithDatabasesTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @After

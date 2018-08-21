@@ -4,6 +4,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -76,6 +77,7 @@ public class LogbookApplicationAuthenticationTest {
         }
         mongo.stop();
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,6 +54,7 @@ public class AccessInternalApplicationTest {
             application.getVitamServer().stop();
         }
         junitHelper.releasePort(portAvailable);
+        VitamClientFactory.resetConnections();
     }
 
     @Test(expected = Exception.class)

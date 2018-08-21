@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.management.rest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -124,6 +125,7 @@ public class ProcessManagementResourceTest {
         } catch (final Exception e) {
         }
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     /**

@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -150,6 +151,7 @@ public class LogbookLFCAdministrationTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @After

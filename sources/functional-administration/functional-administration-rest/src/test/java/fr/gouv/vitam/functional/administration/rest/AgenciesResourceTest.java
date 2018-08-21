@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -194,6 +195,7 @@ public class AgenciesResourceTest {
             junitHelper.releasePort(configEs.getHttpPort());
             junitHelper.releasePort(configEs.getTcpPort());
         }
+        VitamClientFactory.resetConnections();
     }
 
     @Before

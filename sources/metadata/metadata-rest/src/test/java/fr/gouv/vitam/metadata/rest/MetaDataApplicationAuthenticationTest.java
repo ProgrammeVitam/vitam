@@ -5,6 +5,7 @@ import static org.junit.Assume.assumeTrue;
 import java.io.File;
 import java.io.IOException;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -74,6 +75,7 @@ public class MetaDataApplicationAuthenticationTest {
         mongo.stop();
         junitHelper.releasePort(port);
         JunitHelper.stopElasticsearchForTest(config);
+        VitamClientFactory.resetConnections();
     }
 
 

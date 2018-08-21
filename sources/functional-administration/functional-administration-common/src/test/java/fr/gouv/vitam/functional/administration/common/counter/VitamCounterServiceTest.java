@@ -38,6 +38,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -126,7 +127,7 @@ public class VitamCounterServiceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
         client.close();
-
+        VitamClientFactory.resetConnections();
     }
 
     @After

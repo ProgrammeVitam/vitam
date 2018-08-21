@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRestTestClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -120,6 +121,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         if (internalSecurityClient != null) {
             internalSecurityClient.close();
         }
+        VitamClientFactory.resetConnections();
     }
 
 

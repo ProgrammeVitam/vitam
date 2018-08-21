@@ -49,6 +49,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -174,6 +175,7 @@ public class VitamMetricsConfigurationImplTest {
             e.printStackTrace();
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -142,6 +143,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         }
 
         workerMockRule.shutdownServer();
+        VitamClientFactory.resetConnections();
     }
 
     @Before

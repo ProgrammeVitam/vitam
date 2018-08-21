@@ -56,6 +56,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -224,6 +225,7 @@ public class ProfileResourceTest {
             junitHelper.releasePort(configEs.getHttpPort());
             junitHelper.releasePort(configEs.getTcpPort());
         }
+        VitamClientFactory.resetConnections();
     }
 
     @Before

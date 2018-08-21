@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.mongodb.client.MongoIterable;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -145,6 +146,7 @@ public class MongoDbAccessMetadataFactoryTest {
         mongo.stop();
         junitHelper.releasePort(port);
         JunitHelper.stopElasticsearchForTest(config);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

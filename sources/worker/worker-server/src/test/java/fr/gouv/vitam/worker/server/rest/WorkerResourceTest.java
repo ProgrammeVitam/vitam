@@ -37,6 +37,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -131,6 +132,7 @@ public class WorkerResourceTest {
         }
         junitHelper.releasePort(serverPort);
         newWorkerConf.delete();
+        VitamClientFactory.resetConnections();
     }
 
     @Test

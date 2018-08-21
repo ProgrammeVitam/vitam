@@ -17,11 +17,7 @@ import javax.ws.rs.core.Response.Status;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -217,6 +213,7 @@ public class ContextResourceTest {
             junitHelper.releasePort(configEs.getHttpPort());
             junitHelper.releasePort(configEs.getTcpPort());
         }
+        VitamClientFactory.resetConnections();
     }
 
     @After

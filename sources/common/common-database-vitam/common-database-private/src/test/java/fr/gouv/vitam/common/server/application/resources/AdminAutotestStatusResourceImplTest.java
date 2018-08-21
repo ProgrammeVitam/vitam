@@ -34,6 +34,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -173,6 +174,7 @@ public class AdminAutotestStatusResourceImplTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
+        VitamClientFactory.resetConnections();
     }
 
     private static class MyMongoDbAccess extends MongoDbAccess {

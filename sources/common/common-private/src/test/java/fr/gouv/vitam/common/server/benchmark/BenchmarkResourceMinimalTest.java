@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.server.benchmark;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -91,6 +92,7 @@ public class BenchmarkResourceMinimalTest {
             LOGGER.error(e);
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Test

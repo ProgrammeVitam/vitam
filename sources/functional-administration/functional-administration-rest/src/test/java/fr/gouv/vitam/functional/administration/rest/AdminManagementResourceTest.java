@@ -46,7 +46,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import org.jhades.JHades;
@@ -255,6 +255,7 @@ public class AdminManagementResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

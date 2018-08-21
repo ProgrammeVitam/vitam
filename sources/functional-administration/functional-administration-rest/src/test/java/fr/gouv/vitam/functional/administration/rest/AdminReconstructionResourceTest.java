@@ -23,6 +23,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -166,6 +167,7 @@ public class AdminReconstructionResourceTest {
             junitHelper.releasePort(configEs.getHttpPort());
             junitHelper.releasePort(configEs.getTcpPort());
         }
+        VitamClientFactory.resetConnections();
     }
 
     @Test

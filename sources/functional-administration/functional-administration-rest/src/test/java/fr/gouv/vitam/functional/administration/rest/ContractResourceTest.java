@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -267,6 +268,7 @@ public class ContractResourceTest {
             junitHelper.releasePort(configEs.getHttpPort());
             junitHelper.releasePort(configEs.getTcpPort());
         }
+        VitamClientFactory.resetConnections();
     }
 
     @After

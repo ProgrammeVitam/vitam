@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -187,6 +188,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             storageClient.close();
         }
         VitamConfiguration.setPurgeTemporaryLFC(true);
+        VitamClientFactory.resetConnections();
     }
 
     @Before

@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -246,6 +247,7 @@ public class StorageTestMultiNoSslIT {
         storageMain.stop();
         JunitHelper.getInstance().releasePort(storageEnginePort);
         folder.delete();
+        VitamClientFactory.resetConnections();
     }
 
     public static void afterTest() {

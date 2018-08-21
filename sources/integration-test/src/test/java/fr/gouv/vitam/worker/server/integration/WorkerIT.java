@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -141,7 +142,7 @@ public class WorkerIT extends VitamRuleRunner {
         runAfter();
         AdminManagementClientFactory instance = AdminManagementClientFactory.getInstance();
         instance.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
-
+        VitamClientFactory.resetConnections();
     }
 
 

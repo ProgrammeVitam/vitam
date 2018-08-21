@@ -38,6 +38,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
@@ -108,7 +109,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @AfterClass
     public static void afterClass() throws Exception {
         runAfter();
-
+        VitamClientFactory.resetConnections();
     }
 
     @Before

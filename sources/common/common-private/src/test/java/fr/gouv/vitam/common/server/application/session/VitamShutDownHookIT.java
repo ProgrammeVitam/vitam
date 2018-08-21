@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -72,6 +73,7 @@ public class VitamShutDownHookIT {
         JunitHelper.getInstance().releasePort(serverPort1);
         // Stop server 1
          server1ClientFactory.shutdown();
+        VitamClientFactory.resetConnections();
     }
     
     @Test

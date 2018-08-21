@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.internal.client;
 
 import static org.junit.Assert.assertNotNull;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class AccessResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
+        VitamClientFactory.resetConnections();
     }
 
 

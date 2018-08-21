@@ -40,6 +40,7 @@ import java.util.Arrays;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -155,6 +156,7 @@ public class ProcessManagementResourceMockedTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        VitamClientFactory.resetConnections();
     }
 
     @Test

@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -155,6 +156,7 @@ public class LogbookInternalResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        VitamClientFactory.resetConnections();
     }
 
 

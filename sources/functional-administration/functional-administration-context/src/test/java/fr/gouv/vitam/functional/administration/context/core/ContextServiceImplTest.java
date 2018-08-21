@@ -34,6 +34,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -205,6 +206,7 @@ public class ContextServiceImplTest {
         junitHelper.releasePort(mongoPort);
         client.close();
         contextService.close();
+        VitamClientFactory.resetConnections();
     }
 
     @After

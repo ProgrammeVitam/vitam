@@ -35,6 +35,7 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -89,6 +90,7 @@ public class BenchmarkResourceIT {
             LOGGER.error(e);
         }
         JunitHelper.getInstance().releasePort(serverPort);
+        VitamClientFactory.resetConnections();
     }
 
     private static void checkSizeLimit(BenchmarkClientRest client, String method, long size, List<String> list) {
