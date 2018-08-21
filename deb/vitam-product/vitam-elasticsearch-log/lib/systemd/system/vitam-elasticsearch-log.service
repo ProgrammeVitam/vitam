@@ -31,6 +31,8 @@ ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
 StandardOutput=journal
 StandardError=inherit
 
+LimitMEMLOCK=infinity
+
 # Specifies the maximum file descriptor number that can be opened by this process
 LimitNOFILE=65536
 

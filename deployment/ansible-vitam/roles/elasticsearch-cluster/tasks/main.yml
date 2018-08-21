@@ -123,20 +123,20 @@
   notify:
     - restart elasticsearch
 
-# KWA Question : is it still necessary with the systemd service ?
-- name: Configure limits max_open_files for Elasticsearch
+# # KWA Question : is it still necessary with the systemd service ?
+- name: If already configured, remove limits max_open_files for Elasticsearch
   lineinfile:
-    dest: /etc/security/limits.conf
+    path: /etc/security/limits.conf
     regexp: '^{{ vitam_defaults.users.vitamdb }}     -    nofile    {{ elasticsearch_max_open_files }}'
-    insertafter: EOF
-    line: '{{ vitam_defaults.users.vitamdb }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    state: absent
   when: elasticsearch_max_open_files is defined
   notify:
     - restart elasticsearch
 
-- name: Configure limits memlock for Elasticsearch
+- name: Do not configure memlock limits anymore in /etc/security/limits.conf as it is now managed by systemD
   blockinfile:
     path: /etc/security/limits.conf
+    state: absent
     marker: "<!-- {mark} ansible memlock for elasticsearch -->"
     block: |
       {{ vitam_defaults.users.vitamdb }} soft memlock unlimited
@@ -154,7 +154,7 @@
   notify:
     - restart elasticsearch
 
-- name: apply logging for ES5 configuration file
+- name: apply logging for elasticsearch configuration file
   template:
     src: "{{item}}.j2"
     dest: "{{elasticsearch_conf_dir}}/{{item}}"
