@@ -8,6 +8,8 @@
       timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
+- include_tasks: check_elasticsearch.yml
+
 - name: Check if ontologies already exist in functional-admin
   uri:
     method: GET
