@@ -1,4 +1,4 @@
 ---
-- include: install_ldap.yml
-- include: configure_ldap.yml
-- include: vitam_conf.yml
+- include_tasks: install_ldap.yml
+- include_tasks: configure_ldap.yml
+- include_tasks: vitam_conf.yml
