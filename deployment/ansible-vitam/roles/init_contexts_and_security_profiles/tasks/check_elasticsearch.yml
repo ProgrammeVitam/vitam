@@ -1,0 +1,13 @@
+---
+
+- name: Ensure Elasticsearch data cluster is in "green" state
+  # command: "curl -I --silent -k -H \"Accept: application/json\"  http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{ elasticsearch.data.baseuri }}/_cluster/health"
+  uri:
+    method: GET
+    url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cluster/health"
+    body_format: "json"
+  register: result
+  until: result.json.status == "green"
+  retries: "{{ vitam_defaults.services.api_call_timeout }}"
+  delay: 10
+  run_once: true
