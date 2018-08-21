@@ -282,19 +282,19 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             for (final ArchiveUnitProfileModel aupm : profileModelList) {
                 setIdentifier(slaveMode, aupm);
 
-                if (aupm.getControlSchema() != null) {
-                    HashMap<String, ArrayNode> extractFields =
-                        new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
-                    //Get the extra properties (enum and date) for ontologyType comparison
-                    HashMap<String, ArrayNode> extraProperties =
-                        new SchemaValidationUtils().extractExtraPropertyFromSchema(aupm.getControlSchema());
-                    if (checkOntology) {
-                        extractFields.forEach((k, v) -> {
-                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
-                        });
-                    }
-                    aupm.setFields(new ArrayList<String>(extractFields.keySet()));
-                }
+//                if (aupm.getControlSchema() != null) {
+//                    HashMap<String, ArrayNode> extractFields =
+//                        new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
+//                    //Get the extra properties (enum and date) for ontologyType comparison
+//                    HashMap<String, ArrayNode> extraProperties =
+//                        new SchemaValidationUtils().extractExtraPropertyFromSchema(aupm.getControlSchema());
+//                    if (checkOntology) {
+//                        extractFields.forEach((k, v) -> {
+//                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
+//                        });
+//                    }
+//                    aupm.setFields(new ArrayList<String>(extractFields.keySet()));
+//                }
 
                 final ObjectNode archiveProfileNode = (ObjectNode) JsonHandler.toJsonNode(aupm);
                 JsonNode jsonNode = archiveProfileNode.remove(VitamFieldsHelper.id());
