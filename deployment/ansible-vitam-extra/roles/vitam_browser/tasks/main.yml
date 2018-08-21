@@ -66,7 +66,7 @@
     mode: 0500
     owner: root
   when: (ansible_distribution == "Debian" )
-  notify: restart apache2
+  notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
   - "security.conf"
@@ -77,7 +77,7 @@
     dest: '/etc/{{ apache_service }}/sites-enabled/{{ item }}'
     state: link
   when: (ansible_distribution == "Debian" )
-  notify: restart apache2
+  notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
   - "security.conf"

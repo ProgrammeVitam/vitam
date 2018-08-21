@@ -6,12 +6,6 @@
 # for dashboard in `ls`;do ID=$(echo $dashboard | sed -e "s/\.json//g"); echo $ID; curl "http://172.17.0.2/kibana_log/api/kibana/dashboards/export?dashboard=$ID" >> kibana6_$ID.json;done
 
 #### Kibana dashboards configuration ####
-
-- name: check wether replica number for metrics-vitam is compatible with inventory
-  fail: msg="Too much replica defined for default index template in elasticsearch-data"
-  when: groups['hosts-elasticsearch-data']|length <= kibana.data.replica and groups['hosts-elasticsearch-data']|length>1
-  tags: load_kibana_data
-
 - name: Wait for the kibana port to be open
   wait_for:
     host: "{{ ip_service }}"
@@ -37,6 +31,25 @@
   tags: load_kibana_data
 
 #- debug: msg="{{ kibana_header.kbn_version }}"
+
+- name: disable optIn popup message
+  when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
+  run_once: true
+  tags: load_kibana_data
+  uri:
+    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/kibana/settings"
+    method: POST
+    body: "{\"changes\":{\"telemetry:optIn\": \"false\"}}"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-version: "{{ kibana_header.kbn_version }}"
+    timeout: "{{ kibana.data.api_call_timeout }}"
+
+- name: check wether replica number for metrics-vitam is compatible with inventory
+  fail: msg="Too much replica defined for default index template in elasticsearch-data"
+  when: groups['hosts-elasticsearch-data']|length <= kibana.data.replica and groups['hosts-elasticsearch-data']|length>1
+  tags: load_kibana_data
 
 ### elasticsearch data configuration and kibana configuration ###
 - name: load default index template in Elasticsearch data
