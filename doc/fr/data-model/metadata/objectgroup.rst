@@ -12,6 +12,7 @@ Exemple de XML
 Ci-après, un extrait d'un bordereau de transfert (manifest.xml) utilisé pour compléter les champs du JSON correspondant à un groupe d'objets.
 
 ::
+  
   <DataObjectGroupId id="ID0009">
     <PhysicalDataObject id="ID109">
         <DataObjectVersion>PhysicalMaster</DataObjectVersion>

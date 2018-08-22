@@ -278,7 +278,7 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
 
   * Il s'agit d'une chaîne de caractères.
   * Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau de transfert.
-  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title_
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title\_
 
 **"Title_":** titres de l'unité archivistique par langue
 
@@ -298,7 +298,7 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
 
   * Il s'agit d'une chaîne de caractères.
   * Ce champ est renseigné avec les informations situées entre les balises <Description> de l'unité archivistique concernée dans le bordereau de transfert.
-  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description_
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description\_
 
 **"Description_":** description de l'unité archivistique par langue.
 
