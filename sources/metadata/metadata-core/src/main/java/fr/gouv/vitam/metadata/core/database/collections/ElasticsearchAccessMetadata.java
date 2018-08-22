@@ -26,6 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -44,7 +49,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.DocWriteRequest.OpType;
@@ -65,9 +69,7 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -75,12 +77,6 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 
 /**
@@ -467,6 +463,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .setScroll(new TimeValue(scrollTimeoutES))
                 .setQuery(query)
                 .setSize(limitES);
+            if (sorts != null) {
+                sorts.forEach(request::addSort);
+            }
             if (scrollId.equals(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD)) {
                 response = request.get();
             } else {
