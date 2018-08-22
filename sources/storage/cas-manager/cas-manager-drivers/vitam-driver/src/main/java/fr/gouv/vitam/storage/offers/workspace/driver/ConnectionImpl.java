@@ -443,7 +443,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null, size), stream,
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, result.getDigestAlgorithm().getName(), size), stream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
