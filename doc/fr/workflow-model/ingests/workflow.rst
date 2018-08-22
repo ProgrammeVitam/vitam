@@ -288,8 +288,8 @@ Vérification de la cohérence du bordereau de transfert CHECK_MANIFEST (Extract
         - Cas 3 : il y a un problème lors du contrôle à un noeud de  rattachement  CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO=Le bordereau de transfert procède à un rattachement en utilisant des éléments hors périmètre.
         - Cas 4 : Une récursivité a été détectée dans l'arborescence des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_LOOP.KO=Le bordereau de transfert présente une récursivité dans l'arborescence de ses unités archivistiques)
         - Cas 5 : il y a un problème d'encodage ou des objets référencent directement des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.KO = Échec du contrôle de cohérence du bordereau de transfert)
-	       - Cas 6 : présence attendue d'un objet de type Master: Binary ou physical CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MASTER_MANDATORY_REQUIRED.KO=Absence d''un BinaryMaster ou PhysicalMaster dans le groupe d''objet
-	        - Cas 7 : le contrat d'entrée n'autorise pas un ou plusieurs usages d'obejts (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.ATTACHMENT_OBJECTGROUP.KO=Le contrat d''entrée n''autorise pas le rattachement d''un objet à un groupe d''objets existant.)
+	      - Cas 6 : présence attendue d'un objet de type Master: Binary ou physical CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MASTER_MANDATORY_REQUIRED.KO=Absence d''un BinaryMaster ou PhysicalMaster dans le groupe d''objet
+	      - Cas 7 : le contrat d'entrée n'autorise pas un ou plusieurs usages d'obejts (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.ATTACHMENT_OBJECTGROUP.KO=Le contrat d''entrée n''autorise pas le rattachement d''un objet à un groupe d''objets existant.)
 
       - FATAL : une erreur fatale est survenue lors de la vérification de la cohérence du bordereau, par exemple les journaux du cycle de vie n'ont pu être créés (CHECK_MANIFEST.FATAL = Erreur fatale lors du contrôle de cohérence du bordereau de transfert)
 
@@ -349,10 +349,11 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationAction
 
   - KO :
 
-		- Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé et le contrat d'entrée utilisé interdit le versement d'objets aux formats non identifiés (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
-		- Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (OG_OBJECTS_FORMAT_CHECK.UNCHARTED.KO=Échec lors de l'identification des formats, le format de ou des objet(s) est identifié mais est inconnu du référentiel des formats)
-		- Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
+    - Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé et le contrat d'entrée utilisé interdit le versement d'objets aux formats non identifiés (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
+    - Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (OG_OBJECTS_FORMAT_CHECK.UNCHARTED.KO=Échec lors de l'identification des formats, le format de ou des objet(s) est identifié mais est inconnu du référentiel des formats)
+    - Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
     - Cas 4 : au moins objet reçu possède un format qui n'est pas indiqué dans la liste des formats autorisés du contrat d'entrée du SIP (OG_OBJECTS_FORMAT_CHECK.REJECTED_FORMAT.KO=Échec de l''identification des formats : le contrat d''entrée interdit le versement d''objet au format inconnu et le SIP versé contient au moins un objet au format inconnu, ou bien le SIP contient un format interdit par le contrat d'entrée)
+
 
   - WARNING :
 
