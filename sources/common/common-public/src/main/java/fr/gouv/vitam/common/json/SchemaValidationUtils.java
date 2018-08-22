@@ -68,7 +68,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -84,11 +83,6 @@ import static java.time.temporal.ChronoField.HOUR_OF_DAY;
  * SchemaValidationUtils
  */
 public class SchemaValidationUtils {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaValidationUtils.class);
-
-    private JsonSchema jsonSchema;
-    private boolean isExternal = false;
 
     /**
      * archive-unit-schema
@@ -140,12 +134,10 @@ public class SchemaValidationUtils {
      * security-profile.schema
      */
     public static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
-
     /**
      * schemaValidation
      */
     public static final String TAG_SCHEMA_VALIDATION = "schemaValidation";
-
     /**
      * schemaValidation
      */
@@ -154,30 +146,20 @@ public class SchemaValidationUtils {
      * ontology.schema
      */
     public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
-
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaValidationUtils.class);
     private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
         .appendPattern("u-MM-dd['T'HH:mm:ss[.SSS][.SS][.S][xxx][X]][xxx][X]")
         .toFormatter();
-
-    private static final String TYPE = "type";
-    private static final String ARRAY = "array";
-    private static final String ENUM = "enum";
-    private static final String FORMAT = "format";
-    private static final String OBJECT = "object";
     private static final String PROPERTIES = "properties";
     private static final String ITEMS = "items";
-    private static final String ANY_OF = "anyOf";
-    private static final String ALL_OF = "allOf";
-    private static final String ONE_OF = "oneOf";
-    private static final String DATE = "date";
-    private static final String DATE_TIME = "date-time";
     private static final String DATE_TIME_VITAM = "date-time-vitam";
     private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList(
         "$schema", "id", "type", "additionalProperties", "anyOf",
         "required", "description", "items", "title",
         "oneOf", "enum", "minLength", "minItems", "properties"
     );
+    private JsonSchema jsonSchema;
+    private boolean isExternal = false;
 
     /**
      * Constructor with a default schema filename
@@ -207,7 +189,7 @@ public class SchemaValidationUtils {
     /**
      * Constructor with a specified schema filename or an external json schema as a string
      *
-     * @param schema schemaFilename or external json schema as a string
+     * @param schema   schemaFilename or external json schema as a string
      * @param external true if the schema is provided as a string
      * @throws FileNotFoundException
      * @throws ProcessingException
@@ -279,7 +261,7 @@ public class SchemaValidationUtils {
      * @param jsonNode
      * @param collectionName
      * @return a status ({@link SchemaValidationStatus})
-     * @throws FileNotFoundException if no schema has been found fot the specified collectionname
+     * @throws FileNotFoundException          if no schema has been found fot the specified collectionname
      * @throws InvalidParseOperationException
      * @throws ProcessingException
      */
@@ -449,228 +431,54 @@ public class SchemaValidationUtils {
         return validateUnit(archiveUnitCopy);
     }
 
+
     /**
      * Get fields list declared in schema
      *
      * @param schemaJsonAsString
-     * @return a map with fields and its information declared in the schema
+     * @return a the list of fields declared in the schema
      * @throws InvalidParseOperationException
      */
-    public HashMap<String, ArrayNode> extractFieldsFromSchema(String schemaJsonAsString)
+    public List<String> extractFieldsFromSchema(String schemaJsonAsString)
         throws InvalidParseOperationException {
-        HashMap<String, ArrayNode> listProperties = new HashMap<String, ArrayNode>();
+        List<String> listProperties = new ArrayList<>();
         JsonNode externalSchema = JsonHandler.getFromString(schemaJsonAsString);
         if (externalSchema != null && externalSchema.get(PROPERTIES) != null) {
             extractPropertyFromJsonNode(externalSchema.get(PROPERTIES), listProperties);
         }
         return listProperties;
-    }
-
-    /**
-     * Get fields list declared in schema
-     *
-     * @param schemaJsonAsString
-     * @return a map with fields and its information declared in the schema
-     * @throws InvalidParseOperationException
-     */
-    public HashMap<String, ArrayNode> extractExtraPropertyFromSchema(String schemaJsonAsString)
-        throws InvalidParseOperationException {
-        HashMap<String, ArrayNode> listProperties = new HashMap<String, ArrayNode>();
-        JsonNode externalSchema = JsonHandler.getFromString(schemaJsonAsString);
-        if (externalSchema != null && externalSchema.get(PROPERTIES) != null) {
-            extractExtraPropertiesFromJsonNode(externalSchema.get(PROPERTIES), listProperties);
-        }
-        return listProperties;
-    }
-
-    /**
-     * Get the 'format' properties from the JsonNode
-     *
-     * @param value
-     * @param formats
-     */
-    private void getFormats(JsonNode value, List formats) {
-        List<JsonNode> formatNodes = new ArrayList<>();
-        JsonNode format = value.get(FORMAT);
-        if (format != null) {
-            formatNodes.add(format);
-        }
-        JsonNode anyOf = value.get(ANY_OF);
-        if (anyOf != null) {
-            formatNodes.add(anyOf);
-        }
-        if (formatNodes != null && !formatNodes.isEmpty()) {
-            for (JsonNode formatNode : formatNodes) {
-                if (formatNode.isObject()) {
-                    formats.add(formatNode.get(FORMAT).textValue());
-                } else if (formatNode.isTextual()) {
-                    formats.add(formatNode.textValue());
-                } else if (formatNode.isArray()) {
-                    for (Iterator<JsonNode> it = formatNode.iterator(); it.hasNext(); ) {
-                        JsonNode node = it.next().get(FORMAT);
-                        if (node != null) {
-                            formats.add(node.textValue());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Check if the ArrayNode contains the specified value
-     *
-     * @param node
-     * @param value
-     * @return
-     */
-    private boolean containsValue(ArrayNode node, String value) {
-        final Iterator<JsonNode> iterator = node.elements();
-        while (iterator.hasNext()) {
-            JsonNode element = iterator.next();
-            if (element.textValue().equals(value)) {
-                return true;
-            }
-
-        }
-        return false;
 
     }
 
 
-    /**
-     * Extract specific properties from the JsonSchema.
-     * These properties are not part of the jsonSchema standard properties but are part of the ontology types
-     * These specific properties correspond to OntologyType.ENUM and OntologyType.DATE
-     *
-     * @param currentJson
-     * @param listProperties
-     */
-    private void extractExtraPropertiesFromJsonNode(JsonNode currentJson, Map<String, ArrayNode> listProperties) {
 
-        List<String> dateFormats = Arrays.asList(DATE, DATE_TIME, DATE_TIME_VITAM);
+    private void extractPropertyFromJsonNode(JsonNode currentJson, List<String> listProperties) {
         final Iterator<Entry<String, JsonNode>> iterator = currentJson.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
-
-            List<String> typesAsList = new ArrayList<String>();
-            JsonNode value = entry.getValue();
-            if (value != null && value.isObject() || value.isArray()) {
-                // if subproperties
-                extractExtraPropertiesFromJsonNode(value, listProperties);
-            }
-            if (value != null) {
-                ArrayNode types = JsonHandler.createArrayNode();
-                if (value.get(ENUM) != null) {
-                    if (!(containsValue(types, ENUM))) {
-                        types.add(ENUM);
-                    }
-                }
-                List<String> formats = new ArrayList();
-                getFormats(value, formats);
-                for (String format : formats) {
-                    if (dateFormats.contains(format)) {
-                        if (!(containsValue(types, DATE))) {
-                            types.add(DATE);
-                        }
-                    }
-                }
-
-                if (types.size() > 0) {
-                    listProperties.put(key, types);
-                }
-            }
-        }
-    }
-
-
-
-    private void extractPropertyFromJsonNode(JsonNode currentJson, Map<String, ArrayNode> listProperties) {
-        final Iterator<Entry<String, JsonNode>> iterator = currentJson.fields();
-        while (iterator.hasNext()) {
-            final Entry<String, JsonNode> entry = iterator.next();
-            String key = entry.getKey();
-            ArrayNode types = JsonHandler.createArrayNode();
-            List<String> typesAsList = new ArrayList<String>();
             JsonNode value = entry.getValue();
             if (value != null && value.isObject() || value.isArray()) {
                 // if subproperties
                 extractPropertyFromJsonNode(value, listProperties);
             }
-            if (value != null && value.get(TYPE) != null && value.get(TYPE).isTextual()) {
-                typesAsList.add(value.get(TYPE).asText());
-            } else if (value != null && value.get(TYPE) != null && value.get(TYPE).isArray()) {
-                for (Iterator<JsonNode> it = value.get(TYPE).iterator(); it.hasNext(); ) {
-                    typesAsList.add((it.next()).asText());
-                }
-            } else if (value != null && value.get(ENUM) != null) {
-                for (Iterator<JsonNode> it = value.get(ENUM).iterator(); it.hasNext(); ) {
-                    JsonNode element = it.next();
-                    if (element.isDouble() || element.isNumber() || element.isFloat() ||
-                        element.isInt() && !typesAsList.contains("number")) {
-                        typesAsList.add("number");
-                    } else if (element.isBoolean() && !typesAsList.contains("boolean")) {
-                        typesAsList.add("boolean");
-                    } else if (!typesAsList.contains("string")) {
-                        typesAsList.add("string");
-                    }
-                }
-            } else if (value != null && !handleAnyOfOneOfAllOf(value, typesAsList)) {
-                typesAsList.add(OBJECT);
-            }
+
             if (!SCHEMA_DECLARATION_TYPE.contains(key) && value.isObject() && value.get(PROPERTIES) == null &&
                 (value.get(ITEMS) == null || (value.get(ITEMS) != null && value.get(ITEMS).get(PROPERTIES) == null))) {
-                if (value.get(ITEMS) != null && typesAsList.contains(ARRAY)) {
-                    if (!value.get(ITEMS).get(TYPE).isArray()) {
-                        types.add(value.get(ITEMS).get(TYPE));
-                    } else {
-                        for (int i = 0; i < value.get(ITEMS).get(TYPE).size(); i++) {
-                            types.add(value.get(ITEMS).get(TYPE).get(i));
-                        }
-                    }
-                } else {
-                    for (String type : typesAsList) {
-                        types.add(type);
-                    }
-                }
-                listProperties.put(key, types);
-            }
-        }
-
-    }
-
-
-    private boolean handleAnyOfOneOfAllOf(JsonNode value, List<String> type) {
-        String typeToAdd = null;
-        boolean isThereAType = false;
-        if (value.get(ANY_OF) != null) {
-            typeToAdd = ANY_OF;
-        } else if (value.get(ALL_OF) != null) {
-            typeToAdd = ALL_OF;
-        } else if (value.get(ONE_OF) != null) {
-            typeToAdd = ONE_OF;
-        } else {
-            return isThereAType;
-        }
-        for (Iterator<JsonNode> it = value.get(typeToAdd).iterator(); it.hasNext(); ) {
-            JsonNode current = ((ObjectNode) it.next()).get(TYPE);
-            if (current != null) {
-                if (type != null && !type.contains(current.asText())) {
-                    type.add((String) current.asText());
-                    isThereAType = true;
+                if (!listProperties.contains(key)) {
+                    listProperties.add(key);
                 }
             }
         }
-        return isThereAType;
     }
+
 
     /**
      * Verify and replace fields.
      *
-     * @param node to modify
+     * @param node             to modify
      * @param ontologyModelMap where are ontologies
-     * @param errors of replacement
+     * @param errors           of replacement
      */
     public void verifyAndReplaceFields(JsonNode node, Map<String, OntologyModel> ontologyModelMap,
         List<String> errors) {

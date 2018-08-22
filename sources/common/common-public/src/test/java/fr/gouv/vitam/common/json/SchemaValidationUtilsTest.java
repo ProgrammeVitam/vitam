@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.json;
 import static fr.gouv.vitam.common.model.administration.OntologyType.DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -302,18 +303,18 @@ public class SchemaValidationUtilsTest {
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
         ArchiveUnitProfileModel archiveUnitProfile =
             JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
-        HashMap<String, ArrayNode> extractFields =
+        List<String> extractFields =
             schemaValidation.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
         assertNotNull(extractFields);
         assertThat(extractFields.size() > 1);
         assertEquals(extractFields.size(), 80);
         // assert child fields are present
-        assertNotNull(extractFields.get("Rule"));
-        assertNotNull(extractFields.get("StartDate"));
-        assertNotNull(extractFields.get("PreventRulesId"));
+        assertTrue(extractFields.contains("Rule"));
+        assertTrue(extractFields.contains("StartDate"));
+        assertTrue(extractFields.contains("PreventRulesId"));
         // assert parent fields are not present
-        assertNull(extractFields.get("Rules"));
-        assertNull(extractFields.get("Management"));
+        assertFalse(extractFields.contains("Rules"));
+        assertFalse(extractFields.contains("Management"));
     }
 
 
