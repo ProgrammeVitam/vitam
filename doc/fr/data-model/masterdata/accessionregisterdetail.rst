@@ -70,7 +70,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     ],
     "_v": 0,
     "_tenant": 0
-}
+  }
 
 Détail des champs
 =================
