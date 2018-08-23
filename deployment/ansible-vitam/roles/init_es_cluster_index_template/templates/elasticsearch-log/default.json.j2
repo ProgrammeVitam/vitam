@@ -1,11 +1,12 @@
 {
   "index_patterns": ["*"],
+  "order": "0",
   "settings" : {
     {% if groups['hosts-elasticsearch-log']|length > 1 %}
-    "number_of_replicas": {{ kibana.log.logs.replica }},
+    "number_of_replicas": {{ composant.index_templates.default.replica }},
     {% else %}
     "number_of_replicas": 0,
     {% endif %}
-    "number_of_shards": {{ kibana.log.logs.shards }}
+    "number_of_shards": {{ composant.index_templates.default.shards }}
   }
 }

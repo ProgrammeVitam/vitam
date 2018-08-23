@@ -48,11 +48,12 @@
   roles:
     - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
 
-### ELASTICSEARCH LOG INSTALLATION ###
+# ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
+    - init_es_cluster_index_template
     - curator
   vars:
     composant: "{{ elasticsearch.log }}"
@@ -88,6 +89,7 @@
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
+    - init_es_cluster_index_template
   vars:
     composant: "{{ elasticsearch.data }}"
 

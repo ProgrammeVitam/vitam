@@ -1,0 +1,52 @@
+---
+- name: Wait for Elasticsearch cluster {{ composant.cluster_name }} port to be open
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ composant.port_http }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+    delay: 10 # to be sure Consul could detect it
+
+- name: Wait for Elasticsearch cluster {{ composant.cluster_name }} to be called by Consul
+  wait_for:
+    host: "{{ composant.host }}"
+    port: "{{ composant.port_http }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+    delay: 10 # to be sure Consul could detect it
+
+- name: Wait until Elasticsearch cluster {{ composant.cluster_name }} service is OK
+  uri:
+    url: "{{ composant |client_url }}"
+    method: GET
+  register: es_result
+  until: es_result.status != 404
+  retries: "{{ vitam_defaults.services.api_call_timeout }}"
+  delay: 10 # to be sure Consul could detect it
+
+- name: Ensure Elasticsearch cluster {{ composant.cluster_name }} is in "green" state
+  uri:
+    status_code: 200,201
+    method: GET
+    url: "{{ composant |client_url }}_cluster/health"
+    body_format: "json"
+  register: result
+  until: result.json.status == "green"
+  retries: "{{ vitam_defaults.services.api_call_timeout }}"
+  delay: 10
+  run_once: true
+
+# TODO : same thing but check before create that there are enough servers within cluster for replica number
+# - name: check wether replica number for metrics-vitam is compatible with inventory
+#   fail: msg="Too much replica defined for metrics index in elasticsearch-log"
+#   when: groups['hosts-elasticsearch-log']|length <= kibana.log.metrics.replica and groups['hosts-elasticsearch-log']|length>1
+#   tags: load_kibana_log
+  
+- name: load default index template in Elasticsearch cluster {{ composant.cluster_name }}
+  run_once: true
+  uri:
+    url: "{{ composant |client_url }}_template/{{ item | basename | regex_replace('\\.json\\.j2$') }}"
+    method: PUT
+    body: "{{ lookup('template', '{{ item }}') }}"
+    body_format: json
+    status_code: 200,201
+  with_fileglob: 
+    - "{{ role_path }}/templates/{{ composant.cluster_name }}/*.json.j2"

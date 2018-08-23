@@ -228,3 +228,6 @@
   service:
     name: "vitam-{{ composant.cluster_name }}"
     state: started
+
+# Force flush handlers to be sure previus role handlers have been run (for index templates)
+- meta: flush_handlers

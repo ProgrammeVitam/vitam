@@ -24,7 +24,7 @@
     owner: root
     mode: 0644
   with_fileglob:
-    - "{{ role_path }}/templates/modules/*"
+    - "{{ role_path }}/templates/modules/*yml"
 
 # - name: Upload dashboards zip file
 #   copy:

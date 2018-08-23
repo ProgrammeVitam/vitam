@@ -1,10 +1,9 @@
 {% if inventory_hostname in groups['hosts-mongoc-data'] %}
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
-  metricsets: ["dbstats", "status"]
+  metricsets: ["collstats","dbstats", "status"]
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
-  db: ["admin"]
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
@@ -14,7 +13,6 @@
   metricsets: ["dbstats", "status"]
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
-  db: ["admin"]
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
@@ -24,7 +22,5 @@
   metricsets: ["dbstats", "status"]
   username: {{ mongodb['mongo-data']['admin']['user'] }}
   password: {{ mongodb['mongo-data']['admin']['password'] }}
-  db: ["admin"]
   period: {{ metricbeat.mongodb.period }}s
-  #collections: ["logbook","masterdata","metadata,"identity"]
 {% endif %}
