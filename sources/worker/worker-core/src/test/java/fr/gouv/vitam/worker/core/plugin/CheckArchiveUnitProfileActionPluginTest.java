@@ -73,6 +73,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -239,8 +240,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
-            CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(NOT_AU_JSON_VALID.name());
     }
 
     @Test
@@ -265,8 +265,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-                CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name()));
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(NOT_AU_JSON_VALID.name()));
     }
 
     @Test
@@ -278,8 +277,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-                CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name()));
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(NOT_AU_JSON_VALID.name()));
     }
 
     @Test
@@ -292,8 +290,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode())
-            .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(NOT_AU_JSON_VALID.name());
     }
 
     @Test
@@ -306,25 +303,11 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode())
-                .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
-    }
-
-    private RequestResponse createArchiveUnitProfile(InputStream schema) throws InvalidParseOperationException {
-        ArchiveUnitProfileModel archiveUnitProfileModel = new ArchiveUnitProfileModel();
-        archiveUnitProfileModel.setIdentifier("AUP_0001");
-        archiveUnitProfileModel.setId(GUIDFactory.newProfileGUID(0).toString());
-
-        JsonNode node = JsonHandler.getFromInputStream(schema);
-        archiveUnitProfileModel.setControlSchema(JsonHandler.unprettyPrint(node));
-        return ClientMockResultHelper.createReponse(archiveUnitProfileModel);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(NOT_AU_JSON_VALID.name());
     }
 
     @Test
     public void givenInactiveOrEmptySchemaControlAUProfileInArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
-
-
-
         // archive unit has no description when schema requires one
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
@@ -363,6 +346,16 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
         response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    private RequestResponse createArchiveUnitProfile(InputStream schema) throws InvalidParseOperationException {
+        ArchiveUnitProfileModel archiveUnitProfileModel = new ArchiveUnitProfileModel();
+        archiveUnitProfileModel.setIdentifier("AUP_0001");
+        archiveUnitProfileModel.setId(GUIDFactory.newProfileGUID(0).toString());
+
+        JsonNode node = JsonHandler.getFromInputStream(schema);
+        archiveUnitProfileModel.setControlSchema(JsonHandler.unprettyPrint(node));
+        return ClientMockResultHelper.createReponse(archiveUnitProfileModel);
     }
 
     private RequestResponse createCustomArchiveUnitProfile(InputStream schema, ArchiveUnitProfileStatus aupStatus, CtrlSchemaValueSetterFlagEnum ctrlSchemaSetterFlag)
