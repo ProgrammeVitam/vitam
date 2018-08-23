@@ -111,6 +111,10 @@ vitam:
         # Action done to file after local ingest (see below for further information)
         upload_final_action: "MOVE"
         # log_level: "DEBUG"
+        # upload_final_action can be set to three different values (lower or upper case does not matter)
+        #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
+        #   DELETE : After upload, the local file will be deleted if the upload succeeded
+        #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -230,9 +234,3 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
-
-# ingestexternal:
-# upload_final_action can be set to three different values (lower or upper case does not matter)
-#   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
-#   DELETE : After upload, the local file will be deleted if the upload succeeded
-#   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
