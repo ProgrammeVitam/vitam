@@ -1041,6 +1041,7 @@ public class ParserTokens extends BuilderToken {
             case "DeactivationDate":
             case "DataObjectVersion":
             case "WritingPermission":
+            case "WritingRestrictedDesc":
             case "EveryOriginatingAgency":
             case "EveryDataObjectVersion":
             case "AccessLog":
