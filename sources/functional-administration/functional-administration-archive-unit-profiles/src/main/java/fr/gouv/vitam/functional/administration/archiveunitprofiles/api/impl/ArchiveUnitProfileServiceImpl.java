@@ -282,19 +282,15 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             for (final ArchiveUnitProfileModel aupm : profileModelList) {
                 setIdentifier(slaveMode, aupm);
 
-//                if (aupm.getControlSchema() != null) {
-//                    HashMap<String, ArrayNode> extractFields =
-//                        new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
-//                    //Get the extra properties (enum and date) for ontologyType comparison
-//                    HashMap<String, ArrayNode> extraProperties =
-//                        new SchemaValidationUtils().extractExtraPropertyFromSchema(aupm.getControlSchema());
-//                    if (checkOntology) {
-//                        extractFields.forEach((k, v) -> {
-//                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
-//                        });
-//                    }
-//                    aupm.setFields(new ArrayList<String>(extractFields.keySet()));
-//                }
+                if (aupm.getControlSchema() != null) {
+                    List<String> schemaFields = new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
+                    if (checkOntology) {
+                        schemaFields.forEach((k) -> {
+                            validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
+                        });
+                    }
+                    aupm.setFields(schemaFields);
+                }
 
                 final ObjectNode archiveProfileNode = (ObjectNode) JsonHandler.toJsonNode(aupm);
                 JsonNode jsonNode = archiveProfileNode.remove(VitamFieldsHelper.id());
@@ -416,39 +412,35 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             }
         }
 
-// TODO à remplacer par le contenu de la story 5010
-//        if (schemaUpdate) {
-//            try {
-//                if (newSchema != null) {
-//                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
-//                    HashMap<String, ArrayNode> extractFields =
-//                        new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
-//                    //Get the extra properties (enum and date) for ontologyType comparison
-//                    HashMap<String, ArrayNode> extraProperties =
-//                        new SchemaValidationUtils().extractExtraPropertyFromSchema(newSchema);
-//                    if (checkOntology) {
-//                        extractFields.forEach((k, v) -> {
-//                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
-//                        });
-//                    }
-//                    ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
-//                    ArrayNode fieldsNode = JsonHandler.createArrayNode();
-//                    for (String key : extractFields.keySet()) {
-//                        fieldsNode.add(key);
-//                    }
-//                    fieldsObjectNode.set(ArchiveUnitProfileModel.FIELDS, fieldsNode);
-//                    ObjectNode setFields = JsonHandler.createObjectNode();
-//                    setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), fieldsObjectNode);
-//                    ((ArrayNode) actionNode).add(setFields);
-//                }
-//            } catch (FileNotFoundException | InvalidParseOperationException | ProcessingException e) {
-//                LOGGER.error(e);
-//                error
-//                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-//                        .setDescription("The archive unit profile name contains bad fields in its schema")
-//                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
-//            }
-//        }
+
+        if (schemaUpdate) {
+            try {
+                if (newSchema != null) {
+                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
+
+                    ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
+                    ArrayNode fieldsNode = JsonHandler.createArrayNode();
+                    //Get the list of fields in the json schema
+                    List<String> schemaFields = new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
+                    if (checkOntology) {
+                        schemaFields.forEach((k) -> {
+                            validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
+                            fieldsNode.add(k);
+                        });
+                    }
+                    fieldsObjectNode.set(ArchiveUnitProfileModel.FIELDS, fieldsNode);
+                    ObjectNode setFields = JsonHandler.createObjectNode();
+                    setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), fieldsObjectNode);
+                    ((ArrayNode) actionNode).add(setFields);
+                }
+            } catch (FileNotFoundException | InvalidParseOperationException | ProcessingException e) {
+                LOGGER.error(e);
+                error
+                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                        .setDescription("The archive unit profile name contains bad fields in its schema")
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
+            }
+        }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
@@ -658,53 +650,22 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         return new HashMap<String, OntologyModel>();
     }
 
-    /**
-     * Validate the field against the one present in Ontology
-     *
-     * @param ontologyList
-     * @param field
-     * @param types
-     * @param error
-     * @param extraType
-     */
-    private void validateFieldsInSchemaAgainstOntology(Map<String, OntologyModel> ontologyList,
-        final String field, final ArrayNode types, final VitamError error, ArrayNode extraType) {
-        final HashMap<OntologyType, List<String>> fieldsCorrelation = new HashMap<>();
-        fieldsCorrelation.put(OntologyType.BOOLEAN, Arrays.asList(new String[] {"boolean", "string"}));
-        fieldsCorrelation.put(OntologyType.DATE, Arrays.asList(new String[] {"date", "string"}));
-        fieldsCorrelation.put(OntologyType.KEYWORD,
-            Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
-        fieldsCorrelation.put(OntologyType.TEXT,
-            Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
-        fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number"}));
-        fieldsCorrelation.put(OntologyType.LONG, Arrays.asList(new String[] {"number", "integer"}));
-        fieldsCorrelation.put(OntologyType.GEO_POINT, Arrays.asList(new String[] {"string"}));
-        fieldsCorrelation.put(OntologyType.ENUM, Arrays.asList(new String[] {"enum"}));
 
-        if (ontologyList.containsKey(field)) {
-            OntologyModel checkedField = ontologyList.get(field);
-            final Iterator<JsonNode> iterator = types.elements();
-            while (iterator.hasNext()) {
-                String type = iterator.next().asText();
-                if (type != null) {
-                    List<String> listforOntType = fieldsCorrelation.get(checkedField.getType());
-                    boolean containsExtraType = false;
-                    if (extraType != null && extraType.get(0) != null) {
-                        JsonNode extraNode = extraType.get(0);
-                        if (listforOntType.contains(extraNode.asText())) {
-                            containsExtraType = true;
-                        }
-                    }
-                    if (listforOntType != null && !listforOntType.contains(type) && !containsExtraType) {
-                        error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                            RejectionCause.rejectIncorrectFieldInOntology(field).getReason(), StatusCode.KO));
-                    }
-                }
-            }
-        } else {
+    /**
+     * Validate that the field is present in the ontology map
+     *
+     * @param ontologyMap
+     * @param field
+     * @param error
+     */
+    private void validateFieldInSchemaAgainstOntology(Map<String, OntologyModel> ontologyMap,
+        final String field, final VitamError error) {
+        if (!ontologyMap.containsKey(field)) {
             error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                 RejectionCause.rejectMissingFieldInOntology(field).getReason(), StatusCode.KO));
         }
+
+
     }
 
 }
