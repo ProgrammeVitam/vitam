@@ -1,0 +1,12 @@
+{
+  "index_patterns": [".kibana*"],
+  "order": "1",
+  "settings" : {
+    {% if groups['hosts-elasticsearch-data']|length > 1 %}
+    "number_of_replicas": {{ kibana.data.replica }},
+    {% else %}
+    "number_of_replicas": 0,
+    {% endif %}
+    "number_of_shards": {{ kibana.data.shards }}
+  }
+}

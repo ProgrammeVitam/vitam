@@ -37,24 +37,6 @@
   when: groups['hosts-elasticsearch-data']|length <= kibana.data.replica and groups['hosts-elasticsearch-data']|length>1
   tags: load_kibana_data
 
-### elasticsearch data configuration and kibana configuration ###
-- name: load default index template in Elasticsearch data
-  run_once: true
-  uri:
-    url: "{{ elasticsearch.data|client_url }}_template/all_templates"
-    method: PUT
-    body: "{{ lookup('template', '{{ role_path }}/templates/all_templates.json.j2') }}"
-    body_format: json
-    status_code: 200,201
-
-# # OMA: this is a beurk task but sometimes, .kibana exists & is populated but nothing seen in webapp
-# - name: delete current .kibana
-#   run_once: true
-#   uri:
-#     url: "{{ elasticsearch.data|client_url }}.kibana"
-#     method: DELETE
-#     status_code: 200,404
-
 # We have a specific task for index pattern to add the "*" at the end of the url
 - name: load index templates for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
