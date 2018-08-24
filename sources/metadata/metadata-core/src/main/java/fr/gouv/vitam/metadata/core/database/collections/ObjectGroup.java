@@ -131,15 +131,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * depths
      */
     public static final String OGDEPTHS = "_ops";
-    /**
-     * File Info
-     */
-    public static final String FILE_INFO = "FileInfo";
-
-    /**
-     * File Name
-     */
-    public static final String FILE_NAME = "Filename";
 
     /**
      * Total number of copies
