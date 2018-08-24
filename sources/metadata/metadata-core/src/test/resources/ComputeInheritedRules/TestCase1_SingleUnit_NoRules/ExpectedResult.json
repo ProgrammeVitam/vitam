@@ -6,7 +6,19 @@
     },
     "AppraisalRule": {
       "Rules": [],
-      "Properties": []
+      "Properties": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "PropertyName": "FinalAction",
+          "PropertyValue": "Keep"
+        }
+      ]
     },
     "AccessRule": {
       "Rules": [],

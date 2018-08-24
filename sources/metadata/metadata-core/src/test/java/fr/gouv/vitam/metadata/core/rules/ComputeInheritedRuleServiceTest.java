@@ -35,7 +35,8 @@ public class ComputeInheritedRuleServiceTest {
     public void computeInheritedRules_SingleUnit_NoRules() throws Exception {
 
         // Given
-        String inputDataSet = "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/Input.json";
+        String inputDataSet =
+            "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/Input.json";
         String expectedDataSetResult =
             "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/ExpectedResult.json";
 
@@ -125,13 +126,13 @@ public class ComputeInheritedRuleServiceTest {
 
     private void runTest(String inputDataSet, String expectedDataSetResult)
         throws InvalidParseOperationException, IOException {
-        Map<String, UnitRuleModel> emptyUnitRuleModelMap =
+        Map<String, UnitRuleModel> inputUnitRuleModelMap =
             loadInputDataSet(inputDataSet);
         ComputeInheritedRuleService instance = new ComputeInheritedRuleService();
 
         // When
         Map<String, UnitInheritedRulesResponseModel> response =
-            instance.computeInheritedRules(emptyUnitRuleModelMap);
+            instance.computeInheritedRules(inputUnitRuleModelMap);
 
         // Then
         assertThatResponseMatchesExpected(response, expectedDataSetResult);

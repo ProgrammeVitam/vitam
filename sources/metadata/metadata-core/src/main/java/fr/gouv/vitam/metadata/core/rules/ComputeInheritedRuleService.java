@@ -45,8 +45,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.ListUtils.union;
 
 /**
@@ -104,6 +106,9 @@ public class ComputeInheritedRuleService {
      * --> PreventInheritance flag is defined
      * --> PreventRulesId is defined (rules only)
      * --> Child unit redefines a specific rule (same rule id) or property (property name)
+     * - Properties may have implicit default value : If not explicitly defined (same property name, same Originating
+     * Agency) => a default/implicit local property is assumed (which might redefine similar inherited properties
+     * from a different Originating Agency)
      */
     private UnitInheritedRulesResponseModel computeUnitInheritedRulesFromParents(UnitRuleModel unitRuleModel,
         Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap) {
@@ -125,18 +130,25 @@ public class ComputeInheritedRuleService {
         RuleCategoryModel ruleCategoryModel =
             unitRuleModel.getManagementModel().getRuleCategoryModel(ruleCategory);
 
+        List<InheritedRuleResponseModel> rules =
+            computeInheritedRules(unitRuleModel, unitInheritedRulesByUnitIdMap, ruleCategory, ruleCategoryModel);
+
+        List<InheritedPropertyResponseModel> properties =
+            computeInheritedProperties(unitRuleModel, unitInheritedRulesByUnitIdMap, ruleCategory, ruleCategoryModel);
+
+        return new InheritedRuleCategoryResponseModel(rules, properties);
+    }
+
+    private List<InheritedRuleResponseModel> computeInheritedRules(UnitRuleModel unitRuleModel,
+        Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap, String ruleCategory,
+        RuleCategoryModel ruleCategoryModel) {
+
         List<InheritedRuleResponseModel> localRules = computeLocalRules(unitRuleModel, ruleCategoryModel);
+
         List<InheritedRuleResponseModel> inheritedRules =
             getInheritedRules(unitRuleModel, unitInheritedRulesByUnitIdMap, ruleCategory, ruleCategoryModel);
 
-        List<InheritedPropertyResponseModel> localProperties = computeLocalProperties(unitRuleModel, ruleCategoryModel);
-        List<InheritedPropertyResponseModel> inheritedProperties =
-            getInheritedProperties(unitRuleModel, unitInheritedRulesByUnitIdMap, ruleCategory, ruleCategoryModel);
-
-        return new InheritedRuleCategoryResponseModel(
-            union(localRules, inheritedRules),
-            union(localProperties, inheritedProperties)
-        );
+        return union(localRules, inheritedRules);
     }
 
     private List<InheritedRuleResponseModel> computeLocalRules(UnitRuleModel unitRuleModel,
@@ -150,20 +162,6 @@ public class ComputeInheritedRuleService {
             .map(ruleModel -> new InheritedRuleResponseModel(unitRuleModel.getId(),
                 unitRuleModel.getOriginatingAgency(), singletonList(singletonList(unitRuleModel.getId())),
                 ruleModel.getRule(), ruleModel.getStartDate(), ruleModel.getEndDate()))
-            .collect(Collectors.toList());
-    }
-
-    private List<InheritedPropertyResponseModel> computeLocalProperties(UnitRuleModel unitRuleModel,
-        RuleCategoryModel ruleCategoryModel) {
-
-        if (ruleCategoryModel == null) {
-            return Collections.emptyList();
-        }
-
-        return ruleCategoryModel.getProperties().entrySet().stream()
-            .map(property -> new InheritedPropertyResponseModel(unitRuleModel.getId(),
-                unitRuleModel.getOriginatingAgency(), singletonList(singletonList(unitRuleModel.getId())),
-                property.getKey(), property.getValue()))
             .collect(Collectors.toList());
     }
 
@@ -258,6 +256,48 @@ public class ComputeInheritedRuleService {
         return result;
     }
 
+    private List<InheritedPropertyResponseModel> computeInheritedProperties(UnitRuleModel unitRuleModel,
+        Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap, String ruleCategory,
+        RuleCategoryModel ruleCategoryModel) {
+
+        List<InheritedPropertyResponseModel> localProperties = computeLocalProperties(unitRuleModel, ruleCategoryModel);
+
+        List<InheritedPropertyResponseModel> inheritedProperties =
+            getInheritedProperties(unitRuleModel, unitInheritedRulesByUnitIdMap, ruleCategory, ruleCategoryModel);
+
+        List<InheritedPropertyResponseModel> explicitlyDeclaredProperties = union(localProperties, inheritedProperties);
+
+        List<InheritedPropertyResponseModel> implicitProperties =
+            computeImplicitProperties(ruleCategory, unitRuleModel, explicitlyDeclaredProperties);
+
+        // Combine implicit properties with explicitly declared properties
+        // Implicit properties redefine similar inherited properties (same PropertyName) from a different Originating Agency
+
+        Set<String> implicitPropertyNames = implicitProperties.stream()
+            .map(InheritedPropertyResponseModel::getPropertyName)
+            .collect(Collectors.toSet());
+
+        return union(
+            implicitProperties,
+            explicitlyDeclaredProperties.stream()
+                .filter(p -> !implicitPropertyNames.contains(p.getPropertyName()))
+                .collect(Collectors.toList()));
+    }
+
+    private List<InheritedPropertyResponseModel> computeLocalProperties(UnitRuleModel unitRuleModel,
+        RuleCategoryModel ruleCategoryModel) {
+
+        if (ruleCategoryModel == null) {
+            return Collections.emptyList();
+        }
+
+        return ruleCategoryModel.getProperties().entrySet().stream()
+            .map(property -> new InheritedPropertyResponseModel(unitRuleModel.getId(),
+                unitRuleModel.getOriginatingAgency(), singletonList(singletonList(unitRuleModel.getId())),
+                property.getKey(), property.getValue()))
+            .collect(Collectors.toList());
+    }
+
     private List<InheritedPropertyResponseModel> getInheritedProperties(UnitRuleModel unitRuleModel,
         Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap, String ruleCategory,
         RuleCategoryModel ruleCategoryModel) {
@@ -327,5 +367,34 @@ public class ComputeInheritedRuleService {
         }
 
         return result;
+    }
+
+    private List<InheritedPropertyResponseModel> computeImplicitProperties(String ruleCategory,
+        UnitRuleModel unitRuleModel, List<InheritedPropertyResponseModel> explicitlyDeclaredProperties) {
+
+        // HOLDING_UNIT cannot declare rules & properties.
+        boolean isHoldingUnit = unitRuleModel.getOriginatingAgency() == null;
+        if (isHoldingUnit) {
+            return emptyList();
+        }
+
+        Set<String> explicitlyDefinedPropertyNames =
+            explicitlyDeclaredProperties.stream()
+                .filter(p -> unitRuleModel.getOriginatingAgency().equals(p.getOriginatingAgency()))
+                .map(InheritedPropertyResponseModel::getPropertyName)
+                .collect(toSet());
+
+        // For now, implicit rules are limited to AppraisalRule category & "Keep" as default value for "FinalAction" property.
+        if (ruleCategory.equals(VitamConstants.TAG_RULE_APPRAISAL) &&
+            !explicitlyDefinedPropertyNames.contains(RuleCategoryModel.FINAL_ACTION)) {
+
+            // Add an implicit property
+            return singletonList(new InheritedPropertyResponseModel(
+                unitRuleModel.getId(), unitRuleModel.getOriginatingAgency(),
+                singletonList(singletonList(unitRuleModel.getId())), RuleCategoryModel.FINAL_ACTION,
+                VitamConstants.AppraisalRuleFinalAction.KEEP.value()));
+        }
+
+        return emptyList();
     }
 }
