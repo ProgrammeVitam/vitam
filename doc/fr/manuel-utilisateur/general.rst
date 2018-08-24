@@ -374,7 +374,7 @@ Pour vider le panier de la totalité des unités archivistiques, il faut sélect
 Appliquer une action sur la sélection
 -------------------------------------
 
-Actuellement, plusieurs actions sont possibles : exporter le panier sous la forme d'un DIP, vider le panier, ou bien effectuer un audit de cohérence sur les unités archivistiques.
+Actuellement, plusieurs actions sont possibles : exporter le panier sous la forme d'un DIP, vider le panier, effectuer une modification de métadonnées en masse, une élimination ou bien effectuer un audit de cohérence sur les unités archivistiques.
 
 
 .. image:: images/panier_totalite.png
