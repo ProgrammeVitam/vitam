@@ -1,0 +1,4 @@
+{ "id": "id2", "params": { "opi": "opi0", "id": "id2", "originatingAgency": "sp1", "status": "DELETED", "objectIds": [ "binary11", "binary12" ] } }
+{ "id": "id3", "params": { "opi": "opi1", "id": "id3", "originatingAgency": "sp1", "status": "PARTIAL_DESTROY", "deletedParentUnitIds": [ "unitId21", "unitId22" ] } }
+{ "id": "id1", "params": { "opi": "opi2", "id": "id1", "originatingAgency": "sp1", "status": "DELETED", "objectIds": [ "binary31", "binary32" ] } }
+{ "id": "id4", "params": { "opi": "opi3", "id": "id4", "originatingAgency": "sp2", "status": "DELETED", "objectIds": [ "binary41", "binary42" ] } }

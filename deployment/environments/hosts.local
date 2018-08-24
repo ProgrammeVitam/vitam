@@ -67,6 +67,7 @@ localhost
 [zone-applicative:children]
 hosts-ingest-internal
 hosts-processing
+hosts-batch-report
 hosts-worker
 hosts-access-internal
 hosts-metadata
@@ -101,6 +102,9 @@ localhost
 localhost
 
 [hosts-storage-engine]
+localhost
+
+[hosts-batch-report]
 localhost
 
 [hosts-worker]
@@ -148,7 +152,7 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost   
+localhost
 
 [hosts-mongoc-data]
 localhost                        mongo_rs_bootstrap=true

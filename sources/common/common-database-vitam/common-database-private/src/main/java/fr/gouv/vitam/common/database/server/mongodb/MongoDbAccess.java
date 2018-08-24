@@ -137,6 +137,11 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         mongoClient.close();
     }
 
+    @Override
+    public String getInfo() {
+        return dbname;
+    }
+
     /**
      * Create a mongoDB client according to the configuration and using the MongoClientOptions specific to the
      * sub-systems (ex: metadata,logbook)
@@ -163,11 +168,6 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         } else {
             return new MongoClient(serverAddress, options);
         }
-    }
-
-    @Override
-    public String getInfo() {
-        return dbname;
     }
 
     /**

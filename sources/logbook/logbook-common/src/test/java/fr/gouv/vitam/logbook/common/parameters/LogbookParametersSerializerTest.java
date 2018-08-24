@@ -45,7 +45,6 @@ public class LogbookParametersSerializerTest {
 
     @Test
     public void shouldSerializeUnitParameters() throws IOException {
-        final LogbookParametersSerializer logbookParametersSerializer = new LogbookParametersSerializer();
         final LogbookLifeCycleObjectGroupParameters params =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
@@ -54,6 +53,7 @@ public class LogbookParametersSerializerTest {
             params.putParameterValue(value, value.name());
         }
 
+        final LogbookParametersSerializer logbookParametersSerializer = new LogbookParametersSerializer();
         final StringWriter stringJson = new StringWriter();
         final JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
         final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();

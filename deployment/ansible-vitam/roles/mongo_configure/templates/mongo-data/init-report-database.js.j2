@@ -1,0 +1,16 @@
+// Switch to report database
+db = db.getSiblingDB('report')
+
+
+// Create indexes Report List
+
+// A single collection can have no more than 64 indexes.
+
+// Create indexes EliminationActionUnit
+db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+
+// Create indexes EliminationActionObjectGroup
+db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )

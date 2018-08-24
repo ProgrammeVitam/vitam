@@ -1,0 +1,1 @@
+JAVA_ENTRYPOINT=-jar "/vitam/lib/batch-report/batch-report-rest-1.9.0-SNAPSHOT.jar"

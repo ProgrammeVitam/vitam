@@ -40,12 +40,13 @@ public class PersonalCertificatePermissionConfigLoader {
 
     /**
      * Handles PersonalCertificatePermissionConfig loading and validation
+     *
      * @param configFile config file path
      * @return
      * @throws IOException
      */
-    public static PersonalCertificatePermissionConfig loadPersonalCertificatePermissionConfig(
-        String configFile) throws IOException {
+    public static PersonalCertificatePermissionConfig loadPersonalCertificatePermissionConfig(String configFile)
+        throws IOException {
 
         final PersonalCertificatePermissionConfig config;
         try (final InputStream personalCertificatePermissionIS = PropertiesUtils.getConfigAsStream(

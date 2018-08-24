@@ -1,0 +1,6 @@
+{ "id": "unitId1", "params": { "opi": "opi0", "objectGroupId": "id2", "originatingAgency": "sp1", "status": "DELETED", "id": "unitId1" } }
+{ "id": "unitId2", "params": { "opi": "opi1", "objectGroupId": "id1", "originatingAgency": "sp1", "status": "NON_DESTROYABLE_HAS_CHILD_UNITS", "id": "unitId2" } }
+{ "id": "unitId3", "params": { "opi": "opi2", "objectGroupId": "id1", "originatingAgency": "sp1", "status": "GLOBAL_STATUS_KEEP", "id": "unitId3" } }
+{ "id": "unitId4", "params": { "opi": "opi3", "objectGroupId": "id3", "originatingAgency": "sp2", "status": "GLOBAL_STATUS_CONFLICT", "id": "unitId4" } }
+{ "id": "unitId5", "params": { "opi": "opi0", "objectGroupId": "id2", "originatingAgency": "sp1", "status": "DELETED", "id": "unitId5" } }
+{ "id": "unitId6", "params": { "opi": "opi0", "objectGroupId": "id4", "originatingAgency": "sp1", "status": "DELETED", "id": "unitId6" } }

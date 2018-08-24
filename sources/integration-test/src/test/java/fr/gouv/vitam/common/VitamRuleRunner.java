@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
 
+import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -60,7 +62,9 @@ public class VitamRuleRunner {
             OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION,
             OffsetRepository.COLLECTION_NAME,
             OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME,
-            PersonalRepository.PERSONAL_COLLECTION);
+            PersonalRepository.PERSONAL_COLLECTION,
+            EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP,
+            EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT);
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =

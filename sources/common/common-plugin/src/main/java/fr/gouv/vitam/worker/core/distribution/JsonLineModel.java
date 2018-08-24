@@ -18,12 +18,14 @@
 
 package fr.gouv.vitam.worker.core.distribution;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * JsonLine Model.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class JsonLineModel {
 
     /**
