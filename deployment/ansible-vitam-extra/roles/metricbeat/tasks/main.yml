@@ -17,6 +17,13 @@
     owner: root
     mode: 0644
 
+- name: ensure module.d directory exists
+  file:
+    path: "/etc/metricbeat/modules.d"
+    state: directory
+    owner: root
+    mode: 0644
+
 - name: apply metricbeat modules configuration
   template:
     src: "{{ item }}"
