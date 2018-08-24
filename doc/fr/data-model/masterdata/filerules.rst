@@ -26,29 +26,19 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
 
 ::
 
-{
-    "AppraisalRule": {
-        "Rules": [{
-            "RuleID": "APP-00002",
-            "StartDate": "01/10/1990",
-            "EndDate": "01/10/2005",
-            "UnitID": "aeaqaaaaaqhdytymabdeialenehzphiaaaeq",
-            "SP": "RATP",
-            "Paths": [["aeaqaaaaaqhdytymabdeialenehzphiaaaeq"]]
-        }],
-        "Properties": [{
-            "PropertyName": "FinalAction",
-            "PropertyValue": "Keep",
-            "UnitID": "aedqaaaaeghij5maabqqyalencmno4aaaaaq",
-            "SP": "RATP",
-            "Paths": [
-                ["aeaqaaaaaqhdytymabdeialenehzphiaaaeq", "aedqaaaaeghij5maabqqyalencmno4aaaaaq"],
-                ["aeaqaaaaaqhdytymabdeialenehzphiaaaeq", "aeaqaaaaaqhdytymabdeialenehzphiaaaaq", "aeaqaaaaaqhdytymabdeialenehzpbyaaajq", "aedqaaaaeghij5maabqqyalencmno4aaaaaq"]
-            ]
-        }]
-    }
-
-
+ {
+   "_id": "aeaaaaaaaahbl62nabduoak3jc4avsyaaaha",
+   "RuleId": "ACC-00011",
+   "RuleType": "AccessRule",
+   "RuleValue": "Communicabilité des informations portant atteinte au secret de la défense nationale",
+   "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte au secret de la défense nationale\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
+   "RuleDuration": "50",
+   "RuleMeasurement": "YEAR",
+   "CreationDate": "2017-11-02T13:50:28.922",
+   "UpdateDate": "2017-11-06T09:11:54.062",
+   "_v": 0,
+   "_tenant": 0
+  }
 
 
 
