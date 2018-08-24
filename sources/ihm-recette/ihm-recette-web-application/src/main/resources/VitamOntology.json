@@ -611,6 +611,17 @@
         ]
     },
     {
+        "Identifier": "ExternalReference",
+        "SedaField": "ExternalReference",
+        "Description": "Mapping : unit-es-mapping.json. Référence à un objet externe, présent ni dans le message, ni dans le SAE",
+        "Type": "TEXT",
+        "Origin": "INTERNAL",
+        "ShortName": "Référence à un objet externe, présent ni dans le message, ni dans le SAE",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
         "Identifier": "Activity",
         "SedaField": "Activity",
         "Description": "Mapping : unit-es-mapping.json. En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Activité.",
@@ -650,6 +661,17 @@
         "Type": "TEXT",
         "Origin": "INTERNAL",
         "ShortName": "Droits",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "Mandate",
+        "SedaField": "Mandate",
+        "Description": "Mapping : unit-es-mapping.json. Mandat octroyé à la personne.",
+        "Type": "TEXT",
+        "Origin": "INTERNAL",
+        "ShortName": "Mandat octroyé à la personne",
         "Collections": [
             "Unit"
         ]
@@ -818,6 +840,39 @@
         ]
     },
     {
+      "Identifier": "fr",
+      "ApiField": "fr",
+      "Description": "Mapping : unit-es-mapping.json",
+      "Type": "TEXT",
+      "Origin": "INTERNAL",
+      "ShortName": "Langue française",
+      "Collections": [
+        "Unit"
+      ]
+    },
+    {
+      "Identifier": "en",
+      "ApiField": "en",
+      "Description": "Mapping : unit-es-mapping.json",
+      "Type": "TEXT",
+      "Origin": "INTERNAL",
+      "ShortName": "Langue anglaise",
+      "Collections": [
+        "Unit"
+      ]
+    },
+    {
+      "Identifier": "es",
+      "ApiField": "es",
+      "Description": "Mapping : unit-es-mapping.json",
+      "Type": "TEXT",
+      "Origin": "INTERNAL",
+      "ShortName": "Langue espagnole",
+      "Collections": [
+        "Unit"
+      ]
+    },
+    {
         "Identifier": "TransactedDate",
         "SedaField": "TransactedDate",
         "Description": "Mapping : unit-es-mapping.json",
@@ -871,7 +926,8 @@
         "Origin": "INTERNAL",
         "ShortName": "_glpd",
         "Collections": [
-            "Unit"
+            "Unit",
+            "ObjectGroup"
         ]
     },
     {
@@ -989,6 +1045,17 @@
         "Identifier": "NeedReassessingAuthorization",
         "SedaField": "NeedReassessingAuthorization",
         "Description": "Mapping : unit-es-mapping.json. Indique si une autorisation humaine est nécessaire pour réévaluer la classification.",
+        "Type": "BOOLEAN",
+        "Origin": "INTERNAL",
+        "ShortName": "Autorisation",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "NeedAuthorization",
+        "SedaField": "NeedAuthorization",
+        "Description": "Mapping : unit-es-mapping.json. Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.",
         "Type": "BOOLEAN",
         "Origin": "INTERNAL",
         "ShortName": "Autorisation",
@@ -1146,7 +1213,8 @@
             "IngestContract",
             "Ontology",
             "Profile",
-            "FileRules"
+            "FileRules",
+            "LogbookOperation"
         ]
     },
     {
@@ -1228,7 +1296,8 @@
             "Ontology",
             "Profile",
             "FileRules",
-            "SecurityProfile"
+            "SecurityProfile",
+            "LogbookOperation"
         ]
     },
     {
@@ -1294,7 +1363,8 @@
         "Origin": "INTERNAL",
         "ShortName": "Nom du fichier",
         "Collections": [
-            "ObjectGroup"
+          "ObjectGroup",
+          "LogbookOperation"
         ]
     },
     {
@@ -1508,6 +1578,7 @@
         "Origin": "INTERNAL",
         "ShortName": "Identifiant(s) des unités archivistiques parentes et niveau de profondeur",
         "Collections": [
+            "Unit",
             "ObjectGroup"
         ]
     },
@@ -1856,6 +1927,18 @@
         ]
     },
     {
+        "Identifier": "LegalStatus",
+        "SedaField": "LegalStatus",
+        "Description": "Mapping : accessionregisterdetail-es-mapping.json",
+        "Type": "LONG",
+        "Origin": "INTERNAL",
+        "ShortName": "Statut légal",
+        "Collections": [
+            "AccessionRegisterDetail",
+            "LogbookOperation"
+        ]
+    },
+    {
         "Identifier": "ControlSchema",
         "ApiField": "ControlSchema",
         "Description": "Mapping : archiveunitprofile-es-mapping.json",
@@ -2136,7 +2219,40 @@
         "Description": "Mapping : logbook-es-mapping.json",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Identifiant du procesus",
+      "ShortName": "Identifiant du processus",
+      "Collections": [
+        "LogbookOperation"
+      ]
+    },
+    {
+        "Identifier": "SecurisationVersion",
+        "ApiField": "SecurisationVersion",
+        "Description": "Mapping : logbook-es-mapping.json",
+        "Type": "TEXT",
+        "Origin": "INTERNAL",
+        "ShortName": "SecurisationVersion",
+        "Collections": [
+            "LogbookOperation"
+        ]
+    },
+    {
+        "Identifier": "MaxEntriesReached",
+        "ApiField": "MaxEntriesReached",
+        "Description": "Mapping : logbook-es-mapping.json",
+        "Type": "BOOLEAN",
+        "Origin": "INTERNAL",
+        "ShortName": "MaxEntriesReached",
+        "Collections": [
+            "LogbookOperation"
+        ]
+    },
+    {
+        "Identifier": "ServiceLevel",
+        "SedaField": "ServiceLevel",
+        "Description": "Mapping : logbook-es-mapping.json",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "Niveau de service",
         "Collections": [
             "LogbookOperation"
         ]
@@ -2308,17 +2424,6 @@
         ]
     },
     {
-        "Identifier": "ServiceLevel",
-        "SedaField": "ServiceLevel",
-        "Description": "Mapping : logbook-es-mapping.json",
-        "Type": "KEYWORD",
-        "Origin": "INTERNAL",
-        "ShortName": "Niveau de service",
-        "Collections": [
-            "LogbookOperation"
-        ]
-    },
-    {
         "Identifier": "TimeStampToken",
         "ApiField": "TimeStampToken",
         "Description": "Mapping : logbook-es-mapping.json",
@@ -2447,7 +2552,7 @@
         "Identifier": "ApiField",
         "ApiField": "ApiField",
         "Description": "Mapping : ontology-es-mapping.json. Correspond au nom donné au vocabulaire ontologique côté API.",
-        "Type": "TEXT",
+        "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Intitulé",
         "Collections": [
@@ -2480,7 +2585,7 @@
         "Identifier": "SedaField",
         "ApiField": "SedaField",
         "Description": "Mapping : ontology-es-mapping.json. Elémént XML issu du SEDA.",
-        "Type": "TEXT",
+        "Type": "KEYWORD",
         "Origin": "INTERNAL",
         "ShortName": "Intitulé",
         "Collections": [

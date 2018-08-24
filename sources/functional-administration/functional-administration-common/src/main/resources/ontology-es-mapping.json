@@ -1,12 +1,10 @@
 {
   "properties": {
     "ApiField": {
-      "type": "text",
-      "fielddata": true
+      "type": "keyword"
     },
     "SedaField": {
-      "type": "text",
-      "fielddata": true
+      "type": "keyword"
     },
     "Identifier": {
       "type": "keyword"

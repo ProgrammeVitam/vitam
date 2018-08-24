@@ -280,6 +280,9 @@
             "type": "keyword"
           }
         }
+      },
+      "_glpd": {
+        "type": "keyword"
       }
     }
   }

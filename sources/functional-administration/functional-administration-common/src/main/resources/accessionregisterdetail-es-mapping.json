@@ -114,6 +114,9 @@
     "OperationIds": {
       "type": "keyword"
     },
+    "LegalStatus": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },
