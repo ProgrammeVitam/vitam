@@ -26,61 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
-import static java.util.Collections.singletonList;
+import com.google.common.base.Strings;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * transform a {@link Element} to a {@link Map}
  */
 public class ElementMapper {
 
-
     /**
      * Transform list to map
-     * 
+     *
      * @param elements to be transformed
      * @return the map
      */
     public Map<String, Object> toMap(List<Object> elements) {
-
-        List<Map<String, List>> collect = elements.stream()
+        Map<String, List<Object>> collect = elements.stream()
             .filter(item -> item instanceof Element)
-            .map(item -> {
-                Map<String, List> maps = new HashMap<>();
-                Element element = (Element) item;
-                maps.put(element.getLocalName(), singletonList(elementToMap(element)));
-                return maps;
-            }).collect(Collectors.toList());
+            .map(item -> (Element) item)
+            .map(item -> new SimpleImmutableEntry<>(item.getLocalName(), elementToMap(item)))
+            .collect(Collectors.toMap(
+                SimpleImmutableEntry::getKey,
+                SimpleImmutableEntry::getValue,
+                (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
 
-        ListMultimap<String, Object> multimap = ArrayListMultimap.create();
-        for (Map<String, List> stringListEntry : collect) {
-
-            for (String s : stringListEntry.keySet()) {
-                multimap.putAll(s, stringListEntry.get(s));
-            }
-        }
-
-        return ((Map) multimap.asMap());
+        return (Map) collect;
     }
 
-    private Object elementToMap(Element item) {
-
+    private List<Object> elementToMap(Element item) {
         NodeList childNodes = item.getChildNodes();
-
         Multimap<String, Node> objectObjectHashMap = ArrayListMultimap.create();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
@@ -90,12 +79,11 @@ public class ElementMapper {
                 if (Strings.isNullOrEmpty(child.getTextContent().trim())) {
                     continue;
                 }
-                return child.getTextContent();
+                return singletonList(child.getTextContent());
             }
         }
 
         Map<String, List> maps = new HashMap<>();
-
         for (String s : objectObjectHashMap.keySet()) {
             List<Object> objects = new ArrayList<>();
             for (Node child : objectObjectHashMap.get(s)) {
@@ -105,17 +93,24 @@ public class ElementMapper {
                         break;
                     case Node.ELEMENT_NODE:
                         if (child.hasChildNodes() && child.getChildNodes().getLength() >= 1) {
-                            objects.add(elementToMap((Element) child));
+                            objects.addAll(elementToMap((Element) child));
                             break;
                         }
-                        objects.add(child.getTextContent());
+                        String textContent = child.getTextContent();
+                        if (!textContent.isEmpty()) {
+                            objects.add(textContent);
+                        }
                         break;
                 }
             }
             maps.put(s, objects);
         }
 
-        return maps;
+        if (maps.isEmpty()) {
+            return emptyList();
+        }
+
+        return singletonList(maps);
     }
 
 }
