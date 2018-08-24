@@ -30,17 +30,6 @@
   delay: 1
   tags: load_kibana_log
 
-### elasticsearch log configuration and kibana configuration ###
-- name: load vitam metrics template in Elasticsearch Log
-  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  run_once: true
-  uri:
-    url: "{{ elasticsearch.log|client_url }}_template/metrics_template"
-    method: PUT
-    body: "{{ lookup('template', '{{ role_path }}/templates/metrics.template.json.j2') }}"
-    body_format: json
-    status_code: 200,201
-
 # We have a specific task for index pattern to add the "*" at the end of the url
 - name: load index templates for Kibana
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
@@ -58,7 +47,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-metrics-configuration/index-pattern/*.json"
 
-- name: load search into Elasticsearch log .kibana index
+- name: load search for Kibana
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
@@ -74,7 +63,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-metrics-configuration/search/*.json"
 
-- name: load visualizations into Elasticsearch log .kibana index
+- name: load visualizations for Kibana
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
@@ -90,7 +79,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-metrics-configuration/visualization/*.json"
 
-- name: load dashboards into Elasticsearch log .kibana index
+- name: load dashboards for Kibana
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log

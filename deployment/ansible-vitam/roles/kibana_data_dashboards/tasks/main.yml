@@ -31,7 +31,7 @@
   tags: load_kibana_data
 
 # We have a specific task for index pattern to add the "*" at the end of the url
-- name: load index templates for Kibana
+- name: load index patterns for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_data
@@ -47,7 +47,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/index-pattern/*.json"
 
-- name: load search into Elasticsearch data .kibana index
+- name: load search for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_data
@@ -63,7 +63,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/search/*.json"
 
-- name: load visualizations into Elasticsearch data .kibana index
+- name: load visualizations for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
@@ -79,7 +79,7 @@
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/visualization/*.json"
 
-- name: load dashboards into Elasticsearch data .kibana index
+- name: load dashboards for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
