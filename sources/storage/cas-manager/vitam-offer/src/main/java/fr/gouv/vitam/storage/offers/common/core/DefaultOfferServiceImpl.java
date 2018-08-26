@@ -128,11 +128,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        try {
-            defaultStorage.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
+        if (!defaultStorage.isExistingContainer(containerName)) {
+            try {
+                defaultStorage.createContainer(containerName);
+            } catch (ContentAddressableStorageAlreadyExistException ex) {
+                LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
+            }
         }
+
         objectInit.setId(objectGUID);
 
         offerDatabaseService.save(containerName, objectInit.getId(), "write");

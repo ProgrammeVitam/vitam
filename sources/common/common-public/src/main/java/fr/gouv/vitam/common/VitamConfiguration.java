@@ -224,7 +224,7 @@ public class VitamConfiguration {
     /**
      * Use a new JAX_RS client each time
      */
-    private static Boolean useNewJaxrClient = true;
+    private static Boolean useNewJaxrClient = false;
 
     /**
      * Default Digest Type for SECURITY
