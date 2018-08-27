@@ -65,11 +65,16 @@ curator:
             delete: 30
 
 kibana:
+    header_value: "reporting"
     log:
         baseuri: "kibana_log"
         api_call_timeout: 120
         groupe: "log"
         port: 5601
+        default_index_pattern: "logstash-vitam*"
+        # default shards & replica
+        shards: 5
+        replica: 1
         # pour index logstash-*
         metrics:
             shards: 5
@@ -88,6 +93,7 @@ kibana:
         api_call_timeout: 120
         groupe: "data"
         port: 5601
+        default_index_pattern: "logbookoperation_*"
         # index template for .kibana
         shards: 1
         replica: 1
