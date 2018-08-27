@@ -527,7 +527,7 @@ public class SchemaValidationUtils {
             }
             try {
                 originalFields.set(i, mapFieldToOntology(field, ontology.getType()));
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | DateTimeParseException e) {
                 errors.add(String.format("Error '%s' on field '%s' should be of type '%s'.", e.getMessage(), fieldName,
                     ontology.getType().name()));
             }

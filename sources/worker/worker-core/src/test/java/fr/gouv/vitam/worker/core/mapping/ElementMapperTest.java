@@ -26,19 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.Map;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * test class for {@link ElementMapper}
@@ -48,6 +53,7 @@ public class ElementMapperTest {
     private static JAXBContext jaxbContext;
 
     private ElementMapper elementMapper;
+    private Unmarshaller unmarshaller;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -57,12 +63,12 @@ public class ElementMapperTest {
     @Before
     public void init() throws Exception {
         elementMapper = new ElementMapper();
+        unmarshaller = jaxbContext.createUnmarshaller();
     }
 
     @Test
     public void should_map_element_to_hashMap() throws Exception {
         // Given
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         Content content = (Content) unmarshaller.unmarshal(getClass().getResourceAsStream(
             "/element_with_complex_data.xml"));
 
@@ -86,7 +92,6 @@ public class ElementMapperTest {
     @Test
     public void should_map_element_to_hashMap_free_tags() throws Exception {
         // Given
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         Content content = (Content) unmarshaller.unmarshal(getClass().getResourceAsStream(
             "/element_with_complex_free_data.xml"));
 
@@ -103,6 +108,39 @@ public class ElementMapperTest {
             dataInTestTab0.toString()
                 .equals("[{DataInTestTab1=[{DataInTestTab2=[{DataInTestTab3=[f, g, h, i, j]}]}]}]"));
         assertThat((List<String>) map.get("DataInTestNum")).containsExactlyInAnyOrder("1", "20");
+    }
+
+    @Test
+    public void should_map_element_with_complex_empty_tree() throws Exception {
+        // Given
+        String xml =
+            "<Content>" +
+                "<Titles>" +
+                    "<EmptyValueA></EmptyValueA>" +
+                    "<EmptyValueB></EmptyValueB>" +
+                    "<ValueC>" +
+                        "<Argument></Argument>" +
+                        "<MyTitles>" +
+                            "<Argument></Argument>" +
+                            "<RealTiTle>Batman</RealTiTle>" +
+                        "</MyTitles>" +
+                    "</ValueC>" +
+                "</Titles>" +
+            "</Content>";
+        Content content = getXMLFromString(xml, Content.class);
+
+        // When
+        Map<String, Object> elements = elementMapper.toMap(content.elements);
+
+        // Then
+        assertThat(elements.toString()).isEqualTo("{Titles=[{EmptyValueB=[], EmptyValueA=[], ValueC=[{Argument=[], MyTitles=[{RealTiTle=[Batman], Argument=[]}]}]}]}");
+    }
+
+    private <T> T getXMLFromString(String input, Class<T> clazz) throws Exception {
+        XMLStreamReader parser =
+            XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
+        JAXBElement<T> element = unmarshaller.unmarshal(parser, clazz);
+        return element.getValue();
     }
 
     @XmlRootElement(name = "Content")
