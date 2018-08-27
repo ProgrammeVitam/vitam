@@ -25,20 +25,13 @@
   delay: 1
   tags: load_kibana_data
 
-- name: Modify response & convert to dict...
-  set_fact:
-    kibana_header: "{{ kibana_result |regex_replace('\\-', '_')}}"
-  tags: load_kibana_data
-
-#- debug: msg="{{ kibana_header.kbn_version }}"
-
 - name: check wether replica number for metrics-vitam is compatible with inventory
   fail: msg="Too much replica defined for default index template in elasticsearch-data"
   when: groups['hosts-elasticsearch-data']|length <= kibana.data.replica and groups['hosts-elasticsearch-data']|length>1
   tags: load_kibana_data
 
 # We have a specific task for index pattern to add the "*" at the end of the url
-- name: load index templates for Kibana
+- name: load index patterns for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_data
@@ -49,12 +42,12 @@
     body_format: json
     status_code: 200, 201
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
     timeout: "{{ kibana.data.api_call_timeout }}"
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/index-pattern/*.json"
 
-- name: load search into Elasticsearch data .kibana index
+- name: load search for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_data
@@ -66,11 +59,11 @@
     status_code: 200, 201
     timeout: "{{ kibana.data.api_call_timeout }}"
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/search/*.json"
 
-- name: load visualizations into Elasticsearch data .kibana index
+- name: load visualizations for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
@@ -81,12 +74,12 @@
     body_format: json
     status_code: 200, 201
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
     timeout: "{{ kibana.data.api_call_timeout }}"
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/visualization/*.json"
 
-- name: load dashboards into Elasticsearch data .kibana index
+- name: load dashboards for Kibana
   when: "{{ (groups['hosts-kibana-data'] | length) > 0 }}"
   run_once: true
   tags: load_kibana_log
@@ -97,7 +90,7 @@
     body_format: json
     status_code: 200, 201
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
     timeout: "{{ kibana.data.api_call_timeout }}"
   with_fileglob: 
     - "{{ role_path }}/files/kibana-data-configuration/dashboard/*.json"
@@ -112,7 +105,7 @@
     method: POST
     body: ' {"changes":{"defaultIndex":"logbookoperation_*"}}'
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
     body_format: json
     timeout: "{{ kibana.data.api_call_timeout }}"
     status_code: 200, 201
@@ -128,5 +121,5 @@
     body_format: json
     status_code: 200, 201
     headers:
-      kbn-version: "{{ kibana_header.kbn_version }}"
+      kbn-xsrf: reporting
     timeout: "{{ kibana.data.api_call_timeout }}"

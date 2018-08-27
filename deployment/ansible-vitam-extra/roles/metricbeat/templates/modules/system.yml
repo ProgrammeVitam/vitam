@@ -1,57 +1,19 @@
 - module: system
-  process.include_top_n:
-    by_cpu: 5      # include top 5 processes by CPU
-    by_memory: 5   # include top 5 processes by memory
-
-#- module: system
-#  metricsets:
-#    - core
-#    - diskio
-#    - socket
-
-  period: 5s
+  metricsets:
+    - cpu             # CPU usage
+    - load            # CPU load averages
+    - memory          # Memory usage
+    - network         # Network IO
+    - process         # Per process metrics
+    - process_summary # Process summary
+    - uptime          # System Uptime
+    #- core           # Per CPU core usage
+    - diskio         # Disk IO
+    - filesystem     # File system usage for each mountpoint
+    - fsstat         # File system summary metrics
+    #- raid           # Raid
+    - socket         # Sockets and connection info (linux only)
   enabled: true
- 
-- module: system
-  period: 1m
-  metricsets:
-    - filesystem
-    - fsstat
-  processors:
-  - drop_event.when.regexp:
-      system.filesystem.mount_point: '^/(sys|cgroup|proc|dev|etc|host|lib)($|/)'
-
-- module: system
   period: {{ metricbeat.system.period }}s
-  metricsets:
-    - cpu
-    - load
-    - filesystem
-    - fsstat
-    - memory
-    - network
-    - process
-    - socket
-    - diskio
+  processes: ['.*']
 
-#- module: system
-#  period: 5m
-#  metricsets:
-#    - raid
-#  raid.mount_point: '/'
-
-# metricbeat.modules:
-# - module: system
-#   metricsets:
-#     - cpu
-#     - load
-#     - filesystem
-#     - fsstat
-#     - memory
-#     - network
-#     - process
-#     - socket
-#     - diskio
-#   enabled: true
-#   period: {{ metricbeat.system.period }}s
-#   processes: ['.*']
