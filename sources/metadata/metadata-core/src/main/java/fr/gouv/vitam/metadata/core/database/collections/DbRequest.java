@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -869,7 +868,8 @@ public class DbRequest {
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
-                updatedJsonDocument.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
+                int newDocumentVersion = incrementDocumentVersionIfRequired(model, mongoInMemory, documentVersion);
+                updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
 
                 if (model == FILTERARGS.UNITS) {
                     JsonNode externalSchema =
@@ -921,6 +921,25 @@ public class DbRequest {
         last.setTotal(last.getNbResult());
         return last;
     }
+
+    private int incrementDocumentVersionIfRequired(FILTERARGS model, MongoDbInMemory mongoInMemory,
+        int documentVersion) {
+
+        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted" and always increment document version (DbRequest, and any other document update like graph computation, indexation, reconstruction...)
+
+        Set<String> updatedFields = mongoInMemory.getUpdatedFields();
+
+        Set<String> computedFields = (model == FILTERARGS.UNITS) ?
+            MetadataDocumentHelper.getComputedUnitFields() :
+            MetadataDocumentHelper.getComputedObjectGroupFields();
+
+        if (computedFields.containsAll(updatedFields)) {
+            return documentVersion;
+        } else {
+            return documentVersion + 1;
+        }
+    }
+
 
     private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
         throws InvalidParseOperationException, MetaDataExecutionException {

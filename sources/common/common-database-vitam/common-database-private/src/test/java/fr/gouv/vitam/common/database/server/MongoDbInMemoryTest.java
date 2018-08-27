@@ -1,5 +1,6 @@
 package fr.gouv.vitam.common.database.server;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
@@ -131,30 +132,35 @@ public class MongoDbInMemoryTest {
         JsonNode result = mDIM.getUpdateJson(parser);
         ArrayNode array = (ArrayNode) result.get("ArrayToAdd");
         assertEquals("Should add a value", 3, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("ArrayToAdd");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestAddMultiple));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("ArrayToAdd");
         assertEquals("Multiples values should be added", 4, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("ArrayToAdd");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestAddDuplicate));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("ArrayToAdd");
         assertEquals("Duplicated values should not be added", 2, array.size());
+        assertThat(mDIM.getUpdatedFields()).isEmpty();
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestAddOnNull));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("nullField");
         assertEquals("Value must be added on new array", 1, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("nullField");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestAddSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
         assertEquals("Value must be added on new array", 2, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
         try {
             mDIM.resetUpdatedAU();
@@ -173,6 +179,7 @@ public class MongoDbInMemoryTest {
         JsonNode response = result.get("numberTen");
         assertTrue(response.isNumber());
         assertEquals("Should add action value (2) to original value (10)", 12, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestIncSubField));
@@ -180,6 +187,7 @@ public class MongoDbInMemoryTest {
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
         assertTrue(response.isNumber());
         assertEquals("Should add action value (2) to original value (42)", 44, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
 
         try {
             mDIM.resetUpdatedAU();
@@ -216,6 +224,7 @@ public class MongoDbInMemoryTest {
         JsonNode response = result.get("numberTen");
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 1, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestMinSubField));
@@ -223,6 +232,7 @@ public class MongoDbInMemoryTest {
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 1, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestMinInDb));
@@ -230,6 +240,7 @@ public class MongoDbInMemoryTest {
         response = result.get("numberTen");
         assertTrue(response.isNumber());
         assertEquals("Original value should be taken", 10, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
         try {
             mDIM.resetUpdatedAU();
@@ -266,6 +277,7 @@ public class MongoDbInMemoryTest {
         JsonNode response = result.get("numberTen");
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 100, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestMaxSubField));
@@ -273,6 +285,7 @@ public class MongoDbInMemoryTest {
         response = JsonHandler.getNodeByPath(result, "subItem.subInt", true);
         assertTrue(response.isNumber());
         assertEquals("Action value should be taken", 100, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestMaxInDb));
@@ -280,6 +293,7 @@ public class MongoDbInMemoryTest {
         response = result.get("numberTen");
         assertTrue(response.isNumber());
         assertEquals("Original value should be taken", 10, response.asLong());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("numberTen");
 
         try {
             mDIM.resetUpdatedAU();
@@ -316,12 +330,14 @@ public class MongoDbInMemoryTest {
         ArrayNode array = (ArrayNode) result.get("arrayToPop");
         assertEquals("Should pop a value", 2, array.size());
         assertNotEquals("First element should be removed", "val1", array.get(0).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPop");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPopSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
         assertEquals("Should pop a value", 0, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPopLast));
@@ -329,6 +345,7 @@ public class MongoDbInMemoryTest {
         array = (ArrayNode) result.get("arrayToPop");
         assertEquals("Should pop a value", 2, array.size());
         assertNotEquals("Last element should be removed", "val3", array.get(1).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPop");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPopMultiple));
@@ -336,6 +353,7 @@ public class MongoDbInMemoryTest {
         array = (ArrayNode) result.get("arrayToPop");
         assertEquals("Should pop a value", 1, array.size());
         assertEquals("Only first element should remains", "val1", array.get(0).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPop");
 
         try {
             mDIM.resetUpdatedAU();
@@ -372,12 +390,14 @@ public class MongoDbInMemoryTest {
         ArrayNode array = (ArrayNode) result.get("arrayToPull");
         assertEquals("Should pull first value", 2, array.size());
         assertNotEquals("First element should be removed", "v1", array.get(0).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPull");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPullSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
         assertEquals("Should pull first value", 0, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPullMultiple));
@@ -385,18 +405,21 @@ public class MongoDbInMemoryTest {
         array = (ArrayNode) result.get("arrayToPull");
         assertEquals("Should pop a value", 1, array.size());
         assertEquals("Last element should be removed", "v2", array.get(0).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("arrayToPull");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPullUnknow));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("arrayToPull");
         assertEquals("Shouldn't pop a value", 3, array.size());
+        assertThat(mDIM.getUpdatedFields()).isEmpty();
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPullOnNull));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("nullField");
         assertEquals("Shouldn't pop a value", 0, array.size());
+        assertThat(mDIM.getUpdatedFields()).isEmpty();
 
         try {
             mDIM.resetUpdatedAU();
@@ -414,24 +437,28 @@ public class MongoDbInMemoryTest {
         JsonNode result = mDIM.getUpdateJson(parser);
         ArrayNode array = (ArrayNode) result.get("ArrayToPush");
         assertEquals("Should push values", 4, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("ArrayToPush");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPushSubField));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) JsonHandler.getNodeByPath(result, "subItem.subArray", true);
         assertEquals("Value must be added on new array", 3, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subArray");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPushDuplicate));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("ArrayToPush");
         assertEquals("Should push duplicate values", 4, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("ArrayToPush");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestPushOnNull));
         result = mDIM.getUpdateJson(parser);
         array = (ArrayNode) result.get("nullField");
         assertEquals("Should push values in new array", 2, array.size());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("nullField");
 
         try {
             mDIM.resetUpdatedAU();
@@ -449,13 +476,16 @@ public class MongoDbInMemoryTest {
         JsonNode result = mDIM.getUpdateJson(parser);
         assertNull("Old name should be deleted", result.get("oldField"));
         assertEquals("New field should have oldValue", "valueOld", result.get("renamedField").asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("oldField", "renamedField");
 
+        mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestRenameSubField));
         result = mDIM.getUpdateJson(parser);
         final JsonNode oldSubItem = result.get("subItem");
         assertNull("Old name should be deleted", oldSubItem.get("subInt"));
         final JsonNode newSubItem = result.get("newSubItem");
         assertEquals("New field should have oldValue", 42, newSubItem.get("newName").asInt());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt", "newSubItem.newName");
 
         try {
             mDIM.resetUpdatedAU();
@@ -472,28 +502,33 @@ public class MongoDbInMemoryTest {
 
         JsonNode resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertNotEquals("Json should be updated", "newValue", resultAfterUpdate.get("oldValue"));
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("oldValue");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestSetSubField));
         resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertEquals("Json should be updated", "[\"newValue\"]",
             JsonHandler.getNodeByPath(resultAfterUpdate, "subItem.subInt", true).toString());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString("{\"$action\": [{ \"$set\": { \"OriginatingAgency\": \"newValue\"} }]}"));
         resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertEquals("Json should be updated", "newValue",
             JsonHandler.getNodeByPath(resultAfterUpdate, "OriginatingAgency", true).asText());
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("OriginatingAgency");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestUnset));
         final JsonNode resultAfterReset = mDIM.getUpdateJson(parser);
         assertNull("Json should unset value", resultAfterReset.get("oldValue"));
         assertNull("Json should unset value", resultAfterReset.get("oldField"));
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("oldValue", "oldField");
 
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestUnsetSubField));
         resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertNull("Json should unset value", JsonHandler.getNodeByPath(resultAfterUpdate, "subItem.subInt", true));
+        assertThat(mDIM.getUpdatedFields()).containsExactlyInAnyOrder("subItem.subInt");
     }
 }

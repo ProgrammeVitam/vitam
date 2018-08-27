@@ -232,6 +232,9 @@ public class DbRequestTest {
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['" + UUID1 +
             "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
+    private static final String REQUEST_UPDATE_COMPUTED_FIELD =
+        "{$roots:['" + UUID1 +
+            "'],$query:[],$filter:{},$action:[{$push:{'_elimination': {$each: [{'OperationId':'my_guid'}] }}}, {'$set': {'_glpd':'2018-01-01T01-34-59'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
         "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE = "REQUEST_INSERT_TEST_ES_UPDATE.json";
@@ -1645,7 +1648,38 @@ public class DbRequestTest {
         LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
-        
+
+        // check new value
+        SelectParserMultiple selectParser3 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        SelectMultiQuery select3 = new SelectMultiQuery();
+        select3.addQueries(match("Title", "ArchiveDoubleTest").setDepthLimit(0)).addRoots(UUID1);
+        selectParser3.parse(select3.getFinalSelect());
+        Result resultSelectRel3 = dbRequest.execRequest(selectParser3);
+        assertEquals(1, resultSelectRel3.nbResult);
+        assertEquals(UUID1, resultSelectRel3.getCurrentIds().iterator().next().toString());
+        assertEquals(((Unit)resultSelectRel3.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+
+        // update computed field should not increment version
+        final JsonNode updateRequest5 = JsonHandler.getFromString(REQUEST_UPDATE_COMPUTED_FIELD);
+        final UpdateParserMultiple updateParser5 = new UpdateParserMultiple(mongoDbVarNameAdapter);
+        updateParser5.parse(updateRequest5);
+        LOGGER.debug("UpdateParser: {}", updateParser5.getRequest());
+        final Result result5 = dbRequest.execRequest(updateParser5);
+        LOGGER.debug("result5", result5.getNbResult());
+        assertEquals(1, result5.nbResult);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
+
+        // check new value
+        SelectParserMultiple selectParser4 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        SelectMultiQuery select4 = new SelectMultiQuery();
+        select4.addQueries(exists("Title").setDepthLimit(0)).addRoots(UUID1);
+        selectParser4.parse(select4.getFinalSelect());
+        Result resultSelectRel4 = dbRequest.execRequest(selectParser4);
+        assertEquals(1, resultSelectRel4.nbResult);
+        assertEquals(UUID1, resultSelectRel4.getCurrentIds().iterator().next().toString());
+        // Still 1, not incremented to 2
+        assertEquals(((Unit)resultSelectRel4.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+
         try {
             final JsonNode updateRequest2 = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA);
             final UpdateParserMultiple updateParser2 = new UpdateParserMultiple(mongoDbVarNameAdapter);

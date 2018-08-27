@@ -912,6 +912,8 @@ public class ParserTokens extends BuilderToken {
                     case UDS:
                     case PARENT_ORIGINATING_AGENCIES:
                         return false;
+                    case ELIMINATION:
+                        return true;
                     default:
                         break;
 

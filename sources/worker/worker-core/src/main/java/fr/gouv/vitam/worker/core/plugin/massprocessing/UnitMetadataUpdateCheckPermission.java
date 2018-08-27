@@ -186,6 +186,13 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                 return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
                     .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
             }
+            // Check temporary data
+            if (CheckSpecifiedFieldHelper.containsSpecifiedField(initialQuery, DataType.TEMPORARY)) {
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_INTERNAL_DATA_UNAUTHORIZED.name());
+                return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
+                    .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
+            }
         } catch (final VitamException e) {
             throw new ProcessingException(e);
         }

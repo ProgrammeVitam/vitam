@@ -144,7 +144,7 @@ public class MigrationObjectGroups extends ActionHandler {
             //// get metadata
             JsonNode objectGroupMetadata = getObjectGroupMetadata(objectGroupId);
 
-            MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(objectGroupMetadata);
+            MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(objectGroupMetadata);
 
 
             //// create file for storage (in workspace or temp or memory)

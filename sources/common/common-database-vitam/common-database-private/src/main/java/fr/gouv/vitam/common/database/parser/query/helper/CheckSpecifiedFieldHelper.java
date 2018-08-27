@@ -101,6 +101,14 @@ public class CheckSpecifiedFieldHelper {
                             }
                         }
                         break;
+                    case TEMPORARY:
+                        while (fieldNames.hasNext()) {
+                            String fieldName = fieldNames.next();
+                            if (MetadataDocumentHelper.getTemporaryUnitFields().contains(fieldName)) {
+                                return true;
+                            }
+                        }
+                        break;
                     case MDD:
                         while (fieldNames.hasNext()) {
                             String fieldName = fieldNames.next();

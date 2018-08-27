@@ -137,7 +137,10 @@ import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -2179,7 +2182,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString())));
         // Get AU
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
-        final RequestResponseOK<JsonNode> results1 = (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
+        final RequestResponseOK<JsonNode> results1 =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
 
         assertThat(results1.getResults()).hasSize(1);
         JsonNode unitButtesChaumont1 = results1.getFirstResult();
@@ -2192,7 +2196,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         select2.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString()));
         // Get AU
 
-        final RequestResponseOK<JsonNode> results2 = (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+        final RequestResponseOK<JsonNode> results2 =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
 
         assertThat(results2.getResults()).hasSize(28);
 
@@ -2303,7 +2308,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(eliminationAnalysisOperationGuid);
 
         SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
-        analysisDslRequest.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+        analysisDslRequest
+            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2018-01-01", analysisDslRequest.getFinalSelect());
@@ -2320,14 +2326,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         SelectMultiQuery checkAnalysisDslRequest = new SelectMultiQuery();
         checkAnalysisDslRequest.addQueries(
             QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()))
-                .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
+                .add(QueryHelper
+                    .eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
                 .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", "DESTROY")));
 
-        checkAnalysisDslRequest.addUsedProjection("Title", VitamFieldsHelper.elimination());
+        checkAnalysisDslRequest.addUsedProjection(
+            "Title", VitamFieldsHelper.elimination(), VitamFieldsHelper.version());
 
-        // Get AU
         final RequestResponseOK<JsonNode> indexedUnitsResponse =
-            (RequestResponseOK<JsonNode>)accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
 
         assertThat(indexedUnitsResponse.isOk()).isTrue();
 
@@ -2336,12 +2343,18 @@ public class IngestInternalIT extends VitamRuleRunner {
             .map(node -> node.get("Title").asText())
             .collect(Collectors.toList());
 
-        assertThat(indexedUnitTitles).containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
+        assertThat(indexedUnitTitles)
+            .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
 
+        // Check access to #elimination field
         assertThat(indexedUnitsResponse.getFirstResult()
             .get(VitamFieldsHelper.elimination())
             .get(0)
             .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
+
+        // Ensure document version has not been updated during indexation process
+        assertThat(indexedUnitsResponse.getFirstResult().get(VitamFieldsHelper.version()).asInt())
+            .isEqualTo(0);
     }
 
 

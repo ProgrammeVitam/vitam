@@ -540,7 +540,7 @@ public class EvidenceService {
                     MetadataDocumentHelper.removeComputedFieldsFromUnit(metadata);
                     break;
                 case OBJECTGROUP:
-                    MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(metadata);
+                    MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(metadata);
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown metadata type " + metadataType);

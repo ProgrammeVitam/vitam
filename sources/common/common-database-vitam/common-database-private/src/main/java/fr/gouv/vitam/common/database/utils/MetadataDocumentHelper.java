@@ -28,10 +28,14 @@ package fr.gouv.vitam.common.database.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -95,9 +99,10 @@ public class MetadataDocumentHelper {
 
 
     private static final List<String> computedGraphUnitFields;
-    private static final List<String> temporaryUnitFields;
     private static final List<String> computedGraphObjectGroupFields;
-
+    private static final Set<String> temporaryUnitFields;
+    private static final Set<String> computedUnitFields;
+    private static final Set<String> computedObjectGroupFields;
 
     static {
         computedGraphUnitFields = ListUtils.unmodifiableList(
@@ -108,9 +113,14 @@ public class MetadataDocumentHelper {
             Arrays.stream(ComputedGraphObjectGroupFields.values()).map(ComputedGraphObjectGroupFields::getFieldName)
                 .collect(Collectors.toList()));
 
-        temporaryUnitFields = ListUtils.unmodifiableList(
+        temporaryUnitFields = SetUtils.unmodifiableSet(
             Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
-                Collectors.toList()));
+                Collectors.toSet()));
+
+        computedUnitFields = SetUtils.unmodifiableSet(new HashSet<>(
+            CollectionUtils.union(computedGraphUnitFields, temporaryUnitFields)));
+
+        computedObjectGroupFields = SetUtils.unmodifiableSet(new HashSet<>(computedGraphObjectGroupFields));
     }
 
     /**
@@ -131,8 +141,22 @@ public class MetadataDocumentHelper {
      *
      * @return the list of temporary unit fields
      */
-    public static List<String> getTemporaryUnitFields() {
+    public static Set<String> getTemporaryUnitFields() {
         return temporaryUnitFields;
+    }
+
+    /**
+     * @return the list of all unit computed fields (computed graph fields + temporary fields)
+     */
+    public static Set<String> getComputedUnitFields() {
+        return computedUnitFields;
+    }
+
+    /**
+     * @return the list of all object group computed fields
+     */
+    public static Set<String> getComputedObjectGroupFields() {
+        return computedObjectGroupFields;
     }
 
     /**
@@ -146,8 +170,7 @@ public class MetadataDocumentHelper {
         }
 
         ObjectNode unit = (ObjectNode) unitJson;
-        unit.remove(getComputedGraphUnitFields());
-        unit.remove(getTemporaryUnitFields());
+        unit.remove(computedUnitFields);
     }
 
     /**
@@ -155,12 +178,12 @@ public class MetadataDocumentHelper {
      *
      * @param objectGroupJson
      */
-    public static void removeComputedGraphFieldsFromObjectGroup(JsonNode objectGroupJson) {
+    public static void removeComputedFieldsFromObjectGroup(JsonNode objectGroupJson) {
         if (!objectGroupJson.isObject()) {
             throw new IllegalArgumentException("Expected object group object json");
         }
 
         ObjectNode objectGroup = (ObjectNode) objectGroupJson;
-        objectGroup.remove(getComputedGraphUnitFields());
+        objectGroup.remove(computedObjectGroupFields);
     }
 }
