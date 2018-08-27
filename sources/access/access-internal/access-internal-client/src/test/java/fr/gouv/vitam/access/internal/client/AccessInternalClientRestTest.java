@@ -27,30 +27,12 @@
 package fr.gouv.vitam.access.internal.client;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.internal.api.AccessInternalResource;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Rule;
-import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -67,11 +49,33 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.internal.api.AccessInternalResource;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AccessInternalClientRestTest extends VitamJerseyTest {
     private static final String DUMMY_REQUEST_ID = "reqId";
@@ -315,6 +319,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjects(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
+        @Override
+        @POST
+        @Path("/elimination/analysis")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody) {
             return expectedResponse.post();
         }
 
@@ -569,8 +582,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        @SuppressWarnings("rawtypes")
-        final RequestResponse requestResponse =
+        @SuppressWarnings("rawtypes") final RequestResponse requestResponse =
             client.checkTraceabilityOperation(queryJson);
         assertNotNull(requestResponse);
         assertTrue(requestResponse.toJsonNode().has("$results"));
@@ -629,5 +641,71 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
         assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
             .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    /*
+     * Elimination analysis
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenResourceOKWhenStartEliminationAnalysisThenReturnOK()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        RequestResponseOK responseOK = new RequestResponseOK();
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client.startEliminationAnalysis(eliminationRequestBody)
+            .isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInternalServerError_whenStartEliminationAnalysis_ThenRaiseAnExeption() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAnalysis(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceNotFound_whenStartEliminationAnalysis_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAnalysis(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequest_whenStartEliminationAnalysis_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAnalysis(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 }

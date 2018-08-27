@@ -1,0 +1,62 @@
+{
+
+  "id": "EliminationAnalysisWorkflow",
+  "name": "Elimination analysis workflow",
+  "identifier": "ELIMINATION_ANALYSIS",
+  "typeProc": "ELIMINATION",
+  "comment": "Default elimination analysis workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ANALYSIS_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ANALYSIS_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ANALYSIS_UNIT_INDEXATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "ELIMINATION_ANALYSIS_UNIT_INDEXATION",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ANALYSIS_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ANALYSIS_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

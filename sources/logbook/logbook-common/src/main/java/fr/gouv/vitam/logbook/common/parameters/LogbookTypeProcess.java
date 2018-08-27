@@ -104,11 +104,14 @@ public enum LogbookTypeProcess {
      * Reclassification process (attachment/detachment)
      */
     RECLASSIFICATION,
-
     /**
      * Mass update of archive units.
      */
-    MASS_UPDATE;
+    MASS_UPDATE,
+    /**
+     * Elimination process
+     */
+    ELIMINATION;
 
     /**
      * Get the LogbookTypeProcess matching the given type

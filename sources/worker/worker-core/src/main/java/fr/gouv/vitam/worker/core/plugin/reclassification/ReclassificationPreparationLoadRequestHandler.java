@@ -72,7 +72,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static org.apache.commons.collections4.SetUtils.union;
 
 /**

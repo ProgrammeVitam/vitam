@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -1044,6 +1045,29 @@ public class AccessStep {
         throw new VitamClientException("Access contract was found");
     }
 
+    /**
+     * elimination analysis
+     *
+     * @throws Throwable
+     */
+    @When("^je lance une analyse d'élimination avec pour date d'expiration le (.*)$")
+    public void start_elimination_analysis(String expirationDate) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+                new EliminationRequestBody(expirationDate, queryJSON));
+
+        if (!requestResponse.isOk()) {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request startEliminationAnalysis return an error: " + vitamError.getCode());
+        }
+
+        final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+    }
+
     @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")
     public void je_lance_l_audit_en_service_producteur(String action, String originatingAgnecy) throws Throwable {
         String QUERY = null;
@@ -1139,28 +1163,32 @@ public class AccessStep {
         assertThat(requestResponseOK.isOk()).isTrue();
 
         final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        assertThat(traceabilityOperationId).isNotNull();
+
+        checkOperationStatus(traceabilityOperationId, StatusCode.OK, StatusCode.WARNING);
+    }
+
+    private void checkOperationStatus(String operationId, StatusCode... statuses) throws VitamException {
+
+        assertThat(operationId).isNotNull();
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
         boolean process_timeout = vitamPoolingClient
-            .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L,
                 TimeUnit.MILLISECONDS);
         if (!process_timeout) {
-            fail("Traceability processing not finished. Timeout exceeded.");
+            fail("Operation " + operationId + " timed out.");
         }
 
         VitamContext vitamContext =
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId());
         RequestResponse<ItemStatus> operationProcessExecutionDetails =
-            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
+            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, operationId);
 
         assertThat(operationProcessExecutionDetails.isOk()).isTrue();
 
-        // Check is LFC status is OK ou WARN
-        // LFC with WARN (no data to secure) may occur randomly during tests if traceability timers are run concurrently
         assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
-            .getGlobalStatus()).isIn(StatusCode.OK, StatusCode.WARNING);
+            .getGlobalStatus()).isIn((Object[]) statuses);
     }
 
     /**

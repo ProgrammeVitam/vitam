@@ -81,6 +81,8 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisFinalizationHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockHandler;
@@ -127,9 +129,8 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName    action name
+     * @param actionName action name
      * @param actionHandler action handler
-     *
      * @return WorkerImpl
      */
     @Override
@@ -200,11 +201,18 @@ public class WorkerImpl implements Worker {
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());
 
-        actions.put(ReclassificationPreparationCheckLockHandler.getId(), new ReclassificationPreparationCheckLockHandler());
-        actions.put(ReclassificationPreparationLoadRequestHandler.getId(), new ReclassificationPreparationLoadRequestHandler());
-        actions.put(ReclassificationPreparationCheckGraphHandler.getId(), new ReclassificationPreparationCheckGraphHandler());
-        actions.put(ReclassificationPreparationUpdateDistributionHandler.getId(), new ReclassificationPreparationUpdateDistributionHandler());
+        actions.put(ReclassificationPreparationCheckLockHandler.getId(),
+            new ReclassificationPreparationCheckLockHandler());
+        actions.put(ReclassificationPreparationLoadRequestHandler.getId(),
+            new ReclassificationPreparationLoadRequestHandler());
+        actions.put(ReclassificationPreparationCheckGraphHandler.getId(),
+            new ReclassificationPreparationCheckGraphHandler());
+        actions.put(ReclassificationPreparationUpdateDistributionHandler.getId(),
+            new ReclassificationPreparationUpdateDistributionHandler());
         actions.put(ReclassificationFinalizationHandler.getId(), new ReclassificationFinalizationHandler());
+
+        actions.put(EliminationAnalysisPreparationHandler.getId(), new EliminationAnalysisPreparationHandler());
+        actions.put(EliminationAnalysisFinalizationHandler.getId(), new EliminationAnalysisFinalizationHandler());
     }
 
     @Override
@@ -226,8 +234,9 @@ public class WorkerImpl implements Worker {
         // loop on objectList
         // Each task should have its own workerId
         workerId = GUIDFactory.newGUID().toString();
-        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId, workParams.getObjectNameList());
-             LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId,
+            workParams.getObjectNameList());
+            LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
 
             LifecycleFromWorker lifecycleFromWorker = new LifecycleFromWorker(logbookLfcClient);
 
@@ -260,7 +269,9 @@ public class WorkerImpl implements Worker {
 
                             pluginResponse = actionPlugin.executeList(workParams, handlerIO);
 
-                            lifecycleFromWorker.generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType(), aggregateItemStatus);
+                            lifecycleFromWorker
+                                .generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType(),
+                                    aggregateItemStatus);
 
                             aggregateItemStatus.setItemId(handlerName);
                             aggregateItemStatus = getActionResponse(handlerName, aggregateItemStatus);

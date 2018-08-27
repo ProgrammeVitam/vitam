@@ -48,7 +48,7 @@ public class MongoDbMetadataResponseFilter {
     /**
      * Removes a field from document
      *
-     * @param document the document to update
+     * @param document  the document to update
      * @param fieldName the field to remove
      */
     private static final void remove(Document document, String fieldName) {
@@ -155,6 +155,9 @@ public class MongoDbMetadataResponseFilter {
                     break;
                 case PARENT_ORIGINATING_AGENCIES:
                     remove(document, Unit.PARENT_ORIGINATING_AGENCIES);
+                    break;
+                case ELIMINATION:
+                    replace(document, Unit.ELIMINATION, PROJECTIONARGS.ELIMINATION.exactToken());
                     break;
                 case DUA:
                 case ALL:

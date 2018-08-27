@@ -71,6 +71,11 @@ public class Unit extends MetadataDocument<Unit> {
      * Management : { various rules per themes }
      */
     public static final String MANAGEMENT = "_mgt";
+
+    /**
+     * elimination
+     */
+    public static final String ELIMINATION = "_elimination";
     /**
      * UnitType : normal or holding scheme
      */
@@ -195,6 +200,7 @@ public class Unit extends MetadataDocument<Unit> {
 
     /**
      * add graph information into unit.
+     *
      * @param unitGraphModel
      */
     public void mergeWith(UnitGraphModel unitGraphModel) {

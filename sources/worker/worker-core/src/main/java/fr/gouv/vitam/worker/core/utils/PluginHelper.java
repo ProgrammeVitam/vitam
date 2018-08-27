@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.utils;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -46,12 +46,12 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
 /**
  * Basic helper methods for reclassification plugins
  */
-class ReclassificationPluginHelper {
+public class PluginHelper {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReclassificationPluginHelper.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
-    public static ItemStatus buildItemStatus(String action, StatusCode statusCode,
-        ReclassificationEventDetails eventDetails) {
+    public static <TEventDetails> ItemStatus buildItemStatus(String action, StatusCode statusCode,
+        TEventDetails eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
         if (eventDetails != null) {
@@ -64,15 +64,15 @@ class ReclassificationPluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
     }
 
-    public static LogbookLifeCycleUnitParameters createParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, GUID objectIdentifier, String action, ReclassificationEventDetails eventDetails) {
+    public static <TEventDetails> LogbookLifeCycleUnitParameters createParameters(GUID eventIdentifierProcess,
+        StatusCode logbookOutcome, GUID objectIdentifier, String action, TEventDetails eventDetails,
+        LogbookTypeProcess logbookTypeProcess) {
 
-        final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.RECLASSIFICATION;
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters(updateGuid,
             VitamLogbookMessages.getEventTypeLfc(action),
             eventIdentifierProcess,
-            eventTypeProcess, logbookOutcome,
+            logbookTypeProcess, logbookOutcome,
             VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
             VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
 

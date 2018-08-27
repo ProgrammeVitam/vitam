@@ -61,6 +61,21 @@ public class MetadataDocumentHelper {
     }
 
 
+    private enum TemporaryUnitFields {
+        ELIMINATION("_elimination");
+
+        private final String fieldName;
+
+        TemporaryUnitFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+    }
+
+
     private enum ComputedGraphObjectGroupFields {
 
         SPS("_sps"),
@@ -79,8 +94,10 @@ public class MetadataDocumentHelper {
     }
 
 
-    private final static List<String> computedGraphUnitFields;
-    private final static List<String> computedGraphObjectGroupFields;
+    private static final List<String> computedGraphUnitFields;
+    private static final List<String> temporaryUnitFields;
+    private static final List<String> computedGraphObjectGroupFields;
+
 
     static {
         computedGraphUnitFields = ListUtils.unmodifiableList(
@@ -90,6 +107,10 @@ public class MetadataDocumentHelper {
         computedGraphObjectGroupFields = ListUtils.unmodifiableList(
             Arrays.stream(ComputedGraphObjectGroupFields.values()).map(ComputedGraphObjectGroupFields::getFieldName)
                 .collect(Collectors.toList()));
+
+        temporaryUnitFields = ListUtils.unmodifiableList(
+            Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
+                Collectors.toList()));
     }
 
     /**
@@ -107,17 +128,26 @@ public class MetadataDocumentHelper {
     }
 
     /**
-     * Removes computed graph fields from unit json
+     *
+     * @return the list of temporary unit fields
+     */
+    public static List<String> getTemporaryUnitFields() {
+        return temporaryUnitFields;
+    }
+
+    /**
+     * Removes computed fields (graph, elimination indexation... ) from unit json
      *
      * @param unitJson
      */
-    public static void removeComputedGraphFieldsFromUnit(JsonNode unitJson) {
+    public static void removeComputedFieldsFromUnit(JsonNode unitJson) {
         if (!unitJson.isObject()) {
             throw new IllegalArgumentException("Expected unit object json");
         }
 
         ObjectNode unit = (ObjectNode) unitJson;
         unit.remove(getComputedGraphUnitFields());
+        unit.remove(getTemporaryUnitFields());
     }
 
     /**

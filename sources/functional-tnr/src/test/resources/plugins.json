@@ -143,5 +143,9 @@
 	"OBJECT_GROUP_GRAPH_COMPUTE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.graph.ObjectGroupGraphComputePlugin",
 		"propertiesFile": "object_group_graph_compute.properties"
+	},
+	"ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
+		"propertiesFile": "elimination_analysis_unit_indexation.properties"
 	}
 }

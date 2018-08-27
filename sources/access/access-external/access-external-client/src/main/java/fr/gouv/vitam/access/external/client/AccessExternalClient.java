@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -143,7 +144,7 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycleById
      *
-     * @param vitamContext    the vitam context
+     * @param vitamContext the vitam context
      * @param unitLifeCycleId the unit LFC id
      * @param select the select query
      * @return logbooklifecycle representation
@@ -155,7 +156,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectGroupLifeCycleById
-     *
      *
      * @param vitamContext the vitam context
      * @param objectGroupLifeCycleId the objectGroup LFC id
@@ -195,7 +195,7 @@ public interface AccessExternalClient extends BasicClient {
      * @param vitamContext the vitam context
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      * @return Response
-     * @throws VitamClientException
+     * @throws VitamClientException VitamClientException
      */
     RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
         throws VitamClientException;
@@ -204,7 +204,7 @@ public interface AccessExternalClient extends BasicClient {
      * Mass update of archive units.
      *
      * @param vitamContext the vitam context
-     * @param updateQuery  the update query
+     * @param updateQuery the update query
      * @return Json representation
      * @throws VitamClientException
      */
@@ -231,6 +231,17 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> selectUnitsWithInheritedRules(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException;
+
+    /**
+     * Performs an elimination analysis workflow .
+     *
+     * @param eliminationRequestBody Object Body DSL request for elimination and Date
+     * @return Json representation
+     * @throws VitamClientException VitamClientException
+     */
+    RequestResponse<JsonNode> startEliminationAnalysis(VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody)
         throws VitamClientException;
 
     /**

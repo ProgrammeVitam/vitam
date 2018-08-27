@@ -50,10 +50,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
     }
 
     /**
-     * @see ParserTokens.PROJECTIONARGS
      * @param name as String
      * @return the new name or null if the same
      * @throws InvalidParseOperationException when parsing error
+     * @see ParserTokens.PROJECTIONARGS
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
@@ -144,6 +144,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.UNITDEPTHS;
                     case GRAPH:
                         return Unit.GRAPH;
+                    case ELIMINATION:
+                        return Unit.ELIMINATION + extension;
                     case GRAPH_LAST_PERISTED_DATE:
                         return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:

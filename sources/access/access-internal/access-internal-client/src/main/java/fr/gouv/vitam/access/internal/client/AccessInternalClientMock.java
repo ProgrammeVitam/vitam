@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
@@ -82,7 +84,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
-    @Override public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+    @Override
+    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         NoWritingPermissionException, AccessUnauthorizedException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
@@ -163,7 +166,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         }
     }
 
-    @Override public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
+    @Override
+    public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
@@ -217,7 +221,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
 
         JsonNode res = null;
         try {
@@ -232,4 +236,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery) {
         throw new UnsupportedOperationException("Stop using mocks in production");
     }
+
+    @Override
+    public RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody)
+        throws AccessInternalClientServerException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
 }

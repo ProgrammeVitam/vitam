@@ -158,5 +158,9 @@
   },
   "MASS_UPDATE_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize"
+  },
+  "ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
+    "propertiesFile": "elimination_analysis_unit_indexation.properties"
   }
 }

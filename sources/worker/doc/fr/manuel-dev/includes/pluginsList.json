@@ -148,5 +148,9 @@
 	"OBJECT_GROUP_GRAPH_COMPUTE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ObjectGroupGraphComputePlugin",
 		"propertiesFile": "reclassification_object_group_compute.properties"
+	},
+	"ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
+		"propertiesFile": "elimination_analysis_unit_indexation.properties"
 	}
 }

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -62,8 +63,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.createParameters;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.createParameters;
 
 /**
  * Unit attachment plugin.
@@ -157,7 +158,7 @@ public class UnitAttachmentPlugin extends ActionHandler {
                 .setAddedParents(parentUnitsToAdd);
             LogbookLifeCycleUnitParameters logbookLCParam = createParameters(
                 GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                GUIDReader.getGUID(unitId), UNIT_ATTACHMENT, eventDetails);
+                GUIDReader.getGUID(unitId), UNIT_ATTACHMENT, eventDetails, LogbookTypeProcess.RECLASSIFICATION);
 
             logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 

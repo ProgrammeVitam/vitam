@@ -1,0 +1,256 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.elimination;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
+import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Iterator;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
+
+/**
+ * Elimination analysis preparation handler.
+ */
+public class EliminationAnalysisPreparationHandler extends ActionHandler {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(EliminationAnalysisPreparationHandler.class);
+
+    private static final String ELIMINATION_ANALYSIS_PREPARATION = "ELIMINATION_ANALYSIS_PREPARATION";
+    private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
+
+    private static final String REQUEST_JSON = "request.json";
+    private static final String UNITS_JSONL_FILE = "units.jsonl";
+
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final EliminationAnalysisService eliminationAnalysisService;
+
+    /**
+     * Default constructor
+     */
+    public EliminationAnalysisPreparationHandler() {
+        this(
+            MetaDataClientFactory.getInstance(),
+            new EliminationAnalysisService());
+    }
+
+    /***
+     * Test only constructor
+     */
+    @VisibleForTesting
+    EliminationAnalysisPreparationHandler(
+        MetaDataClientFactory metaDataClientFactory,
+        EliminationAnalysisService eliminationAnalysisService) {
+        this.metaDataClientFactory = metaDataClientFactory;
+        this.eliminationAnalysisService = eliminationAnalysisService;
+    }
+
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        try {
+
+            EliminationRequestBody eliminationRequestBody = loadRequestJsonFromWorkspace(handler);
+
+            // Check graph (check unit types & graph cycles)
+            process(eliminationRequestBody, param, handler);
+
+            LOGGER.info("Elimination analysis preparation succeeded");
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setExpirationDate(eliminationRequestBody.getDate());
+            return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, StatusCode.OK, eventDetails);
+
+        } catch (EliminationException e) {
+            LOGGER.error("Elimination analysis preparation failed with status [" + e.getStatusCode() + "]", e);
+            return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, e.getStatusCode(), e.getEventDetails());
+        }
+    }
+
+    private EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws EliminationException {
+        try {
+            return JsonHandler.getFromInputStream(
+                handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
+            throw new EliminationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
+        } catch (InvalidParseOperationException e) {
+            throw new EliminationException(StatusCode.KO, "Invalid request", e);
+        }
+    }
+
+    private void process(EliminationRequestBody eliminationRequestBody,
+        WorkerParameters param, HandlerIO handler)
+        throws EliminationException {
+
+        LocalDate expirationDate = getExpirationDate(eliminationRequestBody);
+        SelectMultiQuery request = getRequest(eliminationRequestBody.getDslRequest());
+
+        File unitDistributionFile = null;
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+
+            ScrollSpliterator<JsonNode> unitScrollSpliterator =
+                ScrollSpliteratorHelper.getUnitWithInheritedRulesScrollSpliterator(request, client);
+
+            Iterator<JsonNode> unitIterator =
+                new SpliteratorIterator<>(unitScrollSpliterator);
+
+            unitDistributionFile = handler.getNewLocalFile(UNITS_JSONL_FILE);
+
+            try (JsonLineWriter unitWriter = new JsonLineWriter(new FileOutputStream(unitDistributionFile))) {
+
+                while (unitIterator.hasNext()) {
+
+                    JsonNode unit = unitIterator.next();
+                    String unitId = unit.get(VitamFieldsHelper.id()).asText();
+                    String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
+                        unit.get(VitamFieldsHelper.originatingAgency()).asText() :
+                        null;
+
+                    InheritedRuleCategoryResponseModel inheritedRuleCategory = parseAppraisalRuleCategory(unit);
+
+                    EliminationAnalysisResult eliminationAnalysisResult =
+                        eliminationAnalysisService.analyzeElimination(
+                            param.getRequestId(),
+                            inheritedRuleCategory.getRules(),
+                            inheritedRuleCategory.getProperties(),
+                            expirationDate,
+                            originatingAgency);
+
+                    if (eliminationAnalysisResult.getGlobalStatus() != EliminationGlobalStatus.KEEP) {
+
+                        unitWriter.addEntry(new JsonLineModel(unitId, null,
+                            JsonHandler.toJsonNode(eliminationAnalysisResult)));
+
+                    }
+                }
+            }
+
+            handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
+
+        } catch (IOException | ProcessingException | InvalidParseOperationException e) {
+            throw new EliminationException(StatusCode.FATAL,
+                "Could not generate unit and/or object group distributions", e);
+        } finally {
+            FileUtils.deleteQuietly(unitDistributionFile);
+        }
+    }
+
+    private LocalDate getExpirationDate(EliminationRequestBody eliminationRequestBody) throws EliminationException {
+        LocalDate expirationDate;
+        try {
+            expirationDate = LocalDate.parse(eliminationRequestBody.getDate());
+        } catch (DateTimeParseException e) {
+            throw new EliminationException(StatusCode.KO, "Invalid date", e);
+        }
+        return expirationDate;
+    }
+
+    private SelectMultiQuery getRequest(JsonNode dslRequest) throws EliminationException {
+
+        try {
+
+            SelectParserMultiple selectParser = new SelectParserMultiple();
+            selectParser.parse(dslRequest);
+            SelectMultiQuery request = selectParser.getRequest();
+
+            // Update projection
+            request.resetUsageProjection();
+            request.addUsedProjection(
+                VitamFieldsHelper.id(),
+                VitamFieldsHelper.originatingAgency());
+
+            return request;
+
+        } catch (InvalidParseOperationException e) {
+            throw new EliminationException(StatusCode.KO, "Could not parse DSL request", e);
+        }
+    }
+
+    private InheritedRuleCategoryResponseModel parseAppraisalRuleCategory(JsonNode unit) throws EliminationException {
+
+        try {
+            JsonNode inheritedRules = unit.get(MetadataRuleService.INHERITED_RULES);
+
+            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
+                JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
+
+            return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
+
+        } catch (InvalidParseOperationException e) {
+            throw new EliminationException(StatusCode.KO, "Could not parse unit information", e);
+        }
+    }
+
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // NOP.
+    }
+
+    public static String getId() {
+        return ELIMINATION_ANALYSIS_PREPARATION;
+    }
+}

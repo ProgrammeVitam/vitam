@@ -46,7 +46,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Reclassification lock check handler.

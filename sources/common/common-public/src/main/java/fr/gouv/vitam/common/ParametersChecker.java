@@ -28,20 +28,21 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 
-    /**
-     * Checker for Parameters <br>
-     * <br>
-     * Can be used for String (testing also emptiness) and for general Object.<br>
-     * For null String only, use the special method.
-     *
-     *
-     */
-    public final class ParametersChecker {
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
+/**
+ * Checker for Parameters <br>
+ * <br>
+ * Can be used for String (testing also emptiness) and for general Object.<br>
+ * For null String only, use the special method.
+ */
+public final class ParametersChecker {
 
     private ParametersChecker() {
         // empty
     }
-    
+
     private static final String MANDATORY_PARAMETER = " is mandatory parameter";
 
     /**
@@ -61,7 +62,7 @@ import com.google.common.base.Strings;
             }
         }
     }
-    
+
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
      *
@@ -79,6 +80,7 @@ import com.google.common.base.Strings;
             }
         }
     }
+
     /**
      * Check if any parameter are null or empty and if so, return false
      *
@@ -96,7 +98,7 @@ import com.google.common.base.Strings;
         }
         return true;
     }
-    
+
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
      *
@@ -148,6 +150,18 @@ import com.google.common.base.Strings;
             if (parameter == null) {
                 throw new IllegalArgumentException(errorMessage);
             }
+        }
+    }
+
+
+    public static final void checkDateParam(String errorMessage, String date) {
+        if (date == null) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        try {
+            LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 

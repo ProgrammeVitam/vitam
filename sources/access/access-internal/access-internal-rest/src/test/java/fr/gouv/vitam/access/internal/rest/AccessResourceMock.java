@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
@@ -109,6 +110,15 @@ public class AccessResourceMock implements AccessInternalResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startReclassificationWorkflow(JsonNode reclassificationRequestJson) {
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @Override
+    @POST
+    @Path("/elimination/analysis")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody) {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
