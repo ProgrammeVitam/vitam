@@ -24,7 +24,7 @@
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
 
-### HOSTS NETWORK VARS CHECK ###
+# ### HOSTS NETWORK VARS CHECK ###
 - hosts: hosts
   any_errors_fatal: true
   roles:
@@ -68,7 +68,7 @@
   any_errors_fatal: true
   roles:
     - kibana
-    - kibana_log_dashboards
+    - kibana_dashboards
   vars:
     composant: "{{ kibana.log }}"
     # groupe: log
@@ -105,19 +105,16 @@
   vars:
     vitam_struct: "{{ vitam.elastickibanainterceptor }}"
 
-### KIBANA DATA INSTALLATION ###
-# OMA/ desactivated as long as ES 5 is not on data cluster
+## KIBANA DATA INSTALLATION ###
 - hosts: hosts-kibana-data
   any_errors_fatal: true
   roles:
     - kibana
-    - kibana_data_dashboards
+    - kibana_dashboards
   vars:
     composant: "{{ kibana.data }}"
-    #groupe: data
     elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
     elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
-    #kibana_port: "{{ kibana.kibana_data.port }}"
 
 ### MONGO DB INSTALLATION ###
 
