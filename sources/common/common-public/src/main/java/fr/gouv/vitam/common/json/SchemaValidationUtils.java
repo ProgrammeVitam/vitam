@@ -26,30 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
-import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -76,10 +52,33 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ModelConstants;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import org.apache.commons.lang3.BooleanUtils;
+
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.StreamSupport;
+
+import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
+import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 /**
  * SchemaValidationUtils
@@ -167,8 +166,6 @@ public class SchemaValidationUtils {
     private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList("$schema",
         "id", "type", "additionalProperties", "anyOf", "required", "description", "items", "title",
         "oneOf", "enum", "minLength", "minItems", "properties");
-
-    private static final List<String> SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE = Arrays.asList("_up", "_og");
 
     /**
      * Constructor with a default schema filename
@@ -425,21 +422,19 @@ public class SchemaValidationUtils {
      * @return a status ({@link SchemaValidationStatus})
      */
     public SchemaValidationStatus validateInsertOrUpdateUnit(JsonNode archiveUnit) {
-        ObjectNode unitCopy = ((ObjectNode) archiveUnit).deepCopy();
-        ObjectNode unitCopy2 = ((ObjectNode) archiveUnit).deepCopy();
-        final Iterator<String> names = unitCopy2.fieldNames();
-        while (names.hasNext()) {
-            String name = names.next();
-            if (!isExternal && SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE.contains(name)) {
-                continue;
-            } else if ("_mgt".equals(name) || "#management".equals(name)) {
-                final JsonNode value = unitCopy.remove(name);
-                unitCopy.set("Management", value);
-            } else if (isExternal && name != null && name.startsWith(ModelConstants.UNDERSCORE)) {
-                unitCopy.remove(name);
-            }
+        ObjectNode archiveUnitCopy = archiveUnit.deepCopy();
+
+        if (archiveUnit.get("_mgt") != null) {
+            final JsonNode value = archiveUnitCopy.remove("_mgt");
+            archiveUnitCopy.set("Management", value);
         }
-        return validateUnit(unitCopy);
+
+        if (archiveUnit.get("#management") != null) {
+            final JsonNode value = archiveUnitCopy.remove("#management");
+            archiveUnitCopy.set("Management", value);
+        }
+
+        return validateUnit(archiveUnitCopy);
     }
 
 
@@ -511,14 +506,17 @@ public class SchemaValidationUtils {
         }
     }
 
-    private List<String> replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent, String fieldName) {
+    private List<String> replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology,
+        JsonNode parent, String fieldName) {
         if (archiveUnitFragment.isArray()) {
-            return replacePropertyFieldArray((ArrayNode) archiveUnitFragment, archiveUnitFragment.deepCopy(), ontology, fieldName);
+            return replacePropertyFieldArray((ArrayNode) archiveUnitFragment, archiveUnitFragment.deepCopy(), ontology,
+                fieldName);
         }
         return replacePropertyField(archiveUnitFragment, ontology, parent, fieldName);
     }
 
-    private List<String> replacePropertyFieldArray(ArrayNode originalFields, ArrayNode copyFields, OntologyModel ontology, String fieldName) {
+    private List<String> replacePropertyFieldArray(ArrayNode originalFields, ArrayNode copyFields,
+        OntologyModel ontology, String fieldName) {
         ArrayList<String> errors = new ArrayList<>();
         for (int i = 0; i < copyFields.size(); i++) {
             String field = copyFields.get(i).asText();
