@@ -32,6 +32,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import org.apache.commons.io.IOUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -144,9 +147,9 @@ public class RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            Response response = storageClient.getContainerAsync(strategy, filename, type);
+            Response response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
             if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type).readEntity(InputStream.class);
+                inputStream = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
                 MetadataBackupModel metadataBackupModel =
                     JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
                 if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
@@ -172,9 +175,9 @@ public class RestoreBackupService {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            Response response = storageClient.getContainerAsync(strategy, filename, category);
+            Response response = storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog());
             if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return storageClient.getContainerAsync(strategy, filename, category).readEntity(InputStream.class);
+                return storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
             } else {
                 return null;
             }

@@ -38,10 +38,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogStructure;
 
 /**
  * Storage log appender.
@@ -71,12 +72,13 @@ public class StorageLogAppender implements VitamAutoCloseable {
     /**
      * Append to the current log.
      *
-     * @param parameters
-     * @return this
+     * @param parameters information to append to logFile
      * @throws IOException
      */
-    public void append(StorageLogbookParameters parameters) throws IOException {
-        writer.append(parameters.getMapParameters().toString()).append(lineSeparator);
+    public void append(StorageLogStructure parameters) throws IOException {
+        writer.append(JsonHandler.unprettyPrint(parameters.getMapParameters()));
+        writer.append(lineSeparator);
+        writer.flush();
     }
     
     @Override

@@ -44,10 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory.STORAGE_LOG_DIR;
+import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory.WRITE_LOG_DIR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,24 +89,24 @@ public class StorageLogServiceTest {
     public void appendTest() throws Exception {
 
         storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
-        storageLogService.append(0, buildStorageParameters("tenant0-param1"));
-        storageLogService.append(1, buildStorageParameters("tenant1-param1"));
-        storageLogService.append(0, buildStorageParameters("tenant0-param2"));
+        storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param1"));
+        storageLogService.appendWriteLog(1, buildStorageParameters("tenant1-param1"));
+        storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param2"));
 
         storageLogService.close();
 
-        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(WRITE_LOG_DIR);
         List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
 
         assertThat(files).hasSize(TENANTS);
 
         Path file1 = files.get(0);
         assertThat(file1.getFileName().toString()).matches("0_\\d+_.*\\.log");
-        assertFileContent(file1, "tenant0-param1\ntenant0-param2\n");
+        assertFileContent(file1, "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
 
         Path file2 = files.get(1);
         assertThat(file2.getFileName().toString()).matches("1_\\d+_.*\\.log");
-        assertFileContent(file2, "tenant1-param1\n");
+        assertFileContent(file2, "{\"objectIdentifier\":\"tenant1-param1\"}\n");
 
         Path file3 = files.get(2);
         assertEmptyFile(file3);
@@ -124,14 +121,14 @@ public class StorageLogServiceTest {
         // Given / when
         LocalDateTime date1 = LocalDateUtil.now();
 
-        storageLogService.append(0, buildStorageParameters("tenant0-param1"));
-        storageLogService.append(1, buildStorageParameters("tenant1-param1"));
-        storageLogService.append(0, buildStorageParameters("tenant0-param2"));
+        storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param1"));
+        storageLogService.appendWriteLog(1, buildStorageParameters("tenant1-param1"));
+        storageLogService.appendWriteLog(0, buildStorageParameters("tenant0-param2"));
 
         LocalDateTime date2 = LocalDateUtil.now();
 
         List<LogInformation> logInformation =
-            storageLogService.rotateLogFile(0).stream()
+            storageLogService.rotateLogFile(0, true).stream()
                 .sorted(Comparator.comparing(i -> i.getPath().getFileName().toString()))
                 .collect(Collectors.toList());
 
@@ -146,7 +143,7 @@ public class StorageLogServiceTest {
         assertThat(logInformation.get(0).getBeginTime()).isBeforeOrEqualTo(date1);
         assertThat(logInformation.get(0).getEndTime()).isBetween(date2, date3);
 
-        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(WRITE_LOG_DIR);
         List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
 
         assertThat(files).hasSize(4);
@@ -154,9 +151,9 @@ public class StorageLogServiceTest {
         assertThat(logInformation.get(0).getPath().toAbsolutePath().toString())
             .isEqualTo(files.get(0).toAbsolutePath().toString());
 
-        assertFileContent(files.get(0), "tenant0-param1\ntenant0-param2\n");
+        assertFileContent(files.get(0), "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
         assertFileContent(files.get(1), "");
-        assertFileContent(files.get(2), "tenant1-param1\n");
+        assertFileContent(files.get(2), "{\"objectIdentifier\":\"tenant1-param1\"}\n");
 
         assertEmptyFile(files.get(3));
     }
@@ -201,7 +198,7 @@ public class StorageLogServiceTest {
 
                     while (!stopSignal.await(0, TimeUnit.MILLISECONDS)) {
 
-                        storageLogService.append(tenant,
+                        storageLogService.appendWriteLog(tenant,
                             buildStorageParameters(
                                 "tenant" + tenant + "-param" + tenantCpt.get(tenant).getAndIncrement()));
 
@@ -224,7 +221,7 @@ public class StorageLogServiceTest {
 
                     while (!stopSignal.await(INTERVAL_BETWEEN_LOG_ROTATION, TimeUnit.MILLISECONDS)) {
 
-                        List<LogInformation> logInformation = storageLogService.rotateLogFile(tenant);
+                        List<LogInformation> logInformation = storageLogService.rotateLogFile(tenant, true);
                         for (LogInformation logInfo : logInformation) {
                             loggedDataByTenant
                                 .putAll(tenant, Files.readAllLines(logInfo.getPath(), StandardCharsets.UTF_8));
@@ -250,7 +247,7 @@ public class StorageLogServiceTest {
         storageLogService.close();
 
         // Read non remaining log files (non rotated)
-        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(WRITE_LOG_DIR);
         List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
 
         assertThat(files).hasSize(TENANTS);
@@ -263,22 +260,22 @@ public class StorageLogServiceTest {
         for (int tenant = 0; tenant < TENANTS; tenant++) {
 
             List<String> sortedTenantLog = loggedDataByTenant.get(tenant).stream()
-                .sorted(Comparator.comparing((String s) -> Integer.parseInt(s.substring(s.lastIndexOf("-param") + 6))))
+                .sorted(Comparator.comparing((String s) -> Integer.parseInt(s.substring(s.lastIndexOf("-param") + 6, s.lastIndexOf("\"")))))
                 .collect(Collectors.toList());
 
             assertThat(sortedTenantLog).hasSize(tenantCpt.get(tenant).get());
             System.out.println("Nb message for tenant " + tenant + "=" + sortedTenantLog.size());
 
             for (int i = 0; i < sortedTenantLog.size(); i++) {
-                assertThat(sortedTenantLog.get(i)).isEqualTo("tenant" + tenant + "-param" + i);
+                assertThat(sortedTenantLog.get(i)).isEqualTo("{\"objectIdentifier\":\"tenant" + tenant + "-param" + i + "\"}");
             }
         }
     }
 
     private StorageLogbookParameters buildStorageParameters(String str) {
         StorageLogbookParameters params = mock(StorageLogbookParameters.class);
-        Map<StorageLogbookParameterName, String> mapParameters = mock(Map.class);
-        when(mapParameters.toString()).thenReturn(str);
+        Map<StorageLogbookParameterName, String> mapParameters = new HashMap<>();
+        mapParameters.put(StorageLogbookParameterName.objectIdentifier, str);
         when(params.getMapParameters()).thenReturn(mapParameters);
         return params;
     }

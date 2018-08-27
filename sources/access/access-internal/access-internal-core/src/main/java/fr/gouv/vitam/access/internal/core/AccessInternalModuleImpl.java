@@ -35,8 +35,12 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -70,21 +74,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.model.MetadataType;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
 import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.OntologyType;
+import fr.gouv.vitam.common.model.administration.*;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -99,25 +92,13 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.exception.*;
+import fr.gouv.vitam.logbook.common.parameters.*;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.exception.*;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -129,11 +110,14 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceAutoCleanableStreamingOutput;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.common.CompressInformation;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.ws.rs.ProcessingException;
@@ -141,18 +125,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
+import javax.ws.rs.core.StreamingOutput;
+import java.io.*;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import java.util.*;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -388,7 +366,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version)
+    public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
         throws StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
@@ -402,7 +380,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final SelectMultiQuery request = new SelectMultiQuery();
         request.addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
-        request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo");
+        request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo", "Size");
 
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
@@ -411,7 +389,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         ObjectGroupResponse objectGroupResponse =
             JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
-
 
         VersionsModel finalversionsResponse = null;
         // FIXME P1: do not use direct access but POJO
@@ -435,9 +412,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
             }
         }
+
         String mimetype = null;
         String filename = null;
         String objectId = null;
+        Integer size = null;
         if (finalversionsResponse != null) {
             if (finalversionsResponse.getFormatIdentification() != null &&
                 !finalversionsResponse.getFormatIdentification().getMimeType().isEmpty()) {
@@ -449,6 +428,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 filename = finalversionsResponse.getFileInfoModel().getFilename();
             }
             objectId = finalversionsResponse.getId();
+            size = finalversionsResponse.getSize();
         }
 
         if (Strings.isNullOrEmpty(mimetype)) {
@@ -459,16 +439,124 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             filename = objectId;
         }
 
+        AccessLogInfoModel
+            logInfo = AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
+
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId,
-                DataCategory.OBJECT);
+                DataCategory.OBJECT, logInfo);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
             headers.put(GlobalDataRest.X_QUALIFIER, qualifier);
             headers.put(GlobalDataRest.X_VERSION, Integer.toString(version));
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
+        } catch (final StorageServerClientException e) {
+            throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
+        }
+    }
+
+    @Override
+    public Response getAccessLog(JsonNode params) throws AccessInternalExecutionException, StorageNotFoundException, ParseException {
+
+        Date startDate = null;
+        JsonNode startNode = params.get("StartDate");
+        if (startNode != null) {
+            String startString = startNode.textValue();
+            if(startString != null) {
+                startDate = LocalDateUtil.getDate(startString);
+            }
+        }
+
+        Date endDate = null;
+        JsonNode endNode = params.get("EndDate");
+        if (endNode != null) {
+            String endString = endNode.textValue();
+            if(endString != null) {
+                endDate = LocalDateUtil.getDate(endString);
+            }
+        }
+
+        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+        WorkspaceClient workspaceClient = workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
+        String containerName = DataCategory.STORAGEACCESSLOG.getCollectionName() + "_" + VitamThreadUtils.getVitamSession().getRequestId();
+
+        String outFileName = "accessLog";
+        if (startDate != null) {
+            outFileName += "_" + LocalDateUtil.getFormattedSimpleDate(startDate);
+        }
+        if (endDate != null) {
+            outFileName += "-" + LocalDateUtil.getFormattedSimpleDate(endDate);
+        }
+        outFileName += ".zip";
+
+        Response response = null;
+
+        try {
+            // Get Files in accessLog
+            Iterator<JsonNode> filesInfo = storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
+            if (filesInfo.hasNext()) {
+                workspaceClient.createContainer(containerName);
+            }
+            List<String> fileNames = new ArrayList<>();
+
+            // Check matching files that would be exported and put them on workspace
+            while (filesInfo.hasNext()) {
+                String fileName = filesInfo.next().get("objectId").asText();
+                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate)) continue;
+
+                Response fileResponse = getAccessLogFile(fileName);
+
+                InputStream stream = (InputStream) fileResponse.getEntity();
+                workspaceClient.putObject(containerName, fileName, stream);
+                fileNames.add(fileName);
+            }
+
+            // Zip all matching files in workspace and return zipFile
+            zipWorkspace(workspaceClient, outFileName, containerName, fileNames);
+            Response response2 = workspaceClient.getObject(containerName, outFileName);
+            StreamingOutput so = new WorkspaceAutoCleanableStreamingOutput((InputStream)response2.getEntity(), workspaceClient, containerName);
+            return Response.ok(so).build();
+        } catch (final StorageServerClientException | ContentAddressableStorageException e) {
+            throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
+            storageClient.consumeAnyEntityAndClose(response);
+        }
+    }
+
+    private void zipWorkspace(WorkspaceClient workspaceClient, String outputFile, String containerName, List<String> inputFiles)
+        throws ContentAddressableStorageException {
+
+        if (workspaceClient.isExistingContainer(containerName)) {
+            CompressInformation compressInformation = new CompressInformation();
+            compressInformation.setFiles(inputFiles);
+            compressInformation.setOutputFile(outputFile);
+            workspaceClient.compress(containerName, compressInformation);
+        } else {
+            LOGGER.error(containerName + " does not exist");
+            throw new ContentAddressableStorageAlreadyExistException(containerName + " does not exist");
+        }
+    }
+
+    private Response getAccessLogFile(String accessLogId) throws StorageNotFoundException, AccessInternalExecutionException {
+        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+
+        try {
+            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, accessLogId,
+                DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Map<String, String> headers = new HashMap<>();
+            // TODO: Set mimetype and contentDisposition ?
+            // headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
+            // headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
@@ -1642,7 +1730,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, id,
-                DataCategory.DIP);
+                DataCategory.DIP, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageServerClientException | StorageNotFoundException e) {
             throw new AccessInternalExecutionException(e);
@@ -1752,8 +1840,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     @Override
     public JsonNode selectObjects(JsonNode jsonQuery)
-            throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
-            VitamDBException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
+        VitamDBException {
 
         JsonNode jsonNode = null;
         LOGGER.debug("DEBUG: start selectObjects {}", jsonQuery);

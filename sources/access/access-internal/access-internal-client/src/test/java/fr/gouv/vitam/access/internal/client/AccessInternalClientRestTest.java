@@ -94,6 +94,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
+    final String UNIT_ID = "unitId";
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -254,17 +255,29 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, JsonNode query) {
+        public Response getObjectGroup(
+            @PathParam("id_object_group") String idObjectGroup,
+            JsonNode query) {
             return expectedResponse.get();
         }
 
         @Override
         @GET
-        @Path("/objects/{id_object_group}")
+        @Path("/objects/{id_object_group}/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectStreamAsync(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup) {
+            @PathParam("id_object_group") String idObjectGroup,
+            @PathParam("id_unit") String idUnit) {
+            return expectedResponse.get();
+        }
+
+        @Override
+        @GET
+        @Path("/storageaccesslog")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response getAccessLogStreamAsync(@Context HttpHeaders headers, JsonNode params) {
             return expectedResponse.get();
         }
 
@@ -304,6 +317,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         public Response getObjects(JsonNode queryDsl) {
             return expectedResponse.post();
         }
+
+
 
     }
 
@@ -498,7 +513,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION))
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
             .isInstanceOf(AccessInternalClientServerException.class);
     }
 
@@ -507,7 +522,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION))
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
             .isInstanceOf(InvalidParseOperationException.class);
     }
 
@@ -516,7 +531,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION))
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -525,7 +540,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION))
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
             .isInstanceOf(AccessInternalClientNotFoundException.class);
     }
 
@@ -534,7 +549,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getObject(ID, USAGE, VERSION).readEntity(InputStream.class);
+        final InputStream stream = client.getObject(ID, USAGE, VERSION, UNIT_ID).readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(StreamUtils.contentEquals(stream, stream2));

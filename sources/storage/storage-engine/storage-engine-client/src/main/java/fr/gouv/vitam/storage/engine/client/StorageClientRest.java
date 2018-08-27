@@ -32,13 +32,13 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -77,6 +77,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String ORDER_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
         "Order of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
+    private static final String STORAGE_ACCESSLOG_BACKUP_URI = "/storage/backup/accesslog";
     private static final String STORAGE_LOG_BACKUP_URI = "/storage/backup";
     private static final String STORAGE_LOG_TRACEABILITY_URI = "/storage/traceability";
     private static final String COPY = "/copy/";
@@ -401,7 +402,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String guid, DataCategory type)
+    public Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -410,7 +411,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         boolean ok = false;
         try {
             response = performRequest(HttpMethod.GET, type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                getDefaultHeaders(tenantId, strategyId, null, null),
+                logInfo, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -452,6 +454,33 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         headers.add(GlobalDataRest.X_CURSOR, true);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return new VitamRequestIterator<>(this, HttpMethod.GET, "/" + type.name(), JsonNode.class, headers, null);
+    }
+
+    @Override
+    public RequestResponseOK storageAccessLogBackup()
+            throws StorageServerClientException ,InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            response =
+                    performRequest(HttpMethod.POST, STORAGE_ACCESSLOG_BACKUP_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                    throw new StorageServerClientException("Internal Server Error");
+            }
+            return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override

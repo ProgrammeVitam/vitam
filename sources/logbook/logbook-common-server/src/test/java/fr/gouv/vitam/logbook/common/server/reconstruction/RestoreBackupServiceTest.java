@@ -37,6 +37,7 @@ import java.util.stream.LongStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -152,7 +153,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -174,7 +175,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -192,7 +193,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_operation_invalid_register.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -210,7 +211,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.INTERNAL_SERVER_ERROR, null, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                     null));
@@ -229,7 +230,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -244,7 +245,7 @@ public class RestoreBackupServiceTest {
         // given
         Mockito
             .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION))
+                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));

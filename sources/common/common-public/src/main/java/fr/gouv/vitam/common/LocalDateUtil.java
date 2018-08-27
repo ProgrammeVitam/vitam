@@ -191,6 +191,15 @@ public final class LocalDateUtil {
     /**
      * @param date date
      * @return formatted date
+     */
+    public static String getFormattedSimpleDate(Date date) {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
+        return dateFormat.format(date);
+    }
+
+    /**
+     * @param date date
+     * @return formatted date
      * @throws ParseException
      */
     public static Date getSimpleFormattedDate(final String date) throws ParseException {

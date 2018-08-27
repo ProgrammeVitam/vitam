@@ -33,6 +33,7 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -179,7 +180,7 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 Response response =
-                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT);
+                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
                 world.storageClient.consumeAnyEntityAndClose(response);
             } catch (Exception | AssertionError e) {

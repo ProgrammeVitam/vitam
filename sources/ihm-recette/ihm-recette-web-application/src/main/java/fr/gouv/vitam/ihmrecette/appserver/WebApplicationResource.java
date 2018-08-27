@@ -62,6 +62,8 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -318,7 +320,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private Response asyncDowloadObject(DataCategory dataCategory, String uid) {
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
-            Response response = client.getContainerAsync(DEFAULT, uid, dataCategory);
+            // Should we log it ?
+            Response response = client.getContainerAsync(DEFAULT, uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response);
         } catch (StorageServerClientException | StorageNotFoundException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -781,7 +784,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
-            final Response response = storageClient.getContainerAsync("default", fileName, documentType);
+            final Response response = storageClient.getContainerAsync("default", fileName, documentType, AccessLogUtils.getNoLogAccessLog());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response

@@ -1409,7 +1409,7 @@ public class AccessExternalResourceTest {
         PowerMockito.when(clientAccessInternal.selectUnitbyId(anyObject(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
-        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenReturn(response);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -1501,7 +1501,7 @@ public class AccessExternalResourceTest {
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, headers);
 
-        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenReturn(response);
         String objectnode = "{\"$query\": {\"$eq\": {\"aa\" : \"vv\" }}, \"$projection\": {}, \"$filter\": {}}";
         JsonNode objectGroup = JsonHandler.getFromString(
@@ -1561,7 +1561,7 @@ public class AccessExternalResourceTest {
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
-        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
         PowerMockito.when(clientAccessInternal.selectUnitbyId(anyObject(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(objectGroup));

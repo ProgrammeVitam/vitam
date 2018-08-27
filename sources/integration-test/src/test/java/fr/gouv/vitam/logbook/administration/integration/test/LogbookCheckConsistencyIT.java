@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -243,11 +244,12 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         Response response =
             storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                DataCategory.CHECKLOGBOOKREPORTS);
+                DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog());
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         final InputStream inputStream =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
+            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
+            DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog())
                 .readEntity(InputStream.class);
 
         LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
@@ -324,11 +326,11 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         Response response =
             storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                DataCategory.CHECKLOGBOOKREPORTS);
+                DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog());
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         final InputStream inputStream =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
+            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog())
                 .readEntity(InputStream.class);
 
         ObjectMapper mapper = new ObjectMapper();

@@ -40,6 +40,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -193,7 +194,7 @@ public class RestoreBackupServiceTest {
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_unit.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -215,7 +216,7 @@ public class RestoreBackupServiceTest {
     public void should_get_got_model_when_loading_got_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.OBJECTGROUP))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_got.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -237,7 +238,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_metadata()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_metadata.json"),
@@ -255,7 +256,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_lfc()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_lfc.json"),
@@ -273,7 +274,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_not_ok()
         throws StorageServerClientException, StorageNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.INTERNAL_SERVER_ERROR, null, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                     null));
@@ -290,7 +291,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException, StorageNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -303,7 +304,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));

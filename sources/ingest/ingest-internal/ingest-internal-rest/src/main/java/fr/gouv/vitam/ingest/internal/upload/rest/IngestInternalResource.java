@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -696,7 +697,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
             final Response response = storageClient.getContainerAsync(DEFAULT_STRATEGY,
-                objectId, documentType);
+                objectId, documentType, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
@@ -1035,7 +1036,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     response =
                         storageClient.getContainerAsync(DEFAULT_STRATEGY,
                             containerGUID.getId() + XML,
-                            DataCategory.REPORT);
+                            DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                 }
             } else {
                 response = Response.status(stepExecutionStatus).entity(updateResponse).build();

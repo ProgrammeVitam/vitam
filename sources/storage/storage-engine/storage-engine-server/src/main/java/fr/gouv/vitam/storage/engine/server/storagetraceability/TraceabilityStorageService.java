@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -117,7 +118,7 @@ public class TraceabilityStorageService {
      * @throws StorageException if some error technical problem while call StorageDistribution
      */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
-        return this.distribution.getContainerByCategory(strategyId, objectId, category);
+        return this.distribution.getContainerByCategory(strategyId, objectId, category, AccessLogUtils.getNoLogAccessLog());
     }
 
     private List<OfferLog> getLast(String strategyId, DataCategory category, Long offset, Integer limit)

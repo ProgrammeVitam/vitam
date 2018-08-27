@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -108,7 +109,7 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final InputStream stream = client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT)
+        final InputStream stream = client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
                 .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

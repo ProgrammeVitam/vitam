@@ -27,6 +27,34 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -59,31 +87,6 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 /**
  * StorageDistributionImplTest
@@ -104,7 +107,7 @@ public class StorageDistributionImplTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
-    public static void initStatic() throws StorageDriverNotFoundException, IOException {
+    public static void initStatic() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setUrlWorkspace("http://localhost:8080");
         client = Mockito.mock(WorkspaceClient.class);
@@ -442,19 +445,19 @@ public class StorageDistributionImplTest {
     public void testGetContainerByCategoryIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         try {
-            simpleDistribution.getContainerByCategory(null, null, null);
+            simpleDistribution.getContainerByCategory(null, null, null, AccessLogUtils.getNoLogAccessLog());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(null, null, null);
+            simpleDistribution.getContainerByCategory(null, null, null, AccessLogUtils.getNoLogAccessLog());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null);
+            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null, AccessLogUtils.getNoLogAccessLog());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -465,7 +468,7 @@ public class StorageDistributionImplTest {
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT);
+        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @RunWithCustomExecutor

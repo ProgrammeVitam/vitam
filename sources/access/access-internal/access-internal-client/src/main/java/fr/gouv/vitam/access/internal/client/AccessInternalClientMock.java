@@ -97,17 +97,15 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
                 "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"));
-
     }
 
     @Override
-    public Response getObject(String objectGroupId, String usage, int version)
+    public Response getObject(String objectGroupId, String usage, int version, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
-
 
     @Override
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
@@ -181,6 +179,18 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
+            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
+        } catch (IOException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
+    public Response downloadAccessLogFile(JsonNode params) throws AccessInternalClientServerException {
+        //TODO make accesslog.log + InputStream resourceAsStream = getClass().getResourceAsStream("/accesslog.log")
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);

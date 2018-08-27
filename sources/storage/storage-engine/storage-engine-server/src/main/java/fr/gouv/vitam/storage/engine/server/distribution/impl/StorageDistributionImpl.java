@@ -58,6 +58,7 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -110,6 +112,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
@@ -192,13 +195,11 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private StorageLog storageLogService;
 
-
-
     /**
      * Constructs the service with a given configuration
      *
      * @param configuration     the configuration of the storage
-     * @param storageLogService storageLogService
+     * @param storageLogService service that allow write and access log
      */
     public StorageDistributionImpl(StorageConfiguration configuration, StorageLog storageLogService) {
         ParametersChecker.checkParameter(STORAGE_SERVICE_CONFIGURATION_IS_MANDATORY, configuration);
@@ -598,7 +599,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private void logStorage(Integer tenant, StorageLogbookParameters parameters)
         throws IOException {
-        storageLogService.append(tenant, parameters);
+        storageLogService.appendWriteLog(tenant, parameters);
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String digest,
@@ -656,6 +657,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 break;
             case STORAGELOG:
                 description.append("Storagelog ");
+                break;
+            case STORAGEACCESSLOG:
+                description.append("StorageAccessLog ");
                 break;
             case STORAGETRACEABILITY:
                 description.append("STORAGETRACEABILITY");
@@ -1008,16 +1012,15 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category)
+    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AccessLogInfoModel logInformation)
         throws StorageException {
-
-        return getContainerByCategoryResponse(strategyId, objectId, category, null);
+        return getContainerByCategoryResponse(strategyId, objectId, category, null, logInformation);
     }
 
     @Override
     public Response getContainerByCategory(String strategyId, String objectId, DataCategory category, String offerId)
         throws StorageException {
-        return getContainerByCategoryResponse(strategyId, objectId, category, offerId);
+        return getContainerByCategoryResponse(strategyId, objectId, category, offerId, AccessLogUtils.getNoLogAccessLog());
     }
 
     /**
@@ -1030,7 +1033,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @throws StorageException the exception
      */
     private Response getContainerByCategoryResponse(String strategyId, String objectId, DataCategory category,
-        String offerId)
+        String offerId, AccessLogInfoModel logInformation)
         throws StorageException {
 
         // Check input params
@@ -1055,6 +1058,19 @@ public class StorageDistributionImpl implements StorageDistribution {
             // get the storage offer from the given identifier
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
             storageOffers = singletonList(offer);
+        }
+
+        if(DataCategory.OBJECT.equals(category)) {
+
+            try {
+                if (AccessLogUtils.mustLog(logInformation)) {
+                    AccessLogParameters params = createParamsForAccessLog(logInformation, objectId);
+                    storageLogService.appendAccessLog(tenantId, params);
+                }
+            } catch (IOException e) {
+                // Doit on faire qqch si on arrive pas a logger ?
+                LOGGER.error(e);
+            }
         }
 
         final StorageGetResult result =
@@ -1090,6 +1106,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      */
     private StorageGetResult getObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<StorageOffer> storageOffers)
+
         throws StorageException {
 
         StorageGetResult result;
@@ -1257,10 +1274,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         deleteObject(context, digest, offerReferences);
         //TODO log in log storage bug #4836
-
     }
-
-
 
     @Override
     public void deleteObjectInOffers(String strategyId, DataContext context, String digest, List<String> offers)
@@ -1331,7 +1345,41 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
+    private AccessLogParameters createParamsForAccessLog(AccessLogInfoModel logInfo, String objectId) {
+        Map<StorageLogbookParameterName, String> mapParameters = new HashMap<>();
+        mapParameters.put(StorageLogbookParameterName.objectIdentifier, objectId);
+        if (logInfo.getContextId() != null) {
+            mapParameters.put(StorageLogbookParameterName.contextId, logInfo.getContextId());
+        }
 
+        if (logInfo.getContractId() != null) {
+            mapParameters.put(StorageLogbookParameterName.contractId, logInfo.getContractId());
+        }
+
+        if (logInfo.getRequestId() != null) {
+            mapParameters.put(StorageLogbookParameterName.xRequestId, logInfo.getRequestId());
+        }
+
+        if (logInfo.getArchiveId() != null) {
+            mapParameters.put(StorageLogbookParameterName.archivesId, logInfo.getArchiveId());
+        }
+
+        if (logInfo.getQualifier() != null) {
+            mapParameters.put(StorageLogbookParameterName.qualifier, logInfo.getQualifier());
+        }
+
+        if (logInfo.getVersion() != null) {
+            mapParameters.put(StorageLogbookParameterName.version, logInfo.getVersion().toString());
+        }
+
+        if (logInfo.getSize() != null) {
+            mapParameters.put(StorageLogbookParameterName.size, logInfo.getSize().toString());
+        }
+
+        mapParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+
+        return new AccessLogParameters(mapParameters);
+    }
 
     @Override
     public JsonNode status() {

@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +31,6 @@ public class StorageLogAppenderTest {
 
     @Test()
     public void appendTest() throws IOException {
-
         StorageLogbookParameters params1 = buildStorageParameters("params1");
         StorageLogbookParameters params2 = buildStorageParameters("params2");
         StorageLogbookParameters params3 = buildStorageParameters("params3");
@@ -45,13 +45,13 @@ public class StorageLogAppenderTest {
 
         assertThat(filePath).exists();
         assertThat(Files.readAllBytes(filePath))
-            .isEqualTo("params1\nparams2\nparams3\n".getBytes());
+            .isEqualTo("{\"objectIdentifier\":\"params1\"}\n{\"objectIdentifier\":\"params2\"}\n{\"objectIdentifier\":\"params3\"}\n".getBytes());
     }
 
     private StorageLogbookParameters buildStorageParameters(String str) {
         StorageLogbookParameters params = mock(StorageLogbookParameters.class);
-        Map<StorageLogbookParameterName, String> mapParameters = mock(Map.class);
-        when(mapParameters.toString()).thenReturn(str);
+        Map<StorageLogbookParameterName, String> mapParameters = new HashMap<>();
+        mapParameters.put(StorageLogbookParameterName.objectIdentifier, str);
         when(params.getMapParameters()).thenReturn(mapParameters);
         return params;
     }

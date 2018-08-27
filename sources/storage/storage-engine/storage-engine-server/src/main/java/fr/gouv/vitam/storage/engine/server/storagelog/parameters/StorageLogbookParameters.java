@@ -42,7 +42,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
  * Storage Logbook Parameters Class
  */
 @JsonSerialize(using = StorageLogbookParametersSerializer.class)
-public class StorageLogbookParameters {
+public class StorageLogbookParameters implements StorageLogStructure {
 
     private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY = "Mandatory parameters can not be null or empty";
 

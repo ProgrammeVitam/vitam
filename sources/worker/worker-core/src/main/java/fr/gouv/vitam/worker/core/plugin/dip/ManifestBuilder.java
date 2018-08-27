@@ -54,6 +54,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -139,9 +140,9 @@ public class ManifestBuilder implements AutoCloseable {
      * @throws JAXBException
      * @throws ProcessingException
      */
-    public Map<String, String> writeGOT(JsonNode og)
+    public Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU)
         throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
-        Map<String, String> maps = new HashMap<>();
+        Map<String, JsonNode> maps = new HashMap<>();
 
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         final DataObjectPackageType xmlObject;
@@ -165,7 +166,11 @@ public class ManifestBuilder implements AutoCloseable {
                             FilenameUtils.getExtension(binaryDataObjectType.getUri());
                         String fileName = StoreDIP.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
                         binaryDataObjectType.setUri(fileName);
-                        maps.put(minimalDataObjectType.getId(), fileName);
+
+                        String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
+
+                        maps.put(minimalDataObjectType.getId(),
+                            AccessLogUtils.getWorkerInfo(dataObjectVersion[0], Integer.parseInt(dataObjectVersion[1]), binaryDataObjectType.getSize().intValue(), linkedAU, fileName));
                     }
                     marshaller.marshal(minimalDataObjectType, writer);
                 }

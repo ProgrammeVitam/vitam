@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.dip;
 
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
-import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_PATH_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -44,7 +44,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -132,7 +131,7 @@ public class CreateManifestTest {
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_PATH_RANK))
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
         given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
 
@@ -151,9 +150,18 @@ public class CreateManifestTest {
             JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
 
         assertThat(linkBetweenBinaryIdAndFileName)
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 

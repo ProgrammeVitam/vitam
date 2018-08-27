@@ -117,4 +117,10 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse<JsonNode> selectUnitsWithInheritedRules(VitamContext vitamContext, JsonNode selectQuery) {
         throw new UnsupportedOperationException("Will not be implemented");
     }
+
+    @Override public Response getAccessLog(VitamContext vitamContext, JsonNode params) {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("accessLogTest".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
 }

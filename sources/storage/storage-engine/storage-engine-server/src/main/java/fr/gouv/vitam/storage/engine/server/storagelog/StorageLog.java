@@ -31,7 +31,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogStructure;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+
 
 /**
  * Storage log provider. It describes methods to be implemented.
@@ -39,19 +42,30 @@ import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookP
 public interface StorageLog extends VitamAutoCloseable {
 
     /**
-     * Add a storage log entry.
+     * Add a storage write operation log entry.
      *
      * @param parameters the entry parameters
      * @throws IOException if an error is encountered
      */
-    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
+    void appendWriteLog(Integer tenant, StorageLogbookParameters parameters) throws IOException;
+
+    /**
+     * Add a storage access operation log entry.
+     *
+     * @param parameters the entry parameters
+     * @throws IOException if an error is encountered
+     */
+    void appendAccessLog(Integer tenant, AccessLogParameters parameters) throws IOException;
 
     /**
      * Rotate log file, and return previous log information
      *
-     * @param tenantId
+     * @param tenantId tenant used for the rotation
+     * @param isWriteOperation
      */
-    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
+    List<LogInformation> rotateLogFile(Integer tenantId, boolean isWriteOperation) throws IOException;
 
     void initializeStorageLogs(Path basePath) throws IOException;
+
+    String getFileName(boolean isWriteOperation);
 }

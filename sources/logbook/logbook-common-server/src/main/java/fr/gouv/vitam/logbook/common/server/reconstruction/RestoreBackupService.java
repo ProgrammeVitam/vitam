@@ -34,6 +34,8 @@ import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -142,9 +144,9 @@ public class RestoreBackupService {
         InputStream inputStream = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
-            Response response = storageClient.getContainerAsync(strategy, filename, type);
+            Response response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
             if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type).readEntity(InputStream.class);
+                inputStream = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
                 LogbookOperation logbookOperationDocument =
                     new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
                 LogbookBackupModel logbookBackupModel = new LogbookBackupModel();

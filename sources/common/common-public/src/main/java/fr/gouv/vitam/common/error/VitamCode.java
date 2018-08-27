@@ -242,6 +242,11 @@ public enum VitamCode {
         Status.NOT_FOUND,
         "Access external client error mass update units not found."),
 
+    ACCESS_EXTERNAL_GET_ACCESS_LOG(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "42",
+        Status.BAD_REQUEST,
+        "Access external client error in getAccessLog method."),
+
+
     ACCESS_INTERNAL_MASS_UPDATE_UNITS_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "42",
         Status.BAD_REQUEST,
         "Access internal error while check mass update units on rules"),
