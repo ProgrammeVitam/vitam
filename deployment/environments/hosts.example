@@ -301,6 +301,8 @@ hosts-logstash
 ansible_ssh_user=
 # Can target user become as root ? ; true is required by VITAM (usage of a sudoer is mandatory)
 ansible_become=true
+# How can ansible switch to root ?
+# See https://docs.ansible.com/ansible/latest/user_guide/become.html
 
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]

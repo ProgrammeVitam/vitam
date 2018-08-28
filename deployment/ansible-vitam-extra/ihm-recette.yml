@@ -5,7 +5,6 @@
   roles:
     - checks
 
-
 - hosts: hosts-ihm-recette
   roles:
     - ihm-recette-data-sets

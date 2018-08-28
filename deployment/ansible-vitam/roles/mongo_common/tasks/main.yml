@@ -33,50 +33,56 @@
 - set_fact: status_tuned_present="{{ tuned_service_status.stat.exists }}"
   when: tuned_service_status.changed
 
-- name: create the tuned conf directory
-  file:
-    path: "/etc/tuned/no-thp"
-    state: directory
-    owner: root
-    mode: "{{ vitam_defaults.folder.folder_permission }}"
-  when: status_tuned_present
+- block:
 
-- name: add the tuned conf file
-  copy:
-    src: tuned.conf
-    dest: /etc/tuned/no-thp/tuned.conf
-    owner: root
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: status_tuned_present
+    - name: create the tuned conf directory
+      file:
+        path: "/etc/tuned/no-thp"
+        state: directory
+        owner: root
+        mode: "{{ vitam_defaults.folder.folder_permission }}"
 
-- name: enable the new tuned profile
-  command: tuned-adm profile no-thp
-  when: status_tuned_present
+    - name: add the tuned conf file
+      copy:
+        src: tuned.conf
+        dest: /etc/tuned/no-thp/tuned.conf
+        owner: root
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
 
-- name: restart tuned
-  service:
-    name: tuned
-    state: restarted
-  when: status_tuned_present
+    - name: enable the new tuned profile
+      command: tuned-adm profile no-thp
 
-- name: add systemd service unit to disable THP
-  copy:
-    src: disable_transparent_hugepages.service
-    dest: /usr/lib/systemd/system/disable_transparent_hugepages.service
-    owner: root
-    mode: 0700
-  when: ansible_os_family == "RedHat"
+    - name: restart tuned
+      service:
+        name: tuned
+        state: restarted
 
-- name: add systemd service unit to disable THP
-  copy:
-    src: disable_transparent_hugepages.service
-    dest: /lib/systemd/system/disable_transparent_hugepages.service
-    owner: root
-    mode: 0700
-  when: ansible_os_family == "Debian"
+  when:
+    - status_tuned_present
+    - ansible_virtualization_type != "docker"
 
-- name: enable systemd service unit to disable THP
-  service:
-    name: disable_transparent_hugepages.service
-    enabled: yes
-    state: started
+- block:
+
+    - name: add systemd service unit to disable THP
+      copy:
+        src: disable_transparent_hugepages.service
+        dest: /usr/lib/systemd/system/disable_transparent_hugepages.service
+        owner: root
+        mode: 0700
+      when: ansible_os_family == "RedHat"
+
+    - name: add systemd service unit to disable THP
+      copy:
+        src: disable_transparent_hugepages.service
+        dest: /lib/systemd/system/disable_transparent_hugepages.service
+        owner: root
+        mode: 0700
+      when: ansible_os_family == "Debian"
+
+    - name: enable systemd service unit to disable THP
+      service:
+        name: disable_transparent_hugepages.service
+        enabled: yes
+        state: started
+
+  when: ansible_virtualization_type != "docker"

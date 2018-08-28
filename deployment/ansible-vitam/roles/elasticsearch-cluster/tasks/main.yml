@@ -56,12 +56,12 @@
 
 #### Elasticsearch installation ####
 
-# Only prerequisite for Debian : install openjdk from jessie-backports
-- name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
+# Only prerequisite for Debian : install openjdk from stretch-backports
+- name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian (prerequisite for elasticsearch package)"
   apt:
     name: "{{ java_package }}"
     state: latest
-    default_release: jessie-backports
+    default_release: "{{ ansible_distribution_release }}-backports"
   when: ansible_os_family == "Debian"
 
 - name: install openjdk when CentOS (prerequisite for elasticsearch package)
@@ -116,11 +116,11 @@
     mode: 0665
 
 # Change default behavior in this fucking file
-- name: Remove all occurrences of 'ES_PATH_CONF' in default configuration for Elastic.
-  replace:
+- name: change default config ES_PATH_CONF value
+  lineinfile:
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
-    regexp: "^(\\s*)ES_PATH_CONF=(.*)"
-    replace: "#ES_PATH_CONF="
+    regexp: 'ES_PATH_CONF=/etc/elasticsearch'
+    line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
 #### Configuration ####
 
 - name: Ensure elasticsearch directories exist

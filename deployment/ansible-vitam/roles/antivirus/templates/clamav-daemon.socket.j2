@@ -1,0 +1,6 @@
+[Socket]
+ListenStream=/run/clamav/clamd.ctl
+ListenStream=127.0.0.1:{{ clamav.port }}
+SocketUser=clamav
+SocketGroup=clamav
+RemoveOnStop=True
