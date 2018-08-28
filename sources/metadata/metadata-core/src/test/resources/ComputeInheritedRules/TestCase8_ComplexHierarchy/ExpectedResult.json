@@ -1,4 +1,30 @@
 {
+  "guid0": {
+    "AccessRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "AppraisalRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "ClassificationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "DisseminationRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "ReuseRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "StorageRule": {
+      "Properties": [],
+      "Rules": []
+    }
+  },
   "guid1": {
     "AccessRule": {
       "Properties": [],
@@ -59,7 +85,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -72,7 +98,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -101,7 +127,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -112,7 +138,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -123,7 +149,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -136,7 +162,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -160,7 +186,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -173,7 +199,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid2"
@@ -194,21 +220,21 @@
     "AppraisalRule": {
       "Properties": [
         {
-          "OriginatingAgency": "sp3",
+          "UnitId": "guid3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid3"
             ]
           ],
           "PropertyName": "FinalAction",
-          "PropertyValue": "Destroy",
-          "UnitId": "guid3"
+          "PropertyValue": "Destroy"
         }
       ],
       "Rules": [
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid3"
@@ -249,7 +275,7 @@
       "Properties": [
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid3"
@@ -262,7 +288,7 @@
       "Rules": [
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid3"
@@ -284,7 +310,7 @@
       "Properties": [
         {
           "UnitId": "guid4",
-          "OriginatingAgency": "sp4",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4"
@@ -324,7 +350,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -336,7 +362,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -348,7 +374,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -362,7 +388,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -387,7 +413,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -399,7 +425,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid4",
@@ -413,7 +439,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid4",
@@ -426,7 +452,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid4",
@@ -448,12 +474,11 @@
     "AppraisalRule": {
       "Properties": [
         {
-          "UnitId": "guid4",
-          "OriginatingAgency": "sp4",
+          "UnitId": "guid5",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
-              "guid5",
-              "guid4"
+              "guid5"
             ]
           ],
           "PropertyName": "FinalAction",
@@ -493,7 +518,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid5",
@@ -506,7 +531,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid5",
@@ -519,7 +544,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid5",
@@ -534,7 +559,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid5",
@@ -560,7 +585,7 @@
       "Properties": [
         {
           "UnitId": "guid5",
-          "OriginatingAgency": "sp5",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
               "guid5"
@@ -573,7 +598,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid5",
@@ -587,7 +612,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid5",
@@ -611,7 +636,7 @@
       "Properties": [
         {
           "UnitId": "guid6",
-          "OriginatingAgency": "sp6",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
               "guid6"
@@ -624,7 +649,7 @@
       "Rules": [
         {
           "UnitId": "guid6",
-          "OriginatingAgency": "sp6",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
               "guid6"
@@ -638,7 +663,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -651,7 +676,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -664,7 +689,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -679,7 +704,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -705,7 +730,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -718,7 +743,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid6",
@@ -733,7 +758,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid6",
@@ -747,7 +772,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid6",
@@ -770,25 +795,11 @@
     "AppraisalRule": {
       "Properties": [
         {
-          "UnitId": "guid4",
+          "UnitId": "guid7",
           "OriginatingAgency": "sp4",
           "Paths": [
             [
-              "guid7",
-              "guid5",
-              "guid4"
-            ]
-          ],
-          "PropertyName": "FinalAction",
-          "PropertyValue": "Keep"
-        },
-        {
-          "UnitId": "guid6",
-          "OriginatingAgency": "sp6",
-          "Paths": [
-            [
-              "guid7",
-              "guid6"
+              "guid7"
             ]
           ],
           "PropertyName": "FinalAction",
@@ -827,7 +838,7 @@
         },
         {
           "UnitId": "guid6",
-          "OriginatingAgency": "sp6",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
               "guid7",
@@ -842,7 +853,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid7",
@@ -862,7 +873,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid7",
@@ -882,7 +893,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid7",
@@ -904,7 +915,7 @@
       "Rules": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid7",
@@ -937,7 +948,7 @@
       "Properties": [
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid7",
@@ -951,7 +962,7 @@
         },
         {
           "UnitId": "guid3",
-          "OriginatingAgency": "sp3",
+          "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid7",
@@ -965,7 +976,7 @@
         },
         {
           "UnitId": "guid5",
-          "OriginatingAgency": "sp5",
+          "OriginatingAgency": "sp3",
           "Paths": [
             [
               "guid7",
@@ -978,34 +989,34 @@
       ],
       "Rules": [
         {
-          "EndDate": "2001-01-01",
+          "UnitId": "guid2",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid7",
+              "guid5",
+              "guid4",
+              "guid2"
+            ],
+            [
+              "guid7",
+              "guid6",
+              "guid4",
+              "guid2"
+            ]
+          ],
+          "Rule": "ST-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid3",
           "OriginatingAgency": "sp2",
           "Paths": [
             [
               "guid7",
               "guid5",
               "guid4",
-              "guid2"
-            ],
-            [
-              "guid7",
-              "guid6",
-              "guid4",
-              "guid2"
-            ]
-          ],
-          "Rule": "ST-00001",
-          "StartDate": "2000-01-01",
-          "UnitId": "guid2"
-        },
-        {
-          "EndDate": "2001-01-01",
-          "OriginatingAgency": "sp3",
-          "Paths": [
-            [
-              "guid7",
-              "guid5",
-              "guid4",
               "guid3"
             ],
             [
@@ -1017,7 +1028,7 @@
           ],
           "Rule": "ST-00001",
           "StartDate": "2000-01-01",
-          "UnitId": "guid3"
+          "EndDate": "2001-01-01"
         }
       ]
     }
@@ -1031,7 +1042,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1047,7 +1058,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1058,7 +1069,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1069,7 +1080,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid8",
@@ -1091,7 +1102,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1102,7 +1113,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1115,7 +1126,7 @@
       "Rules": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1139,7 +1150,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid8"
@@ -1161,7 +1172,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1178,7 +1189,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1190,7 +1201,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1202,7 +1213,7 @@
         },
         {
           "UnitId": "guid2",
-          "OriginatingAgency": "sp2",
+          "OriginatingAgency": "sp1",
           "Paths": [
             [
               "guid9",
@@ -1226,7 +1237,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1238,7 +1249,7 @@
         },
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1252,7 +1263,7 @@
       "Rules": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",
@@ -1277,7 +1288,7 @@
       "Properties": [
         {
           "UnitId": "guid8",
-          "OriginatingAgency": "sp8",
+          "OriginatingAgency": "sp4",
           "Paths": [
             [
               "guid9",

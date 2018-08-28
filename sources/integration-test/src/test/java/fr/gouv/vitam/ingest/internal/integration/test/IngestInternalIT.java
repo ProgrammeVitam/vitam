@@ -2358,7 +2358,13 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         InheritedRuleCategoryResponseModel appraisalRuleCategory =
             unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
-        assertThat(appraisalRuleCategory.getProperties()).hasSize(0);
+        assertThat(appraisalRuleCategory.getProperties()).hasSize(1);
+        assertThat(appraisalRuleCategory.getProperties().get(0).getPropertyName()).isEqualTo("FinalAction");
+        assertThat(appraisalRuleCategory.getProperties().get(0).getPropertyValue()).isEqualTo("Keep");
+        assertThat(appraisalRuleCategory.getProperties().get(0).getPaths()).hasSize(2);
+        assertThat(appraisalRuleCategory.getProperties().get(0).getPaths().get(0)).hasSize(4);
+        assertThat(appraisalRuleCategory.getProperties().get(0).getPaths().get(1)).hasSize(4);
+
         assertThat(appraisalRuleCategory.getRules()).hasSize(0);
 
         InheritedRuleCategoryResponseModel reuseRuleCategory =

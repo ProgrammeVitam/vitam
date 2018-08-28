@@ -1,15 +1,30 @@
 [
   {
     "#id": "guid1",
-    "#originating_agency": "sp1",
     "#unitups": [],
     "#management": {}
   },
   {
     "#id": "guid2",
-    "#originating_agency": "sp2",
+    "#originating_agency": "sp1",
     "#unitups": [
       "guid1"
+    ],
+    "#management": {}
+  },
+  {
+    "#id": "guid3",
+    "#originating_agency": "sp1",
+    "#unitups": [
+      "guid2"
+    ],
+    "#management": {}
+  },
+  {
+    "#id": "guid4",
+    "#originating_agency": "sp2",
+    "#unitups": [
+      "guid2"
     ],
     "#management": {}
   }

@@ -40,7 +40,7 @@ public class RuleCategoryModel {
     private static final String CLASSIFICATION_AUDIENCE = "ClassificationAudience";
     private static final String CLASSIFICATION_LEVEL = "ClassificationLevel";
     private static final String CLASSIFICATION_OWNER = "ClassificationOwner";
-    private static final String FINAL_ACTION = "FinalAction";
+    public static final String FINAL_ACTION = "FinalAction";
     private static final String CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
     private static final String NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
 
