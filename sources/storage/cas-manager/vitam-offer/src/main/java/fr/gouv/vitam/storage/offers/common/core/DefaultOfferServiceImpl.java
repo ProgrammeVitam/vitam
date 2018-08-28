@@ -47,7 +47,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -85,9 +84,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final ContentAddressableStorage defaultStorage;
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
-    private final Map<String, DigestType> digestTypeFor;
-    private final Map<String, String> objectTypeFor;
-
     private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
@@ -106,8 +102,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
-        digestTypeFor = new HashMap<>();
-        objectTypeFor = new HashMap<>();
         mapXCusor = new HashMap<>();
     }
 
@@ -140,12 +134,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
         }
         objectInit.setId(objectGUID);
-        objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
-        if (objectInit.getDigestAlgorithm() != null) {
-            digestTypeFor.put(objectGUID, objectInit.getDigestAlgorithm());
-        } else {
-            digestTypeFor.put(objectGUID, VitamConfiguration.getDefaultDigestType());
-        }
 
         offerDatabaseService.save(containerName, objectInit.getId(), "write");
         return objectInit;
@@ -154,18 +142,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type, Long size) throws IOException, ContentAddressableStorageException {
+        DataCategory type, Long size, DigestType digestType) throws IOException, ContentAddressableStorageException {
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
-            return putObject(containerName, objectId, objectPart, type, size);
+            return putObject(containerName, objectId, objectPart, type, size, digestType);
         } catch (ContentAddressableStorageNotFoundException ex) {
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
                 LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
             }
-            return putObject(containerName, objectId, objectPart, type, size);
+            return putObject(containerName, objectId, objectPart, type, size, digestType);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
             throw exc;
@@ -173,20 +161,16 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-        Long size)
+        Long size, DigestType digestType)
         throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
         if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        DigestType digestType = getDigestAlgoFor(objectId);
-
         defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
         // Check digest AFTER writing in order to ensure correctness
         final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
-        // remove digest algo
-        digestTypeFor.remove(objectId);
         return digest;
     }
 
@@ -223,10 +207,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         final long objectNumber = defaultStorage.countObjects(containerName);
         result.put("objectNumber", objectNumber);
         return result;
-    }
-
-    private DigestType getDigestAlgoFor(String id) {
-        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : VitamConfiguration.getDefaultDigestType();
     }
 
     @Override

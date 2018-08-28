@@ -46,11 +46,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -444,9 +447,16 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     //Default size for the inputStream
                     inputStreamSize = 100_000L;
                 }
+                DigestType digestType = null;
+                String xDigestAlgorithm = headers.getHeaderString(GlobalDataRest.X_DIGEST_ALGORITHM);
+                if (StringUtils.isEmpty(xDigestAlgorithm)) {
+                	digestType = VitamConfiguration.getDefaultDigestType();
+                } else {
+                	digestType = DigestType.fromValue(xDigestAlgorithm);
+                }
                 final String digest =
                     defaultOfferService.createObject(containerName, objectId, sis,
-                        xCommandHeader.equals(StorageConstants.COMMAND_END), type, inputStreamSize);
+                        xCommandHeader.equals(StorageConstants.COMMAND_END), type, inputStreamSize, digestType);
                 return Response.status(Response.Status.CREATED)
                     .entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis.getSize() + "\"}").build();
             } catch (IOException | ContentAddressableStorageException exc) {
