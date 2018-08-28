@@ -224,7 +224,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<String> objectsList = new ArrayList<>();
             if (step.getDistribution().getKind().equals(DistributionKind.LIST_ORDERING_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                    // Test regarding Unit to be indexed                    
+                    // Test regarding Unit to be indexed
                     if (DistributionType.Units == step.getDistribution().getType()) {
                         // get the file to retrieve the GUID
                         final Response response = workspaceClient.getObject(workParams.getContainerName(),
@@ -369,40 +369,55 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         List<String> objectsList;
 
+        String currentContainerName = containerName;
+        String currentFileName = fileName;
+
         try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            // get file's content
-            final Response response = workspaceClient.getObject(containerName, fileName);
+            boolean recursion;
+            do {
+                recursion = false; // by default, no recursion
 
-            ChainedFileModel chainedFile;
-            try {
-                chainedFile =
-                    JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
-            } finally {
-                workspaceClient.consumeAnyEntityAndClose(response);
-            }
+                // get file's content
+                final Response response = workspaceClient.getObject(currentContainerName, currentFileName);
 
-            if (chainedFile != null) {
-                objectsList = Optional.ofNullable(chainedFile.getElements())
-                    .orElseGet(Collections::emptyList)
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                ChainedFileModel chainedFile;
+                try {
+                    chainedFile =
+                            JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
+                } finally {
+                    workspaceClient.consumeAnyEntityAndClose(response);
+                }
 
-                // Iterate over Objects List
-                if (!objectsList.isEmpty()) {
-                    if (fileName != null) {
-                        distributeOnList(workParams, step, fileName, objectsList, useDistributorIndex, tenantId);
-                    } else {
-                        distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
+                if (chainedFile != null) {
+                    objectsList = Optional.ofNullable(chainedFile.getElements())
+                            .orElseGet(Collections::emptyList)
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // Iterate over Objects List
+                    if (!objectsList.isEmpty()) {
+                        if (currentFileName != null) {
+                            distributeOnList(workParams, step, currentFileName, objectsList, useDistributorIndex, tenantId);
+                        } else {
+                            distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
+                        }
+                    }
+
+                    if (!StringUtils.isBlank(chainedFile.getNextFile())) {
+                        // Terminal recursion
+                        // distributeChainedFiles(workParams.getContainerName(), chainedFile.getNextFile(),
+                        //        workParams, step, useDistributorIndex,
+                        //        tenantId);
+
+                        recursion = true;
+
+                        currentContainerName = workParams.getContainerName();
+                        currentFileName = chainedFile.getNextFile();
+                        // other parameters do not change
                     }
                 }
-
-                if (!StringUtils.isBlank(chainedFile.getNextFile())) {
-                    distributeChainedFiles(workParams.getContainerName(), chainedFile.getNextFile(),
-                        workParams, step, useDistributorIndex,
-                        tenantId);
-                }
-            }
+            } while (recursion);
         }
     }
 
