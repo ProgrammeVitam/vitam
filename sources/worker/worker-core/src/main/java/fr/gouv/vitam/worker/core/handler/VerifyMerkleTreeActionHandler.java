@@ -59,7 +59,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
     private static final String MERKLE_TREE_JSON = "merkleTree.json";
 
-    public static final String DATA_FILE = "data.txt";
+    static final String DATA_FILE = "data.txt";
 
     private static final String HANDLER_ID = "CHECK_MERKLE_TREE";
 
@@ -71,12 +71,12 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     private static final int END_OF_STREAM = -1;
     private static final char NEW_LINE_SEPARATOR = '\n';
 
-    private static TraceabilityEvent traceabilityEvent = null;
+    private  TraceabilityEvent traceabilityEvent = null;
 
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -105,9 +105,10 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             // calculates hash
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
-            // compare to secured and indexed hashs
-            final ItemStatus subSecuredItem = compareToSecuredHash(params, handler, currentRootHash);
+            // compare to secured and indexed hash
+            final ItemStatus subSecuredItem = compareToSecuredHash( handler, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
+
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
@@ -132,14 +133,8 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         return subLoggedItemStatus.increment(StatusCode.OK);
     }
 
-    /**
-     * @param params
-     * @param handler
-     * @param currentRootHash
-     * @return
-     * @throws ProcessingException
-     */
-    ItemStatus compareToSecuredHash(WorkerParameters params, HandlerIO handler, final String currentRootHash)
+
+    private ItemStatus compareToSecuredHash( HandlerIO handler, final String currentRootHash)
         throws ProcessingException {
 
         final ItemStatus subItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH);
@@ -165,8 +160,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         // check ok then compare diff root hash
         final MerkleTree currentMerkleTree = merkleTreeAlgo.generateMerkle();
 
-        final String currentRootHash = BaseXx.getBase64(currentMerkleTree.getRoot());
-        return currentRootHash;
+        return BaseXx.getBase64(currentMerkleTree.getRoot());
     }
 
     /**
@@ -176,7 +170,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
      * @return the computed Merkle tree
      * @throws ProcessingException
      */
-    private MerkleTreeAlgo computeMerkleTree(InputStream inputStream)
+    public static MerkleTreeAlgo computeMerkleTree(InputStream inputStream)
         throws ProcessingException {
 
         final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());

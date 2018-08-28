@@ -81,6 +81,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
+
     private boolean asyncIO = false;
 
 
@@ -88,7 +89,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static  String getId() {
         return HANDLER_ID;
     }
 
@@ -100,6 +101,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
         // 1- Get the TRACEABILITY operation to check
         LogbookOperation operationToCheck;
+
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
 

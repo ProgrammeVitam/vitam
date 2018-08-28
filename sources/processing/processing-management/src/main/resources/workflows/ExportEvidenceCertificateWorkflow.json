@@ -1,0 +1,163 @@
+{
+  "id": "EvidenceCertificateExportWorkflow",
+  "name": "export evidence certificate ",
+  "identifier": "EXPORT_EVIDENCE_CERTIFICATE",
+  "typeProc": "AUDIT",
+  "comment": "Evidence certificate export",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_PREPARE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_LIST_OBJECT",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_LINKED_FILE",
+        "element": "Object/chainedFile.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD",
+            "behavior": "BLOCKING"
+
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "operation"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "operationForOpi"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "operation"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "operation"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "operationForOpi"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_FINALIZE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_CERTIFICATE_REPORTS",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

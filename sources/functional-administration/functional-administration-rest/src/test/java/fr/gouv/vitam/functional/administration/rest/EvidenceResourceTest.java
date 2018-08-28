@@ -59,29 +59,34 @@ public class EvidenceResourceTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     private static final int TENANT_ID = 0;
+    private EvidenceResource evidenceResource;
 
     @Before
     public void setUp() {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        evidenceResource =
+            new EvidenceResource(processingManagementClientFactory, logbookOperationsClientFactory,
+                workspaceClientFactory);
+        GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testEvidenceResource() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(guid);
-
-        EvidenceResource evidenceResource =
-            new EvidenceResource(processingManagementClientFactory, logbookOperationsClientFactory,
-                workspaceClientFactory);
+    public void given_empty_query_when_audit_then_return_forbidden_request() throws Exception {
 
         Response audit = evidenceResource.audit(new Select().getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+    }
 
+    @Test
+    @RunWithCustomExecutor
+    public void given_good_query_then_return_ok_status() throws Exception {
+
+        // given
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
@@ -89,15 +94,26 @@ public class EvidenceResourceTest {
         when(processingManagementClient
             .executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString(), anyString()))
             .thenReturn(new RequestResponseOK<JsonNode>(new Select().getFinalSelect()).setHttpCode(200));
-        audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
+        Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
+
+        //then
         assertThat(audit.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void fail_when_a_related_server_is_unavailable() throws Exception {
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+
+        selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
+
 
         willThrow(VitamClientException.class).given(workspaceClient).putObject(anyString(), any(), any());
-        audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
+        Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        willThrow(LogbookClientAlreadyExistsException.class).given(logbookOperationsClient).create( any());
+        willThrow(LogbookClientAlreadyExistsException.class).given(logbookOperationsClient).create(any());
         audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 

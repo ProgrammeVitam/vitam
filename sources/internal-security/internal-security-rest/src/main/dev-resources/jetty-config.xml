@@ -118,7 +118,7 @@
 
     <Set name="RequestLog">
         <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
-            <Set name="fileName">/vitam/conf/logbook/logback-access.xml</Set>
+            <Set name="secureLogbookFileName">/vitam/conf/logbook/logback-access.xml</Set>
         </New>
     </Set>
     <Ref id="RequestLogImpl">

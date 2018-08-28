@@ -90,6 +90,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CertificationRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -1895,6 +1896,36 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Launch an evidence certificate export
+     *
+     * @param CertificateRequest
+     * @return response
+     */
+    @POST
+    @Path(AccessExtAPI.EXPORT_EVIDENCE_CERTIFICATE)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "evidencecertificate:create", description = "Lancer un export du relevé de valeur probante")
+    public Response exportEvidenceCertificate(CertificationRequest certificationRequest) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(certificationRequest.getDslQuery());
+
+            RequestResponse<JsonNode> result = client.exportEvidenceCertificate(certificationRequest);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState(CODE_VITAM)
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
         }
     }
 

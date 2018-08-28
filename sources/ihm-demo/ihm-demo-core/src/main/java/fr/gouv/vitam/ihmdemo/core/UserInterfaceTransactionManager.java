@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CertificationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -432,6 +433,25 @@ public class UserInterfaceTransactionManager {
             return client.evidenceAudit(context, query);
         }
     }
+
+
+    /**
+     * Launch an evidence certificate export for the request
+     *
+     * @param query search criteria as DSL query to select AU
+     * @param context VitamContext
+     * @return a JsonNode for dip results
+     * @throws VitamClientException access client exception
+     */
+    public static RequestResponse exportEvidenceCertificate(JsonNode query, VitamContext context) throws VitamClientException {
+
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+            CertificationRequest certificationRequest = new CertificationRequest(query,"BinaryMaster");
+            return client.exportEvidenceCertificate(context, certificationRequest);
+        }
+    }
+
+
 
     /**
      * generate a DIP to be exported

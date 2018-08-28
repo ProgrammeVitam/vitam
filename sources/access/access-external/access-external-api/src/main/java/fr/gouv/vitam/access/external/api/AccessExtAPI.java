@@ -219,5 +219,10 @@ public class AccessExtAPI {
      */
     public static final String ONTOLOGY = "ontologies";
 
+    /**
+     * Export evidence certificate uri
+     */
+    public static final String EXPORT_EVIDENCE_CERTIFICATE = "/evidencecertificateexport";
+
 
 }

@@ -107,7 +107,7 @@ public class EvidenceService {
     private static final String TMP = "tmp";
     private static final String ZIP = ".zip";
     private static final String DATA_TXT = "data.txt";
-    private static final String TXT = ".txt";
+    private static final String extension = ".txt";
     private static final String FILE_NAME = "FileName";
     private static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
     private static final String NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE =
@@ -134,7 +134,7 @@ public class EvidenceService {
 
     private StorageClientFactory storageClientFactory;
 
-    EvidenceService() {
+    public EvidenceService() {
         storageClientFactory = StorageClientFactory.getInstance();
         logbookLifeCyclesClientFactory = LogbookLifeCyclesClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
@@ -399,15 +399,17 @@ public class EvidenceService {
 
     /**
      * @param fileName the file name
+     * @param fileToExtract
+     * @param extension
      * @return LifeCycleTraceabilitySecureFileObject
      * @throws EvidenceAuditException the EvidenceAuditException
      */
-    public File downloadAndExtractDataFromStorage(String fileName) throws EvidenceAuditException {
-        File traceabilityFile = downloadFileInTemporaryFolder(fileName);
-        return extractFileStreamFromZip(traceabilityFile);
+    public File downloadAndExtractDataFromStorage(String fileName, String fileToExtract, String extension) throws EvidenceAuditException {
+        File traceabilityFile = downloadFileInTemporaryFolder(fileName, extension);
+        return extractFileStreamFromZip(traceabilityFile, fileToExtract,  extension);
     }
 
-    private File downloadFileInTemporaryFolder(String fileName) throws EvidenceAuditException {
+    private File downloadFileInTemporaryFolder(String fileName, String extension) throws EvidenceAuditException {
         // Get zip file
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
@@ -415,7 +417,7 @@ public class EvidenceService {
                 .getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
 
-                final File file = File.createTempFile(TMP, ZIP, new File(VitamConfiguration.getVitamTmpFolder()));
+                final File file = File.createTempFile(TMP, extension, new File(VitamConfiguration.getVitamTmpFolder()));
                 Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 response.close();
 
@@ -432,13 +434,13 @@ public class EvidenceService {
         }
     }
 
-    private LifeCycleTraceabilitySecureFileObject loadInformationFromFile(List<String> securisedLines,
+    public static LifeCycleTraceabilitySecureFileObject loadInformationFromFile(List<String> securedLines,
         MetadataType metadataType,
         String id)
         throws EvidenceAuditException {
 
         try {
-            for (String line : securisedLines) {
+            for (String line : securedLines) {
                 if (StringUtils.isEmpty(line)) {
                     continue;
                 }
@@ -460,11 +462,11 @@ public class EvidenceService {
     }
 
 
-    private File extractFileStreamFromZip(File file) throws EvidenceAuditException {
+    private File extractFileStreamFromZip(File file, String fileToExtract, String extension) throws EvidenceAuditException {
         try (ZipFile zipFile = new ZipFile(file)) {
-            ZipEntry dataEntry = zipFile.getEntry(DATA_TXT);
+            ZipEntry dataEntry = zipFile.getEntry(fileToExtract);
             try (InputStream dataStream = zipFile.getInputStream(dataEntry)) {
-                File dataFile = File.createTempFile(TMP, TXT, new File(VitamConfiguration.getVitamTmpFolder()));
+                File dataFile = File.createTempFile(TMP, extension, new File(VitamConfiguration.getVitamTmpFolder()));
                 Files.copy(dataStream, dataFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 return dataFile;
             }
@@ -477,7 +479,7 @@ public class EvidenceService {
         }
     }
 
-    private boolean findLine(LifeCycleTraceabilitySecureFileObject traceabilityLine, MetadataType metadataType,
+    private static boolean findLine(LifeCycleTraceabilitySecureFileObject traceabilityLine, MetadataType metadataType,
         String id) {
         if (traceabilityLine.getLfcId() == null) {
             throw new IllegalStateException("Missing lfc Id");

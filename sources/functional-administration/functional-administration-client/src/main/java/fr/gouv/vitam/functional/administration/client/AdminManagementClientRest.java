@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CertificationRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -123,7 +124,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
     private static final String UPDATE_ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles/";
     private static final String ONTOLOGY_URI = "/ontologies";
-
+    private static final String EVIDENCE_CERTIFICATE_URI = "/evidencecertificateexport";
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
@@ -1332,8 +1333,13 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The options are mandatory", options);
         Response response = null;
         RequestResponse result = null;
+        return getJsonNodeRequestResponse(options, response, AUDIT_URI);
+    }
+
+    private RequestResponse<JsonNode> getJsonNodeRequestResponse(JsonNode options, Response response, String auditUri)
+        throws AdminManagementClientServerException {
         try {
-            response = performRequest(HttpMethod.POST, AUDIT_URI, null, options,
+            response = performRequest(HttpMethod.POST, auditUri, null, options,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
@@ -1511,18 +1517,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The query is mandatory", query);
 
         Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, EVIDENCE_AUDIT_URI, null, query,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
-            return RequestResponse.parseFromResponse(response);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        return getJsonNodeRequestResponse(query, response, EVIDENCE_AUDIT_URI);
     }
 
     @Override
@@ -1542,6 +1537,26 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> exportEvidenceCertificate(CertificationRequest certificationRequest) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The query is mandatory", certificationRequest);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, EVIDENCE_CERTIFICATE_URI, null, certificationRequest,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error ", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    public static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {

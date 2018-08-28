@@ -111,7 +111,11 @@ public enum LogbookTypeProcess {
     /**
      * Elimination process
      */
-    ELIMINATION;
+    ELIMINATION,
+    /**
+     * Evidence certification export.
+     */
+    EXPORT_EVIDENCE_CERTIFICATE;
 
     /**
      * Get the LogbookTypeProcess matching the given type

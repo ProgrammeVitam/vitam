@@ -285,13 +285,15 @@ public class EvidenceServiceTest {
             .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
         when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
             .thenReturn(responseMock);
-        assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip"))
+        assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
+            "data.txt", ".zip"))
             .isNotNull();
 
         when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(StorageNotFoundException.class);
 
-        assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test"))
+        assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",
+            ".zip"))
             .isInstanceOf(EvidenceAuditException.class).hasMessage("Could not retrieve traceability zip file 'test'");
 
     }
