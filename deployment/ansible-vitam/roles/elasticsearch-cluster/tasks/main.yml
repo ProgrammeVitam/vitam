@@ -29,6 +29,12 @@
     - ansible_memory_mb.real.total >= 65536
     - elasticsearch_memory == ""
 
+
+- name: Define temporary memory size & unit vars
+  set_fact:
+    elasticsearch_memory_value: "{{ elasticsearch_memory| regex_replace('[kKmMgG]','') }}"
+    elasticsearch_memory_unit: "{{ elasticsearch_memory| regex_replace('[0123456789]*','') }}"
+
 #### Elasticsearch installation ####
 
 # Only prerequisite for Debian : install openjdk from jessie-backports

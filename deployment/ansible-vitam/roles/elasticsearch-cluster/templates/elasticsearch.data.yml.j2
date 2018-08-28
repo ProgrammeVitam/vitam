@@ -79,7 +79,7 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-d
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #
-# discovery.zen.minimum_master_nodes: 3
+discovery.zen.minimum_master_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor') |int }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
@@ -88,7 +88,8 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-d
 #
 # Block initial recovery after a full cluster restart until N nodes are started:
 #
-# gateway.recover_after_nodes: 3
+gateway.expected_nodes: {{ (groups['hosts-elasticsearch-data'] | length) }}
+gateway.recover_after_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor') |int }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-gateway.html>
@@ -108,34 +109,34 @@ action.destructive_requires_name: true
 #index.number_of_replicas: 2
 #{% endif %}#
 
-#index.refresh_interval: 10s
-#indices.memory.index_buffer_size: 30%
-#index.translog.flush_threshold_ops: 50000
-#refresh_interval_in_millis: 30000
 
 indices.query.bool.max_clause_count: 10000
 
-# Threadpools configuration
-#threadpool:
+{% if composant.index_buffer_size_ratio is defined %}
+# some perforamnce tuning ; see https://www.elastic.co/guide/en/elasticsearch/reference/6.4/tune-for-indexing-speed.html
+# 0.1 may be enough, cots_vars declares {{ composant.index_buffer_size_ratio }} as ratio on total memory {{ elasticsearch_memory }}
+indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composant.index_buffer_size_ratio|float))|round (0, 'floor')| int }}{{ elasticsearch_memory_unit }}
+{% endif %}
+
+# thread_pool configuration
 thread_pool:
+    index:
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int  }}
+        queue_size: 5000
+    get:
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int }}
+        queue_size: 5000
     search:
         size: {{ ((ansible_processor_cores * ansible_processor_threads_per_core * 3 / 2) + 1) | round (0, 'floor') | int }}
+        min_queue_size: 1000
         queue_size: 5000
     write:
-        size: {{ ansible_processor_cores * ansible_processor_threads_per_core + 1 }}
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core + 1)| round (0, 'floor') | int }}
         queue_size: 5000
-    refresh:
-        max: {{ [ ((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int , 10 ] | min }}
-        keep_alive: 5m
+    warmer:
+        core: 1
+        max: {{ ((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int }}
+        keep_alive: 2m
 
-{# Note : the 0.5 in the previous expression is for there is only 1 CPU (else the thread pool size would be zero) ! ; Note bis : max 10 threads #}
-# Note : in ES5 : the thread pool "refresh" is of type scaling with a keep-alive of 5m and a max of min(10, (# of available processors)/2)
-
-# ES5 changed configuration
-#    search:
-#        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
-#        queue_size: 5000
-#    bulk:
-#        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
-#        queue_size: 5000
-#
+# Note : the 0.5 in the previous expression is for there is only 1 CPU (else the thread pool size would be zero) ! ; Note bis : max 10 threads #
+# Note : in ES5 and further : the thread pool "refresh" is of type scaling with a keep-alive of 5m and a max of min(10, (# of available processors)/2)
