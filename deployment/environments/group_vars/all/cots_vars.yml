@@ -23,6 +23,8 @@ elasticsearch:
                 replica: 1
     data:
         host: "elasticsearch-data.service.{{ consul_domain }}"
+        # default is 0.1 (10%) and should be quite enough in most cases
+        #index_buffer_size_ratio: "0.15"
         port_http: "9200"
         port_tcp: "9300"
         groupe: "data"
