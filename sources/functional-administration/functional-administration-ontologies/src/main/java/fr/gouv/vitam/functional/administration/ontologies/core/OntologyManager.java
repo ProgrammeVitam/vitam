@@ -417,10 +417,10 @@ public class OntologyManager {
 
         return (ontology) -> {
             if (ParametersChecker.isNotEmpty(ontology.getIdentifier())) {
-                //
-                final Pattern compiledPattern = Pattern.compile("^[_#]|\\s");
 
-                final Matcher matcher = compiledPattern.matcher(ontology.getIdentifier().trim());
+                final Pattern compiledPattern = Pattern.compile("^[_#\\s]|\\s");
+
+                final Matcher matcher = compiledPattern.matcher(ontology.getIdentifier());
                 if (matcher.find()) {
                     return Optional.of(OntologyValidator.RejectionCause.rejectInvalidIdentifier(ontology));
                 }
