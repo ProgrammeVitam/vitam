@@ -32,11 +32,14 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -111,9 +114,11 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
 
 
     private void selectListOfArchiveUnitsForUpdate() throws ProcessingException {
-        try {
-            JsonNode rulesUpdated = JsonHandler.getFromInputStream(this.handlerIO.getInputStreamFromWorkspace(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON));
+        InputStream input = null;
+    	try {
+    		input = this.handlerIO.getInputStreamFromWorkspace(
+    			UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON);
+            JsonNode rulesUpdated = JsonHandler.getFromInputStream(input);
             if (rulesUpdated.isArray() && rulesUpdated.size() > 0) {
                 for (final JsonNode objNode : rulesUpdated) {
                     searchForInvolvedArchiveUnit(JsonHandler.getFromJsonNode(objNode, FileRulesModel.class));
@@ -130,6 +135,8 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             InvalidCreateOperationException | VitamDBException e) {
             LOGGER.error("Metadata error: Cannot request Metadata", e);
             throw new ProcessingException(e);
+        } finally {
+        	IOUtils.closeQuietly(input);
         }
     }
 

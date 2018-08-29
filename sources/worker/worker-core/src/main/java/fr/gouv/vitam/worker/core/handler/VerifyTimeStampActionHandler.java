@@ -144,13 +144,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         } finally {
-            try {
-                if (tokenFile != null) {
-                    tokenFile.close();
-                }
-            } catch (Exception e) {
-                LOGGER.error("Error with tokenFile", e);
-            }
+            IOUtils.closeQuietly(tokenFile);
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

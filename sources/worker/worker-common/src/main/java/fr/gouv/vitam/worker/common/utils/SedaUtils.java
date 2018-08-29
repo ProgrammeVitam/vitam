@@ -280,7 +280,7 @@ public class SedaUtils {
      */
     public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params, ItemStatus itemStatus) {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final InputStream input;
+        InputStream input = null;
         try {
             input = checkExistenceManifest();
             if (checkMultiManifest()) {
@@ -303,6 +303,8 @@ public class SedaUtils {
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             return CheckSedaValidationStatus.NOT_XML_FILE;
+        } finally {
+        	IOUtils.closeQuietly(input);
         }
     }
 
@@ -800,7 +802,6 @@ public class SedaUtils {
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
-                IOUtils.closeQuietly(xmlFile);
                 throw new ProcessingException(e);
             }
 

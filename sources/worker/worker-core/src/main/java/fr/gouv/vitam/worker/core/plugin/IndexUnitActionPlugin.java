@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -220,7 +222,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         RequestMultiple query = null;
-        InputStream input;
+        InputStream input = null;
         try {
             input = handlerIO
                 .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
@@ -274,6 +276,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("InvalidCreateOperationException for " + (query != null ? query.toString() : ""));
             throw e;
+        } finally {
+        	IOUtils.closeQuietly(input);
         }
     }
 

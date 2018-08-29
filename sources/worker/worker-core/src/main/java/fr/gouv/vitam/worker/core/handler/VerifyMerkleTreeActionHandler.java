@@ -41,6 +41,8 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import java.io.BufferedInputStream;
@@ -85,6 +87,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
+        InputStream operationsInputStream = null;
         try {
 
             // 1- Get TraceabilityEventDetail from Workspace
@@ -95,7 +98,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             // 2- Get data.txt file
             String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
                 DATA_FILE;
-            InputStream operationsInputStream = handler.getInputStreamFromWorkspace(operationFilePath);
+            operationsInputStream = handler.getInputStreamFromWorkspace(operationFilePath);
 
             // 3- Calculate MerkelTree hash
 
@@ -114,6 +117,8 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
+        } finally {
+        	IOUtils.closeQuietly(operationsInputStream);
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
