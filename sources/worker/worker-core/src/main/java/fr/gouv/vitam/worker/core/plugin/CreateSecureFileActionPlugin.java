@@ -40,6 +40,8 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -80,17 +82,17 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
     private final MetaDataClientFactory metaDataClientFactory;
     private final StorageClientFactory storageClientFactory;
+    private final AlertService alertService;
 
-    @VisibleForTesting
-    CreateSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,
-        StorageClientFactory storageClientFactory) {
+    @VisibleForTesting CreateSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,
+        StorageClientFactory storageClientFactory, AlertService alertService) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.storageClientFactory = storageClientFactory;
+        this.alertService = alertService;
     }
 
     CreateSecureFileActionPlugin() {
-        metaDataClientFactory = MetaDataClientFactory.getInstance();
-        storageClientFactory = StorageClientFactory.getInstance();
+        this(MetaDataClientFactory.getInstance(), StorageClientFactory.getInstance(), new AlertServiceImpl());
     }
 
     void storeLifecycle(JsonNode lifecycle, String lfGuid, HandlerIO handlerIO, String lifecycleType)
@@ -147,7 +149,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
                 hashMetaData = generateDigest(unit);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
-                    DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient);
+                    DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient, alertService);
             } else if (LogbookLifeCycleObjectGroup.class.getName().equals(lifecycleType)) {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
@@ -156,11 +158,12 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
                 hashMetaData = generateDigest(og);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
-                    DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);
-                List<ObjectGroupDocumentHash> list = StorageClientUtil.extractListObjectsFromJson(og, storageClient);
+                    DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient, alertService);
+                List<ObjectGroupDocumentHash> list =
+                    StorageClientUtil.extractListObjectsFromJson(og, storageClient, alertService);
 
                 ArrayList<String> auParents = new ArrayList<>();
-                og.get(MetadataDocument.UP).forEach (up -> auParents.add(up.textValue()));
+                og.get(MetadataDocument.UP).forEach(up -> auParents.add(up.textValue()));
                 lfcTraceSecFileDataLine.setUp(auParents);
 
                 lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);

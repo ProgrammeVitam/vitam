@@ -145,8 +145,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Deprecated
     private static final String CODE_VITAM = "code_vitam";
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
-    private static final String AGENCIES = "agencies";
-    private static final String RULES = "rules";
 
     private static final String DOCUMENT_IS_MANDATORY = "document is a mandatory parameter";
     private static final String JSON_SELECT_IS_MANDATORY = "Json select is a mandatory parameter";
