@@ -30,6 +30,7 @@ package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -198,6 +199,21 @@ public class OntologyServiceImplTest {
 
         assertThat(response.isOk()).isFalse();
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIdentifierWithWhiteSpaceThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("KO_ontology_vocExt_WithBlank.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(response).isInstanceOf(VitamError.class);
+    }
+
 
     @Test
     @RunWithCustomExecutor
