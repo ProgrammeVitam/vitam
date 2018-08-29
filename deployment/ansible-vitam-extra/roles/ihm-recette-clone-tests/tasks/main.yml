@@ -1,4 +1,10 @@
 ---
+
+- name: Make sure curl is installed
+  package:
+    name: curl
+    state: latest
+
 # tasks file for clone-tests
 - block:
   - name: get repo for git lfs for CentOS
