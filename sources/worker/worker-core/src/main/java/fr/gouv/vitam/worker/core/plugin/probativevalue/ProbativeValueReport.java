@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
@@ -62,19 +62,19 @@ import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 
 
 /**
- * EvidenceCertificateReport class
+ * ProbativeValueReport class
  */
-public class EvidenceCertificateReport extends ActionHandler {
+public class ProbativeValueReport extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateReport.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueReport.class);
 
-    private static final String EVIDENCE_CERTIFICATE_REPORTS = "EVIDENCE_CERTIFICATE_REPORTS";
+    private static final String PROBATIVE_VALUE_REPORTS = "PROBATIVE_VALUE_REPORTS";
 
     BackupService backupService = new BackupService();
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_REPORTS);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_REPORTS);
 
         File reportFile = handler.getNewLocalFile("report.json");
 
@@ -121,7 +121,7 @@ public class EvidenceCertificateReport extends ActionHandler {
             return itemStatus.increment(StatusCode.FATAL);
         }
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_CERTIFICATE_REPORTS).setItemsStatus(EVIDENCE_CERTIFICATE_REPORTS, itemStatus);
+        return new ItemStatus(PROBATIVE_VALUE_REPORTS).setItemsStatus(PROBATIVE_VALUE_REPORTS, itemStatus);
     }
 
     public void gatherOperationInfo(WorkerParameters param, JsonGenerator jsonGenerator, JsonNode jsonNode)
@@ -152,11 +152,15 @@ public class EvidenceCertificateReport extends ActionHandler {
 
             File file = handler.getFileFromWorkspace("reports" + File.separator + uri.getPath());
 
-            CertificateParameters parameter = JsonHandler.getFromFile(file, CertificateParameters.class);
+            ProbativeParameter parameter = JsonHandler.getFromFile(file, ProbativeParameter.class);
+            // TODO iterate
+          for(ProbativeUsageParameter usage  :   parameter.getUsageParameters().values()){
 
-            binaryInfo(jsonGenerator, parameter);
+              binaryInfo(jsonGenerator, usage);
 
-            binaryCheck(jsonGenerator, parameter);
+              binaryCheck(jsonGenerator, usage);
+
+          }
 
             jsonGenerator.writeEndObject();
 
@@ -167,7 +171,9 @@ public class EvidenceCertificateReport extends ActionHandler {
 
     }
 
-    private void binaryInfo(JsonGenerator jsonGenerator, CertificateParameters parameter) throws IOException {
+    private void binaryInfo(JsonGenerator jsonGenerator, ProbativeUsageParameter parameter) throws IOException {
+
+
         jsonGenerator.writeFieldName("BinaryId");
         jsonGenerator.writeString(parameter.getVersionsModel().getId());
 
@@ -199,10 +205,10 @@ public class EvidenceCertificateReport extends ActionHandler {
 
     }
 
-    private void binaryCheck(JsonGenerator jsonGenerator, CertificateParameters parameter) throws IOException {
+    private void binaryCheck(JsonGenerator jsonGenerator, ProbativeUsageParameter parameter) throws IOException {
         jsonGenerator.writeFieldName("Checks");
         jsonGenerator.writeStartArray();
-        for (CertificateParametersDetail detail : parameter.getReports()) {
+        for (ProbativeCheckReport detail : parameter.getReports()) {
             jsonGenerator.writeObject(detail);
 
         }

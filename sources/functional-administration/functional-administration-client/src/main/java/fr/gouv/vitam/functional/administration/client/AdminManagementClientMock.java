@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -561,7 +561,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public RequestResponse<JsonNode> rectificationAudit(String operationId) {
         return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
     }
-    @Override public RequestResponse<JsonNode> exportEvidenceCertificate(CertificationRequest queryDsl) {
+    @Override public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest queryDsl) {
         return new RequestResponseOK();
     }
 

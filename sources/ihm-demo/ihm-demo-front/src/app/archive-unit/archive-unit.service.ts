@@ -16,7 +16,7 @@ export class ArchiveUnitService {
   UNIT = 'unit';
   EXPORT = 'dipexport';
   AUDIT = 'evidenceaudit';
-  CERTIFICATE = 'evidencecertificateexport';
+  PROBATIVE_VALUE = 'probativevalueexport';
   OBJECTS = 'objects';
   ELIMINATION_ANALYSIS = 'elimination/analysis';
 
@@ -74,8 +74,8 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}`, undefined, body);
   }
 
-  certificate(body: any): Observable<VitamResponse> {
-    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.CERTIFICATE}`, undefined, body);
+  probativeValue(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.PROBATIVE_VALUE}`, undefined, body);
   }
 
 

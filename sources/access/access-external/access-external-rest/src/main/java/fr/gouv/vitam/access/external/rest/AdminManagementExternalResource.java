@@ -90,7 +90,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -1899,23 +1899,21 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
-     * Launch an evidence certificate export
-     *
-     * @param CertificateRequest
-     * @return response
+     * launch probative value request
+     * @param probativeValueRequest the request
+     * @return Response
      */
     @POST
-    @Path(AccessExtAPI.EXPORT_EVIDENCE_CERTIFICATE)
+    @Path(AccessExtAPI.EXPORT_PROBATIVE_VALUE)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "evidencecertificate:create", description = "Lancer un export du relevé de valeur probante")
-    public Response exportEvidenceCertificate(CertificationRequest certificationRequest) {
+    @Secured(permission = "probativevalue:create", description = "Lancer un export du relevé de valeur probante")
+    public Response exportProbativeValue(ProbativeValueRequest probativeValueRequest) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(certificationRequest.getDslQuery());
+            SanityChecker.checkJsonAll(probativeValueRequest.getDslQuery());
 
-            RequestResponse<JsonNode> result = client.exportEvidenceCertificate(certificationRequest);
+            RequestResponse<JsonNode> result = client.exportProbativeValue(probativeValueRequest);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {

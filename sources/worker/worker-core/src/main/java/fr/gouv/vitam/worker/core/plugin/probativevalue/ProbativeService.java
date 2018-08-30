@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -86,9 +86,9 @@ import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus
 import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.OK;
 
 /**
- * CertificateService class
+ * ProbativeService class
  */
-public class CertificateService {
+public class ProbativeService {
 
     private static final String NO_OPERATION_FOUND_MATCHING_ID =
         "No traceability operation found matching the id ";
@@ -102,10 +102,10 @@ public class CertificateService {
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CertificateService.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeService.class);
 
     @VisibleForTesting
-    public CertificateService(MetaDataClientFactory metaDataClientFactory,
+    public ProbativeService(MetaDataClientFactory metaDataClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         StorageClientFactory storageClientFactory) {
@@ -116,14 +116,15 @@ public class CertificateService {
         this.storageClientFactory = storageClientFactory;
     }
 
-    CertificateService() {
+    ProbativeService() {
         this(MetaDataClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(),
             LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
 
-    CertificateParameters evidenceCertificateChecks(String objectGroupId, String usage, String usageVersion) {
-        CertificateParameters parameter = new CertificateParameters();
+    ProbativeParameter probativeValueChecks(String objectGroupId, List<String> usages, String usageVersion) {
+
+        ProbativeParameter parameter = new ProbativeParameter();
         try {
 
             JsonNode metadata = getRawObjectGroupMetadata(objectGroupId);
@@ -132,27 +133,30 @@ public class CertificateService {
 
             JsonNode lifecycle = getRawObjectGroupLifeCycle(objectGroupId);
 
-            VersionsModel versionsModel = extractQualifierVersion(metadata, usage, usageVersion).get();
+            for (String usage : usages) {
 
-            parameter.setVersionsModel(versionsModel);
+                Optional<ProbativeUsageParameter> usageInfo = extractQualifierVersion(metadata, usage, usageVersion);
 
-            getLogbookOperationInfo(parameter);
+                if (usageInfo.isPresent()) {
+                    ProbativeUsageParameter usageParam = usageInfo.get();
+                    getLogbookOperationInfo(usageParam);
 
-            checkStorageHash(parameter);
+                    checkStorageHash(usageParam);
+                    checkStorageEvent(usageParam, lifecycle);
+                    String hashEventsBeforeDate =
+                        getHashEventsBeforeDate(usageParam.getLogbookEvent().getLastPersistedDate(), lifecycle);
+                    usageParam.setHashEvents(hashEventsBeforeDate);
+                    checkStorageLogbookOperationInfo(usageParam);
+                    loadFileInfoFromLogbooks(usageParam);
+                    parameter.getUsageParameters().put(usage, usageParam);
+                }
+            }
 
-            checkStorageEvent(parameter, lifecycle, versionsModel);
-
-            String hashEventsBeforeDate =
-                getHashEventsBeforeDate(parameter.getLogbookEvent().getLastPersistedDate(), lifecycle);
-
-            parameter.setHashEvents(hashEventsBeforeDate);
-
-            checkStorageLogbookOperationInfo(parameter, versionsModel);
-
-            loadFileInfoFromLogbooks(parameter);
             parameter.setEvidenceStatus(OK);
 
         } catch (InvalidParseOperationException | EvidenceAuditException | IOException e) {
+            LOGGER.error(e);
+
             parameter.setEvidenceStatus(KO);
         }
 
@@ -160,7 +164,7 @@ public class CertificateService {
 
     }
 
-    void getLogbookOperationInfo(CertificateParameters parameter) throws EvidenceAuditException {
+    void getLogbookOperationInfo(ProbativeUsageParameter parameter) throws EvidenceAuditException {
 
 
         String checkName = "checkLogbookSecureInfoForOpi";
@@ -168,6 +172,7 @@ public class CertificateService {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
             JsonNode node = client.selectOperationById(parameter.getVersionsModel().getOpi());
+
             JsonNode logbook = node.get(TAG_RESULTS).get(0);
 
             JsonNode result = createLastSecureObjectGroupSelect(logbook.get("_lastPersistedDate").textValue(),
@@ -195,17 +200,17 @@ public class CertificateService {
 
 
         } catch (InvalidParseOperationException | LogbookClientException | EvidenceAuditException e) {
+            LOGGER.error(e);
             reportCheckKo(parameter, checkName, e.getMessage());
             throw new EvidenceAuditException(EvidenceStatus.KO, e.getMessage());
         }
     }
 
-    void checkStorageLogbookOperationInfo(CertificateParameters parameter,
-        VersionsModel versionsModel) {
+    void checkStorageLogbookOperationInfo(ProbativeUsageParameter parameter) {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
-            JsonNode result = client.selectOperationById(versionsModel.getOpi());
+            JsonNode result = client.selectOperationById(parameter.getVersionsModel().getOpi());
 
             JsonNode logbookNode =
                 result.get(TAG_RESULTS).get(0);
@@ -221,6 +226,7 @@ public class CertificateService {
             reportCheckOk(parameter, "checkLogbookStorageEventContract");
 
         } catch (InvalidParseOperationException | LogbookClientException e) {
+            LOGGER.error(e);
 
             reportCheckKo(parameter, "checkLogbookStorageEvent", "Could not retrieve logbook operation information");
 
@@ -305,8 +311,7 @@ public class CertificateService {
 
     }
 
-    void checkStorageEvent(CertificateParameters parameter, JsonNode lfc,
-        VersionsModel versionsModel)
+    void checkStorageEvent(ProbativeUsageParameter parameter, JsonNode lfc)
         throws InvalidParseOperationException {
 
         ArrayList<LogbookEvent> eventsLists = new ArrayList<>();
@@ -326,11 +331,11 @@ public class CertificateService {
 
             boolean isStorageEvent = logbookEvent.getOutDetail().startsWith("LFC.OBJ_STORAGE.")
                 &&
-                logbookEvent.getEvIdProc().equals(versionsModel.getOpi())
+                logbookEvent.getEvIdProc().equals(parameter.getVersionsModel().getOpi())
                 &&
                 logbookEvent.getEvTypeProc().equals(LogbookTypeProcess.INGEST.name())
                 &&
-                logbookEvent.getObId().equals(versionsModel.getId());
+                logbookEvent.getObId().equals(parameter.getVersionsModel().getId());
 
             if (isStorageEvent) {
 
@@ -349,7 +354,7 @@ public class CertificateService {
         reportCheckOk(parameter, "checkLfcStorageEvent");
     }
 
-    void checkStorageHash(CertificateParameters parameter) {
+    void checkStorageHash(ProbativeUsageParameter parameter) {
 
         String checkName = "CheckObjectHash";
         try (StorageClient storageClient = storageClientFactory.getClient()) {
@@ -377,44 +382,23 @@ public class CertificateService {
     }
 
 
-    void loadFileInfoFromLogbooks(CertificateParameters parameter)
+    void loadFileInfoFromLogbooks(ProbativeUsageParameter parameter)
         throws EvidenceAuditException {
 
-
         String checkName = "Checking secured info from logbook";
+
         String lastPersistedDate = parameter.getLogbookEvent().getLastPersistedDate();
 
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+        JsonNode result = createLastSecureObjectGroupSelect(lastPersistedDate,
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
 
-            JsonNode result = createLastSecureObjectGroupSelect(lastPersistedDate,
-                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+        String mostRecentLogbookSecureOperationId =
+            result.get(TAG_RESULTS).get(0).get(eventIdentifier.getDbname()).asText();
 
-            String mostRecentLogbookSecureOperationId =
-                result.get(TAG_RESULTS).get(0).get(eventIdentifier.getDbname()).asText();
+        parameter.setSecuredOperationId(mostRecentLogbookSecureOperationId);
 
-            parameter.setSecuredOperationId(mostRecentLogbookSecureOperationId);
+        reportCheckOk(parameter, checkName);
 
-
-            result = client.selectOperationById(mostRecentLogbookSecureOperationId);
-
-
-            String detailData =
-                result.get(TAG_RESULTS).get(0).get(LogbookMongoDbName.eventDetailData.getDbname()).asText();
-
-            JsonNode nodeEvDetData = JsonHandler.getFromString(detailData);
-
-            parameter.setSecureLogbookFileName(nodeEvDetData.get(FILE_NAME).asText());
-
-
-
-
-            reportCheckOk(parameter, checkName);
-
-
-        } catch (InvalidParseOperationException | LogbookClientException | EvidenceAuditException e) {
-            reportCheckKo(parameter, checkName, e.getMessage());
-            throw new EvidenceAuditException(EvidenceStatus.KO, e.getMessage());
-        }
     }
 
     private void verifyOfferHashes(VersionsModel versionsModel, JsonNode information, List<String> errorDetails,
@@ -439,16 +423,17 @@ public class CertificateService {
 
 
 
-    Optional<VersionsModel> extractQualifierVersion(JsonNode metadata, String usage, String usageVersion)
+    Optional<ProbativeUsageParameter> extractQualifierVersion(JsonNode metadata, String usage, String usageVersion)
         throws InvalidParseOperationException {
 
+        ProbativeUsageParameter probativeUsageParameter = new ProbativeUsageParameter(usage);
         JsonNode qualifiers = metadata.get(SedaConstants.PREFIX_QUALIFIERS);
 
         if (qualifiers == null || !qualifiers.isArray() || qualifiers.size() == 0) {
             throw new IllegalStateException("Metadata is not valid");
         }
 
-        final Iterator<JsonNode> elements = qualifiers.elements();
+        Iterator<JsonNode> elements = qualifiers.elements();
         Optional<VersionsModel> model = Optional.empty();
 
         while (elements.hasNext()) {
@@ -464,18 +449,24 @@ public class CertificateService {
                 }
             }
         }
+        if (!model.isPresent()) {
+            return Optional.empty();
+        }
+        VersionsModel versionsModel = model.get();
+        probativeUsageParameter.setVersionsModel(versionsModel);
+        probativeUsageParameter.setId(versionsModel.getId());
 
-        return model;
+        return Optional.of(probativeUsageParameter);
     }
 
-    private void reportCheckOk(CertificateParameters parameters, String name) {
+    private void reportCheckOk(ProbativeUsageParameter parameters, String name) {
 
-        parameters.getReports().add(new CertificateParametersDetail(OK, name));
+        parameters.getReports().add(new ProbativeCheckReport(OK, name));
     }
 
-    private void reportCheckKo(CertificateParameters parameters, String name, String details) {
+    private void reportCheckKo(ProbativeUsageParameter parameter, String name, String details) {
 
-        parameters.getReports().add(new CertificateParametersDetail(KO, name, details));
+        parameter.getReports().add(new ProbativeCheckReport(KO, name, details));
     }
 
     private Optional<VersionsModel> getRightVersionFromElementList(String usage, String usageVersion, JsonNode versions)
@@ -543,7 +534,7 @@ public class CertificateService {
     }
 
     void checkSecuredVersion(LifeCycleTraceabilitySecureFileObject secureFileObject,
-        CertificateParameters parameters) {
+        ProbativeUsageParameter parameter) {
 
         String hashLFCEvents = secureFileObject.getHashLFCEvents();
         String checkName = "Check Secure object  Hash And LFC Events";
@@ -551,21 +542,21 @@ public class CertificateService {
 
         for (ObjectGroupDocumentHash documentHash : secureFileObject.getObjectGroupDocumentHashList()) {
 
-            if (documentHash.gethObject().equals(parameters.getVersionsModel().getMessageDigest())) {
+            if (documentHash.gethObject().equals(parameter.getVersionsModel().getMessageDigest())) {
                 isCheckSecuredObjectOk = true;
                 break;
             }
         }
 
-        isCheckSecuredObjectOk = isCheckSecuredObjectOk && hashLFCEvents.equals(parameters.getHashEvents());
+        isCheckSecuredObjectOk = isCheckSecuredObjectOk && hashLFCEvents.equals(parameter.getHashEvents());
 
         String errorMessage = "Hash for binary is not equal to secured one ";
         if (!isCheckSecuredObjectOk) {
             errorMessage = "Hash for Lfc events  is not equal to secured one ";
-            reportCheckKo(parameters, checkName, errorMessage);
+            reportCheckKo(parameter, checkName, errorMessage);
             return;
         }
-        reportCheckOk(parameters, checkName);
+        reportCheckOk(parameter, checkName);
 
 
     }

@@ -24,7 +24,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -437,8 +437,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throw new UnsupportedOperationException("Will not Implemented");
     }
     @Override
-    public RequestResponse exportEvidenceCertificate(VitamContext vitamContext, CertificationRequest certificationRequest) {
-        return ClientMockResultHelper.getEvidenceCertificate(Status.OK.getStatusCode());
+    public RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest) {
+        return ClientMockResultHelper.getProbativeValue(Status.OK.getStatusCode());
     }
 
 

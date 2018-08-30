@@ -24,18 +24,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import java.io.File;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -54,32 +56,31 @@ import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
  * EvidenceAuditExtractFromZip class
  * extract data.txt from secure zip
  */
-public class EvidenceCertificateExtractFromZip extends ActionHandler {
-    private static final String EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE = "EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE";
+public class ProbativeValueExtractFromZip extends ActionHandler {
+    private static final String PROBATIVE_VALUE_EXTRACT_ZIP_FILE = "PROBATIVE_VALUE_EXTRACT_ZIP_FILE";
 
     private EvidenceService evidenceService;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateExtractFromZip.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueExtractFromZip.class);
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    @VisibleForTesting
-    EvidenceCertificateExtractFromZip(EvidenceService evidenceService,
+    @VisibleForTesting ProbativeValueExtractFromZip(EvidenceService evidenceService,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.evidenceService = evidenceService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public EvidenceCertificateExtractFromZip() {
+    public ProbativeValueExtractFromZip() {
         this(new EvidenceService(),LogbookOperationsClientFactory.getInstance());
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
 
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_EXTRACT_ZIP_FILE);
 
         String operationId = param.getObjectName();
-
-        File dataFile;
+        File traceabilityFile= null;
+        File dataFile = null;
         try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()){
 
 
@@ -90,20 +91,24 @@ public class EvidenceCertificateExtractFromZip extends ActionHandler {
             JsonNode nodeEvDetData = JsonHandler.getFromString(detailData);
 
             String fileName = nodeEvDetData.get("FileName").asText();
-            dataFile = evidenceService.downloadAndExtractDataFromStorage(fileName, "data.txt",".txt" );
+
+            traceabilityFile = evidenceService.downloadFileInTemporaryFolder(fileName);
+
+            dataFile = evidenceService.extractFileStreamFromZip(traceabilityFile, "data.txt", ".txt",false);
+
 
             handlerIO.transferFileToWorkspace("dataDir" + File.separator + operationId, dataFile, true, false);
 
             File merkleFile =
-                evidenceService.downloadAndExtractDataFromStorage(fileName, "merkleTree.json", ".json");
+                evidenceService.extractFileStreamFromZip(traceabilityFile, "merkleTree.json", ".json",true);
 
             handlerIO.transferFileToWorkspace("merkleDir" + File.separator + operationId,
                 merkleFile, true, false);
 
             itemStatus.increment(StatusCode.OK);
 
-            return new ItemStatus(EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE)
-                .setItemsStatus(EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE, itemStatus);
+            return new ItemStatus(PROBATIVE_VALUE_EXTRACT_ZIP_FILE)
+                .setItemsStatus(PROBATIVE_VALUE_EXTRACT_ZIP_FILE, itemStatus);
 
         } catch (EvidenceAuditException |InvalidParseOperationException |LogbookClientException e) {
             LOGGER.error(e);

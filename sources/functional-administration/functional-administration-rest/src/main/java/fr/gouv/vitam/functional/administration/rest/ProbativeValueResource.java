@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
@@ -74,20 +74,22 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import java.util.List;
+
 
 /**
- * Evidence certificate export resource
+ * resource
  */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-public class EvidenceCertificateResource {
+public class ProbativeValueResource {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateResource.class);
-    private static final String EXPORT_EVIDENCE_CERTIFICATE = "EXPORT_EVIDENCE_CERTIFICATE";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueResource.class);
+    private static final String EXPORT_PROBATIVE_VALUE = "EXPORT_PROBATIVE_VALUE";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
 
     /**
-     * Evidence certificate service
+     * probative value  service
      */
     private ProcessingManagementClientFactory processingManagementClientFactory =
         ProcessingManagementClientFactory.getInstance();
@@ -97,7 +99,7 @@ public class EvidenceCertificateResource {
     private WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
     @VisibleForTesting
-    public EvidenceCertificateResource(
+    public ProbativeValueResource(
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory) {
@@ -107,9 +109,9 @@ public class EvidenceCertificateResource {
     }
 
 
-    EvidenceCertificateResource() {  /*nothing to do   */}
+    ProbativeValueResource() {  /*nothing to do   */}
 
-    private void createEvidenceCertificateOperation(String operationId)
+    private void createProbativeOperation(String operationId)
         throws
         LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
@@ -119,11 +121,12 @@ public class EvidenceCertificateResource {
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
-                    "EXPORT_EVIDENCE_CERTIFICATE",
+                    "EXPORT_PROBATIVE_VALUE",
                     GUIDReader.getGUID(operationId),
                     LogbookTypeProcess.AUDIT,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getLabelOp("EXPORT_EVIDENCE_CERTIFICATE.STARTED") + " : " + GUIDReader.getGUID(operationId),
+                    VitamLogbookMessages.getLabelOp("EXPORT_PROBATIVE_VALUE.STARTED") + " : " +
+                        GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
             client.create(initParameters);
@@ -132,39 +135,40 @@ public class EvidenceCertificateResource {
     }
 
     @POST
-    @Path("/evidencecertificateexport")
+    @Path("/probativevalueexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportEvidenceCertificate(CertificationRequest certificationRequest) {
+    public Response exportProbativeValue(ProbativeValueRequest probativeValueRequest) {
 
         Response.Status status;
-        LOGGER.debug("DEBUG: start selectUnits {}", certificationRequest.getDslQuery());
+        LOGGER.debug("DEBUG: start selectUnits {}", probativeValueRequest.getDslQuery());
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         try {
-            checkEmptyQuery(certificationRequest.getDslQuery());
+            checkEmptyQuery(probativeValueRequest.getDslQuery());
 
-            checkUsageNotEmptyOrNotBinaryMaster(certificationRequest.getUsage());
+            checkUsageNotEmptyOrNotBinaryMaster(probativeValueRequest.getUsages());
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 workspaceClient.createContainer(operationId);
 
-                createEvidenceCertificateOperation(operationId);
+                createProbativeOperation(operationId);
 
-                workspaceClient.putObject(operationId, "request", JsonHandler.writeToInpustream(certificationRequest));
+                workspaceClient.putObject(operationId, "request", JsonHandler.writeToInpustream(probativeValueRequest));
 
-                processingClient.initVitamProcess(Contexts.EXPORT_EVIDENCE_CERTIFICATE.name(), operationId, EXPORT_EVIDENCE_CERTIFICATE);
+                processingClient.initVitamProcess(Contexts.EXPORT_PROBATIVE_VALUE.name(), operationId,
+                    EXPORT_PROBATIVE_VALUE);
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, EXPORT_EVIDENCE_CERTIFICATE,
+                    processingClient.executeOperationProcess(operationId, EXPORT_PROBATIVE_VALUE,
                         Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
 
                 VitamClientException | LogbookClientServerException | InternalServerException | InvalidGuidOperationException e) {
-                LOGGER.error("Error while exporting evidence certificate", e);
+                LOGGER.error("Error while exporting probative value", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -213,14 +217,17 @@ public class EvidenceCertificateResource {
             throw new BadRequestException("Query cannot be empty");
         }
     }
-    private void checkUsageNotEmptyOrNotBinaryMaster(String usage) throws BadRequestException {
 
-        if (org.apache.commons.lang.StringUtils.isEmpty(usage)){
+    private void checkUsageNotEmptyOrNotBinaryMaster(List<String> usages) throws BadRequestException {
+
+        if (usages.isEmpty()) {
             throw new BadRequestException("Query cannot be empty");
         }
-        if (!usage.equals("BinaryMaster")){
-            throw new BadRequestException("Query cannot be empty");
+        for (String usage : usages) {
+            if (usage.equals("BinaryMaster")) {
+                return;
+            }
         }
-
+        throw new BadRequestException("BinaryMaster has to be on the usage list");
     }
 }

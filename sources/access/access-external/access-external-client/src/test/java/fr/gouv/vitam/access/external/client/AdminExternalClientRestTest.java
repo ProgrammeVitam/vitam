@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -32,7 +33,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -303,11 +304,11 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         }
 
 
-        @Path("evidencecertificateexport")
+        @Path("probativevalueexport")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response evidenceCerticateExport(String query) {
+        public Response probativeValueExport(String query) {
             return expectedResponse.post();
         }
 
@@ -1188,13 +1189,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
 
     @Test
-    public void evidenceCertificateExportTest()
+    public void probativeValueExportTest()
         throws VitamClientException, InvalidParseOperationException {
 
         JsonNode dsl = JsonHandler.getFromString(queryDsql);
         when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
-        RequestResponse<ItemStatus> result = client.exportEvidenceCertificate(new VitamContext(TENANT_ID), new CertificationRequest(dsl,"BinaryMaster"));
+        RequestResponse<ItemStatus> result = client.exportProbativeValue(new VitamContext(TENANT_ID), new ProbativeValueRequest(dsl,Collections.singletonList("BinaryMaster")));
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
     }
 

@@ -220,9 +220,8 @@ public class AccessExtAPI {
     public static final String ONTOLOGY = "ontologies";
 
     /**
-     * Export evidence certificate uri
+     * Export probative value uri
      */
-    public static final String EXPORT_EVIDENCE_CERTIFICATE = "/evidencecertificateexport";
-
+    public static final String EXPORT_PROBATIVE_VALUE = "/probativevalueexport";
 
 }

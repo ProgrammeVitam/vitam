@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
@@ -57,18 +57,16 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Using Merkle trees to detect inconsistencies in data
  */
-public class EvidenceCertificateVerifyMerkleTree extends ActionHandler {
+public class ProbativeValueVerifyMerkleTree extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateVerifyMerkleTree.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueVerifyMerkleTree.class);
 
 
-    private static final String HANDLER_ID = "EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE";
+    private static final String HANDLER_ID = "PROBATIVE_VALUE_CHECK_MERKLE_TREE";
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     private String merkleJsonRootHash = null;
@@ -77,13 +75,13 @@ public class EvidenceCertificateVerifyMerkleTree extends ActionHandler {
 
 
     @VisibleForTesting
-    public EvidenceCertificateVerifyMerkleTree(
+    public ProbativeValueVerifyMerkleTree(
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
 
-    public EvidenceCertificateVerifyMerkleTree() {
+    public ProbativeValueVerifyMerkleTree() {
         this(LogbookOperationsClientFactory.getInstance());
     }
 
@@ -121,7 +119,7 @@ public class EvidenceCertificateVerifyMerkleTree extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-
+        itemStatus.increment(StatusCode.OK);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 

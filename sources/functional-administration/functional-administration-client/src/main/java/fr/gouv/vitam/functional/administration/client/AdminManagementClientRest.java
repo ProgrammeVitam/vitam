@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -57,10 +57,8 @@ import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Ontology;
@@ -124,7 +122,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
     private static final String UPDATE_ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles/";
     private static final String ONTOLOGY_URI = "/ontologies";
-    private static final String EVIDENCE_CERTIFICATE_URI = "/evidencecertificateexport";
+    private static final String PROBATIVE_VALUE_URI = "/probativevalueexport";
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
@@ -1539,11 +1537,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> exportEvidenceCertificate(CertificationRequest certificationRequest) throws AdminManagementClientServerException {
-        ParametersChecker.checkParameter("The query is mandatory", certificationRequest);
+    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, EVIDENCE_CERTIFICATE_URI, null, certificationRequest,
+            response = performRequest(HttpMethod.POST, PROBATIVE_VALUE_URI, null, probativeValueRequest,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
@@ -1556,7 +1554,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    public static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {

@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -19,7 +19,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class EvidenceCertificateVerifyMerkleTreeTest {
+public class ProbativeValueVerifyMerkleTreeTest {
 
     public @Rule MockitoRule mockitoRule = MockitoJUnit.rule();
     private @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -40,7 +40,7 @@ public class EvidenceCertificateVerifyMerkleTreeTest {
 
         File secured_data = PropertiesUtils.getResourceFile("certification/data.txt");
         File merkleFile = PropertiesUtils.getResourceFile("certification/merkleTree.json");
-        EvidenceCertificateVerifyMerkleTree verifier = new EvidenceCertificateVerifyMerkleTree(
+        ProbativeValueVerifyMerkleTree verifier = new ProbativeValueVerifyMerkleTree(
             logbookOperationsClientFactory);
         when(logbookOperationsClient.selectOperationById("aecaaaaaacfpcnnvabc4ialfdxp5jviaaaaq"))
             .thenReturn(secureLogbook);

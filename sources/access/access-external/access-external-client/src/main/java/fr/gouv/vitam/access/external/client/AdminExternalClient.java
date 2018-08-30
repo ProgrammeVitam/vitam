@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -742,16 +742,14 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
 
-
     /**
-     * Launch an evidence certificate export for the request
-     *
-     * @param vitamContext the vitamContext
-     * @param CertificationRequest     the certificationRequest
+     * launch probative value process
+     * @param vitamContext the vitam context
+     * @param probativeValueRequest the request
      * @return RequestResponse
-     * @throws VitamClientException The Exception
+     * @throws VitamClientException {@link VitamClientException}
      */
-    RequestResponse exportEvidenceCertificate(VitamContext vitamContext, CertificationRequest certificationRequest)
+    RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
         throws VitamClientException;
 
 

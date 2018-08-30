@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -629,13 +629,13 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse rectificationAudit(String operationId) throws AdminManagementClientServerException;
 
     /**
-     * Launch an evidence certificate export for the query
+     * Launch an probative value  export for the query
      *
-     * @param certificationRequest the id
+     * @param probativeValueRequest the id
      * @return the server response
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> exportEvidenceCertificate(CertificationRequest certificationRequest)
+    RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
         throws AdminManagementClientServerException;
 
 

@@ -24,20 +24,18 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import java.io.File;
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -47,38 +45,37 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 /**
  * EvidenceAuditDatabaseCheck class
  */
-public class EvidenceCertificateObjectGroupCheck extends ActionHandler {
-    private static final String EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP = "EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP";
+public class ProbativeValueObjectGroupCheck extends ActionHandler {
+    private static final String PROBATIVE_VALUE_CHECK_OBJECT_GROUP = "PROBATIVE_VALUE_CHECK_OBJECT_GROUP";
 
     private static final String DATA = "data";
-    private CertificateService certificateService;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateObjectGroupCheck.class);
+    private ProbativeService probativeService;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueObjectGroupCheck.class);
 
 
-    @VisibleForTesting
-    EvidenceCertificateObjectGroupCheck(CertificateService certificateService) {
-        this.certificateService = certificateService;
+    @VisibleForTesting ProbativeValueObjectGroupCheck(ProbativeService probativeService) {
+        this.probativeService = probativeService;
     }
 
-    public EvidenceCertificateObjectGroupCheck() {
-        this(new CertificateService());
+    public ProbativeValueObjectGroupCheck() {
+        this(new ProbativeService());
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_CHECK_OBJECT_GROUP);
 
         String objectToAuditId = param.getObjectName();
 
         try {
 
-            CertificationRequest certificationRequest = JsonHandler
-                .getFromInputStream(handlerIO.getInputStreamFromWorkspace("request"), CertificationRequest.class);
+            ProbativeValueRequest probativeValueRequest = JsonHandler
+                .getFromInputStream(handlerIO.getInputStreamFromWorkspace("request"), ProbativeValueRequest.class);
 
-            CertificateParameters parameters =
-                certificateService.evidenceCertificateChecks(objectToAuditId, certificationRequest.getUsage(),
-                    certificationRequest.getVersion());
+            ProbativeParameter parameters =
+                probativeService.probativeValueChecks(objectToAuditId, probativeValueRequest.getUsages(),
+                    probativeValueRequest.getVersion());
 
             File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId);
             JsonHandler.writeAsFile(parameters, newLocalFile);
@@ -86,15 +83,15 @@ public class EvidenceCertificateObjectGroupCheck extends ActionHandler {
             handlerIO.transferFileToWorkspace(DATA + File.separator + objectToAuditId,
                 newLocalFile, true, false);
 
-
+            itemStatus.increment(StatusCode.OK);
         } catch (VitamException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
 
-        itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP)
-            .setItemsStatus(EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP, itemStatus);
+
+        return new ItemStatus(PROBATIVE_VALUE_CHECK_OBJECT_GROUP)
+            .setItemsStatus(PROBATIVE_VALUE_CHECK_OBJECT_GROUP, itemStatus);
     }
 
     @Override

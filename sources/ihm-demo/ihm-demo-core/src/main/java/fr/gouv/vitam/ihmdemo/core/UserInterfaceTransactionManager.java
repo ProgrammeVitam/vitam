@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ProcessingException;
@@ -49,6 +50,8 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+import static java.util.Collections.singletonList;
+
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -59,7 +62,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -436,18 +439,18 @@ public class UserInterfaceTransactionManager {
 
 
     /**
-     * Launch an evidence certificate export for the request
+     * Launch an probative value export for the request
      *
      * @param query search criteria as DSL query to select AU
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse exportEvidenceCertificate(JsonNode query, VitamContext context) throws VitamClientException {
+    public static RequestResponse exportProbativeValue(JsonNode query, VitamContext context) throws VitamClientException {
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            CertificationRequest certificationRequest = new CertificationRequest(query,"BinaryMaster");
-            return client.exportEvidenceCertificate(context, certificationRequest);
+            ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(query,Collections.singletonList("BinaryMaster"));
+            return client.exportProbativeValue(context, probativeValueRequest);
         }
     }
 

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -41,13 +41,17 @@ import java.util.Map;
 
 
 /**
- * Evidence certificate Parameters
+ * Probative value Parameters
  */
-public class CertificateParameters {
+public class ProbativeUsageParameter {
+
+    private String usage ;
 
     private String id;
 
     private VersionsModel versionsModel;
+
+
 
     private String archivalAgreement;
 
@@ -66,7 +70,7 @@ public class CertificateParameters {
 
     private Map<String, String> versionSecuredFiles;
 
-    private List<CertificateParametersDetail> reports;
+    private List<ProbativeCheckReport> reports;
 
     private boolean isLastSecuredOperation;
 
@@ -100,6 +104,17 @@ public class CertificateParameters {
 
     private Map<String, JsonNode> versionLogbook;
 
+
+    ProbativeUsageParameter(String usage) {
+        reports = new ArrayList<>();
+        versionLogbook = new HashMap<>();
+        this.usage = usage;
+    }
+
+
+    public ProbativeUsageParameter() {
+        this("BinaryMaster");
+    }
 
     public String getId() {
         return id;
@@ -165,11 +180,6 @@ public class CertificateParameters {
 
     public void setLogBookSecuredOpiFileName(String logBookSecuredOpiFileName) {        this.logBookSecuredOpiFileName =
         logBookSecuredOpiFileName;    }
-
-    CertificateParameters() {
-        reports = new ArrayList<>();
-        versionLogbook = new HashMap<>();
-    }
 
     public DigestType getDigestType() {
         return digestType;
@@ -277,11 +287,11 @@ public class CertificateParameters {
         this.mdOptimisticStorageInfoMap = mdOptimisticStorageInfoMap;
     }
 
-    public List<CertificateParametersDetail> getReports() {
+    public List<ProbativeCheckReport> getReports() {
         return reports;
     }
 
-    public void setReports(List<CertificateParametersDetail> reports) {
+    public void setReports(List<ProbativeCheckReport> reports) {
         this.reports = reports;
     }
 
@@ -324,5 +334,14 @@ public class CertificateParameters {
 
     public void setVersionLogbook(Map<String, JsonNode> versionLogbook) {
         this.versionLogbook = versionLogbook;
+    }
+
+
+    public String getUsage() {
+        return usage;
+    }
+
+    public void setUsage(String usage) {
+        this.usage = usage;
     }
 }

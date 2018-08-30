@@ -165,29 +165,29 @@
   "MASS_UPDATE_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize"
   },
+  "PROBATIVE_VALUE_LIST_OBJECT": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValuePrepare"
+  },
   "ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
     "propertiesFile": "elimination_analysis_unit_indexation.properties"
   },
-  "EVIDENCE_CERTIFICATE_LIST_OBJECT": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificatePrepare"
+  "PROBATIVE_VALUE_CHECK_OBJECT_GROUP": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueObjectGroupCheck"
   },
-  "EVIDENCE_CERTIFICATE_CHECK_OBJECT_GROUP": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateObjectGroupCheck"
+  "PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueListSecuredFiles"
   },
-  "EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateListSecuredFiles"
+  "PROBATIVE_VALUE_EXTRACT_ZIP_FILE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueExtractFromZip"
   },
-  "EVIDENCE_CERTIFICATE_EXTRACT_ZIP_FILE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateExtractFromZip"
+  "PROBATIVE_VALUE_CHECK_MERKLE_TREE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueVerifyMerkleTree"
   },
-  "EVIDENCE_CERTIFICATE_CHECK_MERKLE_TREE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateVerifyMerkleTree"
+  "PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueGenerateReports"
   },
-  "EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateGenerateReports"
-  },
-  "EVIDENCE_CERTIFICATE_REPORTS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.certification.EvidenceCertificateReport"
+  "PROBATIVE_VALUE_REPORTS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueReport"
   }
 }

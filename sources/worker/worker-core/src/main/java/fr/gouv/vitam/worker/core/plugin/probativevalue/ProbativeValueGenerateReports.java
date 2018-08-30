@@ -24,21 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -52,7 +48,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
-import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -64,30 +59,30 @@ import static java.nio.charset.Charset.defaultCharset;
 /**
  * EvidenceAuditGenerateReports class
  */
-public class EvidenceCertificateGenerateReports extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateGenerateReports.class);
+public class ProbativeValueGenerateReports extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueGenerateReports.class);
 
-    private static final String EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS =
-        "EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS";
+    private static final String PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS =
+        "PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS";
     private static final String DATA = "data";
     public static final String ZIP = "zip";
     private static final String REPORTS = "reports";
-    private CertificateService certificateService;
+    private ProbativeService probativeService;
 
     @VisibleForTesting
-    public EvidenceCertificateGenerateReports(
-        CertificateService certificateService) {
-        this.certificateService = certificateService;
+    public ProbativeValueGenerateReports(
+        ProbativeService probativeService) {
+        this.probativeService = probativeService;
     }
 
-    public EvidenceCertificateGenerateReports() {
-        this(new CertificateService());
+    public ProbativeValueGenerateReports() {
+        this(new ProbativeService());
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException, ContentAddressableStorageServerException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS);
 
         try {
 
@@ -107,18 +102,30 @@ public class EvidenceCertificateGenerateReports extends ActionHandler {
 
                 File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + File.separator + objectToAuditId);
 
-                CertificateParameters parameters =
-                    getFromFile(infoFromDatabase, CertificateParameters.class);
+                ProbativeParameter parameter =
+                    getFromFile(infoFromDatabase, ProbativeParameter.class);
 
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
                 LifeCycleTraceabilitySecureFileObject secureFileObject =
-                    EvidenceService.loadInformationFromFile(securedLines, MetadataType.OBJECTGROUP,
+                    null;
+                try {
+                    secureFileObject = EvidenceService.loadInformationFromFile(securedLines, MetadataType.OBJECTGROUP,
                         objectToAuditId);
+                } catch (EvidenceAuditException e) {
+                    LOGGER.error(e);
+                    parameter.setEvidenceStatus(EvidenceStatus.KO);
+                    continue;
+                }
 
-                certificateService.checkSecuredVersion(secureFileObject, parameters);
+                // todo Iterate
 
-                writeAsFile(parameters, file);
+                for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()){
+                    probativeService.checkSecuredVersion(secureFileObject, usage);
+                }
+
+
+                writeAsFile(parameter, file);
 
                 handlerIO.transferFileToWorkspace(REPORTS + File.separator + objectToAuditId + ".report.json",
                     file, true, false);
@@ -132,14 +139,9 @@ public class EvidenceCertificateGenerateReports extends ActionHandler {
             LOGGER.error(e);
 
             return itemStatus.increment(StatusCode.FATAL);
-        } catch (EvidenceAuditException e) {
-
-            LOGGER.error(e);
-
-            return itemStatus.increment(StatusCode.KO);
-        }
-        return new ItemStatus(EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS)
-            .setItemsStatus(EVIDENCE_CERTIFICATE_PREPARE_GENERATE_REPORTS, itemStatus);
+ }
+        return new ItemStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS)
+            .setItemsStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
     @Override

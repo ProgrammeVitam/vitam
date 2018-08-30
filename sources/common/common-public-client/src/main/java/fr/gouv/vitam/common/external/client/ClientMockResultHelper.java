@@ -842,8 +842,8 @@ public class ClientMockResultHelper {
     }
 
 
-    public static RequestResponse<ProfileModel> getEvidenceCertificate(int statusCode) {
-        //TODO Mock response to produce a certificate
+    public static RequestResponse<ProfileModel> getProbativeValue(int statusCode) {
+        //TODO Mock response to produce the probative value
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
 

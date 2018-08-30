@@ -28,7 +28,7 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -1059,7 +1059,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse exportEvidenceCertificate(VitamContext vitamContext, CertificationRequest certificationRequest)
+    public RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
         throws VitamClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -1067,9 +1067,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
         try {
             response = performRequest(HttpMethod.POST,
-                AccessExtAPI.EXPORT_EVIDENCE_CERTIFICATE,
+                AccessExtAPI.EXPORT_PROBATIVE_VALUE,
                 headers,
-                certificationRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                probativeValueRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {

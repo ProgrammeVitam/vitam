@@ -29,7 +29,7 @@ Ce module encapsule à la fois le serveur d'application.
     - POST /ihm-recette/v1/api/performance : permet de lancer un test de performance
     - HEAD /ihm-recette/v1/api/performance : permet de connaître l'état du test (en cours ou fini)
     - GET /ihm-recette/v1/api/performance/reports : liste les rapports de tests
-    - GET /ihm-recette/v1/api/performance/reports/{secureLogbookFileName} : télécharge un rapport de test
+    - GET /ihm-recette/v1/api/performance/reports/{fileName} : télécharge un rapport de test
     - GET /ihm-recette/v1/api/performance/sips : liste les fichiers pouvant servir de pour le test de performance
 
 **2. Module ihm-recette-web-front**

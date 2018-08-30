@@ -24,44 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 /**
- * CertificationRequest class
+ * ProbativeCheckReport class
  */
-public class CertificationRequest {
+class ProbativeCheckReport {
 
-    @JsonProperty("dslQuery")
-    private JsonNode dslQuery;
 
-    @JsonProperty("usage")
-    private String usage;
-
-    /**
-     * for now hardcoded always Last but could be a number as string
-     */
-    @JsonProperty("version")
-    private String version="LAST";
-
-    public CertificationRequest(JsonNode dslQuery, String usage) {
-        this.dslQuery = dslQuery;
-        this.usage = usage;
+    String name;
+    String details;
+    EvidenceStatus status;
+    public ProbativeCheckReport() {
     }
 
-    public CertificationRequest() {   }
-
-    public JsonNode getDslQuery() {
-        return dslQuery;
+    public ProbativeCheckReport(EvidenceStatus status, String name, String details) {
+        this.status = status;
+        this.name = name;
+        this.details = details;
     }
 
-    public String getUsage() {
-        return usage;
+    public ProbativeCheckReport(EvidenceStatus status, String name) {
+        this.status = status;
+        this.name = name;
     }
 
-    public String getVersion() {
-        return version;
+    public String getName() {
+        return name;
     }
+
+    public EvidenceStatus getStatus() {
+        return status;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+
 }

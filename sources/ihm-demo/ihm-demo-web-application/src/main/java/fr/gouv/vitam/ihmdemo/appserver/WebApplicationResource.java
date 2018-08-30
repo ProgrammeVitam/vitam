@@ -3210,19 +3210,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * -
-     * Send a queryDSL request in order to generate an evidence certificate
+     * Send a queryDSL request in order to generate an probative value
      *
      * @param request HTTP request
      * @param criteria queryDSL for criteria
      */
     @POST
-    @Path("/archiveunit/evidencecertificateexport")
-    @RequiresPermissions("evidencecertificate:check")
-    public Response exportEvidenceCertificate(@Context HttpServletRequest request, String criteria) {
+    @Path("/archiveunit/probativevalueexport")
+    @RequiresPermissions("probativevalue:check")
+    public Response exportProbativeValue(@Context HttpServletRequest request, String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
             JsonNode queryDSL = JsonHandler.getFromString(criteria);
-            final RequestResponse response = UserInterfaceTransactionManager.exportEvidenceCertificate(
+            final RequestResponse response = UserInterfaceTransactionManager.exportProbativeValue(
                 queryDSL, UserInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {

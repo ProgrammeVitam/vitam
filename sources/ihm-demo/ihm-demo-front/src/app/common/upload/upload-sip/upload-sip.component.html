@@ -52,7 +52,7 @@
 </div>
 
 <p-dialog header="Fichier invalide" [(visible)]="displayDialog" modal="modal" [responsive]="true">
-  <p>Le fichier n'est pas valide : {{secureLogbookFileName}}</p>
+  <p>Le fichier n'est pas valide : {{fileName}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayDialog=false" label="OK"></button>
   </p-footer>

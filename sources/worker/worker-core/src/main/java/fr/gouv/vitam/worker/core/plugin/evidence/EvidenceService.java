@@ -404,11 +404,14 @@ public class EvidenceService {
      * @return LifeCycleTraceabilitySecureFileObject
      * @throws EvidenceAuditException the EvidenceAuditException
      */
-    public File downloadAndExtractDataFromStorage(String fileName, String fileToExtract, String extension) throws EvidenceAuditException {
+    public File downloadAndExtractDataFromStorage(String fileName, String fileToExtract, String extension,boolean delele) throws EvidenceAuditException {
         File traceabilityFile = downloadFileInTemporaryFolder(fileName, extension);
-        return extractFileStreamFromZip(traceabilityFile, fileToExtract,  extension);
+        return extractFileStreamFromZip(traceabilityFile, fileToExtract,  extension, delele );
     }
 
+    public File downloadFileInTemporaryFolder(String fileName) throws EvidenceAuditException {
+      return   this.downloadFileInTemporaryFolder(fileName,"");
+    }
     private File downloadFileInTemporaryFolder(String fileName, String extension) throws EvidenceAuditException {
         // Get zip file
         Response response = null;
@@ -462,7 +465,7 @@ public class EvidenceService {
     }
 
 
-    private File extractFileStreamFromZip(File file, String fileToExtract, String extension) throws EvidenceAuditException {
+    public File extractFileStreamFromZip(File file, String fileToExtract, String extension, boolean delete) throws EvidenceAuditException {
         try (ZipFile zipFile = new ZipFile(file)) {
             ZipEntry dataEntry = zipFile.getEntry(fileToExtract);
             try (InputStream dataStream = zipFile.getInputStream(dataEntry)) {
@@ -473,7 +476,7 @@ public class EvidenceService {
         } catch (IOException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not extract zip file " + file, e);
         } finally {
-            if (!file.delete()) {
+            if (delete && !file.delete()) {
                 LOGGER.warn("Could not delete file " + file);
             }
         }

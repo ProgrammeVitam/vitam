@@ -24,44 +24,97 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 /**
- * CertificateParametersDetail class
+ * Probative value Parameters
  */
-class CertificateParametersDetail {
+public class ProbativeParameter {
 
+    private String id;
+    private Map<String, ProbativeUsageParameter> usageParameters;
 
-    String name;
-    String details;
-    EvidenceStatus status;
-    public CertificateParametersDetail() {
+    private List<ProbativeCheckReport> reports;
+
+    private String message;
+
+    private EvidenceStatus evidenceStatus;
+
+    private String evIdAppSession;
+
+    private String agIdApp;
+
+    public String getId() {
+        return id;
     }
 
-    public CertificateParametersDetail(EvidenceStatus status, String name, String details) {
-        this.status = status;
-        this.name = name;
-        this.details = details;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public CertificateParametersDetail(EvidenceStatus status, String name) {
-        this.status = status;
-        this.name = name;
+    ProbativeParameter( ) {
+        reports = new ArrayList<>();
+        usageParameters = new HashMap<>();
     }
 
-    public String getName() {
-        return name;
+    public String getMessage() {
+        return message;
     }
 
-    public EvidenceStatus getStatus() {
-        return status;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getDetails() {
-        return details;
+    public EvidenceStatus getEvidenceStatus() {
+        return evidenceStatus;
+    }
+
+    public void setEvidenceStatus(EvidenceStatus evidenceStatus) {
+        this.evidenceStatus = evidenceStatus;
     }
 
 
+    public List<ProbativeCheckReport> getReports() {
+        return reports;
+    }
+
+    public void setReports(List<ProbativeCheckReport> reports) {
+        this.reports = reports;
+    }
+
+    public String getEvIdAppSession() {
+        return evIdAppSession;
+    }
+
+    public void setEvIdAppSession(String evIdAppSession) {
+        this.evIdAppSession = evIdAppSession;
+    }
+
+    public String getAgIdApp() {
+        return agIdApp;
+    }
+
+    public void setAgIdApp(String agIdApp) {
+        this.agIdApp = agIdApp;
+    }
+
+    public Map<String, ProbativeUsageParameter> getUsageParameters() {
+        return usageParameters;
+    }
+
+    public void setUsageParameters(
+        Map<String, ProbativeUsageParameter> usageParameters) {
+        this.usageParameters = usageParameters;
+    }
 }

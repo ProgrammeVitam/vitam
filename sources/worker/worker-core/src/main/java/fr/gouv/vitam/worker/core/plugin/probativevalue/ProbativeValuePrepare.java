@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -48,7 +48,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CertificationRequest;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -66,24 +66,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 /**
  * EvidenceAuditPrepare class
  */
-public class EvidenceCertificatePrepare extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificatePrepare.class);
+public class ProbativeValuePrepare extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValuePrepare.class);
 
-    private static final String EVIDENCE_CERTIFICATE_LIST_OBJECT = "EVIDENCE_CERTIFICATE_LIST_OBJECT";
+    private static final String PROBATIVE_VALUE_LIST_OBJECT = "PROBATIVE_VALUE_LIST_OBJECT";
     private static final String FIELDS_KEY = "$fields";
-    private static final String ID = "#id";
     private static final String CHAINED_FILE = "chainedFile.json";
 
     private MetaDataClientFactory metaDataClientFactory;
     private final int bachSize;
     private static final String OBJECT = "#object";
 
-    public EvidenceCertificatePrepare() {
+    public ProbativeValuePrepare() {
         this(MetaDataClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
     }
 
     @VisibleForTesting
-    public EvidenceCertificatePrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
+    public ProbativeValuePrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.bachSize = bachSize;
     }
@@ -91,13 +90,13 @@ public class EvidenceCertificatePrepare extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_LIST_OBJECT);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_LIST_OBJECT);
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
-            CertificationRequest certificationRequest = JsonHandler
-                .getFromInputStream(handlerIO.getInputStreamFromWorkspace("request"), CertificationRequest.class);
+            ProbativeValueRequest probativeValueRequest = JsonHandler
+                .getFromInputStream(handlerIO.getInputStreamFromWorkspace("request"), ProbativeValueRequest.class);
 
-            SelectMultiQuery select = constructSelectMultiQuery(certificationRequest);
+            SelectMultiQuery select = constructSelectMultiQuery(probativeValueRequest);
 
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createUnitScrollSplitIterator(client, select);
@@ -105,8 +104,8 @@ public class EvidenceCertificatePrepare extends ActionHandler {
             parseRequestAndCreateLinkedFile(handlerIO, scrollRequest);
 
             if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(EVIDENCE_CERTIFICATE_LIST_OBJECT)
-                    .setItemsStatus(EVIDENCE_CERTIFICATE_LIST_OBJECT, itemStatus);
+                return new ItemStatus(PROBATIVE_VALUE_LIST_OBJECT)
+                    .setItemsStatus(PROBATIVE_VALUE_LIST_OBJECT, itemStatus);
             }
 
         } catch (InvalidParseOperationException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
@@ -115,16 +114,16 @@ public class EvidenceCertificatePrepare extends ActionHandler {
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_CERTIFICATE_LIST_OBJECT)
-            .setItemsStatus(EVIDENCE_CERTIFICATE_LIST_OBJECT, itemStatus);
+        return new ItemStatus(PROBATIVE_VALUE_LIST_OBJECT)
+            .setItemsStatus(PROBATIVE_VALUE_LIST_OBJECT, itemStatus);
     }
 
-    private SelectMultiQuery constructSelectMultiQuery(CertificationRequest certificationRequest)
+    private SelectMultiQuery constructSelectMultiQuery(ProbativeValueRequest probativeValueRequest)
         throws InvalidParseOperationException {
 
         SelectParserMultiple parser = new SelectParserMultiple();
 
-        parser.parse(certificationRequest.getDslQuery());
+        parser.parse(probativeValueRequest.getDslQuery());
 
         SelectMultiQuery select = parser.getRequest();
         ObjectNode objectNode = createObjectNode();
@@ -136,7 +135,7 @@ public class EvidenceCertificatePrepare extends ActionHandler {
         return select;
     }
 
-    private void parseRequestAndCreateLinkedFile(HandlerIO handlerIO,
+    private void        parseRequestAndCreateLinkedFile(HandlerIO handlerIO,
         ScrollSpliterator<JsonNode> scrollRequest) throws ProcessingException {
 
 

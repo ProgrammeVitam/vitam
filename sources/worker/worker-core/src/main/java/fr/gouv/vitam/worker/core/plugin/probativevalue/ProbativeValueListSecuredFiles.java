@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.certification;
+package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 
@@ -55,18 +55,18 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 /**
  * EvidenceAuditListSecuredFiles class
  */
-public class EvidenceCertificateListSecuredFiles extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceCertificateListSecuredFiles.class);
+public class ProbativeValueListSecuredFiles extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueListSecuredFiles.class);
 
-    private static final String EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD =
-        "EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD";
+    private static final String PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD =
+        "PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD";
     private static final String DATA = "data";
 
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD);
+        ItemStatus itemStatus = new ItemStatus(PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD);
 
         List<URI> uriListObjectsWorkspace =
             handlerIO.getUriList(handlerIO.getContainerName(), DATA);
@@ -82,18 +82,21 @@ public class EvidenceCertificateListSecuredFiles extends ActionHandler {
                 File file = handlerIO.getFileFromWorkspace(DATA + File.separator + element.getPath());
 
 
-                CertificateParameters parameters = getFromFile(file, CertificateParameters.class);
+                ProbativeParameter parameters = getFromFile(file, ProbativeParameter.class);
 
-                if(!parameters.getEvidenceStatus().equals(EvidenceStatus.OK)){
+                if (!parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
                     continue;
                 }
 
-                addToSecureOperationMap(parameters.getSecuredOperationId(), element.toString(),
-                    secureOperationMap);
+                for (ProbativeUsageParameter parameter : parameters.getUsageParameters().values()
+                    ) {
+                    addToSecureOperationMap(parameter.getSecuredOperationId(), element.toString(), secureOperationMap);
 
-                addToSecureOperationMap(parameters.getSecureOperationIdForOpId(),
-                    element.toString(), secureOperationOpiMap);
+                    addToSecureOperationMap(parameter.getSecureOperationIdForOpId(),element.toString(), secureOperationOpiMap);
+                }
             }
+
+
 
             transferMapElementsToWorkspace(handlerIO, secureOperationMap, "operation");
 
@@ -107,8 +110,8 @@ public class EvidenceCertificateListSecuredFiles extends ActionHandler {
         }
         itemStatus.increment(StatusCode.OK);
 
-        return new ItemStatus(EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD)
-            .setItemsStatus(EVIDENCE_CERTIFICATE_LIST_SECURED_FILES_TO_DOWNLOAD, itemStatus);
+        return new ItemStatus(PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD)
+            .setItemsStatus(PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD, itemStatus);
     }
 
     private void transferMapElementsToWorkspace(HandlerIO handlerIO, Map<String, List<String>> securedFilenameMap,

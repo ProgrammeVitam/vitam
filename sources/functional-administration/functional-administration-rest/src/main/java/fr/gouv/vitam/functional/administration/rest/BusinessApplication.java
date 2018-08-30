@@ -106,7 +106,7 @@ public class BusinessApplication extends Application {
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
             singletons.add(new EvidenceResource());
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
-            singletons.add(new EvidenceCertificateResource());
+            singletons.add(new ProbativeValueResource());
 
             singletons.add(profileResource);
 
