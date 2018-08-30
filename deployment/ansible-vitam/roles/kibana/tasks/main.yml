@@ -8,7 +8,7 @@
 
 - name: Set command for Debian
   set_fact:
-    check_kibana_version: "apt show kibana"
+    check_kibana_version: "dpkg-query -l  'kibana'"
   when: (ansible_distribution == "Debian")
 
 - name: checking whether kibana is already installed

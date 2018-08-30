@@ -1,5 +1,24 @@
 ---
 #### Compute variables ####
+
+- name: Set command for CentOS
+  set_fact:
+    check_es_version: "rpm -q vitam-{{composant.cluster_name}}"
+  when: (ansible_distribution == "CentOS")
+
+- name: Set command for Debian
+  set_fact:
+    check_es_version: "dpkg-query -l  'vitam-{{ composant.cluster_name }}'"
+  when: (ansible_distribution == "Debian")
+
+- name: checking whether elasticsearch package is already installed
+  shell : "{{ check_es_version }}"
+  register: is_installed
+  ignore_errors: true
+
+- import_tasks: pre_migration.yml
+  when: is_installed.stdout.find('5.6.') != -1
+
 - name: Set default directory for CentOS
   set_fact:
     sysconfig_dir: "sysconfig"
@@ -234,6 +253,9 @@
   service:
     name: "vitam-{{ composant.cluster_name }}"
     state: started
+
+- import_tasks: post_migration.yml
+  when: is_installed.stdout.find('5.6.') != -1
 
 # Force flush handlers to be sure previus role handlers have been run (for index templates)
 - meta: flush_handlers
