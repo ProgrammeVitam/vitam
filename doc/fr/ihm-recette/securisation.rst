@@ -13,6 +13,8 @@ L'interface contient plusieurs boutons:
 * "Générer le journal des opérations" 
 * "Générer le journal des cycles de vie"
 * "Générer le journal des offres de stockage" 
+* "Générer le journal des cycles de vie des unités archivistiques"
+* "Générer le journal des cycles de vie des groupes d'objets"
 
 Au clic sur ce bouton, le système va lancer l'opération de sécurisation des journaux. Elle prendra en compte tous les journaux, du dernier créé au dernier non sécurisé. Un message s'affiche alors sur l'écran précisant le succès de l'opération.
 
