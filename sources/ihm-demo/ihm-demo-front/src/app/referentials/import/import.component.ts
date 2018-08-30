@@ -39,7 +39,7 @@ export class ImportComponent  extends PageComponent {
       this.referentialType = params['referentialType'];
       if (!this.authenticationService.isTenantAdmin()) {
           this.referentialTypes = this.referentialTypes.filter(
-              item => item.value !== 'format' && item.value !== 'context'
+              item => item.value !== 'format' && item.value !== 'context'  && item.value !== 'ontology'
           );
       }
       switch (this.referentialType)
