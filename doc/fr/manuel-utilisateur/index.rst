@@ -13,3 +13,4 @@
    Consultation.rst
    gestion.rst
    Administration.rst
+   modification_en_masse.rst
