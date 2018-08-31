@@ -114,6 +114,19 @@ public class ScrollSpliteratorHelper {
         return createObjectGroupScrollSplitIterator(client, selectMultiQuery, GlobalDatasDb.LIMIT_LOAD);
     }
 
+    public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(SelectMultiQuery request,
+        MetaDataClient client) {
+        return new ScrollSpliterator<>(request,
+            query -> {
+                try {
+                    JsonNode jsonNode = client.selectUnitsWithInheritedRules(query.getFinalSelect());
+                    return RequestResponseOK.getFromJsonNode(jsonNode);
+                } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+                    throw new IllegalStateException(e);
+                }
+            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+    }
+
     /**Check number of result
      * @param itemStatus itemStatus
      * @param total      total of elements

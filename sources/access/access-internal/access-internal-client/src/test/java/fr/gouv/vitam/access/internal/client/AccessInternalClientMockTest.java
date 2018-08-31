@@ -30,11 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -165,4 +167,13 @@ public class AccessInternalClientMockTest {
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
+    @Test
+    public void givenMockExists_whenStartEliminationAnalysis_ThenReturnOK() {
+        AccessInternalClientFactory.changeMode(null);
+        final AccessInternalClient client =
+            AccessInternalClientFactory.getInstance().getClient();
+
+        assertThatThrownBy(() -> client.startEliminationAnalysis(mock(EliminationRequestBody.class)))
+            .isInstanceOf(IllegalStateException.class);
+    }
 }

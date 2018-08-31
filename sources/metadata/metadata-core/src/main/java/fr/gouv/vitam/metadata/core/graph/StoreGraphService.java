@@ -358,7 +358,7 @@ public class StoreGraphService {
             case UNIT:
                 return include(MetadataDocumentHelper.getComputedGraphUnitFields());
             case OBJECTGROUP:
-                return include(MetadataDocumentHelper.getComputedGraphUnitFields());
+                return include(MetadataDocumentHelper.getComputedGraphObjectGroupFields());
         }
         throw new StoreGraphException("The collection " + metadataCollections + " is not managed");
     }

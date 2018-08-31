@@ -61,7 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Reclassification graph check handler.

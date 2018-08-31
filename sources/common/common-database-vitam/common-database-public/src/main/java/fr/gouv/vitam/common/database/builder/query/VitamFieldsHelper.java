@@ -36,6 +36,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALL;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALLUNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.DUA;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ELIMINATION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FORMAT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.GRAPH;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.GRAPH_LAST_PERSISTED_DATE;
@@ -324,7 +325,12 @@ public class VitamFieldsHelper {
         return INITIAL_OPERATION.exactToken();
     }
 
-
+    /**
+     * @return #elimination
+     */
+    public static final String elimination() {
+        return ELIMINATION.exactToken();
+    }
 
     public static final JsonNode removeHash(JsonNode jsonNode) {
         ObjectNode objectNode = (ObjectNode) jsonNode;

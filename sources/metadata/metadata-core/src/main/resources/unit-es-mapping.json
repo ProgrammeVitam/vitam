@@ -28,12 +28,11 @@
       },
       {
         "full_name": {
-          "path_match":   "_uds.*",
+          "path_match": "_uds.*",
           "mapping": {
             "type": "keyword"
           }
         }
-
       },
       {
         "all_string": {
@@ -844,7 +843,7 @@
             }
           },
           "Masterdata": {
-            "properties" : {
+            "properties": {
               "Value": {
                 "type": "keyword"
               }
@@ -1090,7 +1089,7 @@
                 "type": "text"
               },
               "ClassificationAudience": {
-                "type":"keyword"
+                "type": "keyword"
               },
               "ClassificationReassessingDate": {
                 "type": "date",
@@ -1341,6 +1340,42 @@
       },
       "_unitType": {
         "type": "keyword"
+      },
+      "_elimination": {
+        "properties": {
+          "OperationId": {
+            "type": "keyword"
+          },
+          "GlobalStatus": {
+            "type": "keyword"
+          },
+          "DestroyableOriginatingAgencies": {
+            "type": "keyword"
+          },
+          "NonDestroyableOriginatingAgencies": {
+            "type": "keyword"
+          },
+          "ExtendedInfo": {
+            "properties": {
+              "ExtendedInfoType": {
+                "type": "keyword"
+              },
+              "ExtendedInfoDetails": {
+                "properties": {
+                  "ParentUnitId": {
+                    "type": "keyword"
+                  },
+                  "DestroyableOriginatingAgencies": {
+                    "type": "keyword"
+                  },
+                  "NonDestroyableOriginatingAgencies": {
+                    "type": "keyword"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

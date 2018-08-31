@@ -1,0 +1,43 @@
+<p-panel [header]="'Filtres sur les résultats'" [toggleable]="true" [collapsed]="true">
+  <div class="ui-g" *ngIf="facetInputs">
+    <div class="ui-g-4 textAlignLeft" *ngFor="let facetDefinition of facetList">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}">
+
+        <!-- Picker for terms facet -->
+        <div style="padding:1em;line-height:1.5" *ngIf="facetDefinition.facetType === FACET_TYPES.TERMS">
+          <p-checkbox value="{{facetDefinition.name}}" label="{{facetDefinition.label}}" [(ngModel)]="selectedFacets" inputId="oa" #oaFacet></p-checkbox>
+          <div *ngIf="facetResults[facetDefinition.name]" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetResults[facetDefinition.name]" style="margin-right:10px">
+              <a (click)="research(item.value, facetDefinition)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Picker for date facet -->
+        <div style="padding:1em;line-height:1.5" *ngIf="facetDefinition.facetType === FACET_TYPES.DATE_RANGE">
+          <p-checkbox value="{{facetDefinition.name}}" [(ngModel)]="selectedFacets" inputId="sdf" #sdFacet
+                      label="{{facetDefinition.label}} : [{{facetInputs[facetDefinition.name] ? (facetInputs[facetDefinition.name][0] + ' - ' +  facetInputs[facetDefinition.name][1]) : 'Début - Fin'}}]"></p-checkbox>
+          <div class="ui-g-12" style="padding:1em;line-height:1.5">
+            <div class="ui-g-6 textAlignLeft">{{facetDefinition.minRange}}</div>
+            <div class="ui-g-6 textAlignRight">{{facetDefinition.maxRange}}</div>
+            <p-slider [(ngModel)]="facetInputs[facetDefinition.name]" [range]="true" [min]="facetDefinition.minRange" [max]="facetDefinition.maxRange"></p-slider>
+          </div>
+
+          <div *ngIf="facetResults[facetDefinition.name]" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetResults[facetDefinition.name]" style="margin-right:10px">
+              <a (click)="research(item.value, facetDefinition)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Picker for filter facet -->
+
+      </p-scrollPanel>
+    </div>
+
+    <div class="ui-g-12">
+      <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFacets()" [disabled]="disabledFacet"></button>
+      <button pButton type="button" (click)="searchFacets()" label="Rechercher" icon="fa-search" [disabled]="disabledFacet"></button>
+    </div>
+  </div>
+</p-panel>

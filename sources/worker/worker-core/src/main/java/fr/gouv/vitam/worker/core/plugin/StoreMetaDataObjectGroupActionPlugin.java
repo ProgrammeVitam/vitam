@@ -117,7 +117,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
             //// get metadata
             JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
-            MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(got);
+            MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(got);
 
             //// get lfc
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);

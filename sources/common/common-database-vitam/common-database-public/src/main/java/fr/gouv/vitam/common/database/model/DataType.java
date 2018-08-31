@@ -33,6 +33,7 @@ public enum DataType {
 
     MANAGEMENT,
     GRAPH,
+    TEMPORARY,
     ARCHIVE_UNIT_PROFILE,
     MDD;
 

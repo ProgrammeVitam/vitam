@@ -179,6 +179,34 @@ documentation:
           body:
             application/json:
 
+/elimination:
+  displayName: Elimination
+  description: |
+    API qui définit les requêtes pour l'élimination des unités archivistiques.
+
+  /analysis:
+    displayName: Opération d'analyse des unités archivistiques éliminables.
+    description: |
+      Opération d'analyse des unités archivistiques éliminables.
+    post:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/json" ]
+      description: |
+        Exécute une opération d'analyse d'élimination des unités archivistiques.
+      is: [AccessTraits.EliminationAnalysisResponseAsync]
+      responses:
+        200:
+          description: Success
+          body:
+            application/json:
+              description: Success response
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
 /evidenceaudit/:
   displayName: LFC traceability audit
   description: |

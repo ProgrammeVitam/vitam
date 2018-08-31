@@ -60,6 +60,7 @@ public class ComputedFieldsTest {
             Unit.CLASSIFICATIONEND, MetadataDocument.QUALIFIERS, MetadataDocument.NBCHILD, MetadataDocument.TYPE,
             MetadataDocument.UP, MetadataDocument.OG, MetadataDocument.OPS, MetadataDocument.OPI,
             MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID, VitamDocument.VERSION, VitamDocument.TENANT_ID,
+            Unit.ELIMINATION,
             VitamDocument.SCORE);
 
     private static List<String> expectedGotComputedFields =

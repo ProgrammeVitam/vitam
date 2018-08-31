@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -111,6 +112,21 @@ public class UserInterfaceTransactionManager {
                 context,
                 preparedDslQuery,
                 unitId);
+        }
+    }
+
+    /**
+     * Start elimination analysis
+     *
+     * @param parameters input for elimination workflow
+     * @param context    Vitamcontext
+     * @return result    HTTP response
+     * @throws VitamClientException
+     */
+    public static RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.startEliminationAnalysis(context, parameters);
         }
     }
 

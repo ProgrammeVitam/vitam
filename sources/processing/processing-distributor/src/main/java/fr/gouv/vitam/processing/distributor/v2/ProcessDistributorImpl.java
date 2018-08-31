@@ -17,8 +17,56 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.Distribution;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.DistributionType;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.Step;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.VitamReaderSpliterator;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
+import fr.gouv.vitam.processing.common.model.DistributorIndex;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
+import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.worker.client.exception.PauseCancelException;
+import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
+import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,56 +88,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.Distribution;
-import fr.gouv.vitam.common.model.processing.DistributionKind;
-import fr.gouv.vitam.common.model.processing.DistributionType;
-import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
-import fr.gouv.vitam.common.model.processing.Step;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.utils.VitamReaderSpliterator;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
-import fr.gouv.vitam.processing.common.model.DistributorIndex;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
-import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
-import fr.gouv.vitam.processing.model.JsonLineModel;
-import fr.gouv.vitam.worker.client.exception.PauseCancelException;
-import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
-import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
@@ -180,9 +179,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams   of type {@link WorkerParameters}
-     * @param step         the execution step
-     * @param operationId  the operation id
+     * @param workParams of type {@link WorkerParameters}
+     * @param step the execution step
+     * @param operationId the operation id
      * @param pauseRecover prevent recover from pause action
      * @return the final step status
      */
@@ -313,13 +312,18 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                 // distribute on stream
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                    Response response =
-                        workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
-                    try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
+                    Response response = null;
+                    try {
+                        response = workspaceClient
+                            .getObject(workParams.getContainerName(), step.getDistribution().getElement());
+                        try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
 
-                        distributeOnStream(workParams, step, NOLEVEL, br,
-                            useDistributorIndex, tenantId);
+                            distributeOnStream(workParams, step, NOLEVEL, br,
+                                useDistributorIndex, tenantId);
+                        }
+                    } finally {
+                        StreamUtils.consumeAnyEntityAndClose(response);
                     }
                 }
             } else {
@@ -783,23 +787,23 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
             LOGGER.debug(String.valueOf(spliterator.estimateSize()));
 
-           /*
-            * Update only if level is finished in the distributorIndex
-            * In the cas of multiple level, we add the size of each level
-            * Prevent adding twice the size of the current executing level
-            */
+            /*
+             * Update only if level is finished in the distributorIndex
+             * In the cas of multiple level, we add the size of each level
+             * Prevent adding twice the size of the current executing level
+             */
             if (updateElementToProcess) {
                 // update the number of elements to process before start
                 processDataAccess.updateStep(operationId, step.getId(), subList.size(), false, tenantId);
             }
 
-          /*
-           * When server stop and in the batch of elements we have remaining elements (not yet treated)
-           * Then after restart we treat only those not yet treated elements of this batch
-           * If all elements of the batch were treated,
-           * then at this point, we are automatically in the new batch
-           * and we have to treat all elements of this batch
-           */
+            /*
+             * When server stop and in the batch of elements we have remaining elements (not yet treated)
+             * Then after restart we treat only those not yet treated elements of this batch
+             * If all elements of the batch were treated,
+             * then at this point, we are automatically in the new batch
+             * and we have to treat all elements of this batch
+             */
             if (!remainingElementsFromRecover.isEmpty()) {
                 subList = new ArrayList<>(subList);
                 subList.retainAll(remainingElementsFromRecover);
@@ -921,7 +925,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
                     try {
-                        LOGGER.warn("The worker ("+step.getWorkerGroupId()+") will be unregistered as it is Unreachable", wue.getWorkerId());
+                        LOGGER.warn(
+                            "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
+                            wue.getWorkerId());
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);

@@ -1,13 +1,14 @@
 package fr.gouv.vitam.access.external.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
-
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 public class AccessExternalClientMockTest {
 
@@ -17,10 +18,10 @@ public class AccessExternalClientMockTest {
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
     final String queryDsqlForGot =
-            "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
-                    " \"$filter\": { \"$orderby\": \"#id\" }, " +
-                    " \"$projection\" : { } " +
-                    " }";
+        "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { } " +
+            " }";
     final String ID = "identifier1";
     final String USAGE = "usage";
     final String CONTRACT = "contract";
@@ -44,8 +45,9 @@ public class AccessExternalClientMockTest {
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitsWithInheritedRulesThenReturnResult() {
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            JsonHandler.getFromString(queryDsql)))
+        assertThatThrownBy(
+            () -> client.selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                JsonHandler.getFromString(queryDsql)))
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -100,8 +102,15 @@ public class AccessExternalClientMockTest {
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectsThenReturnResult()
-            throws Exception {
+        throws Exception {
         assertNotNull(client.selectObjects(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                JsonHandler.getFromString(queryDsqlForGot)));
+            JsonHandler.getFromString(queryDsqlForGot)));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternalStartEliminationAnalysisThenReturnResult() {
+        assertThatThrownBy(() -> client.startEliminationAnalysis(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), mock(EliminationRequestBody.class)))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 }

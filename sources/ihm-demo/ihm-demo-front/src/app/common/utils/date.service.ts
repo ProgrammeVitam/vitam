@@ -6,6 +6,13 @@ export class DateService {
 
   constructor() { }
 
+  static dateToString(date: Date): string {
+    if (date === undefined) {
+      return '';
+    }
+    return new DatePipe('en-US').transform(date, 'yyyy-MM-dd');
+  }
+
   static handleDate(date: string): string {
     if (date === undefined) {
       return '';

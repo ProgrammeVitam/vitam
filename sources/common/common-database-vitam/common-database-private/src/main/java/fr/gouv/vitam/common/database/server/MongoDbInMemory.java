@@ -29,9 +29,11 @@ package fr.gouv.vitam.common.database.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +42,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -65,12 +68,15 @@ public class MongoDbInMemory {
 
     private JsonNode updatedDocument;
 
+    private Set<String> updatedFields;
+
     /**
      * @param originalDocument
      */
     public MongoDbInMemory(JsonNode originalDocument) {
         this.originalDocument = originalDocument;
         updatedDocument = originalDocument.deepCopy();
+        updatedFields = new HashSet<>();
     }
 
     /**
@@ -157,8 +163,10 @@ public class MongoDbInMemory {
     /**
      * Reset the updatedDocument with the original values
      */
+    @VisibleForTesting
     public void resetUpdatedAU() {
         updatedDocument = originalDocument.deepCopy();
+        updatedFields.clear();
     }
 
     private void inc(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -177,6 +185,7 @@ public class MongoDbInMemory {
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
             element.getValue().asLong() + nodeValue);
+        updatedFields.add(fieldName);
     }
 
     private void unset(final JsonNode content) {
@@ -188,6 +197,7 @@ public class MongoDbInMemory {
             String[] fieldNamePath = fieldName.split("[.]");
             String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
             ((ObjectNode) node).remove(lastNodeName);
+            updatedFields.add(fieldName);
         }
     }
 
@@ -195,18 +205,21 @@ public class MongoDbInMemory {
         final Iterator<Map.Entry<String, JsonNode>> iterator = content.fields();
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> element = iterator.next();
-            if (ParserTokens.PROJECTIONARGS.isAnArray(element.getKey())) {
+            String fieldName = element.getKey();
+            if (ParserTokens.PROJECTIONARGS.isAnArray(fieldName)) {
                 ArrayNode arrayNode = GlobalDatasParser.getArray(element.getValue());
-                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), arrayNode, true);
+                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, fieldName, arrayNode, true);
             } else {
-                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getKey(), element.getValue(), true);
+                JsonHandler.setNodeInPath((ObjectNode) updatedDocument, fieldName, element.getValue(), true);
             }
+            updatedFields.add(fieldName);
         }
     }
 
     private void setregex(final JsonNode content) throws InvalidParseOperationException {
         QueryPattern queryPattern = JsonHandler.getFromJsonNodeLowerCamelCase(content, QueryPattern.class);
-        String stringToSearch = originalDocument.get(queryPattern.getTarget()).asText();
+        String fieldName = queryPattern.getTarget();
+        String stringToSearch = originalDocument.get(fieldName).asText();
         // The pattern to search for
         Pattern pattern = Pattern.compile(queryPattern.getControlPattern());
         Matcher matcher = pattern.matcher(stringToSearch);
@@ -217,8 +230,9 @@ public class MongoDbInMemory {
         }
         if (org.apache.commons.lang3.StringUtils.isNotBlank(sb)) {
             matcher.appendTail(sb);
-            ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, queryPattern.getTarget(), false)).
-                put(queryPattern.getTarget(), sb.toString());
+            ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).
+                put(fieldName, sb.toString());
+            updatedFields.add(fieldName);
         }
     }
 
@@ -238,6 +252,7 @@ public class MongoDbInMemory {
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
             Math.min(element.getValue().asDouble(), nodeValue));
+        updatedFields.add(fieldName);
     }
 
     private void max(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -256,6 +271,7 @@ public class MongoDbInMemory {
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).put(lastNodeName,
             Math.max(element.getValue().asDouble(), nodeValue));
+        updatedFields.add(fieldName);
     }
 
     private void rename(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -273,7 +289,10 @@ public class MongoDbInMemory {
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ((ObjectNode) parent).remove(lastNodeName);
 
-        JsonHandler.setNodeInPath((ObjectNode) updatedDocument, element.getValue().asText(), value, true);
+        String newFieldName = element.getValue().asText();
+        JsonHandler.setNodeInPath((ObjectNode) updatedDocument, newFieldName, value, true);
+        updatedFields.add(fieldName);
+        updatedFields.add(newFieldName);
     }
 
     private void push(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -286,6 +305,7 @@ public class MongoDbInMemory {
         while (iterator.hasNext()) {
             node.add(iterator.next());
         }
+        updatedFields.add(fieldName);
     }
 
     private void pull(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -312,6 +332,9 @@ public class MongoDbInMemory {
         for (int i = indexesToRemove.size() - 1; i >= 0; i--) {
             node.remove(indexesToRemove.get(i));
         }
+        if(!indexesToRemove.isEmpty()) {
+            updatedFields.add(fieldName);
+        }
     }
 
     private void add(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -335,6 +358,7 @@ public class MongoDbInMemory {
             }
             if (mustAdd) {
                 node.add(newNode);
+                updatedFields.add(fieldName);
             }
         }
     }
@@ -352,6 +376,11 @@ public class MongoDbInMemory {
         }
 
         int numberOfPop = Math.abs(actionValue.asInt());
+
+        if(numberOfPop == 0) {
+            return;
+        }
+
         if (numberOfPop > node.size()) {
             throw new InvalidParseOperationException(
                 "Cannot pop " + numberOfPop + "items from the field '" + fieldName + "' because it has less items");
@@ -365,6 +394,7 @@ public class MongoDbInMemory {
                 node.remove(node.size() - 1);
             }
         }
+        updatedFields.add(fieldName);
     }
 
     private double getNumberValue(final String actionName, final String fieldName)
@@ -395,5 +425,9 @@ public class MongoDbInMemory {
             throw new InvalidParseOperationException(message);
         }
         return node;
+    }
+
+    public Set<String> getUpdatedFields() {
+        return updatedFields;
     }
 }

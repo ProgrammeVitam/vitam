@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
@@ -40,10 +37,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+
+import javax.ws.rs.core.Response;
 
 /**
  * Access client interface
@@ -52,6 +50,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Select Units
+     *
      * @param selectQuery the query used to select units
      * @return a response containing a json node object including DSL queries and results
      * @throws InvalidParseOperationException if the query is not well formatted
@@ -66,6 +65,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * select Unit By Id
+     *
      * @param sqlQuery the query to be executed
      * @param id the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
@@ -80,6 +80,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * update Unit By Id
+     *
      * @param updateQuery the query to be executed as an update
      * @param unitId the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
@@ -95,6 +96,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Mass update of archive units with dsl query.
+     *
      * @param updateQuery the query to be executed to update archive units
      * @return
      * @throws InvalidParseOperationException if the query is not well formatted
@@ -109,6 +111,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
+     *
      * @param selectObjectQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return a response containing a json node object including DSL queries, context and results
@@ -123,6 +126,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve an Object data as an input stream
+     *
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage         the requested usage
      * @param version       the requested version of the usage
@@ -140,6 +144,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectOperation
+     *
      * @param select
      * @return a response containing a json node
      * @throws LogbookClientException
@@ -151,6 +156,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectOperationbyId
+     *
      * @param processId ID of the operation
      * @param queryDsl query to be executed
      * @return a response containing a json node
@@ -163,6 +169,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectUnitLifeCycleById
+     *
      * @param idUnit
      * @param queryDsl query to be executed
      * @return a response containing a json node
@@ -175,6 +182,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectUnitLifeCycleById
+     *
      * @param queryDsl
      * @return a response containing a json node
      * @throws LogbookClientException
@@ -186,6 +194,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectObjectGroupLifeCycleById
+     *
      * @param idObject
      * @param queryDsl query to be executed
      * @return a response containing a json node
@@ -198,6 +207,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Checks operation traceability
+     *
      * @param query to be executed
      * @return a response containing a json node
      * @throws LogbookClientServerException
@@ -227,6 +237,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve object group by id with XML format (DIP)
+     *
      * @param queryDsl the given query dsl
      * @param objectId the given object group id
      * @return unit with a xml representation
@@ -237,6 +248,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve object group by unit id with XML format (DIP)
+     *
      * @param queryDsl the given query dsl
      * @param unitId the given object group id
      * @return unit with a xml representation
@@ -247,6 +259,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * launch a DIP operation by a DSL query
+     *
      * @param queryJson query for the DIP creation
      * @return
      * @throws AccessInternalClientServerException
@@ -255,6 +268,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * get a zip file containing a DIP by an operation id
+     *
      * @param id operationId
      * @return stream containing zip file
      * @throws AccessInternalClientServerException
@@ -263,6 +277,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Performs a reclassification workflow.
+     *
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      * @return Response
      */
@@ -271,6 +286,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Select Objects group based on DSL query
+     *
      * @param selectQuery the query used to select objects
      * @return a response containing a json node object including DSL queries and results
      * @throws InvalidParseOperationException if the query is not well formatted
@@ -280,14 +296,13 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
 
     /**
      * Select units with inherited rules by select query (DSL)
      *
      * @param selectQuery : select query
-     * @return Json object
      * @return a response containing a json node object including DSL queries and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
@@ -311,4 +326,13 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response downloadAccessLogFile(JsonNode params)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
+     * Performs an elimination analysis workflow.
+     *
+     * @param eliminationRequestBody Dsl request for elimination.
+     * @return Response given response
+     */
+    RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody)
+        throws AccessInternalClientServerException;
 }

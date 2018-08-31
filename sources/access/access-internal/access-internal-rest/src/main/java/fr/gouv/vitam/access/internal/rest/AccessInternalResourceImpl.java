@@ -26,29 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Set;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +46,6 @@ import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.access.internal.core.OntologyUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.model.DataType;
@@ -102,8 +78,14 @@ import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -132,6 +114,27 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -185,7 +188,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
         this(new AccessInternalModuleImpl(), LogbookOperationsClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+            WorkspaceClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance());
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
@@ -196,19 +199,23 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param accessModule
      */
     AccessInternalResourceImpl(AccessInternalModule accessModule) {
-        this(accessModule, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(accessModule, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance());
     }
 
     /**
      * Test constructor
      *
-     * @param accessModule                   accessModule
+     * @param accessModule accessModule
      * @param logbookOperationsClientFactory logbookOperationsClientFactory
-     * @param workspaceClientFactory         workspaceClientFactory
+     * @param workspaceClientFactory workspaceClientFactory
+     * @param processingManagementClientFactory
      */
-    @VisibleForTesting AccessInternalResourceImpl(AccessInternalModule accessModule,
+    @VisibleForTesting
+    AccessInternalResourceImpl(AccessInternalModule accessModule,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory) {
         this.accessModule = accessModule;
         archiveUnitMapper = new ArchiveUnitMapper();
         objectGroupMapper = new ObjectGroupMapper();
@@ -216,7 +223,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectMapper = buildObjectMapper();
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
-        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
     }
@@ -360,7 +367,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, EXPORT_DIP,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                        Contexts.EXPORT_DIP.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
@@ -465,6 +472,81 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        }
+    }
+
+    /**
+     * Starts a elimination analysis workflow.
+     */
+    @Override
+    @POST
+    @Path("/elimination/analysis")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody) {
+
+        Status status;
+
+        try {
+
+            ParametersChecker.checkParameter("Missing elimination request", eliminationRequestBody);
+
+            EliminationRequestBody eliminationRequestBodyWithAccessContractRestriction =
+                new EliminationRequestBody(
+                    eliminationRequestBody.getDate(),
+                    AccessContractRestrictionHelper.applyAccessContractRestrictionForUnit(
+                        eliminationRequestBody.getDslRequest(),
+                        VitamThreadUtils.getVitamSession().getContract()));
+
+            // Start workflow
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                final LogbookOperationParameters initParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDReader.getGUID(operationId),
+                        Contexts.ELIMINATION_ANALYSIS.getEventType(),
+                        GUIDReader.getGUID(operationId),
+                        LogbookTypeProcess.ELIMINATION,
+                        StatusCode.STARTED,
+                        VitamLogbookMessages.getLabelOp(Contexts.ELIMINATION_ANALYSIS.getEventType() + ".STARTED") +
+                            " : " +
+                            GUIDReader.getGUID(operationId),
+                        GUIDReader.getGUID(operationId));
+
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+
+                workspaceClient.putObject(operationId, "request.json",
+                    JsonHandler.writeToInpustream(eliminationRequestBodyWithAccessContractRestriction));
+
+                processingClient.initVitamProcess(Contexts.ELIMINATION_ANALYSIS.name(),
+                    new ProcessingEntry(operationId, Contexts.ELIMINATION_ANALYSIS.getEventType()));
+
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, Contexts.ELIMINATION_ANALYSIS.getEventType(),
+                        Contexts.ELIMINATION_ANALYSIS.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+            }
+
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            VitamClientException | InternalServerException e) {
+            LOGGER.error("Error while starting unit elimination analysis workflow", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Un-processable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -848,9 +930,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         InvalidParseOperationException e) {
                     LOGGER.error(e);
                     throw new AccessInternalExecutionException("Error while adding ontology information", e);
-                }    
+                }
             }
-            
+
             boolean updateManagement = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
             Contexts context = updateManagement ? Contexts.MASS_UPDATE_UNIT : Contexts.MASS_UPDATE_UNIT_DESC;
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();

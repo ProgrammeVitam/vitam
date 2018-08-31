@@ -121,7 +121,8 @@ export class MenuComponent implements OnInit {
               label: 'Gestion des archives',
               icon: 'fa-area-chart',
               items: [
-                {label: 'Audit', routerLink: ['admin/audits']}
+                {label: 'Audit', routerLink: ['admin/audits']},
+                {label: 'Résultats d\'éliminations', routerLink: ['archiveManagement/eliminationSearch']}
               ],
               size: 4
             }

@@ -73,6 +73,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -781,6 +782,53 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         }
         return 500;
+    }
+
+    /**
+     * Start elimination analysis
+     *
+     * @param request HTTP request
+     * @param updateSet contains updated field
+     * @return archive unit details
+     */
+    @POST
+    @Path("/elimination/analysis")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("elimination:analysis")
+    public Response startEliminationAnalysis(@Context HttpServletRequest request, String updateSet) {
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try {
+            // Parse updateSet
+            final JsonNode updateJsonNode = JsonHandler.getFromString(updateSet);
+            ObjectNode query = JsonHandler.createObjectNode();
+            query.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
+            query.set(BuilderToken.GLOBAL.QUERY.exactToken(), updateJsonNode.get("query").get(BuilderToken.GLOBAL.QUERY.exactToken()));
+
+            EliminationRequestBody requestBody = new EliminationRequestBody();
+            requestBody.setDate(updateJsonNode.get("date").asText());
+            requestBody.setDslRequest(query);
+
+            final RequestResponse<JsonNode> eliminationResponse =
+                UserInterfaceTransactionManager.startEliminationAnalysis(requestBody,
+                    UserInterfaceTransactionManager.getVitamContext(request));
+            return eliminationResponse.toResponse();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**

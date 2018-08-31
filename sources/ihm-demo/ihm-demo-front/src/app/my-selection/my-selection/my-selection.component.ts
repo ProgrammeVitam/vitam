@@ -11,9 +11,10 @@ import {Hits, VitamResponse} from '../../common/utils/response';
 import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
 import {MySelectionService} from '../my-selection.service';
 import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
-import {Router} from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {DialogService} from '../../common/dialog/dialog.service';
 import {SelectItem} from 'primeng/api';
+import { Rule } from '../../referentials/details/rule/rule';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Panier', routerLink: 'basket'}
@@ -29,6 +30,7 @@ export class MySelectionComponent extends PageComponent {
   displayedItems: ArchiveUnitSelection[] = [];
   displaySelectedDelete = false;
   displayDeleteAll = false;
+  basketId: string;
 
   columns: ColumnDefinition[];
 
@@ -51,7 +53,7 @@ export class MySelectionComponent extends PageComponent {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService,
+  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public activatedRoute: ActivatedRoute,
               public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService,
               public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
     super('Ma selection', breadcrumb, titleService, breadcrumbService);
@@ -59,15 +61,19 @@ export class MySelectionComponent extends PageComponent {
 
   pageOnInit() {
     this.columns = this.getColumns('EXPORT');
-    this.mySelectionService.getResults(this.firstItem, 50).subscribe(
-      (response: VitamResponse) => {
-        this.selectedArchiveUnits = this.getFromResponse(response);
-        this.hits = response.$hits;
-        this.lastPage = this.hits.limit / this.nbRows;
-        this.displayedItems = this.selectedArchiveUnits.slice(this.firstItem, this.firstItem + this.nbRows);
-      }
-    );
 
+    this.activatedRoute.params.subscribe(
+      params => {
+        this.basketId = params['id'];
+        this.mySelectionService.getResults(this.firstItem, 50, this.basketId).subscribe(
+          (response: VitamResponse) => {
+            this.selectedArchiveUnits = this.getFromResponse(response);
+            this.hits = response.$hits;
+            this.lastPage = this.hits.limit / this.nbRows;
+            this.displayedItems = this.selectedArchiveUnits.slice(this.firstItem, this.firstItem + this.nbRows);
+          }
+        );
+      });
   }
 
   isAllChecked(): boolean {
@@ -341,10 +347,20 @@ export class MySelectionComponent extends PageComponent {
         break;
       case 'ELIMINATION':
         if (this.checkInputs()) {
-          // TODO Launch Elimination
-          //this.archiveUnitService.elimination(query, this.form).subscribe();
+          let eliminationInfo = {
+            query: query,
+            date: DateService.dateToString(this.form.eliminationDate),
+            mode: this.form.eliminationMode
+          };
+
+          this.archiveUnitService.eliminationAnalysis(eliminationInfo).subscribe(
+            () => {
+              this.displayActionEnded(this.selectedOption, true);
+            }, () => {
+              this.displayActionEnded(this.selectedOption, false);
+            }
+          );
           this.displayActionEnded(this.selectedOption, true);
-          // TODO: Handle success / error mode
         }
         break;
       case 'MASS_UPDATE':
@@ -363,7 +379,6 @@ export class MySelectionComponent extends PageComponent {
               this.displayActionEnded(this.selectedOption, false);
             }
           );
-          // TODO: Handle success / error mode
         }
         break;
       default:
@@ -375,7 +390,7 @@ export class MySelectionComponent extends PageComponent {
   initForm() {
     switch(this.selectedOption) {
       case 'EXPORT': case 'AUDIT': case 'DELETE':
-        return;
+      return;
       case 'ELIMINATION':
         this.form.eliminationMode = false;
         this.form.eliminationDate = null;
@@ -390,9 +405,9 @@ export class MySelectionComponent extends PageComponent {
   checkInputs(): boolean {
     switch(this.selectedOption) {
       case 'EXPORT': case 'AUDIT': case 'DELETE':
-        return true;
+      return true;
       case 'ELIMINATION':
-        return this.form.eliminationDate != null;
+        return this.form.eliminationDate != null && this.form.eliminationMode !== true;
       case 'MASS_UPDATE':
         return this.form.updateRules || this.form.updateMetadata;
       default:

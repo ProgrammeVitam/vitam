@@ -45,12 +45,15 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.stream.StreamSupport;
@@ -150,23 +153,12 @@ public class PrepareUpdateUnits extends ActionHandler {
      */
     private void createDistributionFile(final ScrollSpliterator<JsonNode> scrollRequest, File distribFile)
         throws ProcessingException {
-        try (BufferedWriter bufferedOutput = new BufferedWriter(new FileWriter(distribFile))) {
-            // write first line, findFirst not used because order is not guaranteed 
-            scrollRequest.tryAdvance(item -> {
-                    try {
-                        bufferedOutput.write(getJsonLineForItem(item));
-                    } catch (IOException e) {
-                        throw new VitamRuntimeException(e);
-                    }
-                }
-            );
+        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
 
-            // write new lines (avoid writing empty line at end)
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {
                     try {
-                        bufferedOutput.newLine();
-                        bufferedOutput.write(getJsonLineForItem(item));
+                        jsonLineWriter.addEntry(getJsonLineForItem(item));
                     } catch (IOException e) {
                         throw new VitamRuntimeException(e);
                     }
@@ -178,16 +170,8 @@ public class PrepareUpdateUnits extends ActionHandler {
         }
     }
 
-    /**
-     * getJsonLineForItem
-     * @param item
-     * @return
-     */
-    private String getJsonLineForItem(JsonNode item) {
-        ObjectNode itemUnit = createObjectNode();
-        itemUnit.put("id", item.get("#id").textValue());
-
-        return JsonHandler.unprettyPrint(itemUnit);
+    private JsonLineModel getJsonLineForItem(JsonNode item) {
+        return new JsonLineModel(item.get("#id").textValue(), null, null);
     }
 
     /**

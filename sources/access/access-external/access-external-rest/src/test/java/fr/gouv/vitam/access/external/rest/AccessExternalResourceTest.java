@@ -26,26 +26,39 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Header;
+import com.jayway.restassured.response.Headers;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,38 +72,21 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
@@ -117,6 +113,12 @@ public class AccessExternalResourceTest {
         "{\"$query\": {\"$eq\": {\"aa\" : \"vv\" }}, \"$projection\": {}, \"$filter\": {}}";
     private static final String BODY_TEST_MULTIPLE =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$projection\": {}, \"$filter\": {}}";
+    private static final String ELIMINATION_INVALID_QUERY_WITH_PROJECTION =
+        "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$projection\": {} }";
+    private static final String ELIMINATION_INVALID_QUERY_WITH_FILTER =
+        "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$filter\": {} }";
+    private static final String ELIMINATION_QUERY =
+        "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
@@ -158,6 +160,7 @@ public class AccessExternalResourceTest {
     // LOGGER
     private static final String ACCESS_UNITS_URI = "/units";
     private static final String ACCESS_UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
+    private static final String ELIMINATION_ANALYSIS_URI = "/elimination/analysis";
 
     private static final String ID_UNIT = "identifier5";
     private static final String TENANT_ID = "0";
@@ -1917,6 +1920,76 @@ public class AccessExternalResourceTest {
             .post(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void testStartEliminationAnalysis_OK() throws Exception {
+        PowerMockito.when(clientAccessInternal.startEliminationAnalysis(anyObject()))
+            .thenReturn(new RequestResponseOK().setHttpCode(200));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(new EliminationRequestBody("2000-01-02",
+                JsonHandler.getFromString(ELIMINATION_QUERY))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ELIMINATION_ANALYSIS_URI)
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void testStartEliminationAnalysis_InvalidRequest() throws Exception {
+        PowerMockito.when(clientAccessInternal.startEliminationAnalysis(anyObject()))
+            .thenReturn(new RequestResponseOK().setHttpCode(200));
+
+        // Query with projection
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(new EliminationRequestBody("2000-01-02",
+                JsonHandler.getFromString(ELIMINATION_INVALID_QUERY_WITH_PROJECTION))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ELIMINATION_ANALYSIS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // Query with projection
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(new EliminationRequestBody("2000-01-02",
+                JsonHandler.getFromString(ELIMINATION_INVALID_QUERY_WITH_FILTER))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ELIMINATION_ANALYSIS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // Query with invalid date + TIME
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(new EliminationRequestBody("2000-01-02T00:00:00",
+                JsonHandler.getFromString(ELIMINATION_QUERY))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ELIMINATION_ANALYSIS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // Query with invalid date
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(new EliminationRequestBody("INVALID_DATE",
+                JsonHandler.getFromString(ELIMINATION_QUERY))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ELIMINATION_ANALYSIS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 }

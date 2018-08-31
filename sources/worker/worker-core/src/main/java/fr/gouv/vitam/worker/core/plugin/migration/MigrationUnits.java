@@ -140,7 +140,7 @@ public class MigrationUnits extends ActionHandler {
             //// get metadata
             JsonNode unit = getUnitMetadata(unitId);
 
-            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+            MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);

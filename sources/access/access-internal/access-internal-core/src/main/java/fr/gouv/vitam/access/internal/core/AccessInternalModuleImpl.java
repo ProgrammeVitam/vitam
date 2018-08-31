@@ -897,7 +897,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // get metadata
         JsonNode jsonResponse = selectMetadataRawDocumentById(idUnit, DataCategory.UNIT);
         JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
-        MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+        MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         // get lfc
         JsonNode lfc = getRawUnitLifeCycleById(idUnit);

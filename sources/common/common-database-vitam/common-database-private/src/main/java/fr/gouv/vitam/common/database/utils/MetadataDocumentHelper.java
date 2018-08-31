@@ -28,10 +28,14 @@ package fr.gouv.vitam.common.database.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +65,21 @@ public class MetadataDocumentHelper {
     }
 
 
+    private enum TemporaryUnitFields {
+        ELIMINATION("_elimination");
+
+        private final String fieldName;
+
+        TemporaryUnitFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+    }
+
+
     private enum ComputedGraphObjectGroupFields {
 
         SPS("_sps"),
@@ -79,8 +98,11 @@ public class MetadataDocumentHelper {
     }
 
 
-    private final static List<String> computedGraphUnitFields;
-    private final static List<String> computedGraphObjectGroupFields;
+    private static final List<String> computedGraphUnitFields;
+    private static final List<String> computedGraphObjectGroupFields;
+    private static final Set<String> temporaryUnitFields;
+    private static final Set<String> computedUnitFields;
+    private static final Set<String> computedObjectGroupFields;
 
     static {
         computedGraphUnitFields = ListUtils.unmodifiableList(
@@ -90,6 +112,15 @@ public class MetadataDocumentHelper {
         computedGraphObjectGroupFields = ListUtils.unmodifiableList(
             Arrays.stream(ComputedGraphObjectGroupFields.values()).map(ComputedGraphObjectGroupFields::getFieldName)
                 .collect(Collectors.toList()));
+
+        temporaryUnitFields = SetUtils.unmodifiableSet(
+            Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
+                Collectors.toSet()));
+
+        computedUnitFields = SetUtils.unmodifiableSet(new HashSet<>(
+            CollectionUtils.union(computedGraphUnitFields, temporaryUnitFields)));
+
+        computedObjectGroupFields = SetUtils.unmodifiableSet(new HashSet<>(computedGraphObjectGroupFields));
     }
 
     /**
@@ -107,17 +138,39 @@ public class MetadataDocumentHelper {
     }
 
     /**
-     * Removes computed graph fields from unit json
+     *
+     * @return the list of temporary unit fields
+     */
+    public static Set<String> getTemporaryUnitFields() {
+        return temporaryUnitFields;
+    }
+
+    /**
+     * @return the list of all unit computed fields (computed graph fields + temporary fields)
+     */
+    public static Set<String> getComputedUnitFields() {
+        return computedUnitFields;
+    }
+
+    /**
+     * @return the list of all object group computed fields
+     */
+    public static Set<String> getComputedObjectGroupFields() {
+        return computedObjectGroupFields;
+    }
+
+    /**
+     * Removes computed fields (graph, elimination indexation... ) from unit json
      *
      * @param unitJson
      */
-    public static void removeComputedGraphFieldsFromUnit(JsonNode unitJson) {
+    public static void removeComputedFieldsFromUnit(JsonNode unitJson) {
         if (!unitJson.isObject()) {
             throw new IllegalArgumentException("Expected unit object json");
         }
 
         ObjectNode unit = (ObjectNode) unitJson;
-        unit.remove(getComputedGraphUnitFields());
+        unit.remove(computedUnitFields);
     }
 
     /**
@@ -125,12 +178,12 @@ public class MetadataDocumentHelper {
      *
      * @param objectGroupJson
      */
-    public static void removeComputedGraphFieldsFromObjectGroup(JsonNode objectGroupJson) {
+    public static void removeComputedFieldsFromObjectGroup(JsonNode objectGroupJson) {
         if (!objectGroupJson.isObject()) {
             throw new IllegalArgumentException("Expected object group object json");
         }
 
         ObjectNode objectGroup = (ObjectNode) objectGroupJson;
-        objectGroup.remove(getComputedGraphUnitFields());
+        objectGroup.remove(computedObjectGroupFields);
     }
 }

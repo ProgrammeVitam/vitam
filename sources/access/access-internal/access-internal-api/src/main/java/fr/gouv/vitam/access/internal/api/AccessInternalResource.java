@@ -27,6 +27,13 @@
 package fr.gouv.vitam.access.internal.api;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.server.application.resources.VitamResource;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,15 +44,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.server.application.resources.VitamResource;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-
 /**
  * Access Resource REST API
- *
  */
 public interface AccessInternalResource extends VitamResource {
 
@@ -85,10 +85,18 @@ public interface AccessInternalResource extends VitamResource {
     Response startReclassificationWorkflow(JsonNode reclassificationRequest);
 
     /**
+     * Starts elimination analysis workflow.
+     *
+     * @param eliminationRequestBody elimination DSL request
+     * @return response
+     */
+    Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody);
+
+    /**
      * gets archive units by Id with Json query
      *
      * @param dslQuery DSL, null not allowed
-     * @param unitId   units identifier
+     * @param unitId units identifier
      * @return a archive unit result list on json format
      */
     Response getUnitById(JsonNode dslQuery, String unitId);
@@ -97,7 +105,7 @@ public interface AccessInternalResource extends VitamResource {
      * gets archive units by Id with Json query
      *
      * @param dslQuery DSL, null not allowed
-     * @param unitId   units identifier
+     * @param unitId units identifier
      * @return a archive unit result list on xml format
      */
     Response getUnitByIdWithXMLFormat(JsonNode dslQuery, String unitId);
@@ -115,7 +123,7 @@ public interface AccessInternalResource extends VitamResource {
      * gets object group by Id with Json query
      *
      * @param dslQuery DSL, null not allowed
-     * @param unitId   units identifier
+     * @param unitId units identifier
      * @return an object group result list on xml format
      */
     Response getObjectByUnitIdWithXMLFormat(JsonNode dslQuery, String unitId);
@@ -123,8 +131,8 @@ public interface AccessInternalResource extends VitamResource {
     /**
      * update archive units by Id with Json query
      *
-     * @param dslQuery  DSL, null not allowed
-     * @param unitId    units identifier
+     * @param dslQuery DSL, null not allowed
+     * @param unitId units identifier
      * @param requestId request identifier
      * @return a archive unit result list
      */
@@ -134,7 +142,7 @@ public interface AccessInternalResource extends VitamResource {
      * Retrieve an ObjectGroup by its id
      *
      * @param idObjectGroup the ObjectGroup id
-     * @param query         the json query
+     * @param query the json query
      * @return an http response containing the objectGroup as json or a json serialized error
      */
     Response getObjectGroup(String idObjectGroup, JsonNode query);
@@ -160,7 +168,7 @@ public interface AccessInternalResource extends VitamResource {
     /**
      * Mass update of archive units with Json query
      *
-     * @param dslQuery  DSL, null not allowed
+     * @param dslQuery DSL, null not allowed
      * @return the response
      */
     Response massUpdateUnits(JsonNode dslQuery);
@@ -172,6 +180,6 @@ public interface AccessInternalResource extends VitamResource {
      * @return a objects group result list
      */
     Response getObjects(JsonNode dslQuery)
-            throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 
 }

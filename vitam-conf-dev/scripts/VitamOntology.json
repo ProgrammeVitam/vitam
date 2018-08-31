@@ -2587,6 +2587,71 @@
         "Collections": [
             "SecurityProfile"
         ]
+    },
+    {
+        "Identifier": "OperationId",
+        "ApiField": "OperationId",
+        "Description": "Mapping : unit-es-mapping.json. Identifiant de l'operation.",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "OperationId",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "GlobalStatus",
+        "ApiField": "GlobalStatus",
+        "Description": "Mapping : unit-es-mapping.json. Statut global de l'indexation.",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "GlobalStatus",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "DestroyableOriginatingAgencies",
+        "ApiField": "DestroyableOriginatingAgencies",
+        "Description": "Mapping : unit-es-mapping.json. Services producteurs éliminables",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "DestroyableOriginatingAgencies",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "NonDestroyableOriginatingAgencies",
+        "ApiField": "NonDestroyableOriginatingAgencies",
+        "Description": "Mapping : unit-es-mapping.json. Services producteurs non éliminables",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "NonDestroyableOriginatingAgencies",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "ExtendedInfoType",
+        "ApiField": "ExtendedInfoType",
+        "Description": "Mapping : unit-es-mapping.json. Type d'informations étendues",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "ExtendedInfoType",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "ParentUnitId",
+        "ApiField": "ParentUnitId",
+        "Description": "Mapping : unit-es-mapping.json. Identifiant de l'unité parente",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "ParentUnitId",
+        "Collections": [
+            "Unit"
+        ]
     }
 ]
-

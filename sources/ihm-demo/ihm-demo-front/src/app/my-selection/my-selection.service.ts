@@ -13,8 +13,8 @@ export class MySelectionService {
 
   constructor(public archiveUnitService: ArchiveUnitService, public resourceService: ResourcesService) { }
 
-  getQueryForBasket(offset: number, limit: number) {
-    const basket: BasketInfo[] = this.getBasketFromLocalStorage(this.resourceService.getTenant());
+  getQueryForBasket(offset: number, limit: number, specificBasket?: string) {
+    const basket: BasketInfo[] = this.getBasketFromLocalStorage(this.resourceService.getTenant(), specificBasket);
     const ids = basket.map((x) => x.id);
     return {
       '$query': [
@@ -86,8 +86,8 @@ export class MySelectionService {
     };
   }
 
-  getResults(offset, limit: number = 125): Observable<VitamResponse> {
-    const query = this.getQueryForBasket(offset, limit);
+  getResults(offset, limit: number = 125, specificBasket?: string): Observable<VitamResponse> {
+    const query = this.getQueryForBasket(offset, limit, specificBasket);
     return this.archiveUnitService.getByQuery(query);
   }
 
@@ -96,8 +96,8 @@ export class MySelectionService {
     return this.archiveUnitService.getByQuery(query);
   }
 
-  haveChildren(id: string): boolean {
-    const basket: BasketInfo[] = this.getBasketFromLocalStorage(this.resourceService.getTenant());
+  haveChildren(id: string, specificBasket?: string): boolean {
+    const basket: BasketInfo[] = this.getBasketFromLocalStorage(this.resourceService.getTenant(), specificBasket);
     const find: BasketInfo = basket.find((x) => x.id === id);
     return find ? find.child : false;
   }
@@ -139,13 +139,19 @@ export class MySelectionService {
     return this.getIds(isOperation, id);
   }
 
-  addToSelection(withChildren: boolean, ids: string[], tenantId: string) {
-    let basketInfo: BasketInfo[] = this.getBasketFromLocalStorage(tenantId);
+  // TODO: Replace addToSelection by this and refactorize code ! (tenant should not be computed by caller)
+  addToSelectionWithoutTenant(withChildren: boolean, ids: string[], specificBasket?: string) {
+    let tenantId = this.resourceService.getTenant();
+    this.addToSelection(withChildren, ids, tenantId, specificBasket);
+  }
+
+  addToSelection(withChildren: boolean, ids: string[], tenantId: string, specificBasket?: string) {
+    let basketInfo: BasketInfo[] = this.getBasketFromLocalStorage(tenantId, specificBasket);
 
     if (basketInfo === null) {
       // Case of new item
       basketInfo = ids.map((x) => new BasketInfo(x, withChildren));
-      this.setBasketToLocalStorage(tenantId, basketInfo);
+      this.setBasketToLocalStorage(tenantId, basketInfo, specificBasket);
     } else {
       // Check for duplicate/update values
       for (let i = 0; i < ids.length; i++) {
@@ -158,25 +164,32 @@ export class MySelectionService {
         }
       }
 
-      this.setBasketToLocalStorage(tenantId, basketInfo);
+      this.setBasketToLocalStorage(tenantId, basketInfo, specificBasket);
     }
   }
 
-  deleteFromBasket(ids: string[]) {
+  deleteAllFromBasket(specificBasket?: string) {
     const tenantId: string = this.resourceService.getTenant();
-    const basketInfo: BasketInfo[] = this.getBasketFromLocalStorage(tenantId);
-    this.setBasketToLocalStorage(tenantId, basketInfo.filter(x => ids.indexOf(x.id) === -1));
+    this.setBasketToLocalStorage(tenantId, [], specificBasket);
   }
 
-  getBasketFromLocalStorage(tenantId: string): BasketInfo[] {
-    const storageBasket: string = localStorage.getItem(`${BASKET_LOCAL_STORAGE_VARIABLE}_${tenantId}`);
+  deleteFromBasket(ids: string[], specificBasket?: string) {
+    const tenantId: string = this.resourceService.getTenant();
+    const basketInfo: BasketInfo[] = this.getBasketFromLocalStorage(tenantId);
+    this.setBasketToLocalStorage(tenantId, basketInfo.filter(x => ids.indexOf(x.id) === -1), specificBasket);
+  }
+
+  getBasketFromLocalStorage(tenantId: string, specificName?: string): BasketInfo[] {
+    let suffix = specificName? '_' + specificName : '';
+    const storageBasket: string = localStorage.getItem(`${BASKET_LOCAL_STORAGE_VARIABLE}_${tenantId}${suffix}`);
     if (storageBasket === null) {
       return [];
     }
     return plainToClass(BasketInfo, JSON.parse(storageBasket));
   }
 
-  setBasketToLocalStorage(tenantId: string, basketInfo: BasketInfo[]) {
-    localStorage.setItem(`${BASKET_LOCAL_STORAGE_VARIABLE}_${tenantId}`, JSON.stringify(basketInfo));
+  setBasketToLocalStorage(tenantId: string, basketInfo: BasketInfo[], specificName?: string) {
+    let suffix = specificName? '_' + specificName : '';
+    localStorage.setItem(`${BASKET_LOCAL_STORAGE_VARIABLE}_${tenantId}${suffix}`, JSON.stringify(basketInfo));
   }
 }

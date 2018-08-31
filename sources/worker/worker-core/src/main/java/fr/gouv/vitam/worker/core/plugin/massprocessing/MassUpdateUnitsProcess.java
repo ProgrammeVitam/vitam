@@ -352,7 +352,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
         //// get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, mdClient);
-        MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+        MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         //// get lfc
         JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.UNIT, lfcClient);

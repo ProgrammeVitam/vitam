@@ -26,19 +26,22 @@
  */
 package fr.gouv.vitam.access.internal.serve.filter;
 
-import java.io.IOException;
+import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import java.io.IOException;
 
 /**
  * Manage the X_ACCESS_CONTRAT_ID header from the server-side perspective.
  */
 public class AccessContractIdContainerFilter implements ContainerRequestFilter {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractIdContainerFilter.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -50,6 +53,7 @@ public class AccessContractIdContainerFilter implements ContainerRequestFilter {
             HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(), HeaderIdHelper.Context.REQUEST);
             AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestContext.getHeaders());
         } catch (MissingAccessContractIdException e) {
+            LOGGER.warn(e);
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
         }
     }

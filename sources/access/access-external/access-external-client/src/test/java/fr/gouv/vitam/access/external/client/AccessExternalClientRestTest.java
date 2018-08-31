@@ -1,8 +1,25 @@
 package fr.gouv.vitam.access.external.client;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,26 +35,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AccessExternalClientRestTest extends VitamJerseyTest {
     private static final String QUERY_DSL = "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
@@ -285,6 +285,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response exportDIP(JsonNode queryJson)
             throws InvalidParseOperationException {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/elimination/analysis")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response startEliminationAnalysis(String queryDsl) {
             return expectedResponse.post();
         }
     }
@@ -756,7 +764,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenRessourceOKWhenSelectUnitsWithInheritedRulesThenReturnOK()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertThat(client.selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql))).isNotNull();
     }
@@ -791,5 +799,68 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             .selectUnitsWithInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(QUERY_DSL))
             .getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /*
+     * Elimination analysis
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenResourceOKWhenStartEliminationAnalysisThenReturnOK()
+        throws Exception {
+
+        RequestResponseOK responseOK = new RequestResponseOK();
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client.startEliminationAnalysis(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            eliminationRequestBody).isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInternalServerError_whenStartEliminationAnalysis_ThenRaiseAnExeption() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAnalysis(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceNotFound_whenStartEliminationAnalysis_ThenRaiseAnException()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAnalysis(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequest_whenStartEliminationAnalysis_ThenRaiseAnException()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAnalysis(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 }

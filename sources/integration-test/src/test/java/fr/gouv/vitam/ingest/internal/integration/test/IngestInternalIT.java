@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -71,6 +72,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -123,13 +125,22 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -346,7 +357,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
@@ -371,14 +382,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -568,7 +572,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
@@ -593,14 +597,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -712,7 +709,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
 
@@ -737,14 +734,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -785,7 +775,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             prepareVitamSession();
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_ARBRE);
 
@@ -810,14 +800,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             client.initWorkFlow("HOLDING_SCHEME_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
             // Try to check AU - arborescence and parents stuff, without roots
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -860,7 +843,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL);
 
@@ -885,14 +868,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -913,7 +889,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             prepareVitamSession();
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
 
@@ -939,14 +915,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -968,7 +937,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY);
 
@@ -993,14 +962,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.KO, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -1045,14 +1007,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         jsonNodeRequestResponse.toResponse();
 
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
     }
 
@@ -1082,7 +1037,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_KO_WITH_SPECIAL_CHARS);
 
@@ -1107,14 +1062,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1144,7 +1092,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_KO_WITH_EMPTY_TITLE);
 
@@ -1169,14 +1117,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1205,7 +1146,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_KO_WITH_INCORRECT_DATE);
 
@@ -1230,14 +1171,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1269,7 +1203,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
         final GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
 
@@ -1293,14 +1227,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
     }
 
@@ -1313,7 +1240,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
         // processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
         // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
 
@@ -1338,14 +1265,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1373,7 +1293,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
 
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
 
@@ -1436,7 +1356,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
 
@@ -1461,14 +1381,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1496,7 +1409,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITH_ADDRESSEE);
 
@@ -1521,16 +1434,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-
-        // TODO: 6/6/17 This test status code is KO why OK needed bellow checkUnitSuccess
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1560,7 +1464,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITH_SERVICE_LEVEL);
 
@@ -1585,14 +1489,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1624,7 +1521,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_OK_WITHOUT_SERVICE_LEVEL);
 
@@ -1649,14 +1546,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1688,7 +1578,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try {
             prepareVitamSession();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
@@ -1712,14 +1602,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            wait(operationGuid.toString());
-
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+            ProcessWorkflow processWorkflow;
 
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.match("Title", "Sensibilisation API"));
@@ -1965,7 +1849,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             prepareVitamSession();
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
@@ -2048,7 +1932,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_4396);
 
@@ -2072,14 +1956,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "monSIP"))
@@ -2272,7 +2149,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
 
@@ -2296,44 +2173,36 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-        wait(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
         // Select single unit with inherited rules
 
         SelectMultiQuery select1 = new SelectMultiQuery();
         select1.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "Buttes-Chaumont"))
-            .add(QueryHelper.in("#operations", operationGuid.toString())));
+            .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString())));
         // Get AU
-        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        final JsonNode results1 = metadataClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> results1 =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
 
-        assertNotNull(results1);
-        assertNotNull(results1.get("$results"));
-        assertThat(results1.get("$results")).hasSize(1);
-        JsonNode unitButtesChaumont1 = results1.get("$results").get(0);
+        assertThat(results1.getResults()).hasSize(1);
+        JsonNode unitButtesChaumont1 = results1.getFirstResult();
 
         validateButtesChaumontInheritedRules(unitButtesChaumont1);
 
         // Select multiple units with inherited rules
 
         SelectMultiQuery select2 = new SelectMultiQuery();
-        select2.addQueries(QueryHelper.in("#operations", operationGuid.toString()));
+        select2.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString()));
         // Get AU
-        final JsonNode results2 = metadataClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
 
-        assertNotNull(results2);
-        assertNotNull(results2.get("$results"));
-        assertThat(results2.get("$results")).hasSize(28);
+        final RequestResponseOK<JsonNode> results2 =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+
+        assertThat(results2.getResults()).hasSize(28);
 
         JsonNode unitButtesChaumont2 = null;
-        for (JsonNode jsonNode : results2.get("$results")) {
+        for (JsonNode jsonNode : results2.getResults()) {
             if (jsonNode.get("Title").asText().equals("Buttes-Chaumont")) {
                 unitButtesChaumont2 = jsonNode;
             }
@@ -2341,6 +2210,14 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         validateButtesChaumontInheritedRules(unitButtesChaumont2);
 
+        // Select units with inherited rules with access contract
+
+        SelectMultiQuery select3 = select2;
+        VitamThreadUtils.getVitamSession().setContractId("aName4");
+        final RequestResponseOK<JsonNode> results3 =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+
+        assertThat(results3.getResults()).hasSize(0);
     }
 
     private void validateButtesChaumontInheritedRules(JsonNode unitButtesChaumont)
@@ -2391,6 +2268,106 @@ public class IngestInternalIT extends VitamRuleRunner {
             unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_ACCESS);
         assertThat(accessRuleCategory.getProperties()).hasSize(0);
         assertThat(accessRuleCategory.getRules()).hasSize(3);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testEliminationAnalysisOverSipWithComplexRules() throws Exception {
+        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid != null ? ingestOperationGuid.toString() : "outcomeDetailMessage",
+            ingestOperationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        final Response response2 = client.uploadInitialLogbook(params);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+        // init workflow before execution
+        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.OK);
+
+        // elimination analysis
+
+        final GUID eliminationAnalysisOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(eliminationAnalysisOperationGuid);
+
+        SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
+        analysisDslRequest
+            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2018-01-01", analysisDslRequest.getFinalSelect());
+
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponse<JsonNode> analysisResult =
+            accessInternalClient.startEliminationAnalysis(eliminationRequestBody);
+
+        assertThat(analysisResult.isOk()).isTrue();
+
+        awaitForWorkflowTerminationWithStatus(eliminationAnalysisOperationGuid, StatusCode.OK);
+
+        // Check indexation querying
+        SelectMultiQuery checkAnalysisDslRequest = new SelectMultiQuery();
+        checkAnalysisDslRequest.addQueries(
+            QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()))
+                .add(QueryHelper
+                    .eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
+                .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", "DESTROY")));
+
+        checkAnalysisDslRequest.addUsedProjection(
+            "Title", VitamFieldsHelper.elimination(), VitamFieldsHelper.version());
+
+        final RequestResponseOK<JsonNode> indexedUnitsResponse =
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
+
+        assertThat(indexedUnitsResponse.isOk()).isTrue();
+
+        List<String> indexedUnitTitles = indexedUnitsResponse.getResults()
+            .stream()
+            .map(node -> node.get("Title").asText())
+            .collect(Collectors.toList());
+
+        assertThat(indexedUnitTitles)
+            .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
+
+        // Check access to #elimination field
+        assertThat(indexedUnitsResponse.getFirstResult()
+            .get(VitamFieldsHelper.elimination())
+            .get(0)
+            .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
+
+        // Ensure document version has not been updated during indexation process
+        assertThat(indexedUnitsResponse.getFirstResult().get(VitamFieldsHelper.version()).asInt())
+            .isEqualTo(0);
+    }
+
+
+    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
+
+        wait(operationGuid.toString());
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(ok, processWorkflow.getStatus());
     }
 
 }

@@ -117,7 +117,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
             Stopwatch loadAU = Stopwatch.createStarted();
             JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, metaDataClient);
-            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+            MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
             PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadAU.elapsed(TimeUnit.MILLISECONDS));
 
             //// get lfc

@@ -1,0 +1,12 @@
+{
+  "dslRequest": {
+    "$roots": [ "id0" ],
+    "$query": [
+      {
+        "$match": { "title": "titre" },
+        "$depth": 4
+      }
+    ]
+  },
+  "date": "2018-01-23"
+}

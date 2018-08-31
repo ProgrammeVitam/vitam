@@ -1,0 +1,18 @@
+{
+  "id": "unit2",
+  "params": {
+    "OperationId": "opId",
+    "GlobalStatus": "PARTIAL_DESTROY",
+    "DestroyableOriginatingAgencies": [
+      "sp2"
+    ],
+    "NonDestroyableOriginatingAgencies": [
+      "sp9"
+    ],
+    "ExtendedInfo": [
+      {
+        "ExtendedInfoType": "KEEP_ACCESS_SP"
+      }
+    ]
+  }
+}

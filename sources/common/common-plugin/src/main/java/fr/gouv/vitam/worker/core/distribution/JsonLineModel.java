@@ -16,9 +16,10 @@
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.processing.model;
+package fr.gouv.vitam.worker.core.distribution;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * JsonLine Model.
@@ -36,6 +37,22 @@ public class JsonLineModel {
      */
     @JsonProperty("distribGroup")
     private Integer distribGroup;
+
+    /**
+     * params
+     */
+    @JsonProperty("params")
+    private JsonNode params;
+
+    public JsonLineModel() {
+        // Empty constructor for deserialization
+    }
+
+    public JsonLineModel(String id, Integer distribGroup, JsonNode params) {
+        this.id = id;
+        this.distribGroup = distribGroup;
+        this.params = params;
+    }
 
     /**
      * getId
@@ -71,5 +88,13 @@ public class JsonLineModel {
      */
     public void setDistribGroup(Integer distribGroup) {
         this.distribGroup = distribGroup;
+    }
+
+    public JsonNode getParams() {
+        return params;
+    }
+
+    public void setParams(JsonNode params) {
+        this.params = params;
     }
 }

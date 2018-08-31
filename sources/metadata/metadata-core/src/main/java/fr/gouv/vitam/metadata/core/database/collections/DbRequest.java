@@ -42,12 +42,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
@@ -841,9 +841,8 @@ public class DbRequest {
         }
         final List<MetadataDocument<?>> listDocuments = new ArrayList<>();
         final FindIterable<MetadataDocument<?>> searchResults = collection.find(roots);
-        final Iterator<MetadataDocument<?>> it = searchResults.iterator();
-        while (it.hasNext()) {
-            listDocuments.add(it.next());
+        for (MetadataDocument<?> searchResult : searchResults) {
+            listDocuments.add(searchResult);
         }
 
         last.clear();
@@ -851,8 +850,7 @@ public class DbRequest {
         try {
             validator = new SchemaValidationUtils();
         } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.debug("Unable to initialize Json Validator");
-            throw new MetaDataExecutionException(e);
+            throw new MetaDataExecutionException("Unable to initialize Json Validator", e);
         }
 
         for (final MetadataDocument<?> document : listDocuments) {
@@ -861,79 +859,87 @@ public class DbRequest {
 
             UpdateResult result = null;
             int tries = 0;
-            boolean modified = false;
-            MetadataDocument<?> documentFinal = null;
-
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("DEBUG update {} to udate to {}", jsonDocument,
+                    LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
                         MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
-                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                if (documentId.equals(document.get(MetadataDocument.ID))) {
-                    modified = true;
-                    documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
 
-                    if (model == FILTERARGS.UNITS) {
-                        JsonNode externalSchema =
-                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        JsonNode ontologyFields =
-                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-                        if (ontologyFields != null && ontologyFields.size() > 0) {
-                            validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
-                            documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                            documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
-                            documentFinal.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-                        }
-                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
-                        if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                            throw new MetaDataExecutionException(
-                                "Unable to validate updated Unit " + status.getValidationMessage());
-                        }
-                        if (externalSchema != null && externalSchema.size() > 0) {
-                            validateOtherExternalSchema(updatedJsonDocument, externalSchema);
-                            documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        }
-                    }
+                int newDocumentVersion = incrementDocumentVersionIfRequired(model, mongoInMemory, documentVersion);
+                updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
 
-                    // Make Update
-                    final Bson condition =
-                        and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
-                    updatedJsonDocument.remove(VitamDocument.SCORE);
-                    LOGGER.debug("DEBUG update {}", updatedJsonDocument);
-                    result = collection.replaceOne(condition, documentFinal);
-                    if (result.getModifiedCount() != 1) {
-                        result = null;
+                if (model == FILTERARGS.UNITS) {
+                    JsonNode externalSchema =
+                        updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                    JsonNode ontologyFields =
+                        updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
+                    if (ontologyFields != null && ontologyFields.size() > 0) {
+                        validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
                     }
-                    tries++;
-                } else {
-                    break;
+                    SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
+                    if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                        throw new MetaDataExecutionException(
+                            "Unable to validate updated Unit " + status.getValidationMessage());
+                    }
+                    if (externalSchema != null && externalSchema.size() > 0) {
+                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
+                    }
                 }
+
+                // Make Update
+                final Bson condition =
+                    and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
+                updatedJsonDocument.remove(VitamDocument.SCORE);
+                LOGGER.debug("DEBUG update {}", updatedJsonDocument);
+                MetadataDocument<?> finalDocument = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+                result = collection.replaceOne(condition, finalDocument);
+                if (result.getModifiedCount() != 1) {
+                    result = null;
+                }
+                tries++;
             }
 
-            if (modified && result == null) {
+            if (result == null) {
                 throw new MetaDataExecutionException("Can not modify Document");
             }
-            if (modified) {
-                last.addId(documentId, (float) 1);
 
-                try {
-                    if (model == FILTERARGS.UNITS) {
-                        indexFieldsUpdated(last, tenantId);
-                    } else {
-                        indexFieldsOGUpdated(last, tenantId);
-                    }
-                } catch (final Exception e) {
-                    throw new MetaDataExecutionException("Update concern", e);
+            last.addId(documentId, (float) 1);
+
+            try {
+                if (model == FILTERARGS.UNITS) {
+                    indexFieldsUpdated(last, tenantId);
+                } else {
+                    indexFieldsOGUpdated(last, tenantId);
                 }
+            } catch (final Exception e) {
+                throw new MetaDataExecutionException("Update concern", e);
             }
         }
         last.setTotal(last.getNbResult());
         return last;
     }
+
+    private int incrementDocumentVersionIfRequired(FILTERARGS model, MongoDbInMemory mongoInMemory,
+        int documentVersion) {
+
+        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted" and always increment document version (DbRequest, and any other document update like graph computation, indexation, reconstruction...)
+
+        Set<String> updatedFields = mongoInMemory.getUpdatedFields();
+
+        Set<String> computedFields = (model == FILTERARGS.UNITS) ?
+            MetadataDocumentHelper.getComputedUnitFields() :
+            MetadataDocumentHelper.getComputedObjectGroupFields();
+
+        if (computedFields.containsAll(updatedFields)) {
+            return documentVersion;
+        } else {
+            return documentVersion + 1;
+        }
+    }
+
 
     private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
         throws InvalidParseOperationException, MetaDataExecutionException {

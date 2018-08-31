@@ -703,22 +703,8 @@ public class AccessInternalResourceImplTest {
         given()
             .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
-    }
-
-    /**
-     * Checks if the send parameter is a bad request
-     *
-     * @throws Exception
-     */
-    @Test(expected = InvalidParseOperationException.class)
-    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithBadRequest_ThenReturnError_BadRequest()
-        throws Exception {
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(QUERY_TEST, "test")).when()
-            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
-            .statusCode(Status.OK.getStatusCode());
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test

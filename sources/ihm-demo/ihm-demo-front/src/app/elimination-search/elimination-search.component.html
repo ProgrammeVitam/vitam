@@ -1,0 +1,12 @@
+<vitam-search label="Recherche d'opération d'élimination" [service]="service" [data]="searchFields" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" (clearResults)="onClear($event)"
+              (onChangedSearchRequest)="onChangedSearchRequest($event)"></vitam-search>
+
+<vitam-facets [service]="service" [preSearch]="preSearchFunction" [submitFunction]="initialSearch" [facetList]="facetDefinition"
+              (responseEvent)="onNotify($event)" [searchRequest]="searchRequest" [data]="response"></vitam-facets>
+
+<vitam-results [data]="response" [cols]="columns" [addToBasketAllowed]="true" [service]="service" [searchFunction]="paginationSearch"
+               [searchForm]="searchForm" [path]="'/search/archiveUnit'"></vitam-results>
+<div class="ui-g-12">
+    <button pButton type="button" (click)="addInFreshBasket()" label="Traiter les résultats dans un panier"></button>
+</div>

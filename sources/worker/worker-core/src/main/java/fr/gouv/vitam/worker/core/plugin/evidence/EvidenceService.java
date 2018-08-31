@@ -537,10 +537,10 @@ public class EvidenceService {
             // calculate and store digests
             switch (metadataType) {
                 case UNIT:
-                    MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(metadata);
+                    MetadataDocumentHelper.removeComputedFieldsFromUnit(metadata);
                     break;
                 case OBJECTGROUP:
-                    MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(metadata);
+                    MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(metadata);
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown metadata type " + metadataType);

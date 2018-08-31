@@ -50,7 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
-import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Reclassification update distribution handler.

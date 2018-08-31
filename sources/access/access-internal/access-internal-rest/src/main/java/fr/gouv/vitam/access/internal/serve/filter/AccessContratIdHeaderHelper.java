@@ -79,7 +79,7 @@ public class AccessContratIdHeaderHelper {
             String headerAccessContratId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
             if (headerAccessContratId== null){
-                throw new MissingAccessContractIdException(headerAccessContratId);
+                throw new MissingAccessContractIdException("Missing access contract header " + GlobalDataRest.X_ACCESS_CONTRAT_ID);
             }
 
             JsonNode queryDsl = getQueryDsl(headerAccessContratId);            

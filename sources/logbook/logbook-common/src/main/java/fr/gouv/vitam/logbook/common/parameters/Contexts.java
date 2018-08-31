@@ -48,7 +48,8 @@ public enum Contexts {
     EVIDENCE_AUDIT(LogbookTypeProcess.AUDIT, "EVIDENCE_AUDIT"),
     RECTIFICATION_AUDIT(LogbookTypeProcess.AUDIT, "RECTIFICATION_AUDIT"),
     DATA_MIGRATION(LogbookTypeProcess.DATA_MIGRATION, "DATA_MIGRATION"),
-    RECLASSIFICATION(LogbookTypeProcess.RECLASSIFICATION, "RECLASSIFICATION");
+    RECLASSIFICATION(LogbookTypeProcess.RECLASSIFICATION, "RECLASSIFICATION"),
+    ELIMINATION_ANALYSIS(LogbookTypeProcess.ELIMINATION, "ELIMINATION_ANALYSIS");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;

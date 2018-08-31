@@ -64,7 +64,7 @@ public class MetadataRuleService {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetadataRuleService.class);
     private static final int MAX_PRINTED_MISSING_UNITS = 10;
-    private static final String INHERITED_RULES = "InheritedRules";
+    public static final String INHERITED_RULES = "InheritedRules";
 
     /**
      * By default ES does not allow more than 1024 clauses in selects

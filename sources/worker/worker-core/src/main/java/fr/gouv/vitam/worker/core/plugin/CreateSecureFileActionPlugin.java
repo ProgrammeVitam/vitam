@@ -134,7 +134,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_UNITS_FOLDER;
                 JsonNode unit = selectArchiveUnitById(objectGroupId);
                 metadataType = MetadataType.UNIT;
-                MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+                MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
                 if (unit.get(OG) != null) {
                     lfcTraceSecFileDataLine.setIdGot(unit.get(OG).textValue());
@@ -152,7 +152,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
                 metadataType = MetadataType.OBJECTGROUP;
-                MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(og);
+                MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(og);
 
                 hashMetaData = generateDigest(og);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,

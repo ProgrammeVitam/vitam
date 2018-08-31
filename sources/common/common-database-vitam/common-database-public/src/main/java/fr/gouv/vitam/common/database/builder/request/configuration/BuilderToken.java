@@ -696,6 +696,10 @@ public abstract class BuilderToken {
          */
         GRAPH("graph"),
         /**
+         * elimination
+         */
+        ELIMINATION("elimination"),
+        /**
          * Graph last persisted date
          */
         GRAPH_LAST_PERSISTED_DATE("graph_last_persisted_date"),

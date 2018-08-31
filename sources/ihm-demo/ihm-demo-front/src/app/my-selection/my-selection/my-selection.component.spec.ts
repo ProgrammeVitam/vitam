@@ -26,7 +26,8 @@ const response: VitamResponse = {
     $query: {},
     $projection: {},
     $filter: {}
-  }
+  },
+  $facetResults: []
 };
 
 const defaultMetadata: ArchiveUnitMetadata = {

@@ -1,0 +1,96 @@
+[
+  {
+    "#id": "unit1",
+    "#object": "got1",
+    "#originating_agency": "sp1",
+    "InheritedRules": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "UnitId": "unit1",
+            "OriginatingAgency": "sp1",
+            "Paths": [
+              [
+                "unit1"
+              ]
+            ],
+            "Rule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2015-01-01"
+          }
+        ],
+        "Properties": [
+          {
+            "UnitId": "unit1",
+            "OriginatingAgency": "sp1",
+            "Paths": [
+              [
+                "unit1"
+              ]
+            ],
+            "PropertyName": "FinalAction",
+            "PropertyValue": "Destroy"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "#id": "unit2",
+    "#object": "got2",
+    "#originating_agency": "sp2",
+    "InheritedRules": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "UnitId": "unit2",
+            "OriginatingAgency": "sp2",
+            "Paths": [
+              [
+                "unit2"
+              ]
+            ],
+            "Rule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2015-01-01"
+          }
+        ],
+        "Properties": [
+          {
+            "UnitId": "unit2",
+            "OriginatingAgency": "sp2",
+            "Paths": [
+              [
+                "unit2"
+              ]
+            ],
+            "PropertyName": "FinalAction",
+            "PropertyValue": "Destroy"
+          },
+          {
+            "UnitId": "unit9",
+            "OriginatingAgency": "sp9",
+            "Paths": [
+              [
+                "unit2", "unit9"
+              ]
+            ],
+            "PropertyName": "FinalAction",
+            "PropertyValue": "Keep"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "#id": "unit3",
+    "#object": "got2",
+    "#originating_agency": "sp1",
+    "InheritedRules": {
+      "AppraisalRule": {
+        "Rules": [],
+        "Properties": []
+      }
+    }
+  }
+]

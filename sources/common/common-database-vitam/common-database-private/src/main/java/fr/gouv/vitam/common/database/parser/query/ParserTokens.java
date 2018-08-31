@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
  * Main language definition
  */
 public class ParserTokens extends BuilderToken {
-    
+
     /**
      * Default prefix for internal variable
      */
@@ -207,6 +207,16 @@ public class ParserTokens extends BuilderToken {
         "Writer.DeathPlace.PostalCode",
         "Writer.Function",
         "Writer.Identifier",
+        "_elimination.OperationId",
+        "_elimination.GlobalStatus",
+        "_elimination.DestroyableOriginatingAgencies",
+        "_elimination.NonDestroyableOriginatingAgencies",
+        "_elimination.ExtendedInfo",
+        "_elimination.ExtendedInfo.ExtendedInfoType",
+        "_elimination.ExtendedInfo.ExtendedInfoDetails",
+        "_elimination.ExtendedInfo.ExtendedInfoDetails.ParentUnitId",
+        "_elimination.ExtendedInfo.ExtendedInfoDetails.DestroyableOriginatingAgencies",
+        "_elimination.ExtendedInfo.ExtendedInfoDetails.NonDestroyableOriginatingAgencies",
         "_glpd",
         "_graph",
         "_max",
@@ -492,9 +502,10 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score"));
 
-    private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY = AdminManagementOntologiesClientFactory.getInstance();
+    private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
+        AdminManagementOntologiesClientFactory.getInstance();
     private static ConcurrentMap<String, Boolean> analyzedOntologyCache = new ConcurrentHashMap<>();
-    
+
     static {
         new OntologiesLoader();
     }
@@ -510,7 +521,8 @@ public class ParserTokens extends BuilderToken {
         Map<String, Boolean> reloadedOntologies = new HashMap<>();
 
         try (AdminManagementOntologiesClient client = ONTOLOGY_MGT_FACTORY.getClient()) {
-            RequestResponse<OntologyModel> ontologyResponse = client.findOntologiesForCache(new Select().getFinalSelect());
+            RequestResponse<OntologyModel> ontologyResponse =
+                client.findOntologiesForCache(new Select().getFinalSelect());
             if (ontologyResponse.isOk()) {
                 ((RequestResponseOK<OntologyModel>) ontologyResponse).getResults().stream().forEach(ontology -> {
                     reloadedOntologies.put(ontology.getIdentifier(), ontology.getType().isAnalyzed());
@@ -530,7 +542,7 @@ public class ParserTokens extends BuilderToken {
 
     /**
      * get isAnalyzed flag from cached ontology (reload cache if necessary)
-     * 
+     *
      * @param key
      * @return
      */
@@ -539,7 +551,7 @@ public class ParserTokens extends BuilderToken {
             // force cache reload
             loadOntologies();
         }
-        
+
         return analyzedOntologyCache.get(key);
     }
 
@@ -679,6 +691,10 @@ public class ParserTokens extends BuilderToken {
          */
         GRAPH("graph"),
         /**
+         * elimination
+         */
+        ELIMINATION("elimination"),
+        /**
          * Graph last peristed date
          */
         GRAPH_LAST_PERISTED_DATE("graph_last_persisted_date"),
@@ -813,6 +829,8 @@ public class ParserTokens extends BuilderToken {
                         return PARENT_ORIGINATING_AGENCIES;
                     case "_graph":
                         return GRAPH;
+                    case "_elimination":
+                        return ELIMINATION;
                     case "_glpd":
                         return GRAPH_LAST_PERISTED_DATE;
                     default:
@@ -846,7 +864,7 @@ public class ParserTokens extends BuilderToken {
             if (name == null || name.isEmpty()) {
                 return false;
             }
-            
+
             try {
                 Boolean isFieldAnalyzed = getAnalyzedFlagFromCachedOntologies(getKeyFromPathName(name));
                 if (isFieldAnalyzed != null) {
@@ -894,6 +912,8 @@ public class ParserTokens extends BuilderToken {
                     case UDS:
                     case PARENT_ORIGINATING_AGENCIES:
                         return false;
+                    case ELIMINATION:
+                        return true;
                     default:
                         break;
 
@@ -953,6 +973,7 @@ public class ParserTokens extends BuilderToken {
                         case LAST_PERSISTED_DATE:
                         case GRAPH:
                         case GRAPH_LAST_PERISTED_DATE:
+                        case ELIMINATION:
                         case PARENT_ORIGINATING_AGENCIES:
                             return true;
                         case STORAGE:
@@ -1141,6 +1162,11 @@ public class ParserTokens extends BuilderToken {
             case "SedaField":
             case "ApiField":
             case "ShortName":
+            case "OperationId":
+            case "GlobalStatus":
+            case "ExtendedInfoType":
+            case "ExtendedInfoDetails":
+            case "ParentUnitId":
                 // OG
                 return false;
             default:
@@ -1154,15 +1180,16 @@ public class ParserTokens extends BuilderToken {
     }
 
     private static class OntologiesLoader implements Runnable {
-        
+
         // TODO : change period
         private Integer period = VitamConfiguration.getExpireCacheEntriesDelay(); // default 5min
-        
+
         public OntologiesLoader() {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
         }
 
-        @Override public void run() {
+        @Override
+        public void run() {
             loadOntologies();
         }
     }

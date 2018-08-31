@@ -217,7 +217,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
     this.searchRequest.facets = this.facets;
     delete this.searchRequest.requestFacet;
 
-    this.processPreSearch(this.searchRequest);
+    this.processPreSearch();
   }
 
   research(selectedFacetValue, facetField) {
@@ -234,15 +234,13 @@ export class ArchiveUnitFacetComponent implements OnInit {
     this.searchRequest.facets = [];
     this.isCollapsed = !this.isCollapsed;
 
-    this.processPreSearch(this.searchRequest);
+    this.processPreSearch();
   }
 
-  processPreSearch(request: any) {
+  processPreSearch() {
     this.preSearchReturn = this.preSearch(this.searchRequest, this.advancedMode);
     if (this.preSearchReturn.success) {
       this.submitFunction(this.service, this.responseEvent, this.preSearchReturn.request);
-    } else {
-      this.preSearchReturn.searchProcessError = this.preSearchReturn.searchProcessError;
     }
   }
 
@@ -262,7 +260,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
 
   clearFacets() {
     this.clearFacetResults();
-    this.processPreSearch(this.searchRequest);
+    this.processPreSearch();
   }
 
   clearFacetResults() {
