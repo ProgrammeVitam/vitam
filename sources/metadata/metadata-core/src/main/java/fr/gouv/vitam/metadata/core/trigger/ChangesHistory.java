@@ -24,31 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.metadata.core.trigger;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+
+public class ChangesHistory {
+
+    private static final String UNIT_VERSION = "_v";
+
+    private final String objectPathForHistory;
 
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+    public ChangesHistory(String objectPathForHistory) {
+        this.objectPathForHistory = objectPathForHistory;
+    }
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    public void addHistory(JsonNode unitBeforeUpdate, JsonNode unitAfterUpdate) {
+        final JsonNode objectToHistory = JsonHandler.findNode(unitBeforeUpdate, objectPathForHistory);
+
+        final JsonNode historyNode = unitAfterUpdate.findPath(History._HISTORY);
+        final History history = new History(objectPathForHistory, getUnitVersion(unitBeforeUpdate), objectToHistory);
+
+        if (historyNode.isMissingNode()) {
+            ((ObjectNode) unitAfterUpdate).set(History._HISTORY, history.getArrayNode());
+        } else {
+            ((ArrayNode) historyNode).add(history.getNode());
+        }
+    }
+
+
+    private long getUnitVersion(JsonNode unitBeforeUpdate) {
+        JsonNode versionNode = unitBeforeUpdate.path(UNIT_VERSION);
+        if (versionNode.isMissingNode()) {
+            return 0L;
+        }
+
+        return versionNode.asLong();
+    }
 
 }

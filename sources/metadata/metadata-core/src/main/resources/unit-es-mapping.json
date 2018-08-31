@@ -1341,6 +1341,70 @@
       "_unitType": {
         "type": "keyword"
       },
+      "_history": {
+        "properties": {
+          "ud": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "data": {
+            "properties": {
+              "_v": {
+                "type": "long"
+              },
+              "_mgt": {
+                "properties": {
+                  "ClassificationRule": {
+                    "properties": {
+                      "Rules": {
+                        "properties": {
+                          "EndDate": {
+                            "type": "date",
+                            "format": "strict_date_optional_time"
+                          },
+                          "Rule": {
+                            "type": "keyword"
+                          },
+                          "StartDate": {
+                            "type": "date",
+                            "format": "strict_date_optional_time"
+                          }
+                        }
+                      },
+                      "Inheritance": {
+                        "properties": {
+                          "PreventInheritance": {
+                            "type": "boolean"
+                          },
+                          "PreventRulesId": {
+                            "type": "keyword"
+                          }
+                        }
+                      },
+                      "ClassificationLevel": {
+                        "type": "keyword"
+                      },
+                      "ClassificationOwner": {
+                        "type": "text"
+                      },
+                      "ClassificationAudience": {
+                        "type": "keyword"
+                      },
+                      "ClassificationReassessingDate": {
+                        "type": "date",
+                        "format": "strict_date_optional_time"
+                      },
+                      "NeedReassessingAuthorization": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "_elimination": {
         "properties": {
           "OperationId": {

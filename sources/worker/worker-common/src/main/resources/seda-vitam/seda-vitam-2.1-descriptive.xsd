@@ -95,6 +95,61 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="ObjectGroup"/>
+            <!-- Extension VITAM pour la gestion de l'historisation des règles de gestion (et d'autre données éventuellement dans l'avenir)  -->
+            <xsd:group ref="ManagementHistoryGroup"  minOccurs="0" />
+        </xsd:sequence>
+
+    </xsd:complexType>
+
+    <xsd:group name="ManagementHistoryGroup">
+        <xsd:sequence>
+            <xsd:element name="History" type="ManagementHistoryType" minOccurs="0"  maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses
+                        héritiers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:complexType name="ManagementHistoryType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="UpdateDate" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>Date d'historisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Data" type="ManagementHistoryDataType">
+                <xsd:annotation>
+                    <xsd:documentation>Data</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ManagementHistoryDataType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.
+            </xsd:documentation>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="Version" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Version d'historisation</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="Management" type="ManagementType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées de gestion historisées (08/2018 : seulement, ClassificationRule).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     

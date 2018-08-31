@@ -26,17 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
-import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
-import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
-import fr.gouv.vitam.common.mapping.dip.DescriptiveMetadataMapper;
-import fr.gouv.vitam.common.mapping.dip.RuleMapper;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -52,9 +43,12 @@ public class ArchiveUnitMapper {
 
     private RuleMapper ruleMapper;
 
+    private ManagementMapper managementMapper;
+
     public ArchiveUnitMapper() {
         this.descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         this.ruleMapper = new RuleMapper();
+        this.managementMapper = new ManagementMapper(ruleMapper);
     }
 
     public ArchiveUnitType map(ArchiveUnitModel model) throws DatatypeConfigurationException {
@@ -68,24 +62,14 @@ public class ArchiveUnitMapper {
             archiveUnitType.setArchiveUnitProfile(identifierType);
         }
 
-        archiveUnitType.setContent(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel()));
-        ManagementType management = new ManagementType();
+        archiveUnitType.setContent(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel(), model.getHistory()));
 
-        management.setNeedAuthorization(model.getManagement().isNeedAuthorization());
-
-        management.setAccessRule(ruleMapper.fillCommonRule(model.getManagement().getAccess(), AccessRuleType::new));
-        management
-            .setAppraisalRule(ruleMapper.fillCommonRule(model.getManagement().getAppraisal(), AppraisalRuleType::new));
-        management.setClassificationRule(
-            ruleMapper.fillCommonRule(model.getManagement().getClassification(), ClassificationRuleType::new));
-        management.setDisseminationRule(
-            ruleMapper.fillCommonRule(model.getManagement().getDissemination(), DisseminationRuleType::new));
-        management.setReuseRule(ruleMapper.fillCommonRule(model.getManagement().getReuse(), ReuseRuleType::new));
-        management.setStorageRule(ruleMapper.fillCommonRule(model.getManagement().getStorage(), StorageRuleType::new));
-
-        archiveUnitType.setManagement(management);
+        archiveUnitType.setManagement(managementMapper.map(model.getManagement()));
 
         return archiveUnitType;
     }
+
+
+
 
 }

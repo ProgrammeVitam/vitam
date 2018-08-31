@@ -82,6 +82,7 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String UNIT_TYPE = "_unitType";
     public static final String GRAPH = "_graph";
     public static final String PARENT_ORIGINATING_AGENCIES = "_us_sp";
+    public static final String HISTORY = "_history";
 
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {

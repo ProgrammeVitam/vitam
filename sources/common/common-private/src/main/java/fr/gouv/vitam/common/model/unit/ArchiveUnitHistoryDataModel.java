@@ -24,31 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ArchiveUnitHistoryDataModel {
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+    @JsonProperty("_v")
+    private String version;
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
+    @JsonProperty("_mgt")
+    private ManagementModel management;
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    public ArchiveUnitHistoryDataModel() {
+        this.management = new ManagementModel();
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public ManagementModel getManagement() {
+        return management;
+    }
+
+    public void setManagement(ManagementModel management) {
+        this.management = management;
+    }
 
 }

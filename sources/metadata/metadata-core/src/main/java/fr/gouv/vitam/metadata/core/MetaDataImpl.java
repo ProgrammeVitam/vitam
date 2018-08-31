@@ -105,6 +105,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
@@ -128,6 +129,9 @@ public class MetaDataImpl implements MetaData {
     public static final String COUNT = "count";
     public static final String SP = "sp";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
+
+    private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
+
 
     /**
      * @param mongoDbAccess
@@ -166,8 +170,8 @@ public class MetaDataImpl implements MetaData {
     public void insertUnits(List<JsonNode> insertRequests)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
-        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
         try {
+            DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
             List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -546,7 +550,7 @@ public class MetaDataImpl implements MetaData {
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest);
+            result = DbRequestFactoryImpl.getInstance().create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
@@ -555,7 +559,11 @@ public class MetaDataImpl implements MetaData {
                 VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
-        } catch (final BadRequestException e) {
+        } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final BadRequestException | ChangesTriggerConfigFileException e) {
+            LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
         List res = toArrayList(arrayNodeResponse);

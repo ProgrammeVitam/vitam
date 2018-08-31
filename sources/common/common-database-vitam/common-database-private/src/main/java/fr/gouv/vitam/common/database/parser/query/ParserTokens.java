@@ -500,7 +500,20 @@ public class ParserTokens extends BuilderToken {
         "_id",
         "_tenant",
         "_v",
-        "_score"));
+        "_score",
+            "_history.ud",
+            "_history.data._mgt.ClassificationRule.Inheritance.PreventInheritance",
+            "_history.data._mgt.ClassificationRule.Inheritance.PreventRulesId",
+            "_history.data._mgt.ClassificationRule.Rules.EndDate",
+            "_history.data._mgt.ClassificationRule.Rules.Rule",
+            "_history.data._mgt.ClassificationRule.Rules.StartDate",
+            "_history.data._mgt.DisseminationRule.Inheritance.PreventInheritance",
+            "_history.data._mgt.DisseminationRule.Inheritance.PreventRulesId",
+            "_history.data._mgt.ClassificationRule.ClassificationLevel",
+            "_history.data._mgt.ClassificationRule.ClassificationAudience",
+            "_history.data._mgt.ClassificationRule.ClassificationReassessingDate",
+            "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
+            "_history.data._v"));
 
     private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
         AdminManagementOntologiesClientFactory.getInstance();
@@ -701,7 +714,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Originating agency
          */
-        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies");
+        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies"),
+        /**
+         * Parent unit history
+         */
+        HISTORY("history"),;
 
 
         private static final String NOT_FOUND = "Not found";
@@ -833,6 +850,8 @@ public class ParserTokens extends BuilderToken {
                         return ELIMINATION;
                     case "_glpd":
                         return GRAPH_LAST_PERISTED_DATE;
+                    case "_history":
+                        return HISTORY;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {

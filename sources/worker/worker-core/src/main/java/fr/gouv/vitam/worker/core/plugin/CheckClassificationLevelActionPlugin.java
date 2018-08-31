@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,6 +42,9 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.service.ClassificationLevelService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * CheckClassificationLevelAction Plugin
@@ -73,7 +73,7 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         try {
 
             JsonNode archiveUnit = getArchiveUnit(param);
-            if (!ClassificationLevelService.checkclassificationLevel(archiveUnit)) {
+            if (!ClassificationLevelService.checkClassificationLevel(archiveUnit)) {
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
             }

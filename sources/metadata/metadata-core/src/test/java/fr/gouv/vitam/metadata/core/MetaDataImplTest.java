@@ -143,6 +143,7 @@ public class MetaDataImplTest {
         PowerMockito.mockStatic(DbRequestFactoryImpl.class);
         dbRequestFactory = mock(DbRequestFactoryImpl.class);
         PowerMockito.when(DbRequestFactoryImpl.getInstance()).thenReturn(dbRequestFactory);
+        PowerMockito.when(dbRequestFactory.create(anyString())).thenReturn(request);
         when(dbRequestFactory.create()).thenReturn(request);
         when(MongoDbAccessMetadataFactory.create(null)).thenReturn(null);
 

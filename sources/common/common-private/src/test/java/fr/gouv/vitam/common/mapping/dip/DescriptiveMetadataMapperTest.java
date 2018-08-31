@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
@@ -40,6 +36,13 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import java.util.ArrayList;
+
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
 public class DescriptiveMetadataMapperTest {
 
     @Rule
@@ -49,7 +52,7 @@ public class DescriptiveMetadataMapperTest {
     private DescriptiveMetadataMapper descriptiveMetadataMapper;
 
     @Test
-    public void should_fill_title_field() {
+    public void should_fill_title_field() throws DatatypeConfigurationException {
         // Given
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setTitle("titre_default");
@@ -61,7 +64,7 @@ public class DescriptiveMetadataMapperTest {
         descriptiveMetadataModel.setTitle_(title_);
 
         // When
-        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel);
+        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
 
         // Then
         assertThat(contentType.getTitle())
@@ -72,7 +75,7 @@ public class DescriptiveMetadataMapperTest {
     }
 
     @Test
-    public void should_fill_description_field() {
+    public void should_fill_description_field() throws DatatypeConfigurationException {
         // Given
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setDescription("description_default");
@@ -84,7 +87,7 @@ public class DescriptiveMetadataMapperTest {
         descriptiveMetadataModel.setDescription_(description_);
 
         // When
-        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel);
+        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
 
         // Then
         assertThat(contentType.getDescription())

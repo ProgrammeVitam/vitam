@@ -24,31 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core;
+package fr.gouv.vitam.metadata.core.trigger;
 
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import com.google.common.base.Strings;
 
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Factory to get DbRequest
- */
-public interface DbRequestFactory {
+public class JsonPath {
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     */
-    DbRequest create();
+    private static final String REG_EXP_SEPARATOR = "\\.";
 
-    /**
-     * Creation of an DbRequest
-     *
-     * @return the DbRequest
-     * @param fileNameTriggersConfig
-     * @throws ChangesTriggerConfigFileException
-     */
-    DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException;
+    public static String getTargetOfPath(String path) {
+        if (Strings.isNullOrEmpty(path)) {
+            return null;
+        }
+        final String splitPath[] = path.split(REG_EXP_SEPARATOR);
+        return splitPath[splitPath.length - 1];
+    }
 
+    public static List<String> getSplitPath(String objectNameForHistory) {
+        if (Strings.isNullOrEmpty(objectNameForHistory)) {
+            return null;
+        }
+
+        List<String> splitPathList = new ArrayList<>();
+
+        String splitPath[] = objectNameForHistory.split(REG_EXP_SEPARATOR);
+
+        for (int index = 0; index < splitPath.length - 1; ++index) {
+            splitPathList.add(splitPath[index]);
+        }
+
+        return splitPathList;
+    }
 }

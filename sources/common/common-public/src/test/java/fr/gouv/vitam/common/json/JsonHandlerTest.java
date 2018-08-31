@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ResourcesPublicUtilTest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -436,4 +437,19 @@ public class JsonHandlerTest {
     public void testIsEmptyJsonStringInvalid() throws InvalidParseOperationException {
         JsonHandler.isEmpty("");
     }
+
+    @Test
+    public void testFindNode() throws Exception {
+        JsonNode unit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("archive-unit_OK.json"));
+        JsonNode node = JsonHandler.findNode(unit, "ArchiveUnit.Management.ClassificationRule.ClassificationLevel");
+        assertEquals("ClassificationLevel", node.asText());
+    }
+
+    @Test
+    public void testFindNodeMissingNode() throws Exception {
+        JsonNode unit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("archive-unit_OK.json"));
+        JsonNode node = JsonHandler.findNode(unit, "ArchiveUnit.xxx");
+        assertTrue(node.isMissingNode());
+    }
+
 }

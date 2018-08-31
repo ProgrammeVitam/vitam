@@ -31,6 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * ArchiveUnitModel class
  */
@@ -52,6 +55,9 @@ public class ArchiveUnitModel {
     private DescriptiveMetadataModel descriptiveMetadataModel;
 
     private DataObjectReference dataObjectReference;
+
+    @JsonProperty("_history")
+    private List<ArchiveUnitHistoryModel> history = new ArrayList<>();
 
     /**
      * Constructor
@@ -139,5 +145,15 @@ public class ArchiveUnitModel {
     @JsonGetter("_mgt")
     public ManagementModel getMgt(ManagementModel management) {
         return this.management;
+    }
+
+    @JsonGetter("#history")
+    public List<ArchiveUnitHistoryModel> getHistory() {
+        return history;
+    }
+
+    @JsonSetter("#history")
+    public void setHistory(List<ArchiveUnitHistoryModel> history) {
+        this.history = history;
     }
 }

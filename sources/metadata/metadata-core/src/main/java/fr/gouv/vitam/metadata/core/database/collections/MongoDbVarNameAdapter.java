@@ -150,6 +150,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:
                         return Unit.PARENT_ORIGINATING_AGENCIES;
+                    case HISTORY:
+                        return Unit.HISTORY + extension;
                     case ALL:
                     default:
                         break;

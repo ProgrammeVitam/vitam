@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core;
 
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 
 /**
  * DbRequest Factory implementation
@@ -54,5 +55,9 @@ class DbRequestFactoryImpl implements DbRequestFactory {
         return new DbRequest();
     }
 
+    @Override
+    public DbRequest create(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
+        return new DbRequest(fileNameTriggersConfig);
+    }
 
 }

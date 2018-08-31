@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 import java.util.List;
 
@@ -35,6 +36,19 @@ import java.util.List;
  * classification level service
  */
 public class ClassificationLevelService {
+
+    private static final String PATH_CLASSIFICATION_LEVEL_1
+            = SedaConstants.TAG_ARCHIVE_UNIT + "."
+            + SedaConstants.TAG_MANAGEMENT + "."
+            + SedaConstants.TAG_RULE_CLASSIFICATION + "."
+            + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+
+    private static final String PATH_CLASSIFICATION_LEVEL_2
+            = SedaConstants.TAG_ARCHIVE_UNIT
+            + ".#management."
+            + SedaConstants.TAG_RULE_CLASSIFICATION + "."
+            + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+
 
     private static List<String> listClassificationLevels;
     private static boolean authorizeNotDefined;
@@ -75,14 +89,19 @@ public class ClassificationLevelService {
         setAuthorizeNotDefined(authorizeNotDefined);
     }
 
-    public static boolean checkclassificationLevel(JsonNode archiveUnit) {
-        String classificationLevel = null;
-        if (archiveUnit.findValue(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL) != null) {
-            classificationLevel = archiveUnit.findValue(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL).asText();
+    public static boolean checkClassificationLevel(JsonNode archiveUnit) {
+        String classificationLevelValue = null;
+        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL_1);
+        if (classificationLevel.isMissingNode()) {
+            classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL_2);
         }
 
-        if (classificationLevel != null) {
-            if (!ClassificationLevelService.getListClassificationLevels().contains(classificationLevel)) {
+        if (!classificationLevel.isMissingNode()) {
+            classificationLevelValue = classificationLevel.asText();
+        }
+
+        if (classificationLevelValue != null) {
+            if (!ClassificationLevelService.getListClassificationLevels().contains(classificationLevelValue)) {
                 return false;
             }
         } else {

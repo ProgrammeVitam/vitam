@@ -1,0 +1,182 @@
+{
+  "_id": "aeaqaaaaaahdytymaam2sale2ihg77iaaabq",
+  "_og": "aebaaaaaaahdytymaam2sale2ihg76iaaabq",
+  "_mgt": {
+    "StorageRule": {
+      "FinalAction": "Transfer"
+    },
+    "AppraisalRule": {
+      "FinalAction": "Keep"
+    },
+    "ClassificationRule": {
+      "ClassificationAudience": "ClassificationAudience0",
+      "ClassificationLevel": "Secret Défense",
+      "ClassificationOwner": "ClassificationOwner0",
+      "ClassificationReassessingDate": "2016-06-03",
+      "NeedReassessingAuthorization": true,
+      "Rules": [
+        {
+          "Rule": "CLASS-00001",
+          "StartDate": "2015-06-03",
+          "EndDate": "2025-06-03"
+        }
+      ]
+    }
+  },
+  "DescriptionLevel": "RecordGrp",
+  "Title": "monSIP",
+  "Description": "Sed placerat sapien a arcu venenatis ultrices. Sed a eleifend odio, ac tincidunt sem. Fusce luctus in augue nec volutpat. Integer libero elit, aliquet nec dapibus at, dictum feugiat sapien. Quisque feugiat purus id sapien facilisis, nec sodales diam semper. Mauris pretium luctus malesuada",
+  "Writer": [
+    {
+      "Nationality": [
+        "Sealand"
+      ]
+    }
+  ],
+  "Addressee": [
+    {
+      "FirstName": "Jules",
+      "FullName": "Iulius Caesar Divus",
+      "Nationality": [
+        "Italien"
+      ]
+    },
+    {
+      "GivenName": "Alexandre",
+      "BirthPlace": {
+        "City": "Pella",
+        "Country": "Macédoine"
+      }
+    }
+  ],
+  "Transmitter": [
+    {
+      "Function": [
+        "Service de transmission"
+      ]
+    }
+  ],
+  "Sender": [
+    {
+      "GivenName": "Alexander",
+      "BirthDate": "1970-06-03",
+      "Position": [
+        "CEO"
+      ],
+      "Mandate": [
+        "Mandataire_1",
+        "Mandataire_2"
+      ]
+    }
+  ],
+  "RelatedObjectReference": {
+    "Replaces": [
+      {
+        "ExternalReference": "ID_Fictif"
+      }
+    ]
+  },
+  "StartDate": "2016-06-03T15:28:00",
+  "EndDate": "2016-06-03T15:28:00",
+  "Event": [
+    {
+      "EventDateTime": "2016-06-03T15:28:00"
+    },
+    {
+      "EventIdentifier": "EventIdentifier_content0",
+      "EventTypeCode": "EventTypeCode_content0",
+      "EventType": "EventType_content0",
+      "EventDateTime": "2016-06-03T15:28:00",
+      "EventDetail": "EventDetail_content0",
+      "Outcome": "Outcome0",
+      "OutcomeDetail": "OutcomeDetail_content0",
+      "OutcomeDetailMessage": "OutcomeDetailMessage_content0",
+      "EventDetailData": "EventDetailData_content0"
+    }
+  ],
+  "Signature": [
+    {
+      "Signer": [
+        {
+          "BirthName": "Henry",
+          "SigningTime": "2016-06-03T15:28:00"
+        },
+        {
+          "Nationality": [
+            "Monaco"
+          ],
+          "SigningTime": "2016-06-03T15:28:00"
+        }
+      ],
+      "Validator": {
+        "FirstName": "ValidatorFirstName",
+        "FullName": "ValidatorFullName",
+        "ValidationTime": "2016-06-03T15:28:00"
+      },
+      "ReferencedObject": {
+        "SignedObjectId": "ID30",
+        "SignedObjectDigest": {
+          "Value": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+          "Algorithm": "SHA-512"
+        }
+      }
+    }
+  ],
+  "SedaVersion": "2.1",
+  "ImplementationVersion": "1.7.0-SNAPSHOT",
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "FRAN_NP_009913"
+  ],
+  "_sp": "FRAN_NP_009913",
+  "_ops": [
+    "aeeaaaaaachi422cab67eale2ihgjzqaaaaq"
+  ],
+  "_opi": "aeeaaaaaachi422cab67eale2ihgjzqaaaaq",
+  "_unitType": "INGEST",
+  "_up": [],
+  "_us": [],
+  "_graph": [],
+  "_us_sp": {
+
+  },
+  "_uds": {
+
+  },
+  "_min": 1,
+  "_max": 1,
+  "_glpd": "2018-07-25T15:28:49.040",
+  "_v": 11,
+  "_tenant": 0,
+  "_history": [
+    {
+      "ud": "2018-07-25T15:28:49.040",
+      "data": {
+        "_v": 9,
+        "_mgt": {
+          "ClassificationRule": {
+            "ClassificationAudience": "ClassificationAudience0",
+            "ClassificationLevel": "Secret Défense",
+            "ClassificationOwner": "ClassificationOwner0",
+            "ClassificationReassessingDate": "2016-06-03",
+            "NeedReassessingAuthorization": true,
+            "Rules": [
+              {
+                "Rule": "CLASS-00001",
+                "StartDate": "2015-06-03",
+                "EndDate": "2025-06-03"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
