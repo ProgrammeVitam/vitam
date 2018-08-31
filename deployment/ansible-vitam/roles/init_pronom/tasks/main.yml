@@ -57,6 +57,7 @@
     body: "{{ lookup('file', '{{inventory_dir}}/DROID_SignatureFile_V88.xml') }}"
     body_format: "raw"
     validate_certs: false
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     # 201 : uploaded
     # 409 : conflict as already uploaded
     status_code: 201,409

@@ -20,7 +20,7 @@
     method: GET
   register: kibana_result
   until: kibana_result.status != 503
-  retries: 60
+  retries: "{{ kibana.log.api_call_timeout }}"
   delay: 1
 
 - name: Wait until .kibana index exists
@@ -30,7 +30,7 @@
     status_code: 200
   register: kibana_result
   until: kibana_result.status == 200
-  retries: 60
+  retries: "{{ kibana.log.api_call_timeout }}"
   delay: 1
 
 # We have a specific task for index pattern to add the "*" at the end of the url
@@ -43,6 +43,7 @@
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
     status_code: 200, 201
+    timeout: "{{ kibana.log.api_call_timeout }}"
   with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
     index_pattern_dir: "{{ role_path }}/files/kibana-metrics-configuration/index-pattern"
@@ -56,6 +57,7 @@
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
     status_code: 200, 201
+    timeout: "{{ kibana.log.api_call_timeout }}"
   with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
     search_dir: "{{ role_path }}/files/kibana-metrics-configuration/search"
@@ -72,6 +74,7 @@
     body: "{{ lookup('template', '{{ role_path }}/templates/metrics.template.json.j2') }}"
     body_format: json
     status_code: 200,201
+    timeout: "{{ kibana.log.api_call_timeout }}"
 
 
 - name: Get kibana info for default index pattern
@@ -94,3 +97,4 @@
     body: '{"defaultIndex": "logstash-vitam*", "buildNum": {{ packagejson.build.number }} }'
     body_format: json
     status_code: 200, 201
+    timeout: "{{ kibana.log.api_call_timeout }}"
