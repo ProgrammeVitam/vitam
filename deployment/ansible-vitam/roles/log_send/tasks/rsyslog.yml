@@ -19,7 +19,7 @@
 
 - name: copy VITAM transport config file
   template:
-    src: vitam_transport.conf.j2
+    src: rsyslog.conf.j2
     dest: /etc/rsyslog.d/vitam_transport.conf
     owner: root
     mode: 0644
