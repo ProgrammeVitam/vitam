@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -51,14 +52,15 @@ public class CreateUnitSecureFileActionPlugin extends CreateSecureFileActionPlug
     private static final String UNITS_CREATE_SECURED_FILE = "UNITS_CREATE_SECURED_FILE";
     private HandlerIO handlerIO;
 
+
     /**
      * Empty constructor
      */
     public CreateUnitSecureFileActionPlugin() {}
 
     @VisibleForTesting
-    public CreateUnitSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,StorageClientFactory storageClientFactory) {
-        super(metaDataClientFactory,storageClientFactory);
+    public CreateUnitSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,StorageClientFactory storageClientFactory, AlertService alertService) {
+        super(metaDataClientFactory,storageClientFactory, alertService);
     }
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {

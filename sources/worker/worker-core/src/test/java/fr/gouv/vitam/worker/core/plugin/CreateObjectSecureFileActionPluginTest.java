@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
@@ -140,6 +141,8 @@ public class CreateObjectSecureFileActionPluginTest {
     private StorageClientFactory storageClientFactory;
     @Mock
     private StorageClient storageClient;
+    @Mock
+    private AlertService alertService;
 
     public CreateObjectSecureFileActionPluginTest() {
         // do nothing
@@ -153,8 +156,9 @@ public class CreateObjectSecureFileActionPluginTest {
 
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
-        handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId", Lists.newArrayList());
+        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory, alertService);
+        handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId",
+            Lists.newArrayList());
     }
 
     @Test
@@ -165,8 +169,8 @@ public class CreateObjectSecureFileActionPluginTest {
         reset(metadataClient);
         when(workspaceClient.getObject(anyObject(),
             eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + guidOg + ".json")))
-                .thenThrow(
-                    new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+            .thenThrow(
+                new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response = plugin.execute(params, handler);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -182,7 +186,7 @@ public class CreateObjectSecureFileActionPluginTest {
         final InputStream object1 = PropertiesUtils.getResourceAsStream(OBJECT_LFC_1);
         when(workspaceClient.getObject(anyObject(),
             eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + guidOg + ".json")))
-                .thenReturn(Response.status(Status.OK).entity(object1).build());
+            .thenReturn(Response.status(Status.OK).entity(object1).build());
         when(metadataClient.selectObjectGrouptbyId(anyObject(), anyObject()))
             .thenReturn(objectGroupFound);
         when(metadataClient.getObjectGroupByIdRaw(anyObject()))
@@ -209,16 +213,14 @@ public class CreateObjectSecureFileActionPluginTest {
         when(storageClient.getInformation(eq("default"), anyObject(), anyString(), eq(Arrays.asList(offerIds))))
             .thenReturn(objectInformationResult);
 
-        ItemStatus response = plugin.execute(params, handler);
 
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
         // Test with same global digest for all storage offers
         storageMDResult.setDigest(expectedMDLFCGlobalHashFromStorage);
         objectInformationResult.set(offerIds[0], JsonHandler.toJsonNode(storageMDResult));
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
 
-        response = plugin.execute(params, handler);
+        ItemStatus response = plugin.execute(params, handler);
 
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         String fileAsString = getSavedWorkspaceObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");

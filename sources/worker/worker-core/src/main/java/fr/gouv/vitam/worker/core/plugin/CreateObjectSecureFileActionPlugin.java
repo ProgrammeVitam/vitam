@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -61,8 +62,8 @@ public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPl
 
     @VisibleForTesting
     public CreateObjectSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory ,
-        StorageClientFactory storageClientFactory) {
-        super(metaDataClientFactory,storageClientFactory);
+        StorageClientFactory storageClientFactory,AlertService alertService) {
+        super(metaDataClientFactory,storageClientFactory, alertService);
     }
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
