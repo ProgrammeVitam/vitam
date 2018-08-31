@@ -44,6 +44,7 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * STP_SANITY_CHECK_SIP
 * SANITY_CHECK_SIP
 * CHECK_CONTAINER
+* MANIFEST_FILE_NAME_CHECK
 * STP_UPLOAD_SIP
 * STP_INGEST_CONTROL_SIP
 * PREPARE_STORAGE_INFO
@@ -64,6 +65,7 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * CHECK_ARCHIVE_UNIT_PROFILE
 * CHECK_CLASSIFICATION_LEVEL
 * UNITS_RULES_COMPUTE
+* STP_STORAGE_AVAILABILITY_CHECK
 * STP_STORAGE_AVAILABILITY_CHECK	STORAGE_AVAILABILITY_CHECK
 * STORAGE_AVAILABILITY_CHECK
 * STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK
@@ -109,14 +111,15 @@ Page Tests Fonctionnels
 
 La page est divisée en deux parties :
 
-  * Boutons de gestion
+  * Testsfonctionnels
   * Résultats des derniers tests
 
 .. image:: images/RECETTE_test_fonctionnels_ecran_principal.png
 
-Boutons de gestion
+Tests fonctionnels
 
 Bouton "Lancer les tests" : permet de rejouer les tests configurés. Ceci donnera lieu à la création d'un nouveau rapport.
+
 Bouton "Mise à jour référentiel" : permet de récupérer les derniers fichiers de configuration des tests depuis "Git" (gestionnaire de sources). Ainsi, si un utilisateur a ajouté des tests et que ceux-ci ont été intégrés à Git, le fait de cliquer sur ce bouton permet de les prendre en compte au prochain clic sur le bouton "Lancer les Tests".
 
   Résultat des derniers tests
@@ -124,9 +127,10 @@ Bouton "Mise à jour référentiel" : permet de récupérer les derniers fichier
 Les résultats de tests sont affichés dans un tableau à deux colonnes :
 
    Rapport
+
    Détail
 
-Chaque ligne représente le rapport issu d'une campagne de tests. La colonne "Rapport" indique le nom du rapport. Celui-ci est constitué de la façon suivante : report_AAAAMMJJ_HHmmss.json. Ainsi le rapport correspondant à la dernière campagne de tests se trouve au-dessus de la liste.
+Chaque ligne représente le rapport issu d'une campagne de tests. La colonne "Rapport" indique le nom du rapport. Celui-ci est constitué de la façon suivante : report_AAAAMMJJ_HHmmss.json. Ainsi le rapport correspondant à la dernière campagne de tests se trouve en bas de la liste.
 
 La colonne détail affiche simplement la mention "Accès au détail".
 

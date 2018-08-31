@@ -47,6 +47,8 @@ Les pages accessibles sont réparties de la façon suivante :
 
 	* Administration des collections
         * Recherche et Modification d'un fichier	
+        * Ajout et suppression d'un parent
+        * Test audit correctif 
 
 **Tests**
 
@@ -92,4 +94,4 @@ Une fois le tenant sélectionné, les boutons précédement grisés sont activé
 Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
-**NB :** le référentiel des formats et des contextes sont liés à la plateforme et non à un tenant. L'option de suppression des référentiel des formats et des contextes applicatifs est toujours disponible, même si aucun tenant n'est sélectionné.
+**NB :** le référentiel des formats, des contextes et des ontologies externes sont liés à la plateforme et non à un tenant. L'option de suppression des référentiels des formats, des contextes applicatifs et des ontologies externes est toujours disponible, même si aucun tenant n'est sélectionné.
