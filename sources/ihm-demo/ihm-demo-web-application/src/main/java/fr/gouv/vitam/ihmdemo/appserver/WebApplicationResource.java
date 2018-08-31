@@ -73,6 +73,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -606,12 +607,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // start the upload
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
 
-
+            InputStream tmpSipFileInputstream = null;
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                final RequestResponse<Void> finalResponse =
+                tmpSipFileInputstream = new FileInputStream(temporarSipFile);
+            	final RequestResponse<Void> finalResponse =
                     client.ingest(new VitamContext(tenantId)
                         .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
-                        new FileInputStream(temporarSipFile), contextId, action);
+                        tmpSipFileInputstream, contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
                 final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -633,6 +635,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 finalResponseDetails.add(Status.INTERNAL_SERVER_ERROR);
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } finally {
+            	IOUtils.closeQuietly(tmpSipFileInputstream);
                 temporarSipFile.delete();
             }
         }
@@ -688,11 +691,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 LogbookEventOperation lastEvent = getlogBookOperationStatus(id, request);
                                 // ingestExternalClient client
                                 int status = getStatus(lastEvent);
-                                return Response.status(status).entity(new FileInputStream(file))
-                                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                                    .header(CONTENT_DISPOSITION,
-                                        "attachment; filename=ATR_" + id + ".xml")
-                                    .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                                try (InputStream fileInputStream = new FileInputStream(file)) {
+	                                return Response.status(status).entity(fileInputStream)
+	                                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+	                                    .header(CONTENT_DISPOSITION,
+	                                        "attachment; filename=ATR_" + id + ".xml")
+	                                    .header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                                }
                             }
                         } else if (ProcessState.PAUSE.equals(itemStatus.getGlobalState())) {
                             return Response.status(itemStatus.getGlobalStatus().getEquivalentHttpStatus()).build();
@@ -1317,11 +1322,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             File file = downloadReportOrCsv(id, request, JSON);
             if (file != null) {
-                return Response.ok().entity(new FileInputStream(file))
-                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                    .header(CONTENT_DISPOSITION,
-                        "attachment; filename=" + id + ".json")
-                    .build();
+                try (InputStream fileInputStream = new FileInputStream(file)) {
+		        	return Response.ok().entity(fileInputStream)
+		                .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+		                .header(CONTENT_DISPOSITION,
+		                    "attachment; filename=" + id + ".json")
+		                .build();
+                }
             } else {
                 return Response.status(Status.NO_CONTENT).build();
             }
@@ -1339,11 +1346,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             File file = downloadReportOrCsv(id, request, type);
             if (file != null) {
-                return Response.ok().entity(new FileInputStream(file))
-                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                    .header(CONTENT_DISPOSITION,
-                        "attachment; filename=" + id + CSV)
-                    .build();
+            	try (InputStream fileInputStream = new FileInputStream(file)) {
+	                return Response.ok().entity(fileInputStream)
+	                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+	                    .header(CONTENT_DISPOSITION,
+	                        "attachment; filename=" + id + CSV)
+	                    .build();
+            	}
             } else {
                 return Response.status(Status.NO_CONTENT).build();
             }
@@ -1817,14 +1826,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         LogbookEventOperation lastEvent = getlogBookOperationStatus(id, request);
                         // ingestExternalClient client
                         int status = getStatus(lastEvent);
-                        return Response.status(status).entity(new FileInputStream(file))
-                            .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                            .header(CONTENT_DISPOSITION,
-                                "attachment; filename=ATR_" + id + ".xml")
-                            .header(GlobalDataRest.X_REQUEST_ID, id)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
-                            .build();
+                        try (InputStream fileInputStream = new FileInputStream(file)) {
+	                        return Response.status(status).entity(fileInputStream)
+	                            .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+	                            .header(CONTENT_DISPOSITION,
+	                                "attachment; filename=ATR_" + id + ".xml")
+	                            .header(GlobalDataRest.X_REQUEST_ID, id)
+	                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
+	                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
+	                            .build();
+                        }
                     } else {
                         return Response.status(Status.NO_CONTENT).build();
                     }
