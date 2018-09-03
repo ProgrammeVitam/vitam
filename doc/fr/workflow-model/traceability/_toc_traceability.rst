@@ -8,3 +8,5 @@ TRACEABILITY
    workflow-traceability.rst
    workflow-traceability-lifecycle.rst
    workflow-traceability-storage.rst
+   workflow-traceability-access-log.rst
+
