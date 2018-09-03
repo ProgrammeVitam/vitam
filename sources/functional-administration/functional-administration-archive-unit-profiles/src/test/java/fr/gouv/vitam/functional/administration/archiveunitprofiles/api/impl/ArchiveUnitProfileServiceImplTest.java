@@ -213,7 +213,30 @@ public class ArchiveUnitProfileServiceImplTest {
                 });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        assertThat(response.isOk()).isFalse();
+        assertThat(response.isOk());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestDuplicateNamesInDb() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
+        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+
+        assertThat(response.isOk());
+
+        final File fileMetadataProfile2 = PropertiesUtils.getResourceFile("AUP_ok_same_name.json");
+        final List<ArchiveUnitProfileModel> profileModelList2 =
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
+        final RequestResponse response2 = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList2);
+
+        assertThat(response2.isOk());
     }
 
     @Test
@@ -320,8 +343,8 @@ public class ArchiveUnitProfileServiceImplTest {
         // We just test the first profile
         final ArchiveUnitProfileModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
-        // assertThat(acm.getFields()).isNotNull(); // TODO à réactiver après traitement de story 5011
-        // assertEquals(acm.getFields().size(), 0); // TODO à réactiver après traitement de story 5011
+        assertThat(acm.getFields()).isNotNull();
+        assertEquals(acm.getFields().size(), 0);
 
         final String id1 = acm.getId();
         assertThat(id1).isNotNull();
@@ -351,8 +374,8 @@ public class ArchiveUnitProfileServiceImplTest {
         String id3 = "aIdentifier3";
         final ArchiveUnitProfileModel acm = archiveUnitProfileService.findByIdentifier(id3);
         assertThat(acm).isNotNull();
-        // assertThat(acm.getFields()).isNotNull(); // TODO à réactiver après traitement de story 5011
-        // assertTrue(acm.getFields().size() > 0); // TODO à réactiver après traitement de story 5011
+        assertThat(acm.getFields()).isNotNull();
+        assertTrue(acm.getFields().size() > 0);
     }
 
     @Test
