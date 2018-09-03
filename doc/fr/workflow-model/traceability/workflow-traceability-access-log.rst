@@ -5,7 +5,7 @@ Création de journal sécurisé des journaux des accès
 Introduction
 ============
 
-Cette section décrit la sécurisation des journaux des des accès aux binaires mis en place dans la solution logicielle Vitam. Contrairement aux autres sécurisations de journaux de cycles de vie ou du journal des opérations, celle-ci n’est pas utilisée au sein d’un workflow.
+Cette section décrit la sécurisation des journaux des accès aux binaires mis en place dans la solution logicielle Vitam. Contrairement aux autres sécurisations de journaux de cycles de vie ou du journal des opérations, celle-ci n’est pas utilisée au sein d’un workflow.
 
 Sécurisation des journaux des accès (vision métier)
 ===================================================
