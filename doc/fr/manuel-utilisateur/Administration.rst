@@ -418,9 +418,6 @@ Pour enregistrer un nouvel identifiant dans la liste des formats, il est nécess
 
 Si dans cette liste l'utilisateur ne saisit pas un identifiant de format valide, c'est un dire un identifiant qui n'est pas un PUID du référentiel des formats de la solution logicielle Vitam, alors les modifications seront rejetées au moment de cliquer sur "Sauvegarder".
 
-* Log des accès
-
-Lorsque ce que ce paramètre est activé, chaque téléchargement d'un objet ou export d'un objet pour un DIP fera l'objet d'un enregistrement dans un fichier dédié (fichier de log). Ce fichier contiendra un certain nombre d'informations a propos des téléchargements effectués : application qui accède à l'objet, identifiant de la requête d'accès, volumétrie des objets communiqués, date et heure de l'accès, etc.
 
 Contrats d'accès
 =================
@@ -501,7 +498,7 @@ Détail d'un contrat d'accès
 
 Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhaitée. La page "Détail d'un contrat d'accès" contient les informations suivantes :
 
-Identifiant, Intitulé, Description, Statut, Tous les services producteurs, Liste blanche des services producteurs (permet de restreindre l'accès à certains producteurs), Date de création, Dernière modification, Droit d'écriture, Tous les usages, Liste blanche des usages (permet de restreindre l'accès à certains usages), Nœuds de consultation, Tenant, Noeuds inaccessibles, Log des accès
+Identifiant, Intitulé, Description, Statut, Tous les services producteurs, Liste blanche des services producteurs (permet de restreindre l'accès à certains producteurs), Date de création, Dernière modification, Droit d'écriture, Tous les usages, Liste blanche des usages (permet de restreindre l'accès à certains usages), Nœuds de consultation, Tenant, Noeuds inaccessibles, Log des accès, Modification des métadonnées descriptives seulement. 
 
 
 .. image:: images/detail_ca.png
@@ -557,6 +554,11 @@ Un contrat peut restreindre l'accès à la consultation à partir de certains no
 * Log des accès
 
 Si le log des accès est activé, alors à chaque fois qu'un utilisateur télécharge avec succès un objet depuis la solution logicielle Vitam, une trace de cette action est enregistrée dans un journal des accès (le "log des accès") renseignant des informations sur cette action.
+
+* Restriction d'écriture aux métadonnées de description
+
+Si cette option est activée, alors seulement les métadonnées descriptives peuvent être modifiées, les métadonnées liées aux règles de gestion ne pourront pas être modifiées. Si cette option n'est pas activée, toutes les catégories de métadonnées ( descriptives et de liées aux règles de gestion ) peuvent être modifiées. 
+
 
 Contextes applicatifs
 =======================
@@ -1217,20 +1219,20 @@ Référentiel des formats
 =======================
 
 
-Import des référentiels
------------------------
+Import des référentiels des formats
+-----------------------------------
 
 Pour accéder à l'écran d'import du référentiel, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
 
 
 .. image:: images/menu_formats.png
 
-Le référentiel à importer est le fichier PRONOM que l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
+Le référentiel à importer est le fichier PRONOM que l'utilisateur peut récupérer dans sa version la plus récente sur le site des Archives nationales britanniques :
 
 - http://www.nationalarchives.gov.uk
 - Section "PRONOM" > "DROID signature files"
 
-Pour importer un référentiel des formats, l'administrateur:
+Pour importer un référentiel des formats dans la solution logicielle Vitam, l'administrateur:
 
 - Accède à l'écran d'import du référentiel des formats
 - Clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
@@ -1259,9 +1261,13 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 Modification du référentiel des formats
 ---------------------------------------
 
-Il n'est pas possible de modifier un référentiel des formats via l'IHM, il n'y a pas de bouton "Modifier" affiché.
-Mais il est possible de re-importer un fichier afin de modifier les informations.
+Il n'est pas possible de modifier unitairement un référentiel des formats via l'IHM mais il est possible de re-importer un fichier dans sa globalité afin de modifier des informations.
 
+
+Recherche dans les référentiels des formats
+-------------------------------------------
+
+Il n'est pas possible d'effectuer des recherches parmi les référentiels déjà existants dans le tenant, grâce aux champs "Intitulé" et "PUID". 
 
 
 Contextes applicatifs
@@ -1274,17 +1280,19 @@ Le contexte permet de définir les droits des applications utilisatrices en fonc
 Import des contextes applicatifs
 ---------------------------------
 
-L'import de contextes applicatifs est une fonctionnalité réservée au tenant d'administration et pour un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
+L'import de contextes applicatifs est une fonctionnalité réservée au tenant d'administration et pour un utilisateur ayant des droits d'administration.
 
-L'administrateur devra au préalable construire son contexte applicatif, sous la forme d'un fichier CSV, comportant les champs suivants:
+L'administrateur devra au préalable construire un contexte applicatif, sous la forme d'un fichier JSON, comportant les champs suivants:
 
 - identifiant
 - nom du contexte
 - identifiant unique donné au contexte
-- version du contexte
 - identifiant du profil de sécurité associé au contexte
-- contrôle sur les tenants: détail des tenants régis par ce contexte
+- contrôle sur les permissions: cette fonctionnalité donnant tous les droits quel que soit le tenant
 - statut « Actif » ou « Inactif »
+
+Les champs suivants sont facultatifs : 
+
 - date de création du contexte
 - dernière date de modification du contexte
 
@@ -1294,7 +1302,7 @@ Un bloc Permissions détaille le périmètre du contexte, tenant par tenant. Il 
  - le(s) identifiant(s) de(s) contrat(s) d’accès appliqué(s) sur le tenant
  - le(s) identifiant(s) de(s) contrat(s) d’entrée appliqué(s) sur le tenant
 
-La structure et les valeurs des contextes applicatifs sont décrites dans la documentation "Gestion des habilitations".
+La structure et les valeurs des contextes applicatifs sont décrites dans la documentation "Modèle de données".
 
 Pour importer un contexte, l'utilisateur clique sur  le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
 
@@ -1317,7 +1325,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
     - Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
     - Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
 
-Cette opération est journalisée et disponible dans le Journal des opérations.
+Cette opération est journalisée et disponible dans le Journal des opérations du tenant d'administration.
 
 
 Modifier un contexte applicatif
@@ -1327,7 +1335,7 @@ Modifier un contexte applicatif
 **Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
 
 
-Il est possible de modifier un contexte applicatif depuis l'écran du détail en cliquant sur le bouton "Modifier". L'interface permet la modification de plusieurs champs du contexte, ainsi que de changer ses permissions (actif/inactif).
+Il est possible de modifier un contexte applicatif depuis l'écran du détail en cliquant sur le bouton "Modifier". L'interface permet la modification de plusieurs champs du contexte, ainsi que de changer ses permissions (Actif/Inactif).
 
 *Activation / désactivation du contexte applicatif*
 
@@ -1350,19 +1358,27 @@ Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des cont
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contexte.
 
 
+Recherche dans les référentiels des ontologies
+----------------------------------------------
+
+Il n'est pas possible d'effectuer des recherches parmi les référentiels déjà existants dans le tenant, grâce aux champs "Intitulé" et "Identifiant". 
+
+
 Ontologie
 =========
 
 
 L’ontologie référence l’ensemble des vocabulaires ou métadonnées acceptés et indexés dans la solution logicielle Vitam. Elle se compose :
-- des vocabulaires conformes au SEDA, inclus par défaut,
-- des vocabulaires propres à la solution logicielle Vitam, inclus par défaut,
-- de vocabulaires non gérés par les deux précédents et ajoutés pour répondre à un besoin particulier.
+
+	* des vocabulaires conformes au SEDA, inclus par défaut,
+	* des vocabulaires propres à la solution logicielle Vitam, inclus par défaut,
+	* de vocabulaires non gérés par les deux précédents et ajoutés pour répondre à un besoin particulier.
 
 Pour chacun de ces vocabulaires, elle définit un nom et type d’indexation particulier (par exemple, texte, décimal, entier).
-Les ontologies peuvent être utiliséés facultativement par des profils d'archivage, des profils d’unité archivistique et des unités archivistiques. Elles permettent :
-- d’identifier et de contrôler les vocabulaires entrant dans la solution logicielle Vitam,
-- d’identifier les vocabulaires qui font l’objet d’une indexation par le moteur de recherche.
+Les vocabulaires utilisés implicitement par des profils d'archivage, des profils d’unité archivistique et des unités archivistiques. Ils permettent :
+
+	* d’identifier et de contrôler les vocabulaires entrant dans la solution logicielle Vitam,
+	* d’identifier les vocabulaires qui font l’objet d’une indexation par le moteur de recherche.
 
 
 Importer une ontologie
@@ -1373,29 +1389,17 @@ L'import d'un fichier JSON déclarant des métadonnées est une fonctionnalité 
 L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
     - Identifiant ( obligatoire - "Identifier"): l'identifiant pour le vocabulaire externe doit : être unique, ne pas commencer par "_" ou "#" et ne pas contenir d'espace
-    - Intitulé API ( obligatoire - "ApiField" )
-    - Intitulé XML ( obligatoire - "SedaField" )
+    - Intitulé API ( "ApiField" )
+    - Intitulé XML ( "SedaField" )
     - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
-    - Type: Type du vocabulaire ( obligatoire ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
-    - Traduction du vocabulaire (obligatoire - "ShortName")
+    - Type: Type du vocabulaire ( obligatoire ) : valeur à choisir parmi la liste:  TEXT, KEYWORD, DATE, LONG, DOUBLE, BOOLEAN, GEO-POINT, ENUM
+    - Traduction du vocabulaire ("ShortName")
     - Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
-    - Description ( Facultative )
-    - Date de création ( Facultative )
-
-Note: Compatibilité des modifications possibles concernant les types de vocabulaires :
-
-	- Text -> Keyword, Text
-	- Keyword -> Keyword, Text
-	- Date -> Keyword, Text
-	- Long -> Keyword, Text, Double
-	- Double -> Keyword, Text
-	- Boolean -> Keyword, Text
-	- Geo-point -> Keyword, Text
-	- Enumération de valeur -> Keyword, Text
+    - Description ( Facultatif )
 
 
 
-Pour importer un fichier JSON, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des ontologies".
+Pour importer un fichier JSON, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des ontologies" dans le tenant d'administration.
 
 
 .. image:: images/menu_import_ontologie.png
@@ -1412,23 +1416,22 @@ Une fenêtre modale indique alors soit :
 - Les ontologies ont bien été importées
 - Échec de l’import du fichier, pouvant être causé par :
 	- le fait que les identifiants déclarés existent déjà
-        - le fait que l'intitulé XML déclaré existe déjà
-        - le fait que l'identifiant commence par un "_" ou un"#" ou contient des espaces
+        - le fait que l'identifiant commence par un "_" ou un "#" ou contient des espaces
         - le fait que le type déclaré ne soit pas valide ( parmi la liste des valeurs permises )
-- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises )
-- le fait que l'origine déclarée soit interne
+	- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises )
+	- le fait que l'origine déclarée soit interne
 	- le fait que le fichier soit invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 
 
-Recherche d' une ontologie
+Recherche dans l' ontologie
 --------------------------
 
-Pour consulter et rechercher les documents types, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Ontologies".
+Pour consulter et rechercher des vocabulaires, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Ontologies".
 
-Par défaut, les ontologies sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
+Par défaut, les vocabulaires sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
@@ -1472,17 +1475,20 @@ Modifier une ontologie
 ----------------------
 
 
-**Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
+**Point d'attention : la modification de l'ontologie est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
 
-Il est possible de modifier les ontologies en re-important un fichier, et non via l' IHM.
+Il est possible de modifier les ontologies en ré-important un fichier, contenant l'ensemble du référentiel.
 
 
-Note: en re-important le fichier JSON , il est possible de modifier les types de vocabulaire, mais seulement certaines combinaisons sont autorisées:
+Note: en re-important le fichier JSON , il est possible en particulier de modifier les types d'indexation, mais en respectant certaines combinaisons:
 	- Text -> Keyword, Text
 	- Keyword -> Keyword, Text
 	- Date -> Keyword, Text
-	- Long -> Keyword, Text, Double
-	- Double -> Keyword, Text
-	- Boolean -> Keyword, Text
+	- Long -> Long
+	- Double -> Double
+	- Boolean -> Boolean
 	- Geo-point -> Keyword, Text
 	- Enumération de valeur -> Keyword, Text
+
+NOTE: plus d'informations sont disponibles dans la documentation métier "ontologie"
+
