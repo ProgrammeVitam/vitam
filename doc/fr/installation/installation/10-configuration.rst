@@ -22,6 +22,9 @@ Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans
 Informations "plate-forme"
 ==========================
 
+Inventaire
+-----------
+
 Pour configurer le déploiement, il est nécessaire de créer dans le répertoire |repertoire_inventory| un nouveau fichier d'inventaire (dans la suite, ce fichier sera communément appelé  ``hosts.<environnement>``). Ce fichier doit être basé sur la structure présente dans le fichier ``hosts.example`` (et notamment respecter scrupuleusement l'arborescence des groupes ansible) ; les commentaires dans ce fichier donnent les explications permettant l'adaptation à l'environnement cible :
 
 .. literalinclude:: ../../../../deployment/environments/hosts.example
@@ -38,6 +41,8 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 
 .. warning:: Il n'est pas possible de colocaliser "kibana-data" et "kibana-log".
 
+Fichier ``vitam_security.yml``
+-------------------------------
 
 La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
 
@@ -45,6 +50,8 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
      :language: yaml
      :linenos:
 
+Fichier ``offers_opts.yml``
+----------------------------
 
 Enfin, la déclaration des configuration des offres de stockage est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
 
@@ -59,6 +66,18 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 .. warning:: La cohérence entre l'inventaire et la section ``vitam_strategy`` est critique pour le bon déploiement et fonctionnement de la solution logicielle VITAM. En particulier, la liste d'offres de ``vitam_strategy`` doit correspondre *exactement* aux noms d'offre déclarés dans l'inventaire (ou les inventaires de chaque datacenter, en cas de fonctionnement multi-site).
 
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la CA du keystone.
+
+
+Fichier ``cots_vars.yml``
+----------------------------
+
+Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog`` dans le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
+
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
+     :language: yaml
+     :linenos:
+
+Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valur par défaut est ``rsyslog``.
 
 .. _pkiconfsection:
 
