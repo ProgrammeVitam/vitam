@@ -246,6 +246,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         "functional-admin/file-rules/error_report_unknow_duration.json";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
+    private static String SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC = "integration-ingest-internal/OK_ArchivesPhysiques_for_LFC.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL =
         "integration-ingest-internal/KO_ArchivesPhysiques_BinaryInPhysical.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY =
@@ -556,6 +557,22 @@ public class IngestInternalIT extends VitamRuleRunner {
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
 
         JsonNode lfcResponse = accessClient.selectUnitLifeCycleById(unitId, queryDsl).toJsonNode();
+        final JsonNode result = lfcResponse.get("$results");
+        assertNotNull(result);
+        final JsonNode lfc = result.get(0);
+        assertNotNull(lfc);
+
+        return lfc;
+    }
+
+    private JsonNode retrieveLfcForGot(String gotId, AccessInternalClient accessClient) throws Exception {
+        final SelectParserSingle parser = new SelectParserSingle();
+        Select selectLFC = new Select();
+        parser.parse(selectLFC.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("obId", gotId));
+        ObjectNode queryDsl = parser.getRequest().getFinalSelect();
+
+        JsonNode lfcResponse = accessClient.selectObjectGroupLifeCycleById(gotId, queryDsl).toJsonNode();
         final JsonNode result = lfcResponse.get("$results");
         assertNotNull(result);
         final JsonNode lfc = result.get(0);
@@ -2357,6 +2374,96 @@ public class IngestInternalIT extends VitamRuleRunner {
             .isEqualTo(0);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testLFCAccessForUnitAndGot() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            prepareVitamSession();
+            VitamThreadUtils.getVitamSession().setContractId("aName4");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            // workspace client unzip SIP in workspace
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    operationGuid, "Process_SIP_unitary", operationGuid,
+                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                    operationGuid);
+            params.add(initParameters);
+            LOGGER.debug(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "Sed blandit mi dolor"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+            final String og = unit.get("#object").asText();
+            assertNotNull(og);
+            // Try to check OG
+            select = new SelectMultiQuery();
+            select.addRoots(og);
+            //select.setProjectionSliceOnQualifier();
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+            LOGGER.warn("Result: " + jsonResponse);
+            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
+            final String objectId = valuesAsText.get(0);
+            LOGGER.warn("read: " + objectId);
+
+            final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            JsonNode lfcUnit = retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
+            assertNotNull(lfcUnit);
+
+            JsonNode lfcGot = retrieveLfcForGot(objectId, accessClient);
+            assertNotNull(lfcGot);
+
+            VitamThreadUtils.getVitamSession().setContractId("aName3");
+
+            try {
+                retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
+            } catch (AccessUnauthorizedException e) {
+                assertTrue(e.getMessage().equals("Access by Contract Exception"));
+            }
+
+            try {
+                retrieveLfcForGot(objectId, accessClient);
+            } catch (AccessUnauthorizedException e) {
+                assertTrue(e.getMessage().equals("Access by Contract Exception"));
+            }
+
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+            throw e;
+        }
+    }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
 

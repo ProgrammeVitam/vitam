@@ -46,6 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.access.internal.api.AccessInternalModule;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 
@@ -55,15 +58,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -126,10 +132,13 @@ public class LogbookInternalResourceImpl {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
+    private final AccessInternalModule accessModule;
+
     /**
      * Default Constructor
      */
     public LogbookInternalResourceImpl() {
+        accessModule = new AccessInternalModuleImpl();
         LOGGER.debug("LogbookExternalResource initialized");
     }
 
@@ -226,6 +235,15 @@ public class LogbookInternalResourceImpl {
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(unitLifeCycleId);
             SanityChecker.checkJsonAll(queryDsl);
+            Select unitQuery = new Select();
+            unitQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), unitLifeCycleId));
+            JsonNode unitResult =
+                    accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnit(unitQuery.getFinalSelect(),
+                            VitamThreadUtils.getVitamSession().getContract()));
+            if(unitResult.get("$hits").get("total").toString().equals("0")) {
+                return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+            }
+
             final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
 
@@ -237,9 +255,13 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final VitamDBException | AccessInternalExecutionException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -293,6 +315,16 @@ public class LogbookInternalResourceImpl {
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(objectGroupLifeCycleId);
             SanityChecker.checkJsonAll(queryDsl);
+            Select gotQuery = new Select();
+            gotQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), objectGroupLifeCycleId));
+            final JsonNode gotResult = accessModule
+                    .selectObjects(AccessContractRestrictionHelper
+                            .applyAccessContractRestrictionForObjectGroup(gotQuery.getFinalSelect(),
+                                    VitamThreadUtils.getVitamSession().getContract()));
+            if(gotResult.get("$hits").get("total").toString().equals("0")) {
+                return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+            }
+
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
@@ -303,9 +335,13 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final VitamDBException | AccessInternalExecutionException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }

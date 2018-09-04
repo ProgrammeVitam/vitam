@@ -213,6 +213,12 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in selectObjectGroupLifeCycleById method."),
 
+    ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "16", Status.UNAUTHORIZED,
+            "Unauthorized to access objects group lifecycle"),
+
+    ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "17", Status.UNAUTHORIZED,
+            "Unauthorized to access archive units lifecycle"),
+
     ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "09",
         Status.BAD_REQUEST,
         "Access external client error in getAccessionRegisterSummary method."),
