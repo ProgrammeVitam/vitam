@@ -1,0 +1,3 @@
+db = db.getSiblingDB('identity')
+
+db.Certificate.deleteMany({ContextId: "{{ item[0].Identifier }}"})

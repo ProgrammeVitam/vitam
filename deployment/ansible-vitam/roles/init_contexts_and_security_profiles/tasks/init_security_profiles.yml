@@ -1,31 +1,6 @@
 ---
 
-- name: "Wait until service functional-admin is up"
-  wait_for:
-      host: "{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}"
-      port: "{{vitam.functional_administration.port_admin}}"
-      state: "started"
-      timeout: "{{ vitam_defaults.services.start_timeout }}"
-  run_once: true
-
-- include_tasks: check_elasticsearch.yml
-
-- name: Check if security profile already exists in functional-admin
-  uri:
-    method: GET
-    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"{{admin_security_profile}}\"}},\"$filter\":{},\"$projection\":{} }"
-    status_code: 200
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/securityprofiles"
-    body_format: "json"
-  run_once: true
-  register: securityprofile_check
-
-- name: Modify json & convert to dict...
-  set_fact:
-    securityprofile_check_json: "{{ securityprofile_check.json |regex_replace('\\$hits', 'hits') }}"
-  run_once: true
-
-- name: Import admin security profile to functionnal-admin
+- name: Import admin security profile to functionnal-administration
   uri:
     method: POST
     body: "[{ \"Name\": \"{{admin_security_profile}}\", \"Identifier\": \"{{admin_security_profile}}\", \"FullAccess\": true, \"Permissions\": null }]"
@@ -36,4 +11,3 @@
       X-Tenant-Id: "{{ vitam_tenant_admin }}"
   run_once: true
   register: functional_adm_response
-  when: securityprofile_check_json.hits.total < 1
