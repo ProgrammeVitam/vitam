@@ -123,7 +123,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             //// get lfc
             Stopwatch loadLFC = Stopwatch.createStarted();
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
-            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadLFC.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadLFC", loadLFC.elapsed(TimeUnit.MILLISECONDS));
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -133,6 +133,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             try {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 Stopwatch storeWorkspace = Stopwatch.createStarted();
+
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                         null, false);
