@@ -16,6 +16,8 @@
     dest: /etc/metricbeat/metricbeat.yml
     owner: root
     mode: 0644
+  tags:
+    - update_metricbeat_configuration
 
 - name: ensure module.d directory exists
   file:
