@@ -57,7 +57,6 @@ export class MenuComponent implements OnInit {
               {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
               {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
               {label: 'Import des documents type', routerLink: ['admin/import/archiveUnitProfile']},
-              {label: 'Import des ontologies', routerLink: ['admin/import/ontology']},
               {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
               {label: 'Import des services agents', routerLink: ['admin/import/agencies']}

@@ -353,6 +353,9 @@ export class SearchReferentialsComponent extends PageComponent {
             'OntologyID': 'all', 'OntologyName': 'all', 'orderby': {'field': 'OntologyName', 'sortType': 'ASC'}
           };
           this.initialSortKey = 'ApiField';
+          if (!this.authenticationService.isTenantAdmin()) {
+            this.isImportable = false;
+          }
 
           this.columns = [
             ColumnDefinition.makeSpecialValueColumn('Intitulé', (item) => item.SedaField ? item.SedaField : item.ApiField,
