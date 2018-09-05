@@ -1280,14 +1280,22 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             ? updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY)
                             : updatedCategoryRules.get(category).get(PREVENT_RULES_ID_KEY);
 
-                    ArrayNode updatedRules =
-                        checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
+                    boolean deleteAllRules = false;
+                    ArrayNode updatedRules;
+                    ArrayNode createdRules;
 
-                    ArrayNode createdRules =
-                        checkAddedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
+                    if (rulesForUpdatedCategory == null || rulesForUpdatedCategory.size() == 0) {
+                        deleteAllRules = true;
+                        updatedRules = JsonHandler.createArrayNode();
+                    } else {
+                        updatedRules =
+                            checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
+                        createdRules =
+                            checkAddedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
 
-                    if (createdRules.size() != 0) {
-                        updatedRules.addAll(createdRules);
+                        if (createdRules.size() != 0) {
+                            updatedRules.addAll(createdRules);
+                        }
                     }
 
                     boolean hasNewFinalAction = hasNewFinalAction(existingFinalAction, finalAction);
@@ -1297,13 +1305,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         || updatedPreventInheritanceNode != null
                         || updatedPreventRulesNode != null;
 
-                    if (!hasNewRules && !hasNewFinalAction) {
+                    if (!hasNewRules && !hasNewFinalAction && !deleteAllRules) {
                         return;
                     }
 
                     Map<String, JsonNode> action = new HashMap<>();
                     if (updatedRules.size() != 0) {
                         action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
+                    } else if (deleteAllRules) {
+                        action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, JsonHandler.createArrayNode());
                     }
                     if (hasNewFinalAction) {
                         action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);

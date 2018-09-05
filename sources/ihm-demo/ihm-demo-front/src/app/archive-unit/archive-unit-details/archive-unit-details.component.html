@@ -11,10 +11,9 @@
     <vitam-archive-extra-description [archiveUnit]="data"></vitam-archive-extra-description>
 </vitam-loading-block>
 
-<vitam-loading-block [displayLoading]="loading" [displayContent]="!loading" [blockTitle]="'Règles de gestion'"
+<vitam-loading-block [displayLoading]="loading" [displayContent]="!loading" [blockTitle]="'Métadonnées de gestion'"
                      [collapsed]="true">
-    <vitam-archive-rule-bloc *ngIf="data" [inheritedRules]="data.inheritedRule" [management]="data['#management']"
-                             [id]="data['#id']"></vitam-archive-rule-bloc>
+    <vitam-archive-rule-bloc *ngIf="data" [unitId]="data['#id']" [data]="data"></vitam-archive-rule-bloc>
 </vitam-loading-block>
 
 <vitam-loading-block [displayLoading]="objectDisplayable" [displayContent]="objects" [blockTitle]="'Groupe d\'Objets'">

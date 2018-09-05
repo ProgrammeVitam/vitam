@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 import java.io.File;
@@ -74,6 +75,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -356,6 +358,47 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * @param request needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param unitId archive unit id
+     * @return archive unit details
+     */
+    @GET
+    @Path("/archivesearch/unitsWithInheritedRules/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archivesearch:units:read")
+    public Response getArchiveUnitDetailsWithInheritance(@Context HttpServletRequest request, @PathParam("id") String unitId) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+
+            final SelectMultiQuery select = new SelectMultiQuery();
+            select.addProjection(JsonHandler.createObjectNode());
+            if (unitId != null) {
+                select.setQuery(eq(VitamFieldsHelper.id(), unitId));
+            }
+            ObjectNode preparedQueryDsl = select.getFinalSelect();
+
+            final RequestResponse<JsonNode> archiveDetails = UserInterfaceTransactionManager
+                .selectUnitsWithInheritedRules(preparedQueryDsl, UserInterfaceTransactionManager.getVitamContext(request));
+
+            return archiveDetails.toResponse();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.UNAUTHORIZED).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
     /**

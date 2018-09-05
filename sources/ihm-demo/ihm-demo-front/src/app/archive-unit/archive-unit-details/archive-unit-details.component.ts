@@ -61,7 +61,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
         return [];
       })
       .subscribe(() => {/* Need a Subscribe to trigger switchMap */});
-    this.archiveUnitService.getDetails(this.id).subscribe(
+    this.archiveUnitService.getDetailsWithInheritedRules(this.id).subscribe(
       (data) => {
         if (data) {
           this.objectDisplayable = true;

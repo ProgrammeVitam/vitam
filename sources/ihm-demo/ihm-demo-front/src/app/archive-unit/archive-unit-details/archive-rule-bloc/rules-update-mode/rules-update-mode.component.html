@@ -1,0 +1,223 @@
+<div class="ui-g-12 ui-g-nopad" *ngIf="updateValues && localProperties && !saveRunning">
+  <div class="ui-g ui-g-12">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2">
+      <button pButton class="ui-button secondaryButton" (click)="disableUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+  </div>
+
+  <div class="ui-g-12">
+    <div class="ui-g-6">
+      <label class="ui-g-4" style="font-weight: bold;">Modifications soumises à validation</label>
+      <p-toggleButton class="ui-g-7 ui-g-nopad" onLabel="Oui" offLabel="Non" [(ngModel)]="updateValues.NeedAuthorization"></p-toggleButton>
+    </div>
+    <div class="ui-g-6">
+      <label class="ui-g-4" style="font-weight: bold;">Profil d'unité archivistique</label>
+      <input pInputText class="ui-g-8" [(ngModel)]="updateValues.ArchiveUnitProfile" />
+    </div>
+  </div>
+
+  <ng-template  ngFor let-category="$implicit" [ngForOf]="MANAGEMENT_RULES_CATEGORIES">
+    <p-fieldset [legend]="category.label"  class="ui-g-12" [toggleable]="true" [collapsed]="false">
+
+      <div class="ui-g-12 ui-g-nopad">
+
+        <!-- Inheritance properties -->
+        <div class="ui-g-12">
+          <div class="ui-g-6">
+            <span class="ui-g-5" style="font-weight: bold;">Désactiver l'héritage:</span> <!-- Si Prevent griser RuleID -->
+            <p-toggleButton class="ui-g-7 ui-g-nopad" onLabel="Héritage Désactivé" offLabel="Héritage Activé" [(ngModel)]="updateValues[category.rule].Inheritance.PreventInheritance"></p-toggleButton>
+          </div>
+
+          <div class="ui-g-6">
+            <span class="ui-g-5" style="font-weight: bold;">Règles désactivées:</span>
+            <!-- TODO Check modul args for good display -->
+            <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="updateValues[category.rule].Inheritance.PreventRulesId" [disabled]="updateValues[category.rule].Inheritance.PreventInheritance"></p-chips>
+            <div class="ui-g-12"> <!-- TODO: Design ME ! -->
+              <div class="ui-g-nopad ui-g-12">
+                <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Si héritage cassé: Mettre la regle en barré -->
+        <div class="ui-g-12">
+          <!-- Properties updates -->
+          <div class="ui-g-12" *ngFor="let propertyName of category.properties | keys">
+            <span class="ui-g-3 propertiesFields">{{category.properties[propertyName].label}}</span>
+
+            <!-- Text Input -->
+            <input class="ui-g-3" pInputText *ngIf="category.properties[propertyName].kind === 'string'"
+                   [(ngModel)]="localProperties[category.rule][propertyName]"/>
+
+            <!-- Boolean Input -->
+            <p-toggleButton class="ui-g-3" *ngIf="category.properties[propertyName].kind === 'boolean'" onLabel="Oui"
+                            offLabel="Non" [(ngModel)]="localProperties[category.rule][propertyName]"></p-toggleButton>
+
+            <!-- Selection Input -->
+            <select class="ui-g-3" *ngIf="category.properties[propertyName].kind === 'enum'"
+                    name="{{category.rule}}-{{propertyName}}" [(ngModel)]="localProperties[category.rule][propertyName]" >
+              <option *ngFor='let choice of category.properties[propertyName].choices' value="{{choice.value}}"
+                      ngDefaultControl>{{choice.label}}</option>
+            </select>
+
+            <!-- Date Input -->
+            <p-calendar class="ui-g-3" *ngIf="category.properties[propertyName].kind === 'date'"
+                        [(ngModel)]="localProperties[category.rule][propertyName]" [dateFormat]="'dd/mm/yy'"
+                        [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="FR_LOCALE"></p-calendar>
+          </div>
+
+          <!-- Rules table-->
+          <div class="ui-g-12">
+            <div class="ui-g-3" style="font-weight: bold;">Identifiant</div>
+            <div class="ui-g-3" style="font-weight: bold;">Début</div>
+            <div class="ui-g-3" style="font-weight: bold;">Fin</div>
+            <div class="ui-g-1" style="font-weight: bold;">Hérité</div>
+            <div class="ui-g-2" style="font-weight: bold;">Actions</div>
+
+            <!-- Inherited Rules (overrided or not) -->
+            <ng-template  [ngIf]="inheritedItems[category.rule]">
+              <div class="ui-g-12" *ngFor="let rule of inheritedItems[category.rule].Rules">
+                <div class="ui-g-3">
+                  <!-- Inheritance overrided -->
+                  <span *ngIf="updateValues[category.rule].Inheritance
+                      && (updateValues[category.rule].Inheritance.PreventInheritance
+                          || updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) !== -1)"
+                        class="deletedRule">{{rule.Rule}}</span>
+                  <!-- Inherited rules -->
+                  <span *ngIf="!updateValues[category.rule].Inheritance
+                      || (!updateValues[category.rule].Inheritance.PreventInheritance
+                          && updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) === -1)">
+                  {{rule.Rule}}</span>
+                </div>
+                <div class="ui-g-3">
+                  <!-- Inheritance overrided -->
+                  <span *ngIf="updateValues[category.rule].Inheritance
+                      && (updateValues[category.rule].Inheritance.PreventInheritance
+                          || updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) !== -1)"
+                        class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                  <!-- Inherited rules -->
+                  <span *ngIf="!updateValues[category.rule].Inheritance
+                      || (!updateValues[category.rule].Inheritance.PreventInheritance
+                          && updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) === -1)">
+                  {{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                </div>
+                <div class="ui-g-3">
+                  <!-- Inheritance overrided -->
+                  <span *ngIf="updateValues[category.rule].Inheritance
+                      && (updateValues[category.rule].Inheritance.PreventInheritance
+                          || updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) !== -1)"
+                        class="deletedRule">{{rule.endDate | date:'dd/MM/yyyy'}}</span>
+                  <!-- Inherited rules -->
+                  <span *ngIf="!updateValues[category.rule].Inheritance
+                      || (!updateValues[category.rule].Inheritance.PreventInheritance
+                          && updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) === -1)">
+                  {{rule.endDate | date:'dd/MM/yyyy'}}</span>
+                </div>
+                <div class="ui-g-1">
+                  <!-- Inheritance overrided -->
+                  <span *ngIf="updateValues[category.rule].Inheritance
+                      && (updateValues[category.rule].Inheritance.PreventInheritance
+                          || updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) !== -1)"
+                        class="deletedRule">Oui</span>
+                  <!-- Inherited rules -->
+                  <span *ngIf="!updateValues[category.rule].Inheritance
+                      || (!updateValues[category.rule].Inheritance.PreventInheritance
+                          && updateValues[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) === -1)">Oui</span>
+                </div>
+              </div>
+            </ng-template>
+
+            <!-- Updated Local Rules -->
+            <div class="ui-g-12" *ngFor="let rule of updateValues[category.rule].Rules; let i = index">
+              <!-- RuleID -->
+              <div class="ui-g-3">
+                <input pInputText *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) === -1" [(ngModel)]="rule.Rule" style="width: 100%"/>
+                <span *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) !== -1" class="deletedRule">{{rule.Rule}}</span>
+              </div>
+
+              <!-- StartDate -->
+              <div class="ui-g-3">
+                <p-calendar [(ngModel)]="rule.editionStartDate" *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) === -1"
+                            [inputStyle]="{'width':'100%'}" [dateFormat]="'dd/mm/yy'"
+                            [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="FR_LOCALE"></p-calendar>
+                <span *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) !== -1" class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+              </div>
+
+              <div class="ui-g-3">Calculée</div>
+              <div class="ui-g-1">Non</div>
+
+              <!-- Action -->
+              <div class="ui-g-2" (click)="doOrUndoRemoveRule(category.rule, i, rule)">
+                <i class="fa fa-trash clickableDiv" *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) === -1"></i>
+                <i class="fa fa-plus clickableDiv" *ngIf="deletedRules.indexOf(category.rule + '-' + rule.Rule) !== -1"></i>
+              </div>
+            </div>
+            <div class="ui-g-6">
+              <button pButton class="ui-button" (click)="addRule(category.rule)" label="Ajouter une règle" icon="fa-plus"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-fieldset>
+  </ng-template>
+
+  <div class="ui-g ui-g-12">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2">
+      <button pButton class="ui-button secondaryButton" (click)="disableUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="saveRunning">
+  Sauvegarde des règles en cours...
+</div>
+
+<p-dialog header="Sauvegarde réussie" [(visible)]="displayOK">
+  Les règles ont bien été sauvegardée.
+  <p-footer>
+    <button pButton type="button" (click)="displayOK = false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Sauvegarde: Echec" [(visible)]="displayKO">
+  {{errorMessage}}
+  <p-footer>
+    <button pButton type="button" (click)="displayKO = false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Confirmation de mise à jour" [(visible)]="confirmation.display">
+  <div class="ui-g ui-g-12 ui-g-nopad">
+
+    <div class="ui-g-12" *ngIf="confirmation.nbCategories < 2">
+      Vous vous apprêtez à modifier la catégorie <span style="font-style: italic">{{confirmation.rulesCategoriesFr}}</span> pour:</div>
+    <div class="ui-g-12" *ngIf="confirmation.nbCategories >= 2">
+      Vous vous apprêtez à modifier les catégories <span style="font-style: italic">{{confirmation.rulesCategoriesFr.join(', ')}}</span> pour:</div>
+
+    <div class="ui-g-12" *ngIf="confirmation.deleted < 2">- Supprimer {{confirmation.deleted}} règle ou propriété,</div>
+    <div class="ui-g-12" *ngIf="confirmation.deleted >= 2">- Supprimer {{confirmation.deleted}} règles ou propriété,</div>
+
+    <div class="ui-g-12" *ngIf="confirmation.updated < 2">- Modifier {{confirmation.updated}} règle ou propriété,</div>
+    <div class="ui-g-12" *ngIf="confirmation.updated >= 2">- Modifier {{confirmation.updated}} règles ou propriétés,</div>
+
+    <div class="ui-g-12" *ngIf="confirmation.added < 2">- Ajouter {{confirmation.added}} règle ou propriété.</div>
+    <div class="ui-g-12" *ngIf="confirmation.added >= 2"> - Ajouter {{confirmation.added}} règles ou propriété.</div>
+  </div>
+  <p-footer>
+    <button pButton type="button" (click)="confirmation.display = false" label="Annuler"></button>
+    <button pButton type="button" (click)="doSave(confirmation.rules, confirmation.NeedAuthorization, confirmation.ArchiveUnitProfile)" label="OK"></button>
+  </p-footer>
+</p-dialog>

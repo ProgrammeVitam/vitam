@@ -69,7 +69,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.QueryPattern;
 import fr.gouv.vitam.common.model.RequestFacetItem;
 
 /**
@@ -494,7 +493,6 @@ public final class DslQueryHelper {
             if (searchKeys.startsWith(PROJECTION_PREFIX)) {
                 select.addUsedProjection(searchValue);
             }
-
         }
         // Suppress 3 parts of queryDsl for validation in getById only Projection is authorize
         ObjectNode finalSelect = select.getFinalSelectById();

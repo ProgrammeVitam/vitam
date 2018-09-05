@@ -14,6 +14,7 @@ export class ArchiveUnitService {
   TREE = 'tree';
   UNITS = 'units';
   UNIT = 'unit';
+  UNIT_WITH_INHERITED_RULES = 'unitsWithInheritedRules';
   EXPORT = 'dipexport';
   AUDIT = 'evidenceaudit';
   PROBATIVE_VALUE = 'probativevalueexport';
@@ -32,6 +33,10 @@ export class ArchiveUnitService {
 
   getByQuery(query): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.TREE}`, undefined, query);
+  }
+
+  getDetailsWithInheritedRules(id: string): Observable<VitamResponse> {
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNIT_WITH_INHERITED_RULES}/${id}`);
   }
 
   getDetails(id): Observable<VitamResponse> {
