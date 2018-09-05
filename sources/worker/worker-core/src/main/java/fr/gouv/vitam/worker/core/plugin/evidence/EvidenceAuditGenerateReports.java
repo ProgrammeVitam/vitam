@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -56,7 +57,7 @@ import java.util.List;
 public class EvidenceAuditGenerateReports extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditGenerateReports.class);
 
-    private static final String EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS = "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS";
+    private static final String EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS = "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS";
     private static final String DATA = "data";
     private static final String FILE_NAMES = "fileNames";
     public static final String ZIP = "zip";
@@ -66,19 +67,22 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException, ContentAddressableStorageServerException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS);
+        ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS);
 
         try {
             JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
             boolean correctiveAudit = options.get("correctiveOption").booleanValue();
 
-            //Fixme verify if if file is not toobig for memory
+            //Fixme verify if  file is not too big for memory
             File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
             File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
 
             List<String> securedLines = Files.readAllLines(securedDataFile.toPath(),
                 Charset.defaultCharset());
-            ArrayList<String> listIds = JsonHandler.getFromFile(listOfObjectByFile, ArrayList.class);
+
+            ArrayList<String> listIds =
+                JsonHandler.getFromFileAsTypeRefence(listOfObjectByFile, new TypeReference<ArrayList<String>>() {
+                });
 
             EvidenceService evidenceService = new EvidenceService();
 
@@ -99,8 +103,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                         evidenceService.auditAndGenerateReportIfKo(parameters, securedLines, objectToAuditId);
 
 
-                }
-                else {
+                } else {
 
                     evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                     evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
@@ -127,8 +130,8 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
 
             return itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS)
-            .setItemsStatus(EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS, itemStatus);
+        return new ItemStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS)
+            .setItemsStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
     @Override

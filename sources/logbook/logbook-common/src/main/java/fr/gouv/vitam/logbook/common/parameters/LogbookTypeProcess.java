@@ -111,7 +111,11 @@ public enum LogbookTypeProcess {
     /**
      * Elimination process
      */
-    ELIMINATION;
+    ELIMINATION,
+    /**
+     * Evidence probativevalue export.
+     */
+    EXPORT_PROBATIVE_VALUE;
 
     /**
      * Get the LogbookTypeProcess matching the given type

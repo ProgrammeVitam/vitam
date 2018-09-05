@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,13 +77,6 @@ public class EvidenceAuditExtractFromZipTest {
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
-    @Test
-    public void should_fail_extract_from_zip() throws Exception {
-        WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
 
-        when(evidenceService.downloadAndExtractDataFromStorage(anyString())).thenThrow(EvidenceAuditException.class);
-        ItemStatus execute = evidenceAuditExtractFromZip.execute(defaultWorkerParameters, handlerIO);
-        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-    }
 
 }

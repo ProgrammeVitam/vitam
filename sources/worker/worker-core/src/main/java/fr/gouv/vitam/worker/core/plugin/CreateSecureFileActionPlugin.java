@@ -110,8 +110,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             String finalEventTypeProc = lastEvent.get(LogbookMongoDbName.eventTypeProcess.getDbname()).asText();
             String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
 
-            final String hashLFC = generateDigest(lifecycle);
-            final String hashLFCEvents = generateDigest(events);
+            final String hashLFC = generateDigest(lifecycle, digestType);
+            final String hashLFCEvents = generateDigest(events, digestType);
 
             lfcTraceSecFileDataLine = new LifeCycleTraceabilitySecureFileObject(
                 finalEventIdProc,
@@ -147,7 +147,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 lfcTraceSecFileDataLine.setUp(parents);
 
 
-                hashMetaData = generateDigest(unit);
+                hashMetaData = generateDigest(unit, digestType);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
                     DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient, alertService);
             } else if (LogbookLifeCycleObjectGroup.class.getName().equals(lifecycleType)) {
@@ -156,7 +156,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 metadataType = MetadataType.OBJECTGROUP;
                 MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(og);
 
-                hashMetaData = generateDigest(og);
+                hashMetaData = generateDigest(og, digestType);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
                     DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient, alertService);
                 List<ObjectGroupDocumentHash> list =
@@ -222,9 +222,10 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
      * Generate a hash for a JsonNode using VITAM Digest Algorithm
      *
      * @param jsonNode the jsonNode to compute digest for
+     * @param digestType
      * @return hash of the jsonNode
      */
-    private String generateDigest(JsonNode jsonNode) throws IOException {
+    public  static String generateDigest(JsonNode jsonNode, DigestType digestType) throws IOException {
         final Digest digest = new Digest(digestType);
         digest.update(CanonicalJsonFormatter.serialize(jsonNode));
         return digest.digest64();

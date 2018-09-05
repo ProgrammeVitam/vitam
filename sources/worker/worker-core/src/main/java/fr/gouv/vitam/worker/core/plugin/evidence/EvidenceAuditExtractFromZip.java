@@ -36,7 +36,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
 
@@ -45,12 +44,12 @@ import java.io.File;
  */
 public class EvidenceAuditExtractFromZip extends ActionHandler {
     private static final String EVIDENCE_AUDIT_EXTRACT_ZIP_FILE = "EVIDENCE_AUDIT_EXTRACT_ZIP_FILE";
-    private static final String ZIP = "zip";
     private EvidenceService evidenceService = new EvidenceService();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditExtractFromZip.class);
 
 
-    @VisibleForTesting EvidenceAuditExtractFromZip(EvidenceService evidenceService) {
+    @VisibleForTesting
+    EvidenceAuditExtractFromZip(EvidenceService evidenceService) {
         this.evidenceService = evidenceService;
     }
 
@@ -61,13 +60,14 @@ public class EvidenceAuditExtractFromZip extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE);
 
-        String securisedDataFileName = param.getObjectName();
+        String secureDataFileName = param.getObjectName();
         File file = null;
 
         try {
-            file = evidenceService.downloadAndExtractDataFromStorage(securisedDataFileName);
+            file = evidenceService.downloadAndExtractDataFromStorage(secureDataFileName, "data.txt",
+                "zip",true);
 
-            handlerIO.transferFileToWorkspace(ZIP + File.separator + securisedDataFileName,
+            handlerIO.transferFileToWorkspace("zip" + File.separator + secureDataFileName,
                 file, true, false);
             itemStatus.increment(StatusCode.OK);
             return new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE)

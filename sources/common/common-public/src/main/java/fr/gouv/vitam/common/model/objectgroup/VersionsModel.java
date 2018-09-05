@@ -87,6 +87,9 @@ public class VersionsModel {
     @JsonProperty("OtherMetadata")
     private Map<String, Object> otherMetadata = new HashMap<>();
 
+    @JsonProperty("#opi")
+    private String opi;
+
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
 
@@ -221,5 +224,11 @@ public class VersionsModel {
         this.storage = storage;
     }
 
+    public String getOpi() {
+        return opi;
+    }
 
+    public void setOpi(String opi) {
+        this.opi = opi;
+    }
 }

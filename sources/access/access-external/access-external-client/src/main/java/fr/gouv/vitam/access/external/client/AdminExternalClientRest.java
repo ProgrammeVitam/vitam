@@ -1,15 +1,13 @@
 package fr.gouv.vitam.access.external.client;
 
-import java.io.InputStream;
-
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -30,6 +28,7 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -478,7 +477,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
-                "/datafiles", headers,
+                    "/datafiles", headers,
                 null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
@@ -1058,6 +1057,29 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
+        throws VitamClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        try {
+            response = performRequest(HttpMethod.POST,
+                AccessExtAPI.EXPORT_PROBATIVE_VALUE,
+                headers,
+                probativeValueRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 
 
     @Override

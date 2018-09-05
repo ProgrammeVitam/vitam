@@ -71,6 +71,9 @@ public class LogbookEvent {
     @JsonProperty("rightsStatementIdentifier")
     private String rightsStatementIdentifier;
 
+    @JsonProperty("_lastPersistedDate")
+    private String lastPersistedDate;
+
     /**
      * @return the evId
      */
@@ -275,5 +278,13 @@ public class LogbookEvent {
      */
     public void setRightsStatementIdentifier(String rightsStatementIdentifier) {
         this.rightsStatementIdentifier = rightsStatementIdentifier;
+    }
+
+    public String getLastPersistedDate() {
+        return lastPersistedDate;
+    }
+
+    public void setLastPersistedDate(String lastPersistedDate) {
+        this.lastPersistedDate = lastPersistedDate;
     }
 }

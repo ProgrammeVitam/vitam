@@ -16,6 +16,7 @@ export class ArchiveUnitService {
   UNIT = 'unit';
   EXPORT = 'dipexport';
   AUDIT = 'evidenceaudit';
+  PROBATIVE_VALUE = 'probativevalueexport';
   OBJECTS = 'objects';
   ELIMINATION_ANALYSIS = 'elimination/analysis';
 
@@ -72,6 +73,11 @@ export class ArchiveUnitService {
   massUpdate(body: any): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}`, undefined, body);
   }
+
+  probativeValue(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.PROBATIVE_VALUE}`, undefined, body);
+  }
+
 
   downloadDIP(id: string) {
     return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, 'blob');

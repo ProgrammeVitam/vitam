@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -685,8 +686,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Download Csv referential Agencies
      *
-     * @param vitamContext    the vitam context
-     * @param opId            the op (logbook) ID
+     * @param vitamContext the vitam context
+     * @param opId         the op (logbook) ID
      * @return Agecsv referential
      * @throws VitamClientException vitamClientException
      */
@@ -696,8 +697,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Download Csv referential Rules
      *
-     * @param vitamContext    the vitam context
-     * @param opId            the op (logbook) ID
+     * @param vitamContext the vitam context
+     * @param opId         the op (logbook) ID
      * @return Rules csv referential
      * @throws VitamClientException vitamClientException
      */
@@ -733,11 +734,22 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * launch a rectification audit for the operation id
      *
      * @param vitamContext the operation Id
-     * @param operationId     the operation Id
+     * @param operationId  the operation Id
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
     RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
+        throws VitamClientException;
+
+
+    /**
+     * launch probative value process
+     * @param vitamContext the vitam context
+     * @param probativeValueRequest the request
+     * @return RequestResponse
+     * @throws VitamClientException {@link VitamClientException}
+     */
+    RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
         throws VitamClientException;
 
 
@@ -766,7 +778,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find ontologies
      *
      * @param vitamContext the vitam context
-     * @param query select query
+     * @param query        select query
      * @return list of ontologies
      * @throws VitamClientException
      */
@@ -779,7 +791,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an ontology by its id.
      *
      * @param vitamContext the vitam context
-     * @param id the ontology Id
+     * @param id           the ontology Id
      * @return an ontology
      * @throws VitamClientException
      */
@@ -799,7 +811,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * @param forceUpdate
      * @param vitamContext the vitam context
-     * @param ontologies as Json InputStream
+     * @param ontologies   as Json InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException

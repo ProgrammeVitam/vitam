@@ -41,7 +41,9 @@ export class MySelectionComponent extends PageComponent {
     { label: 'Audit de cohérence', value: 'AUDIT' },
     { label: 'Élimination', value: 'ELIMINATION'},
     { label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
-    { label: 'Vider le panier', value: 'DELETE' }
+    { label: 'Vider le panier', value: 'DELETE' },
+    { label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE' },
+
   ];
 
   frLocale = DateService.vitamFrLocale;
@@ -265,6 +267,15 @@ export class MySelectionComponent extends PageComponent {
           message = 'Erreur lors du lancement de la mse à jour de masse des unités archivistiques du panier';
         }
         break;
+      case 'PROBATIVE_VALUE':
+          if (isOK) {
+            title = 'Relevé de valeur probante en cours';
+            message = 'Le relevé de valeur probante des unités archivistiques du panier est en cours';
+          } else {
+            title = 'Erreur lors de l\'export du relevé de valeur probante';
+            message = 'Erreur lors du lancement de l\'export du relevé de valeur probante des unités archivistiques du panier';
+          }
+          break;
       default:
         break;
     }
@@ -381,6 +392,14 @@ export class MySelectionComponent extends PageComponent {
           );
         }
         break;
+      case 'PROBATIVE_VALUE':this.archiveUnitService.probativeValue(query).subscribe(
+        () => {
+          this.displayActionEnded(this.selectedOption, true);
+        }, () => {
+          this.displayActionEnded(this.selectedOption, false);
+        }
+      );
+      break;
       default:
         // TODO Display error ?
         console.log('No action selected');
@@ -389,7 +408,8 @@ export class MySelectionComponent extends PageComponent {
 
   initForm() {
     switch(this.selectedOption) {
-      case 'EXPORT': case 'AUDIT': case 'DELETE':
+      case 'EXPORT': case 'AUDIT': case 'DELETE':      case 'PROBATIVE_VALUE':
+
       return;
       case 'ELIMINATION':
         this.form.eliminationMode = false;
@@ -404,7 +424,8 @@ export class MySelectionComponent extends PageComponent {
 
   checkInputs(): boolean {
     switch(this.selectedOption) {
-      case 'EXPORT': case 'AUDIT': case 'DELETE':
+      case 'EXPORT': case 'AUDIT': case 'DELETE':      case 'PROBATIVE_VALUE':
+
       return true;
       case 'ELIMINATION':
         return this.form.eliminationDate != null && this.form.eliminationMode !== true;

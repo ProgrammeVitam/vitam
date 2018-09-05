@@ -86,14 +86,14 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
                 if (securedFilenameList.get(identifier) == null) {
                     ArrayList<String> listIds = new ArrayList<>();
                     listIds.add(element.toString());
-                    securedFilenameList.put(identifier,listIds);
+                    securedFilenameList.put(identifier, listIds);
                     continue;
                 }
                 securedFilenameList.get(identifier).add(element.toString());
             }
-            Set<Entry<String,List<String>>> entrySet = securedFilenameList.entrySet();
+            Set<Entry<String, List<String>>> entrySet = securedFilenameList.entrySet();
 
-            for (Entry<String,List<String>> me :  entrySet) {
+            for (Entry<String, List<String>> me : entrySet) {
                 File file = handlerIO.getNewLocalFile(me.getKey());
                 JsonHandler.writeAsFile(me.getValue(), file);
                 handlerIO.transferFileToWorkspace("fileNames" + "/" + me.getKey(), file, true, false);
@@ -112,6 +112,6 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /*Nothing to do */  }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /*Nothing to do */ }
 
 }

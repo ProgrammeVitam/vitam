@@ -219,5 +219,9 @@ public class AccessExtAPI {
      */
     public static final String ONTOLOGY = "ontologies";
 
+    /**
+     * Export probative value uri
+     */
+    public static final String EXPORT_PROBATIVE_VALUE = "/probativevalueexport";
 
 }

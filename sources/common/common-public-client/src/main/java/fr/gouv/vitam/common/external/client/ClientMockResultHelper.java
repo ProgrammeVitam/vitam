@@ -841,6 +841,12 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
 
+
+    public static RequestResponse<ProfileModel> getProbativeValue(int statusCode) {
+        //TODO Mock response to produce the probative value
+        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    }
+
     /**
      * Get archive unit profiles mock with the given status code
      * @param statusCode
