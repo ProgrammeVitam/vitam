@@ -1,0 +1,49 @@
+---
+# tasks file for rsyslog
+
+- name: ensure syslog-ng package is installed
+  package:
+    name: syslog-ng
+    state: latest
+  notify:
+    - restart syslogng
+
+- name: ensure service is started on boot && restart service
+  service:
+    name: syslog-ng
+    enabled: true
+  notify:
+    - restart syslogng
+
+#### Configuration ####
+
+- name: copy VITAM transport config file
+  template:
+    src: syslog.conf.j2
+    dest: /etc/syslog-ng/conf.d/vitam.conf
+    owner: root
+    mode: 0644
+  when: groups['hosts-logstash']|length > 0
+  notify:
+    - restart syslogng
+
+# - name: activate UDP in rsyslog
+#   replace:
+#     dest: /etc/rsyslog.conf
+#     regexp: '^#\$ModLoad imudp.*$'
+#     replace: "$ModLoad imudp"
+#   notify:
+#     - restart syslogng
+
+# - name: activate port 514 in rsyslog
+#   replace:
+#     dest: /etc/rsyslog.conf
+#     regexp: '^#\$UDPServerRun 514.*$'
+#     replace: "$UDPServerRun 514"
+#   notify:
+#     - restart syslogng
+
+- name: Ensure service is started
+  service:
+    name: "syslog-ng"
+    state: started
