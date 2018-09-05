@@ -45,6 +45,7 @@
   - name: Update yum cache
     shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache" 
     tags:
+      - enable_vitam_repo
       - update_package_vitam
   when: ansible_distribution == "CentOS"
 
