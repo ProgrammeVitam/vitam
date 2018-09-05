@@ -41,7 +41,7 @@ La recherche par intitulé peut être approximative : chaîne de caractères ave
 
 -PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
 
-.. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé.
+.. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé
 
 
 .. image:: images/rechch_formats.png
