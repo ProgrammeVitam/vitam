@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -260,11 +261,11 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * launch a DIP operation by a DSL query
      *
-     * @param queryJson query for the DIP creation
+     * @param dipExportRequest query for the DIP creation
      * @return
      * @throws AccessInternalClientServerException
      */
-    RequestResponse<JsonNode> exportDIP(JsonNode queryJson) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest) throws AccessInternalClientServerException;
 
     /**
      * get a zip file containing a DIP by an operation id

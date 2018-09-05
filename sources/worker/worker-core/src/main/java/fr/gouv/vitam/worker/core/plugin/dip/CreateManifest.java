@@ -47,6 +47,7 @@ import javax.xml.stream.XMLStreamException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -130,6 +131,21 @@ public class CreateManifest extends ActionHandler {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             JsonNode initialQuery = handlerIO.getJsonFromWorkspace("query.json");
 
+            Optional<Set<String>> dataObjectVersionFilter;
+            try {
+                JsonNode dataObjectVersionNode = handlerIO.getJsonFromWorkspace("dataObjectVersionFilter.json");
+                if(dataObjectVersionNode != null && dataObjectVersionNode.get("DataObjectVersions") != null) {
+                    dataObjectVersionFilter = Optional.of((new ObjectMapper()).treeToValue(dataObjectVersionNode.get("DataObjectVersions"), Set.class));
+                } else {
+                    dataObjectVersionFilter = Optional.empty();
+                }
+            } catch (ProcessingException e) {
+                // dataObjectVersionFilter is optional
+                dataObjectVersionFilter = Optional.empty();
+            } catch (JsonProcessingException e) {
+                throw new ProcessingException(e.getMessage(), e.getCause());
+            }
+
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
             String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(ParameterHelper.getTenantParameter());
@@ -189,7 +205,7 @@ public class CreateManifest extends ActionHandler {
                         List<String> linkedUnits = unitsForObjectGroupId.get(
                             object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
                         for (String linkedUnit: linkedUnits) {
-                            idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit));
+                            idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersionFilter));
                         }
                     }
                 }

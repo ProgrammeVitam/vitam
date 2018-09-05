@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
@@ -583,12 +584,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(JsonNode queryDSL) throws AccessInternalClientServerException {
-        ParametersChecker.checkParameter(BLANK_DSL, queryDSL);
+    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest) throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter(BLANK_DSL, dipExportRequest.getDslRequest());
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, DIPEXPORT, null, queryDSL,
+            response = performRequest(HttpMethod.POST, DIPEXPORT, null, dipExportRequest,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {

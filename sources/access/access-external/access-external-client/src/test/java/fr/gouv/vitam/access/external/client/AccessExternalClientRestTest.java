@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -283,7 +284,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Path("/dipexport")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response exportDIP(JsonNode queryJson)
+        public Response exportDIP(DipExportRequest dipExportRequest)
             throws InvalidParseOperationException {
             return expectedResponse.post();
         }
@@ -706,16 +707,18 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
+        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            JsonHandler.getFromString(queryDsql))).isNotNull();
+            dipExportRequest)).isNotNull();
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenExportDIPNotFoundThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client
-            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), dipExportRequest)
             .getHttpCode())
                 .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
@@ -732,8 +735,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenExportDIPBadQueryThenPreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client
-            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), dipExportRequest)
             .getHttpCode())
                 .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }

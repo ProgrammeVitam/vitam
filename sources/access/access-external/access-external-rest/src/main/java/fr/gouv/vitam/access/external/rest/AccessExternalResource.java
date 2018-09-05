@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectOnlyQueryMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
@@ -85,6 +87,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Access External Resource
@@ -205,7 +208,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * get units list by query
      *
-     * @param queryJson the query to get units
+     * @param dipExportRequest the query to get units
      * @return Response
      */
     @POST
@@ -213,10 +216,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
-    public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
+    public Response exportDIP(DipExportRequest dipExportRequest) {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryJson);
-            RequestResponse response = client.exportDIP(queryJson);
+            SanityChecker.checkJsonAll(dipExportRequest.getDslRequest());
+            SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
+            validator.validate(dipExportRequest.getDslRequest());
+            RequestResponse response = client.exportDIP(dipExportRequest);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {

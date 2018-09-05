@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.internal.api;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.server.application.resources.VitamResource;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -65,10 +66,10 @@ public interface AccessInternalResource extends VitamResource {
     Response selectUnitsWithInheritedRules(JsonNode queryDsl);
 
     /**
-     * @param queryDsl
+     * @param dipExportRequest
      * @return
      */
-    Response exportDIP(JsonNode queryDsl);
+    Response exportDIP(DipExportRequest dipExportRequest);
 
     /**
      * @param id of operation (X-Request-Id)

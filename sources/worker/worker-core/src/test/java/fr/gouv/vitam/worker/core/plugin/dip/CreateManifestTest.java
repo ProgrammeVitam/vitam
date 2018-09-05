@@ -37,8 +37,7 @@ import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -46,6 +45,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -105,6 +105,11 @@ public class CreateManifestTest {
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(true);
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
         JsonNode queryUnit =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
@@ -175,6 +180,89 @@ public class CreateManifestTest {
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAccesControlManifestCreation() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(false);
+        accessContractModel.setDataObjectVersion(new HashSet<>(Arrays.asList("PhysicalMaster", "BinaryMaster")));
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit =
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+
+        JsonNode queryDataObjectVersion =
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/dataObjectVersionFilter.json"));
+
+        JsonNode queryUnitWithTree =
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+
+        JsonNode queryObjectGroup =
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
+        given(handlerIO.getJsonFromWorkspace("dataObjectVersionFilter.json")).willReturn(queryDataObjectVersion);
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
+
+        given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
+
+        File manifestFile = tempFolder.newFile();
+        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File guidToPathFile = tempFolder.newFile();
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
+                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
+
+        File binaryFile = tempFolder.newFile();
+        given(handlerIO.getOutput(BINARIES_RANK))
+                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        Map<String, Object> linkBetweenBinaryIdAndFileName =
+                JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
+
+        assertThat(linkBetweenBinaryIdAndFileName).hasSize(1);
+        assertThat(linkBetweenBinaryIdAndFileName)
+                .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
+                .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
+
+        ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
+
+        assertThat(fromFile).hasSize(1).extracting(JsonNode::asText)
+                .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
+                equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
+                .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
+                equalTo("FRAN_NP_005568"))
+                .withNamespaceContext(prefix2Uri));
     }
 
 }
