@@ -12,5 +12,5 @@
    masterdata/_toc
    traceability/_toc_traceability
    update/_toc_update
-   mass_update/_toc_unit_mass_update
+   Traitement_de_masse/_toc_traitement_de_masse
    tree_view_update/_toc_modification_arborescence
