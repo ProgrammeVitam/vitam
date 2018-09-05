@@ -26,10 +26,15 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
+import com.google.common.base.Throwables;
+import fr.gouv.vitam.common.VitamConfiguration;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -37,8 +42,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import com.google.common.base.Throwables;
 
 /**
  * service to manage cucumber test
@@ -65,6 +68,11 @@ public class ApplicativeTestService {
      */
     private Executor executor;
 
+
+    /**
+     * flag to indicate if  TnrMasterActived  .
+     */
+    private AtomicBoolean isTnrMasterActived;
     /**
      * cucumber launcher
      */
@@ -80,6 +88,7 @@ public class ApplicativeTestService {
         this.inProgress = new AtomicBoolean(false);
         this.executor = Executors.newSingleThreadExecutor();
         this.cucumberLauncher = new CucumberLauncher(tnrReportDirectory);
+        this.isTnrMasterActived=  new AtomicBoolean(false);
     }
 
     /**
@@ -105,6 +114,26 @@ public class ApplicativeTestService {
         });
 
         return fileName;
+    }
+
+
+    public String launchPiecesCucumberTest(String pieces) throws IOException {
+
+
+        File reportFile = File.createTempFile("tmp", ".json", new File(VitamConfiguration.getVitamTmpFolder()));
+        File featureFile = File.createTempFile("tmp", ".feature", new File(VitamConfiguration.getVitamTmpFolder()));
+
+        try {
+            Files.write(featureFile.toPath(), pieces.getBytes());
+            List<String> arguments = cucumberLauncher.buildCucumberArgument(GLUE_CODE_PACKAGE, featureFile.toPath(), reportFile.getAbsolutePath());
+            cucumberLauncher.launchCucumberTest(arguments);
+            final String result = String.join(System.lineSeparator(), Files.readAllLines(reportFile.toPath()));
+
+            return result;
+        } finally {
+            Files.deleteIfExists(featureFile.toPath());
+            Files.deleteIfExists(reportFile.toPath());
+        }
     }
 
     /**
@@ -138,4 +167,26 @@ public class ApplicativeTestService {
         return p.exitValue();
     }
 
+    /**
+     * @param featurePath
+     * @param branche
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    int checkouk(Path featurePath, String branche) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("git", "checkout", branche);
+        pb.directory(featurePath.toFile());
+        Process p = pb.start();
+        p.waitFor();
+        return synchronizedTestDirectory(featurePath);
+    }
+
+    public void setIsTnrMasterActived(AtomicBoolean isTnrMasterActived) {
+        this.isTnrMasterActived = isTnrMasterActived;
+    }
+
+    public AtomicBoolean getIsTnrMasterActived() {
+        return isTnrMasterActived;
+    }
 }

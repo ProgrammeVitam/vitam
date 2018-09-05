@@ -1,0 +1,22 @@
+
+<label for="query">Exécution manuelle de TNR  </label>
+
+<div class="ui-g-12">
+<textarea class="textarea-dsl ui-g-12" id="query" rows="25" cols="12" pInputTextarea [(ngModel)]="featureText"></textarea>
+</div>
+
+<div class="ui-g-12">
+    <div>
+        <button pButton type="button" label="Lancer le TNR" (click)="sendRequest()"></button>
+    </div>
+    <div [ngClass]="validRequest ? validRequest.css : ''">
+        {{validRequest ? "JSON " + validRequest.valid : ""}}
+    </div>
+</div>
+<div class="ui-g-12">
+    <button pButton type="button" label="Effacer" (click)="requestResponse = undefined"></button>
+</div>
+<div class="ui-g-12">
+    <textarea class="textarea-dsl ui-g-12" id="response" rows="25" cols="12" pInputTextarea [(ngModel)]="requestResponse"></textarea>
+</div>
+

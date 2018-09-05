@@ -65,7 +65,8 @@ export class MenuComponent implements OnInit, OnDestroy {
               {label: 'Tests de performance', routerLink: ['tests/perf']},
               {label: 'Tests fonctionnels', routerLink: ['tests/functional-tests']},
               {label: 'Tests requêtes DSL', routerLink: ['tests/queryDSL']},
-              {label: 'Visualisation du Graphe', routerLink: ['tests/dag-visualization']}
+              {label: 'Visualisation du Graphe', routerLink: ['tests/dag-visualization']},
+              {label: 'Test feature ', routerLink: ['tests/testFeature']}
             ],
             size: 2
           },
