@@ -165,6 +165,9 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             }
 
             final Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
+
+            blob.getMetadata().getContentMetadata().setContentLength(size);
+            LOGGER.info("TESTTEST - " + blob.getMetadata().getContentMetadata().toString());
             blobStore.putBlob(containerName, blob);
         } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
