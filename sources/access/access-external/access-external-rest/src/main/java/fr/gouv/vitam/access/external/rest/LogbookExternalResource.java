@@ -246,7 +246,7 @@ public class LogbookExternalResource {
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION, e.getLocalizedMessage())
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
@@ -302,7 +302,7 @@ public class LogbookExternalResource {
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION,
                     e.getLocalizedMessage())
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
