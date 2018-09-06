@@ -533,3 +533,57 @@ Le mapping est le suivant :
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+**"_elimination":** tableau contenant les résultats pour l'unité archivistique d'une opération d'analyse d'élimination 
+  
+
+  * Champ peuplé par la solution logicielle Vitam au moment d’une indexation lors d'une phase d'analyse d'élimination.
+  * Cardinalité : 1-1
+  
+  Ce bloc contient les clés suivantes :
+
+
+  * "OperationId": GUID de l'opération d'élimination
+
+     - Tableau de chaînes de 36 caractères
+     - Ne peut être vide
+     - Cardinalité : 1-1
+
+  * "GlobalStatus": ce champ indique le statut de l'unité archivistique lors de son indexation 
+
+    - les valeurs ne peuvent être que DESTROY ou PARTIAL_DESTROY
+    - Ne peut être vide.
+    - Cardinalité : 1-1 
+
+  * "DestroyableOriginatingAgencies" : Service(s) producteur(s) pour lesquel(s) l'unité archivistique est éliminable
+
+    - Il s’agit d’une chaîne de caractères.
+    - Cardinalité : 0-n
+  
+  * "NonDestroyableOriginatingAgencies": Service(s) producteur(s) pour lesquel(s) l'unité archivistique n'est pas éliminable
+
+    - Il s’agit d’une chaîne de caractères.
+    - Cardinalité : 0-n
+  
+  * "ExtendedInfo" : tableau donnant des informations complémentaires dans les cas de PARTIAL_DESTROY
+
+    - Cardinalité : 0-n
+  
+  * "ExtendedInfoType": ce champ indique les situations impliquant un PARTIAL DESTROY
+
+    - Il s’agit d’une chaîne de caractères.
+    - Cardinalité : 0-n
+ 
+      - les valeurs attendues dans ce tableau sont soit :
+  
+        - "KEEP_ACCESS_SP" l'unité archivistique n'est pas éliminable car l'accès est conservé pour un service producteur. Pour chaque cas de KEEP_ACCESS_SP l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
+
+          - "ParentUnitId": "guid",
+          - "DestroyableOriginatingAgencies"
+
+        - "ACCESS_LINK_INCONSISTENCY" l'unité archivistique n'est pas éliminable car sa suppression occasionnerait une incohérence dans le fonds d'achives. Pour chaque cas de ACCESS_LINK_INCONSISTENCY l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
+     
+          - "ParentUnitId": "guid",
+          - "DestroyableOriginatingAgencies":
+
+
