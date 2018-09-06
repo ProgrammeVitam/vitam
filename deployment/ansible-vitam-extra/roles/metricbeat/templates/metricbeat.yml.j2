@@ -95,10 +95,10 @@ setup.kibana:
 
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
-output.elasticsearch:
   # Array of hosts to connect to.
   hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{hostvars[item]['ip_admin']}}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
-
+  # see https://www.elastic.co/guide/en/beats/libbeat/6.4/upgrading-5-to-6.html for further details
+  template.overwrite: true
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
