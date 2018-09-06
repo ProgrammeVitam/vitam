@@ -1427,7 +1427,7 @@ Cette opération est journalisée et disponible dans le Journal des opérations.
 
 
 Recherche dans l' ontologie
---------------------------
+---------------------------
 
 Pour consulter et rechercher des vocabulaires, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Ontologies".
 
