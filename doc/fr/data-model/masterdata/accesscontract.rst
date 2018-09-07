@@ -186,6 +186,13 @@ Détail des champs
   * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
   * Cardinalité : 1-1
 
+**"MasterIsMandatory":** objet de type Master est obligatoire
+
+  * Il s'agit d'un booléen.
+  * Si la valeur est à true, alors un objet de type Master ( Binary ou Physical ) est obligatoire.
+  * Cardinalité : 1-1
+
+
 **"AccessLog":** enregistrement des accès
 
   * Peut être ACTIVE ou INACTIVE
