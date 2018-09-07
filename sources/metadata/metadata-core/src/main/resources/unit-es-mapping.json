@@ -570,6 +570,9 @@
               },
               "RepositoryObjectPID": {
                 "type": "keyword"
+              },
+              "ExternalReference": {
+                "type": "text"
               }
             }
           },
@@ -1069,6 +1072,9 @@
                   "StartDate": {
                     "type": "date",
                     "format": "strict_date_optional_time"
+                  },
+                  "ClassificationAudience": {
+                    "type": "text"
                   }
                 }
               },
@@ -1099,6 +1105,9 @@
                 "type": "boolean"
               }
             }
+          },
+          "NeedAuthorization": {
+            "type": "boolean"
           }
         }
       },
@@ -1270,6 +1279,9 @@
             "type": "text"
           },
           "Role": {
+            "type": "text"
+          },
+          "Mandate": {
             "type": "text"
           }
         }

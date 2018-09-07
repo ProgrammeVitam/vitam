@@ -371,8 +371,8 @@ public final class DslQueryHelper {
                             );
                         } else if (!searchValue.isEmpty()) {
                             query.add(or()
-                                .add(match("ApiField", searchValue))
-                                .add(match("SedaField", searchValue))
+                                .add(eq("ApiField", searchValue))
+                                .add(eq("SedaField", searchValue))
                             );
                         }
                         break;

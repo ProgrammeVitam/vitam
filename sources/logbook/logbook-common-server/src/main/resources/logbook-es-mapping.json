@@ -72,6 +72,15 @@
             "diff": {
               "enabled": false
             },
+            "DigestAlgorithm": {
+              "type": "text"
+            },
+            "MaxEntriesReached": {
+              "type": "boolean"
+            },
+            "SecurisationVersion": {
+              "type": "text"
+            },
             "validateUnitReport": {
               "properties": {
                 "reports": {
@@ -179,12 +188,21 @@
     "agId": {
       "type": "text"
     },
+    "LegalStatus": {
+      "type": "keyword"
+    },
     "_score": {
       "type": "object",
       "enabled": false
     },
     "obId": {
       "type": "keyword"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_v": {
+      "type": "long"
     },
     "_lastPersistedDate": {
       "type": "date",
