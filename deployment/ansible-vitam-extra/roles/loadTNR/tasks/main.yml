@@ -20,9 +20,9 @@
       Host: "{{ ip_service }}"
     url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}{{ vitam.ihm_recette.baseurl }}/v1/api/login"
     validate_certs: no
+    return_content: yes
   ignore_errors: true
   run_once: true
-  return_content: yes
   register: login
   #no_log: true
 
