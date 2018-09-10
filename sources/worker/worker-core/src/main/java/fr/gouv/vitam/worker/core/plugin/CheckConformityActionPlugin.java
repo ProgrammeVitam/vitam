@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -128,9 +130,10 @@ public class CheckConformityActionPlugin extends ActionHandler {
         throws ProcessingException {
         String eventDetailData;
 
+        InputStream inputStream = null;
         try {
             final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
-            InputStream inputStream = handlerIO.getInputStreamFromWorkspace(
+            inputStream = handlerIO.getInputStreamFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + File.separator + binaryObject.getUri());
             final Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
@@ -199,6 +202,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
             IOException e) {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
+        } finally {
+        	IOUtils.closeQuietly(inputStream);
         }
 
     }

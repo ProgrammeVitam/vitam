@@ -32,6 +32,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.file.FileSystem;
@@ -51,7 +52,9 @@ public class SipTool {
 
     public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2, String replacement2) throws IOException {
         File tempFile = new File(GUIDFactory.newGUID().toString());
-        Files.copy(new FileInputStream(zipPath.toFile()), tempFile.toPath());
+        try (InputStream zipFile = new FileInputStream(zipPath.toFile())) {
+        	Files.copy(zipFile, tempFile.toPath());
+        }
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
             Path source = fs.getPath("manifest.xml");
             Path temp = fs.getPath("manifest_tmp.xml");

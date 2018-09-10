@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -345,6 +346,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         createListToimportUpdateDelete(fileRulesModelsToImport, fileRulesModelsInDb,
             fileRulesModelToDelete, fileRulesModelToUpdate, fileRulesModelToInsert,
             fileRulesModelToUpdateThenUpdateUnit);
+        InputStream fileInputStream = null;
         try {
             updateCheckFileRulesLogbookOperationOk(CHECK_RULES, StatusCode.OK,
                 notUsedDeletedRulesForReport,
@@ -355,7 +357,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip);
 
-            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+            fileInputStream = new FileInputStream(file);
+            backupService.saveFile(fileInputStream, eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
@@ -369,6 +372,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             LOGGER.error(e);
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
             throw new FileRulesException(e);
+        } finally {
+        	IOUtils.closeQuietly(fileInputStream);
         }
     }
 
@@ -397,7 +402,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelsToImport, List<FileRulesModel> usedUpdateRulesForUpdateUnit,
         ArrayNode validatedRules, String filename)
         throws IOException, ReferentialException, InvalidParseOperationException {
-        try {
+        InputStream fileInputStream = null; 
+    	try {
             usedUpdateRulesForReport.addAll(usedUpdateRulesForUpdateUnit);
             
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
@@ -417,7 +423,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final Digest digest = new Digest(digestType);
             digest.update(new FileInputStream(file));
 
-            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+            fileInputStream = new FileInputStream(file);
+            backupService.saveFile(fileInputStream, eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
@@ -432,6 +439,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         } catch (VitamException e) {
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
             throw new FileRulesException(e);
+        } finally {
+        	IOUtils.closeQuietly(fileInputStream);
         }
     }
 

@@ -370,8 +370,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             }
             SanityChecker.checkHTMLFile(file);
 
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = client.importRulesFile((InputStream) new FileInputStream(file), filename);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            		InputStream fileInputStream = new FileInputStream(file)) {
+                Status status = client.importRulesFile(fileInputStream, filename);
 
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
@@ -1123,8 +1124,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             }
             SanityChecker.checkHTMLFile(file);
 
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = client.importAgenciesFile((InputStream) new FileInputStream(file), filename);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            		InputStream fileInputStream = new FileInputStream(file)) {
+                Status status = client.importAgenciesFile(fileInputStream, filename);
 
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);

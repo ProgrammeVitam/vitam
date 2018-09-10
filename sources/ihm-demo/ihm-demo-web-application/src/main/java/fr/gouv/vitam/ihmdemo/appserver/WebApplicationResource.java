@@ -608,11 +608,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
 
 
-            try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
+            		InputStream fileInputStream = new FileInputStream(temporarSipFile)) {
                 final RequestResponse<Void> finalResponse =
                     client.ingest(new VitamContext(tenantId)
                         .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
-                        new FileInputStream(temporarSipFile), contextId, action);
+                        fileInputStream, contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
                 final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
