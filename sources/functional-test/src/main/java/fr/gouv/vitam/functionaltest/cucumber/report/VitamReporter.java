@@ -39,6 +39,7 @@ import gherkin.formatter.model.Scenario;
 import gherkin.formatter.model.ScenarioOutline;
 import gherkin.formatter.model.Step;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -134,8 +135,7 @@ public class VitamReporter implements Reporter, Formatter {
     public void result(Result result) {
 
         Step step = steps.poll();
-        System.out.println("  * " + result.getStatus().toUpperCase() +
-            (step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : ""));
+        System.out.printf("  * - %s - %s%s%n", Instant.now() ,result.getStatus().toUpperCase(), step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : "");
 
         if (result.getStatus().equals(Result.FAILED)) {
             report.addError(result.getErrorMessage());

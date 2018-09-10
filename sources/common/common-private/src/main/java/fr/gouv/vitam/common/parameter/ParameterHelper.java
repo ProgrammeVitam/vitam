@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 public class ParameterHelper {
 
     private static final String NO_TENANT_ID = "Tenant id should be filled";
-    
+
     private ParameterHelper() {
         // Do nothing
     }
@@ -89,10 +89,10 @@ public class ParameterHelper {
         ParametersChecker.checkParameter("Check Or null parameter", parameters);
         checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
     }
-    
+
     /**
      * Get the tenant parameter from the Vitam Session
-     *  
+     *  getTenantParameter
      * @return the tenantId
      * @throws IllegalArgumentException if the tenant Id is not found in the session
      * @throws fr.gouv.vitam.common.exception.VitamThreadAccessException if there is no VitamThread
@@ -102,5 +102,5 @@ public class ParameterHelper {
         ParametersChecker.checkParameter(NO_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
         return VitamThreadUtils.getVitamSession().getTenantId();
     }
-    
+
 }
