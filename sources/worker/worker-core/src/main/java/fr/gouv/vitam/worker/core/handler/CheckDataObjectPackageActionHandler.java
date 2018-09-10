@@ -28,12 +28,16 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.base.Stopwatch;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -50,7 +54,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
 
     /**
      * Empty Constructor
-     *
      */
     public CheckDataObjectPackageActionHandler() {
         // empty constructor
@@ -70,16 +73,29 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
         try {
             if (Boolean.valueOf((String) handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
                 try (CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
-                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler =
-                        new CheckObjectsNumberActionHandler();
-                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler()) {
+                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
+                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler()) {
+
+                    Stopwatch checkNoObject = Stopwatch.createStarted();
+
                     ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "checkNoObject", checkNoObject.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(CheckNoObjectsActionHandler.getId(), checkNoObjectStatus);
 
+                    Stopwatch checkObjectNumber = Stopwatch.createStarted();
+
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "checkObjectNumber", checkObjectNumber.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
+                    Stopwatch extractSeda = Stopwatch.createStarted();
+
                     ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
+
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda", extractSeda.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                     if (extractSedaStatus.shallStop(true)) {
@@ -90,18 +106,30 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
 
             } else {
                 try (CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler();
-                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
-                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
-                    CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
-                        new CheckObjectUnitConsistencyActionHandler();) {
+                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
+                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
+                     CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
+                         new CheckObjectUnitConsistencyActionHandler()) {
+
+                    Stopwatch checkVersion = Stopwatch.createStarted();
+
                     ItemStatus checkVersionStatus = checkVersionActionHandler.execute(params, handlerIO);
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "checkVersion", checkVersion.elapsed(TimeUnit.MILLISECONDS));
+
+
                     itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
 
                     if (checkVersionStatus.shallStop(true)) {
                         resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
+
+                    Stopwatch checkObjectNumber = Stopwatch.createStarted();
+
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
+
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "checkObjectNumber", checkObjectNumber.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
                     if (checkObjectNumberStatus.shallStop(true)) {
@@ -109,7 +137,11 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
 
+                    Stopwatch extractSeda = Stopwatch.createStarted();
+
                     ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda", extractSeda.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                     if (extractSedaStatus.shallStop(true)) {
@@ -126,15 +158,17 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                         .setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_GUID_IO_MEMORY_RANK)));
                     handlerIO.addInIOParameters(inputList);
                     handlerIO.getOutput().clear();
+
+                    Stopwatch checkObjectUnitConsistency = Stopwatch.createStarted();
+
                     ItemStatus checkObjectUnitConsistencyStatus =
                         checkObjectUnitConsistencyActionHandler.execute(params, handlerIO);
+
+                    PerformanceLogger.getInstance().log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "checkObjectUnitConsistency", checkObjectUnitConsistency.elapsed(TimeUnit.MILLISECONDS));
+
                     itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(),
                         checkObjectUnitConsistencyStatus);
-
-
                 }
-
-
             }
 
 
@@ -155,12 +189,13 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
 
     /**
      * Reset the statusMeter of the specified itemStatus
+     *
      * @param itemStatus
      */
-    private void resetItemStatusMeter(ItemStatus itemStatus){
+    private void resetItemStatusMeter(ItemStatus itemStatus) {
         itemStatus.reinitStatusMeter();
         //counter for DATAOBJECTPACKAGE is always 1
-        itemStatus.setStatusMeterValue(itemStatus.getGlobalStatus(),1);
+        itemStatus.setStatusMeterValue(itemStatus.getGlobalStatus(), 1);
 
     }
 

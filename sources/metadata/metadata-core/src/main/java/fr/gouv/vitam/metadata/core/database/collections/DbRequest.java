@@ -1141,11 +1141,17 @@ public class DbRequest {
 
             String odId = og.getId();
 
+            Stopwatch mongoWatch = Stopwatch.createStarted();
             og.insert();
+            PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION","storeMongo", mongoWatch.elapsed(TimeUnit.MILLISECONDS));
 
             final Integer tenantId = ParameterHelper.getTenantParameter();
+
+            Stopwatch elasticsearchWatch = Stopwatch.createStarted();
             MetadataCollections.OBJECTGROUP.getEsClient()
                 .insertFullDocument(MetadataCollections.OBJECTGROUP, tenantId, odId, og);
+
+            PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeElastic", elasticsearchWatch.elapsed(TimeUnit.MILLISECONDS));
 
         } catch (final MongoWriteException e) {
             throw e;
