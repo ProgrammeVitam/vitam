@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 
 /**
@@ -92,7 +93,7 @@ public class AccessResourceMock implements AccessInternalResource {
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIP(JsonNode queryDsl) {
+    public Response exportDIP(DipExportRequest dipExportRequest) {
         return null;
     }
 

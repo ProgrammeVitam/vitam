@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -459,15 +460,15 @@ public class UserInterfaceTransactionManager {
     /**
      * generate a DIP to be exported
      *
-     * @param query       search criteria as DSL query
+     * @param dipExportRequest       search criteria as DSL query
      * @param context     VitamContext
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
      * @throws VitamClientException           access client exception
      */
-    public static RequestResponse<JsonNode> exportDIP(JsonNode query, VitamContext context) throws InvalidParseOperationException, VitamClientException {
+    public static RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context) throws InvalidParseOperationException, VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.exportDIP(context, query);
+            return client.exportDIP(context, dipExportRequest);
         }
     }
 

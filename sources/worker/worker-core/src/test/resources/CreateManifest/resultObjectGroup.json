@@ -78,7 +78,7 @@
       "#nbobjects": 0,
       "#qualifiers": [
         {
-          "qualifier": "BinaryMaster",
+          "qualifier": "PhysicalMaster",
           "#nbc": 1,
           "versions": [
             {
@@ -139,7 +139,7 @@
       "#nbobjects": 0,
       "#qualifiers": [
         {
-          "qualifier": "BinaryMaster",
+          "qualifier": "Dissemination",
           "#nbc": 1,
           "versions": [
             {

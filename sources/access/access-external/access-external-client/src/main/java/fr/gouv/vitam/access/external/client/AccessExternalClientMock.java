@@ -6,6 +6,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -85,8 +86,8 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        JsonNode selectQuery) throws VitamClientException {
-        return ClientMockResultHelper.getDIPSimpleResult(selectQuery);
+                                               DipExportRequest dipExportRequest) throws VitamClientException {
+        return ClientMockResultHelper.getDIPSimpleResult(dipExportRequest);
     }
 
     @Override

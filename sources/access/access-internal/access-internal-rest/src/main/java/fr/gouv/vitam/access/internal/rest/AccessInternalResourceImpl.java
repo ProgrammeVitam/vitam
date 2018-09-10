@@ -85,6 +85,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -322,7 +323,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * get Archive Unit list by query based on identifier
      *
-     * @param queryDsl as JsonNode
+     * @param dipExportRequest as DipExportRequest
      * @return an archive unit result list
      */
     @Override
@@ -330,13 +331,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIP(JsonNode queryDsl) {
+    public Response exportDIP(DipExportRequest dipExportRequest) {
 
         Status status;
-        LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
+        LOGGER.debug("DEBUG: start selectUnits {}", dipExportRequest.getDslRequest());
+        LOGGER.debug("DEBUG: usage list to export {}", dipExportRequest.getDataObjectVersionToExport());
 
         try {
-            checkEmptyQuery(queryDsl);
+            checkEmptyQuery(dipExportRequest.getDslRequest());
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -356,7 +358,16 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
-                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(
+                        AccessContractRestrictionHelper
+                                .applyAccessContractRestrictionForUnit(dipExportRequest.getDslRequest(),
+                                        VitamThreadUtils.getVitamSession().getContract())));
+
+                if(dipExportRequest.getDataObjectVersionToExport() != null
+                        && !dipExportRequest.getDataObjectVersionToExport().getDataObjectVersions().isEmpty()) {
+                    workspaceClient.putObject(operationId, "dataObjectVersionFilter.json",
+                            JsonHandler.writeToInpustream(dipExportRequest.getDataObjectVersionToExport()));
+                }
 
                 ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
                 Boolean mustLog = ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
@@ -372,7 +383,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
                 LogbookClientAlreadyExistsException |
-                VitamClientException | InternalServerException e) {
+                VitamClientException | InternalServerException | InvalidCreateOperationException e) {
                 LOGGER.error("Error while generating DIP", e);
                 return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();

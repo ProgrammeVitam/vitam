@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -146,7 +147,8 @@ public class AccessInternalResourceTest {
         // When
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        accessInternalResource.exportDIP(select.getFinalSelect());
+        DipExportRequest dipExportRequest = new DipExportRequest(select.getFinalSelect());
+        accessInternalResource.exportDIP(dipExportRequest);
 
         // Then
         checkLogbookStarted(Contexts.EXPORT_DIP);

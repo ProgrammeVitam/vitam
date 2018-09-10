@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -182,7 +183,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        public Response exportDIP(JsonNode queryDsl) {
+        public Response exportDIP(DipExportRequest dipExportRequest) {
             return null;
         }
 

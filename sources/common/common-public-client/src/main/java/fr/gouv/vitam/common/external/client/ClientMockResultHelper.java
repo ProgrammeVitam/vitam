@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
@@ -831,9 +832,9 @@ public class ClientMockResultHelper {
 
 
 	public static RequestResponse<JsonNode> getDIPSimpleResult(
-			JsonNode selectQuery) {
+            DipExportRequest dipExportRequest) {
 		// TODO Mock for real for DIP !
-		return new RequestResponseOK<JsonNode>(selectQuery).addResult(getUnitSimpleItem())
+		return new RequestResponseOK<JsonNode>(dipExportRequest.getDslRequest()).addResult(getUnitSimpleItem())
 	            .setHttpCode(Status.OK.getStatusCode());
 	}
 

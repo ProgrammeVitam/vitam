@@ -138,6 +138,9 @@ public class AccessContractModel extends AbstractContractModel {
      * @return dataObjectVersion
      */
     public Set<String> getDataObjectVersion() {
+        if(dataObjectVersion == null) {
+            dataObjectVersion = new HashSet<>();
+        }
         return dataObjectVersion;
     }
 

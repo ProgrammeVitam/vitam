@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -169,12 +170,12 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * @param vitamContext the vitam context
-     * @param selectQuery the DSL query used to select unit to export as DIP
+     * @param dipExportRequest the DSL query used to select unit to export as DIP
      * @return the result of the information obtained in the DIP
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        JsonNode selectQuery) throws VitamClientException;
+                                        DipExportRequest dipExportRequest) throws VitamClientException;
 
     /**
      * getDIPById<br>
