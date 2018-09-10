@@ -26,15 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
@@ -66,9 +57,20 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import org.bson.conversions.Bson;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC;
 
 /**
  * Referential Accession Register Implement
@@ -82,13 +84,49 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param dbConfiguration                         the mongo access configuration
+     * @param dbConfiguration the mongo access configuration
      * @param referentialAccessionRegisterSummaryUtil the accession register summary
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration,
         ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil) {
         mongoAccess = dbConfiguration;
         this.referentialAccessionRegisterSummaryUtil = referentialAccessionRegisterSummaryUtil;
+    }
+
+    /**
+     * Insert a list of accession register symbolic.
+     *
+     * @param accessionRegisterSymbolics to insert
+     * @return the inserted accession register symbolics
+     * @throws ReferentialException
+     * @throws SchemaValidationException
+     * @throws InvalidParseOperationException
+     */
+    public void insertAccessionRegisterSymbolic(List<AccessionRegisterSymbolic> accessionRegisterSymbolics)
+        throws ReferentialException, SchemaValidationException, InvalidParseOperationException {
+
+        List<JsonNode> jsonNodes = new ArrayList<>();
+        for (AccessionRegisterSymbolic accessionRegisterSymbolic : accessionRegisterSymbolics) {
+            jsonNodes.add(JsonHandler.toJsonNode(accessionRegisterSymbolic));
+        }
+
+        mongoAccess.insertDocuments(JsonHandler.createArrayNode().addAll(jsonNodes), ACCESSION_REGISTER_SYMBOLIC);
+    }
+
+
+    /**
+     * Find the accession register symbolic filtered by the query dsl,
+     * if an empty query dsl is provided, the last 20 accession register
+     * symbolics will be returned.
+     *
+     * @param queryDsl that filter the accession register to find
+     * @return the list of accession register symbolic or an empty list
+     */
+    public List<AccessionRegisterSymbolic> findAccessionRegisterSymbolic(JsonNode queryDsl)
+        throws ReferentialException {
+        return mongoAccess.findDocuments(queryDsl, ACCESSION_REGISTER_SYMBOLIC)
+            .getRequestResponseOK(queryDsl, AccessionRegisterSymbolic.class)
+            .getResults();
     }
 
     /**

@@ -27,28 +27,6 @@
 package fr.gouv.vitam.metadata.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -82,6 +60,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -93,6 +72,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -109,6 +89,41 @@ import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -262,6 +277,145 @@ public class MetaDataImpl implements MetaData {
         return new ArrayList<>();
     }
 
+    @Override
+    public List<Document> createAccessionRegisterSymbolic(Integer tenant) {
+        Aggregations aUAccessionRegisterInfo = selectArchiveUnitAccessionRegisterInformation(tenant);
+        Aggregations oGAccessionRegisterInfo = selectObjectGroupAccessionRegisterInformation(tenant);
+
+        String creationDate = ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
+
+        return createWithInformations(aUAccessionRegisterInfo, oGAccessionRegisterInfo, creationDate, tenant);
+    }
+
+    private List<Document> createWithInformations(Aggregations archiveUnitAccessionRegisterInformation,
+        Aggregations objectGroupAccessionRegisterInformation, String creationDate, Integer tenant) {
+        Map<String, AccessionRegisterSymbolic> accessionRegisterSymbolicByOriginatingAgency =
+            fillWithArchiveUnitInformation(archiveUnitAccessionRegisterInformation, creationDate, tenant);
+        updateExistingAccessionRegisterWithObjectGroupInformation(objectGroupAccessionRegisterInformation, creationDate,
+            tenant, accessionRegisterSymbolicByOriginatingAgency);
+
+        return new ArrayList<>(accessionRegisterSymbolicByOriginatingAgency.values());
+    }
+
+    private void updateExistingAccessionRegisterWithObjectGroupInformation(
+        Aggregations objectGroupAccessionRegisterInformation, String creationDate, Integer tenant,
+        Map<String, AccessionRegisterSymbolic> accessionRegisterSymbolicByOriginatingAgency) {
+
+        Terms objectGroupOriginatingAgencies = objectGroupAccessionRegisterInformation.get("originatingAgencies");
+        Terms objectGroupOriginatingAgency = objectGroupAccessionRegisterInformation.get("originatingAgency");
+
+        Map<String, Long> objectGroupByOriginatingAgency = objectGroupOriginatingAgency.getBuckets().stream()
+            .collect(Collectors
+                .toMap(MultiBucketsAggregation.Bucket::getKeyAsString, MultiBucketsAggregation.Bucket::getDocCount));
+
+        objectGroupOriginatingAgencies.getBuckets()
+            .forEach(bucket ->
+                updateAccessionsRegister(
+                    creationDate,
+                    tenant,
+                    accessionRegisterSymbolicByOriginatingAgency,
+                    objectGroupByOriginatingAgency,
+                    bucket
+                )
+            );
+    }
+
+    private void updateAccessionsRegister(String creationDate, Integer tenant,
+        Map<String, AccessionRegisterSymbolic> accessionRegisterSymbolicByOriginatingAgency,
+        Map<String, Long> objectGroupByOriginatingAgency, Terms.Bucket objectGroup) {
+        String originatingAgency = objectGroup.getKeyAsString();
+        long groupObjectsCount =
+            objectGroup.getDocCount() - objectGroupByOriginatingAgency.getOrDefault(originatingAgency, 0L);
+        Sum binaryObjectSizeAgg = objectGroup.getAggregations().get("binaryObjectSize");
+        ValueCount binaryObjectCountAgg = objectGroup.getAggregations().get("binaryObjectCount");
+        double binaryObjectSize = binaryObjectSizeAgg.getValue();
+        long objectSize = binaryObjectCountAgg.getValue();
+        AccessionRegisterSymbolic existingAccessionRegister =
+            accessionRegisterSymbolicByOriginatingAgency.get(originatingAgency);
+
+        if (groupObjectsCount > 0 && existingAccessionRegister != null) {
+            existingAccessionRegister.setObjectGroup(groupObjectsCount)
+                .setBinaryObject(objectSize)
+                .setBinaryObjectSize(binaryObjectSize);
+            return;
+        }
+
+        if (groupObjectsCount <= 0 && existingAccessionRegister != null) {
+            existingAccessionRegister.setObjectGroup(0)
+                .setBinaryObject(0L)
+                .setBinaryObjectSize(0D);
+            return;
+        }
+
+        if (groupObjectsCount > 0 && existingAccessionRegister == null) {
+            accessionRegisterSymbolicByOriginatingAgency.put(originatingAgency, new AccessionRegisterSymbolic()
+                .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
+                .setCreationDate(creationDate)
+                .setTenant(tenant)
+                .setOriginatingAgency(originatingAgency)
+                .setArchiveUnit(0L)
+                .setObjectGroup(groupObjectsCount)
+                .setBinaryObject(objectSize)
+                .setBinaryObjectSize(binaryObjectSize));
+            return;
+        }
+
+        if (groupObjectsCount <= 0 && existingAccessionRegister == null) {
+            return;
+        }
+
+        throw new IllegalStateException("Cannot go there.");
+    }
+
+    private Map<String, AccessionRegisterSymbolic> fillWithArchiveUnitInformation(
+        Aggregations archiveUnitAccessionRegisterformation, String creationDate, Integer tenant) {
+        Terms archiveUnitOriginatingAgencies = archiveUnitAccessionRegisterformation.get("originatingAgencies");
+        Terms archiveUnitOriginatingAgency = archiveUnitAccessionRegisterformation.get("originatingAgency");
+
+        Map<String, Long> archiveUnitByOriginatingAgency = archiveUnitOriginatingAgency.getBuckets().stream()
+            .collect(Collectors
+                .toMap(MultiBucketsAggregation.Bucket::getKeyAsString, MultiBucketsAggregation.Bucket::getDocCount));
+
+        return archiveUnitOriginatingAgencies.getBuckets().stream()
+            .map(e -> {
+                long archiveUnitCount =
+                    e.getDocCount() - archiveUnitByOriginatingAgency.getOrDefault(e.getKeyAsString(), 0L);
+                if (archiveUnitCount <= 0) {
+                    return null;
+                }
+                return new AccessionRegisterSymbolic()
+                    .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
+                    .setCreationDate(creationDate)
+                    .setTenant(tenant)
+                    .setOriginatingAgency(e.getKeyAsString())
+                    .setArchiveUnit(archiveUnitCount);
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(AccessionRegisterSymbolic::getOriginatingAgency, e -> e));
+    }
+
+    private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant) {
+        TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies");
+        ogs.field("_sps");
+        ogs.subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"));
+        ogs.subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
+
+        TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency").field("_sp");
+
+        return OBJECTGROUP.getEsClient()
+            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", 0))
+            .getAggregations();
+    }
+
+    private Aggregations selectArchiveUnitAccessionRegisterInformation(Integer tenant) {
+        List<AggregationBuilder> aggregations = Arrays.asList(
+            AggregationBuilders.terms("originatingAgency").field("_sp"),
+            AggregationBuilders.terms("originatingAgencies").field("_sps")
+        );
+        return UNIT.getEsClient()
+            .basicSearch(UNIT, tenant, aggregations, QueryBuilders.termQuery("_tenant", tenant))
+            .getAggregations();
+    }
 
     @Override
     public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(
@@ -550,7 +704,8 @@ public class MetaDataImpl implements MetaData {
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = DbRequestFactoryImpl.getInstance().create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
+            result =
+                DbRequestFactoryImpl.getInstance().create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
@@ -631,7 +786,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(UNIT, tenantId);
     }
 
     @Override

@@ -25,6 +25,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import org.bson.Document;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -199,5 +200,10 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery) {
         throw new UnsupportedOperationException("Stop using mocks in production");
+    }
+
+    @Override
+    public JsonNode createAccessionRegisterSymbolic() {
+        throw new RuntimeException("Do not use this");
     }
 }

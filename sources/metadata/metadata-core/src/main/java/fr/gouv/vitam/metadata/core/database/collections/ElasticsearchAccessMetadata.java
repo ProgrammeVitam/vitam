@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -78,6 +73,11 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 
 /**
  * ElasticSearch model with MongoDB as main database
@@ -94,7 +94,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * @param clusterName cluster name
-     * @param nodes       list of elasticsearch node
+     * @param nodes list of elasticsearch node
      * @throws VitamException if nodes list is empty
      */
     public ElasticsearchAccessMetadata(final String clusterName, List<ElasticsearchNode> nodes)
@@ -106,7 +106,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Delete one index
      *
      * @param collection the working metadata collection
-     * @param tenantId   the tenant for operation
+     * @param tenantId the tenant for operation
      * @return True if ok
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
@@ -129,7 +129,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Add a type to an index
      *
      * @param collection the working metadata collection
-     * @param tenantId   the tenant for operation
+     * @param tenantId the tenant for operation
      * @return True if ok
      */
     public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
@@ -147,7 +147,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * refresh an index
      *
      * @param collection the workking metadata collection
-     * @param tenantId   the tenant for operation
+     * @param tenantId the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
         String allIndexes = getAliasName(collection, tenantId);
@@ -256,7 +256,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     /**
      * Used for iterative reload in restore operation (using bulk).
      *
-     * @param indexes  set of operation index
+     * @param indexes set of operation index
      * @param tenantId the tenant for operation
      * @param document the {@link MetadataDocument} for indexing
      * @return the number of Unit incorporated (0 if none)
@@ -436,17 +436,17 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param type
-     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                   values" : [list of id] } }"
-     * @param sorts      the list of sort
-     * @param facets     the list of facet
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     * values" : [list of id] } }"
+     * @param sorts the list of sort
+     * @param facets the list of facet
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
-                                  final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
-                                  final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
@@ -547,12 +547,30 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     /**
+     * Makes a search request on elasticsearch on a collection with aggregations and a query
+     *
+     * @param collection on which the request is made
+     * @param tenantId on which the request is made
+     * @param aggregations elasticsearch
+     * @param query elasticsearch
+     * @return the elasticsearch SearchResponse
+     */
+    public SearchResponse basicSearch(MetadataCollections collection, Integer tenantId,
+        List<AggregationBuilder> aggregations, QueryBuilder query) {
+        SearchRequestBuilder request = client.prepareSearch(getAliasName(collection, tenantId)).setQuery(query);
+        aggregations.forEach(request::addAggregation);
+        return request
+            .execute()
+            .actionGet();
+    }
+
+    /**
      * @param collections the working collection
-     * @param tenantId    the tenant for operation
-     * @param type        the type of document to delete
-     * @param id          the id of document to delete
+     * @param tenantId the tenant for operation
+     * @param type the type of document to delete
+     * @param id the id of document to delete
      * @throws MetaDataExecutionException if query operation exception occurred
-     * @throws MetaDataNotFoundException  if item not found when deleting
+     * @throws MetaDataNotFoundException if item not found when deleting
      */
     public final void deleteEntryIndex(final MetadataCollections collections, Integer tenantId, final String type,
         final String id)
@@ -631,7 +649,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param id
-     * @param doc        full document to insert
+     * @param doc full document to insert
      * @return True if updated
      */
     public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
@@ -655,8 +673,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    public void insertFullDocuments(MetadataCollections collection, Integer tenantId, List<? extends MetadataDocument> documents)
-        throws MetaDataExecutionException{
+    public void insertFullDocuments(MetadataCollections collection, Integer tenantId,
+        List<? extends MetadataDocument> documents)
+        throws MetaDataExecutionException {
         BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
 
         documents.forEach(document -> {
@@ -686,7 +705,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param id
-     * @param doc        full document to update
+     * @param doc full document to update
      */
     public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {
@@ -714,7 +733,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param ids      list of ids of OG
+     * @param ids list of ids of OG
      * @param tenantId the tenant for operation
      * @return boolean true if delete ok
      * @throws MetaDataExecutionException when delete index exception occurred
@@ -758,7 +777,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param ids      containing all Unit to be delete
+     * @param ids containing all Unit to be delete
      * @param tenantId the tenant of operation
      * @throws MetaDataExecutionException when delete exception occurred
      */

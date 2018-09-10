@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "OriginatingAgency": {
+      "type": "keyword"
+    },
+    "CreationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "BinaryObjectSize": {
+      "type": "long"
+    },
+    "ArchiveUnit": {
+      "type": "long"
+    },
+    "ObjectGroup": {
+      "type": "long"
+    },
+    "BinaryObject": {
+      "type": "double"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
+    }
+  }
+}

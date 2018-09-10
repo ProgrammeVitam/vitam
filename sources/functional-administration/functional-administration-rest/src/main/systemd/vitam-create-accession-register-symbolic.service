@@ -1,0 +1,11 @@
+[Unit]
+Description=Functional Administrations
+After=network.target
+
+[Service]
+ExecStart=/vitam/script/functional-administration/vitam-create-accession-register-symbolic.sh
+User=vitam
+Group=vitam
+
+[Install]
+WantedBy=multi-user.target

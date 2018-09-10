@@ -26,9 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -205,6 +207,16 @@ public interface MetaData {
     void insertObjectGroup(JsonNode objectRequest)
         throws InvalidParseOperationException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
+
+    /**
+     * Creates the AccessionRegisterSymbolics from ElasticSearch aggregations and nested aggregation request.
+     * Because the AccessionRegisterSymbolic is not available from this package, it is a list of Document
+     * which is returned.
+     *
+     * @param tenant on related to the symbolic accession register to create
+     * @return a list of AccessionRegisterSymbolic
+     */
+    List<Document> createAccessionRegisterSymbolic(Integer tenant);
 
     /**
      * find the number of archive unit per originating agency for a operationId

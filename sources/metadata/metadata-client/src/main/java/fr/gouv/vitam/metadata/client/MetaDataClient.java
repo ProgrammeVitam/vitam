@@ -50,6 +50,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import org.bson.Document;
 
 /**
  * Metadata client interface
@@ -308,4 +309,15 @@ public interface MetaDataClient extends BasicClient {
     JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws MetaDataDocumentSizeException,
         InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
+
+
+    /**
+     * Creates the AccessionRegisterSymbolics from ElasticSearch aggregations and nested aggregation request.
+     * Because the AccessionRegisterSymbolic is not available from this package, it is a JsonNode
+     * which is returned.
+     *
+     * @return a list of AccessionRegisterSymbolic as JsonNode
+     */
+    JsonNode createAccessionRegisterSymbolic()
+        throws MetaDataClientServerException, MetaDataExecutionException;
 }

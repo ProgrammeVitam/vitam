@@ -26,15 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
@@ -49,16 +40,61 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import org.assertj.core.api.Condition;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.ParseField;
+import org.elasticsearch.common.xcontent.ContextParser;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
+import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ParsedValueCount;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.api.mockito.PowerMockito;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ARCHIVE_UNIT;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECT;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECTS_SIZE;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.CREATION_DATE;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.OBJECT_GROUP;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.TENANT;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
 
 public class MongoDbAccessMetadataImplTest {
 
@@ -251,4 +287,270 @@ public class MongoDbAccessMetadataImplTest {
 
     }
 
+    @Test
+    public void should_select_accession_register_symbolic() throws Exception {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        SearchResponse archiveUnitResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+        SearchResponse objectGroupResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        List<Document> accessionRegisterSymbolics = metaData.createAccessionRegisterSymbolic(0);
+
+        // Then
+        assertThat(accessionRegisterSymbolics).hasSize(1);
+    }
+
+    @Test
+    public void should_fill_all_accession_register_symbolic_information() throws IOException {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        SearchResponse archiveUnitResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+        SearchResponse objectGroupResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
+            .stream()
+            .map(a -> (AccessionRegisterSymbolic) a)
+            .findFirst();
+
+        // Then
+        assertThat(first).map(a -> a.getInteger(TENANT)).hasValue(0);
+        assertThat(first).map(a -> a.getString(ORIGINATING_AGENCY)).hasValue("Identifier0");
+        assertThat(first).map(a -> a.getDouble(BINARY_OBJECTS_SIZE)).hasValue(88209.0);
+        assertThat(first).map(a -> a.getLong(ARCHIVE_UNIT)).hasValue(2L);
+        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(2L);
+        assertThat(first).map(a -> a.getLong(BINARY_OBJECT)).hasValue(2L);
+        assertThat(first).map(a -> a.getString(CREATION_DATE)).isNotEmpty();
+    }
+
+    @Test
+    public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link() throws IOException {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        long numberOfOriginatingAgencies = 12;
+        long numberOfOriginatingAgency = 1;
+        SearchResponse archiveUnitResponse = searchResult(
+            String.format(
+                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
+                numberOfOriginatingAgencies, numberOfOriginatingAgency)
+        );
+        SearchResponse objectGroupResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
+            .stream()
+            .map(a -> (AccessionRegisterSymbolic) a)
+            .findFirst();
+
+        // Then
+        assertThat(first).map(a -> a.getLong(ARCHIVE_UNIT)).hasValue(numberOfOriginatingAgencies - numberOfOriginatingAgency);
+    }
+
+    @Test
+    public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted() throws IOException {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        SearchResponse archiveUnitResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+        double binarySize = 88209;
+        long binaryCount = 2;
+        long objectGroupCountAll = 3;
+        long objectGroupCountThis = 1;
+
+        SearchResponse objectGroupResponse = searchResult(
+            String.format(
+                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
+                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis)
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
+            .stream()
+            .map(a -> (AccessionRegisterSymbolic) a)
+            .findFirst();
+
+        // Then
+        assertThat(first).map(a -> a.getDouble(BINARY_OBJECTS_SIZE)).hasValue(binarySize);
+        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(binaryCount);
+        assertThat(first).map(a -> a.getLong(BINARY_OBJECT)).hasValue(objectGroupCountAll - objectGroupCountThis);
+    }
+
+    @Test
+    public void should_add_zero_binaries_and_zero_binaries_total_size_to_related_accession_register_when_object_group_NOT_counted()
+        throws IOException {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        SearchResponse archiveUnitResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+        double binarySize = 0;
+        long binaryCount = 0;
+        long objectGroupCountAll = 1;
+        long objectGroupCountThis = 1;
+
+        SearchResponse objectGroupResponse = searchResult(
+            String.format(
+                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
+                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis)
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
+            .stream()
+            .map(a -> (AccessionRegisterSymbolic) a)
+            .findFirst();
+
+        // Then
+        assertThat(first).map(a -> a.getDouble(BINARY_OBJECTS_SIZE)).hasValue(0D);
+        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(0L);
+        assertThat(first).map(a -> a.getLong(BINARY_OBJECT)).hasValue(0L);
+    }
+
+    @Test
+    public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register() throws IOException {
+        // Given
+        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+
+        SearchResponse archiveUnitResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+        SearchResponse objectGroupResponse = searchResult(
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+        );
+
+        given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(archiveUnitResponse);
+        given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
+            .willReturn(objectGroupResponse);
+
+        final MetaDataImpl metaData = new MetaDataImpl(
+            new MongoDbAccessMetadataImpl(
+                mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(),
+                true,
+                client,
+                tenantList
+            )
+        );
+
+        // When
+        Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
+            .stream()
+            .map(a -> (AccessionRegisterSymbolic) a)
+            .findFirst();
+
+        // Then
+        assertThat(first).isEmpty();
+    }
+
+    private List<NamedXContentRegistry.Entry> getDefaultNamedXContents() {
+        Map<String, ContextParser<Object, ? extends Aggregation>> map = new HashMap<>();
+
+        map.put(StringTerms.NAME, (p, c) -> ParsedStringTerms.fromXContent(p, (String) c));
+        map.put(SumAggregationBuilder.NAME, (p, c) -> ParsedSum.fromXContent(p, (String) c));
+        map.put(ValueCountAggregationBuilder.NAME, (p, c) -> ParsedValueCount.fromXContent(p, (String) c));
+
+        return map.entrySet()
+            .stream()
+            .map(entry -> new NamedXContentRegistry.Entry(Aggregation.class, new ParseField(entry.getKey()),
+                entry.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    private SearchResponse searchResult(String content) throws IOException {
+        NamedXContentRegistry registry = new NamedXContentRegistry(getDefaultNamedXContents());
+        return SearchResponse.fromXContent(JsonXContent.jsonXContent.createParser(registry, content));
+    }
 }

@@ -413,7 +413,6 @@ public class MetaDataImplTest {
         assertEquals(wantedDiff, getDiffMessageFor(requestResponse.toJsonNode(), "unitId"));
     }
 
-
     private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
         if (diff == null) {
             return "";

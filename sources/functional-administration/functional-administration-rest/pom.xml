@@ -318,10 +318,10 @@
 						<script>%systemd_post vitam-${unix.name}.service</script>
 					</postinstallScriptlet>
 					<preremoveScriptlet>
-						<script>%systemd_preun vitam-${unix.name}.service vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service</script>
+						<script>%systemd_preun vitam-${unix.name}.service vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service vitam-create-accession-register-symbolic.timer vitam-create-accession-register-symbolic.service</script>
 					</preremoveScriptlet>
 					<postremoveScriptlet>
-						<script>%systemd_postun vitam-${unix.name}.service vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service</script>
+						<script>%systemd_postun vitam-${unix.name}.service vitam-functional-administration-reconstruction.timer vitam-functional-administration-reconstruction.service vitam-rule-management-audit.timer vitam-rule-management-audit.service vitam-create-accession-register-symbolic.timer vitam-create-accession-register-symbolic.service</script>
 					</postremoveScriptlet>
 				</configuration>
 			</plugin>

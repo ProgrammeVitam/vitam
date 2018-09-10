@@ -28,6 +28,7 @@
 package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -55,14 +56,22 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import org.bson.Document;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * Rest client for metadata
@@ -100,8 +109,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/units", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, "/units", null, insertQuery, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -136,8 +145,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, "/units/bulk", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                performRequest(POST, "/units/bulk", null, insertQuery, APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -171,8 +180,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new VitamDBException(CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -203,8 +212,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, "/objectgroups", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.GET, "/objectgroups", null, selectQuery, APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -238,7 +247,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/units/" + unitId, null, selectQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -273,7 +282,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId, null, selectQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -308,7 +317,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -344,8 +353,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, "/objectgroups", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                performRequest(POST, "/objectgroups", null, insertQuery, APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -384,7 +393,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, "/objectgroups/" + objectGroupId, null, queryUpdate,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.EXPECTATION_FAILED.getStatusCode()) {
@@ -413,8 +422,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         try {
             response =
                 performRequest(HttpMethod.GET, "/accession-registers/units/" + operationId, null, null,
-                    MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
 
             RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
             if (requestResponse.isOk()) {
@@ -452,8 +461,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         try {
             response =
                 performRequest(HttpMethod.GET, "/accession-registers/objects/" + operationId, null, null,
-                    MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
 
             RequestResponse<ObjectGroupPerOriginatingAgency> requestResponse =
                 RequestResponse.parseFromResponse(response, ObjectGroupPerOriginatingAgency.class);
@@ -483,8 +492,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public boolean flushUnits() throws MetaDataClientServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "/units", null, MediaType.APPLICATION_JSON_TYPE);
-            return response.getStatus() == Response.Status.OK.getStatusCode();
+            response = performRequest(HttpMethod.PUT, "/units", null, APPLICATION_JSON_TYPE);
+            return response.getStatus() == OK.getStatusCode();
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
@@ -497,8 +506,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public boolean flushObjectGroups() throws MetaDataClientServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "/objectgroups", null, MediaType.APPLICATION_JSON_TYPE);
-            return response.getStatus() == Response.Status.OK.getStatusCode();
+            response = performRequest(HttpMethod.PUT, "/objectgroups", null, APPLICATION_JSON_TYPE);
+            return response.getStatus() == OK.getStatusCode();
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
@@ -513,8 +522,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The options are mandatory", indexParam);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, REINDEX_URI, null, indexParam,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, REINDEX_URI, null, indexParam,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return response.readEntity(JsonNode.class);
 
@@ -532,8 +541,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The options are mandatory", switchIndexParam);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ALIASES_URI, null, switchIndexParam,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, ALIASES_URI, null, switchIndexParam,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             return response.readEntity(JsonNode.class);
 
@@ -551,7 +560,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/raw/units/" + unitId, null, null,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
@@ -571,7 +580,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/raw/objectgroups/" + objectGroupId, null, null,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
@@ -590,8 +599,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The queryDsl is mandatory", queryDsl);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, COMPUTE_GRAPH_URI, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, COMPUTE_GRAPH_URI, null, queryDsl,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return response.readEntity(GraphComputeResponse.class);
 
         } catch (IllegalStateException e) {
@@ -611,8 +620,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("All params are mandatory", action, ids);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, COMPUTE_GRAPH_URI + "/" + action.name(), null, ids,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, COMPUTE_GRAPH_URI + "/" + action.name(), null, ids,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return response.readEntity(GraphComputeResponse.class);
 
         } catch (IllegalStateException e) {
@@ -638,11 +647,11 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 new ReclassificationChildNodeExportRequest(ids, unitsToUpdateChainedFileName,
                     objectGroupsToUpdateChainedFileName);
 
-            response = performRequest(HttpMethod.POST, "exportReclassificationChildNodes", null,
+            response = performRequest(POST, "exportReclassificationChildNodes", null,
                 reclassificationChildNodeExportRequest,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Status.OK.getStatusCode()) {
+            if (response.getStatus() == OK.getStatusCode()) {
                 // Every thing is OK
                 return;
             }
@@ -679,8 +688,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/units/updatebulk", null, updateQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(POST, "/units/updatebulk", null, updateQuery, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -714,8 +723,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/unitsWithInheritedRules", null, selectQuery,
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -732,5 +741,26 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public JsonNode createAccessionRegisterSymbolic()
+        throws MetaDataClientServerException, MetaDataExecutionException {
+        Response response = null;
+        try {
+            response = performRequest(POST, "accession-registers/symbolic", null, APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() != OK.getStatusCode()) {
+                throw new MetaDataExecutionException(String.format("Error status code %d on request POST 'accession-registers/symbolic'", response.getStatus()));
+            }
+
+            return response.readEntity(JsonNode.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 }

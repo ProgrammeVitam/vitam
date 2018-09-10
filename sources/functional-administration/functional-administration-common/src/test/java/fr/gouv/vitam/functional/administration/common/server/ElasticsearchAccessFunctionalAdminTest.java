@@ -47,7 +47,9 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
+import java.util.stream.Stream;
 
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.VITAM_SEQUENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -62,6 +64,13 @@ public class ElasticsearchAccessFunctionalAdminTest {
 
     private ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
     private static JunitHelper.ElasticsearchTestConfiguration config;
+
+    private int numberOfReplica = 2;
+    private int numberOfIndices = Math.toIntExact(
+        Stream.of(FunctionalAdminCollections.values())
+            .filter(f -> f != VITAM_SEQUENCE)
+            .count())
+        * numberOfReplica;
 
     @Before
     public void setUp() throws Exception {
@@ -78,7 +87,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
+    public static void tearDown() {
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
@@ -92,7 +101,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
         final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
                 .getAliasAndIndexLookup();
-        assertThat(aliasAndIndexLookup.size()).isEqualTo(24);
+        assertThat(aliasAndIndexLookup).hasSize(numberOfIndices);
     }
 
     @Test
@@ -106,7 +115,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
                 .getAliasAndIndexLookup();
         //TODO: Refactor when switch alias is implement.
-        assertThat(aliasAndIndexLookup.size()).isEqualTo(24);
+        assertThat(aliasAndIndexLookup).hasSize(numberOfIndices);
     }
 
 
@@ -116,7 +125,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
             String index = functionalAdminCollections.getName().toLowerCase();
             // When
             // Careful Not mapping for VITAM_SEQUENCE
-            if (!(functionalAdminCollections.equals(FunctionalAdminCollections.VITAM_SEQUENCE))) {
+            if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
                 elasticsearchAccessFunctionalAdmin.addIndex(functionalAdminCollections);
                 GetAliasesResponse actualIndex =
                     client.admin().indices().getAliases(new GetAliasesRequest().indices(index))
@@ -140,7 +149,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
             String index = functionalAdminCollections.getName().toLowerCase();
             // When
             // Careful Not mapping for VITAM_SEQUENCE
-            if (!(functionalAdminCollections.equals(FunctionalAdminCollections.VITAM_SEQUENCE))) {
+            if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
                 elasticsearchAccessFunctionalAdmin.deleteIndex(functionalAdminCollections);
             }
         }

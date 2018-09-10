@@ -47,22 +47,22 @@ public final class ElasticsearchAccessAdminFactory {
      *
      * @param configuration config of ElasticsearchDbAcess
      * @return the ElasticsearchDbAcess
-     * @throws VitamException if elasticsearch list nodes is empty 
+     * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
     public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         return create(configuration.getClusterName(), configuration.getElasticsearchNodes());
     }
-    
+
 
     /**
      * Creation of one ElasticsearchDbAcess
-     * 
+     *
      * @param clusterName the cluster name
      * @param nodes the node list
      * @return the ElasticsearchDbAcess
-     * @throws VitamException if elasticsearch list nodes is empty 
+     * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
     public static final ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes) {
@@ -79,6 +79,7 @@ public final class ElasticsearchAccessAdminFactory {
             FunctionalAdminCollections.SECURITY_PROFILE.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ONTOLOGY.initialize(elasticsearchAccess);
             return elasticsearchAccess;
