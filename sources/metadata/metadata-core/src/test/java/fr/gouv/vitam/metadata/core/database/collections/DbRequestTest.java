@@ -92,6 +92,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1163,7 +1164,7 @@ public class DbRequestTest {
         insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(createInsertRequestGO(uuid2, uuid));
 
-        dbRequest.execInsertObjectGroupRequest(insertParser);
+        dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
     }
@@ -1184,7 +1185,7 @@ public class DbRequestTest {
         insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(createInsertRequestGO(uuid2, uuid));
 
-        dbRequest.execInsertObjectGroupRequest(insertParser);
+        dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
 
@@ -1279,7 +1280,7 @@ public class DbRequestTest {
 
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertNode);
-        dbRequest.execInsertObjectGroupRequest(insertParser);
+        dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
 
         // Insert Unit
         final JsonNode insertRequest = createInsertRequestWithUUID(uuidUnit);
@@ -1333,7 +1334,7 @@ public class DbRequestTest {
         ObjectNode insertRequestString = insert.getFinalInsert();
         insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequestString);
-        dbRequest.execInsertObjectGroupRequest(insertParser);
+        dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
     }
 
 
@@ -1808,7 +1809,7 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper
             .getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
-        dbRequest.execInsertObjectGroupRequest(insertParser);
+        dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
 
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));

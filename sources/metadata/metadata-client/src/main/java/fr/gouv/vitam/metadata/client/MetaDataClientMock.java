@@ -101,6 +101,13 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
+    public JsonNode insertObjectGroups(List<JsonNode> insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
+    }
+
+    @Override
     public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
         throws MetaDataClientServerException {
         return new ArrayList<>();

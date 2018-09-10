@@ -159,7 +159,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequest(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -179,7 +179,7 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        doThrow(error).when(request).execInsertObjectGroupRequest(anyObject());
+        doThrow(error).when(request).execInsertObjectGroupRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -273,7 +273,7 @@ public class MetaDataImplTest {
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        doThrow(MetaDataNotFoundException.class).when(request).execInsertObjectGroupRequest(anyObject());
+        doThrow(MetaDataNotFoundException.class).when(request).execInsertObjectGroupRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));

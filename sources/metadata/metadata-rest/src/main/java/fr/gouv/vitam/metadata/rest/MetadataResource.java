@@ -729,6 +729,73 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Create unit with json request
+     *
+     * @param insertRequests the insert query
+     * @return the Response
+     */
+    @Path("objectgroups/bulk")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response insertObjectGroupBulk(List<JsonNode> insertRequests) {
+        Status status;
+        try {
+            metaData.insertObjectGroups(insertRequests);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataAlreadyExistException e) {
+            LOGGER.error(e);
+            status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e);
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        insertRequests.forEach(arrayNode::add);
+
+        RequestResponseOK responseOK = new RequestResponseOK(arrayNode);
+        responseOK.setHits(arrayNode.size(), 0, arrayNode.size())
+            .setHttpCode(Status.CREATED.getStatusCode());
+        return Response.status(Status.CREATED)
+            .entity(responseOK)
+            .build();
+    }
+
+    /**
      * Get ObjectGroup
      *
      * @param selectRequest the request

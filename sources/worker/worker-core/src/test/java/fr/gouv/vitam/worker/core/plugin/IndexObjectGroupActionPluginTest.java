@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -96,9 +97,10 @@ public class IndexObjectGroupActionPluginTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        handlerIO = new HandlerIOImpl("IndexObjectGroupActionPluginTest", "workerId", com.google.common.collect.Lists.newArrayList());
+        handlerIO = new HandlerIOImpl("IndexObjectGroupActionPluginTest", "workerId", newArrayList("objectName.json"));
         metadataClient = mock(MetaDataClientRest.class);
-        
+
+        handlerIO.setCurrentObjectId("objectName.json");
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
@@ -126,7 +128,7 @@ public class IndexObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -134,7 +136,7 @@ public class IndexObjectGroupActionPluginTest {
     @Test
     public void testMetadataException()
         throws Exception {
-        when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(metadataClient.insertObjectGroups(anyObject())).thenThrow(new MetaDataExecutionException(""));
         
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -148,14 +150,14 @@ public class IndexObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
     public void testMetadataParseException()
         throws Exception {
-        when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(metadataClient.insertObjectGroups(anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -169,8 +171,8 @@ public class IndexObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
+        final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
 }

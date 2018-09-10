@@ -208,6 +208,10 @@ public interface MetaData {
         throws InvalidParseOperationException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
+    void insertObjectGroups(List<JsonNode> objectGroupRequest)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException;
+
     /**
      * Creates the AccessionRegisterSymbolics from ElasticSearch aggregations and nested aggregation request.
      * Because the AccessionRegisterSymbolic is not available from this package, it is a list of Document

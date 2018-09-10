@@ -437,7 +437,7 @@ public class MetadataResourceTest {
             .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
-                "Metadata already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
+                "Metadata already exists: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
