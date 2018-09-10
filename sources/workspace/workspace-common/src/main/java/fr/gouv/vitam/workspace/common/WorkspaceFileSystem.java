@@ -595,10 +595,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
                             zipArchiveOutputStream.putArchiveEntry(entry);
 
-                            BufferedInputStream input = new BufferedInputStream(new FileInputStream(file.toFile()));
-
-                            IOUtils.copy(input, zipArchiveOutputStream);
-                            input.close();
+                            try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(file.toFile()))) {
+                            	IOUtils.copy(input, zipArchiveOutputStream);
+                            }
                             zipArchiveOutputStream.closeArchiveEntry();
                         }
                         return FileVisitResult.CONTINUE;

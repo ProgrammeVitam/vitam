@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -146,7 +148,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
         RequestMultiple query = null;
-        InputStream input;
+        InputStream input = null;
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             input = handlerIO
                 .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
@@ -207,6 +209,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("InvalidCreateOperationException for " + (query != null ? query.toString() : ""));
             throw e;
+        } finally {
+        	IOUtils.closeQuietly(input);
         }
     }
 

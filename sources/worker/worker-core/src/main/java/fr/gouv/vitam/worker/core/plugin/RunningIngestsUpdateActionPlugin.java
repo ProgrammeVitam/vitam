@@ -28,11 +28,14 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -151,9 +154,11 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
 
     private void getRunningIngests(WorkerParameters params)
         throws ProcessingException, InvalidParseOperationException, VitamDBException {
-        try {
-            JsonNode rulesUpdated = JsonHandler.getFromInputStream(this.handlerIO.getInputStreamFromWorkspace(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON));
+        InputStream inputStream = null;
+    	try {
+            inputStream = this.handlerIO.getInputStreamFromWorkspace(
+            	UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON);
+    		JsonNode rulesUpdated = JsonHandler.getFromInputStream(inputStream);
             for (final JsonNode rule : rulesUpdated) {
                 if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
                     List<JsonNode> listRulesByType = new ArrayList<JsonNode>();
@@ -198,6 +203,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             IOException e) {
             LOGGER.error("Workspace error: Cannot get file", e);
             throw new ProcessingException(e);
+        } finally {
+        	IOUtils.closeQuietly(inputStream);
         }
     }
 
