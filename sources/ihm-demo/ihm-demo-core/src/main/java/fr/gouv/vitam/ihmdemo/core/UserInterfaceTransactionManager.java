@@ -50,7 +50,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
-import static java.util.Collections.singletonList;
 
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -117,6 +116,21 @@ public class UserInterfaceTransactionManager {
                 context,
                 preparedDslQuery,
                 unitId);
+        }
+    }
+
+    /**
+     * Gets archive unit details with inheritedRules
+     *
+     * @param preparedDslQuery search criteria as DSL query
+     * @param context   Vitamcontext
+     * @return result
+     * @throws VitamClientException access client exception
+     */
+    public static RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode preparedDslQuery, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.selectUnitsWithInheritedRules(context, preparedDslQuery);
         }
     }
 

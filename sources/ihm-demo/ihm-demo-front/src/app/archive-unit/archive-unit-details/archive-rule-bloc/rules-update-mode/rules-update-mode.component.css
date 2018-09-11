@@ -1,0 +1,16 @@
+.itemLabel {
+    font-style: italic;
+}
+
+.itemValue {
+    font-style: italic;
+}
+
+.deletedRule {
+    text-decoration: line-through;
+}
+
+.propertiesFields {
+    font-weight: bold;
+    text-align: left;
+}

@@ -46,7 +46,6 @@ import { ArchiveUnitComponent } from './archive-unit/archive-unit-search/archive
 import { ArchiveUnitDetailsComponent } from './archive-unit/archive-unit-details/archive-unit-details.component';
 import { ArchiveMainDescriptionComponent } from './archive-unit/archive-unit-details/archive-main-description/archive-main-description.component';
 import { ArchiveExtraDescriptionComponent } from './archive-unit/archive-unit-details/archive-extra-description/archive-extra-description.component';
-import { ArchiveRuleBlocComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/archive-rule-bloc.component';
 import { ArchiveObjectGroupComponent } from './archive-unit/archive-unit-details/archive-object-group/archive-object-group.component';
 import { ArchiveTreeViewComponent } from './archive-unit/archive-unit-details/archive-tree-view/archive-tree-view.component';
 import { KeysPipe, BytesPipe } from './common/utils/pipes';
@@ -94,12 +93,17 @@ import { OntologyComponent } from './referentials/details/ontology/ontology.comp
 import { MySelectionComponent } from './my-selection/my-selection/my-selection.component';
 import { MySelectionService } from './my-selection/my-selection.service';
 import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
-import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { MessagesUtilsService } from './common/utils/messages-utils.service';
-import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
 import { EliminationSearchComponent } from './elimination-search/elimination-search.component';
 import { FacetsComponent } from './common/facets/facets.component';
+import { ArchiveRuleBlocComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/archive-rule-bloc.component';
+import { ComputeRulesUtilsService } from './archive-unit/archive-unit-details/archive-rule-bloc/compute-rules-utils.service';
+import { RulesDisplayModeComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/rules-display-mode/rules-display-mode.component';
+import { RulesUpdateModeComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/rules-update-mode/rules-update-mode.component';
+import { NgArrayPipesModule } from 'ngx-pipes';
+import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
+import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
 
 const appRoutes: Routes = [
   {
@@ -244,7 +248,6 @@ const appRoutes: Routes = [
     ArchiveUnitDetailsComponent,
     ArchiveMainDescriptionComponent,
     ArchiveExtraDescriptionComponent,
-    ArchiveRuleBlocComponent,
     ArchiveObjectGroupComponent,
     ArchiveTreeViewComponent,
     KeysPipe,
@@ -287,10 +290,13 @@ const appRoutes: Routes = [
     LoadingBlockComponent,
     MySelectionComponent,
     ArchiveUnitSelectionComponent,
+    EliminationSearchComponent,
     ArchiveUnitFacetComponent,
     MassiveUpdateFormComponent,
-    EliminationSearchComponent,
-    FacetsComponent
+    FacetsComponent,
+    ArchiveRuleBlocComponent,
+    RulesDisplayModeComponent,
+    RulesUpdateModeComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -331,6 +337,7 @@ const appRoutes: Routes = [
     HttpClientModule,
     ScrollPanelModule,
     SliderModule,
+    NgArrayPipesModule,
     TranslateModule.forRoot({
       loader: {provide: TranslateLoader, useClass: CustomLoader}
     })
@@ -364,7 +371,8 @@ const appRoutes: Routes = [
     WorkflowService,
     ErrorService,
     MySelectionService,
-    MessagesUtilsService
+    MessagesUtilsService,
+    ComputeRulesUtilsService
   ],
   bootstrap: [AppComponent]
 })

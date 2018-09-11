@@ -3,9 +3,6 @@ import {Injectable} from '@angular/core';
 @Injectable()
 export class ObjectsService {
 
-  constructor() {
-  }
-
   static clone(object) {
     if (object === undefined) {
       return undefined;
@@ -61,6 +58,19 @@ export class ObjectsService {
       item[x] = object[x];
       return item;
     });
+  }
+
+  static isSameArray(array1: string[], array2: string[]): boolean {
+    if (!array1 && !array2) { return true }
+    if (!array1 || !array2) { return false }
+    if (array1.length !== array2.length) { return false }
+
+    const sortedArray2 = array2.sort();
+
+    return array1.sort().every((value, index) => value === sortedArray2[index] );
+  }
+
+  constructor() {
   }
 
 }

@@ -1,18 +1,13 @@
 import { Injectable } from '@angular/core';
 import {ObjectsService} from "../common/utils/objects.service";
+import {DateService} from '../common/utils/date.service';
 
 @Injectable()
 export class ArchiveUnitHelper {
+
+
   private mustExclude = ['#id', 'StartDate', 'EndDate', 'Title', 'DescriptionLevel', 'Description',
     ['#management.SubmissionAgency'], ['#management.OriginatingAgency'], 'inheritedRule'];
-  public rulesCategories = [
-    {rule: 'AccessRule', label: 'Délai de communicabilité'},
-    {rule: 'AppraisalRule', label: 'Durée d\'utilité administrative'},
-    {rule: 'ClassificationRule', label: 'Durée de classification'},
-    {rule: 'DisseminationRule', label: 'Délai de diffusion'},
-    {rule: 'ReuseRule', label: 'Durée de réutilisation'},
-    {rule: 'StorageRule', label: 'Durée d\'utilité courante'}
-  ];
   public storageFinalAction = {
     RestrictAccess: {id: 'RestrictAccess', label: 'Accès Restreint'},
     Transfer: {id: 'Transfer', label: 'Transférer'},
@@ -22,16 +17,68 @@ export class ArchiveUnitHelper {
     Keep: {id: 'Keep', label: 'Conserver'},
     Destroy: {id: 'Destroy', label: 'Détruire'}
   };
-  public finalActionSelector = {
-      'AppraisalRule': [
-          {label: 'Conserver', value: 'Keep'},
-          {label: 'Détruire', value: 'Destroy'}
-      ], 'StorageRule': [
-          {label: 'Accès Restreint', value: 'RestrictAccess'},
-          {label: 'Transférer', value: 'Transfer'},
-          {label: 'Copier', value: 'Copy'}
-      ]
+  public finalActionSelector = { // Make better an 'empty' choice ?
+    'AppraisalRule': [
+      {label: 'Conserver', value: 'Keep'},
+      {label: 'Détruire', value: 'Destroy'}
+    ], 'StorageRule': [
+      {label: 'Accès Restreint', value: 'RestrictAccess'},
+      {label: 'Transférer', value: 'Transfer'},
+      {label: 'Copier', value: 'Copy'}
+    ]
   };
+
+  public ruleProperties = {
+    AppraisalRule: {
+      FinalAction: {
+        label: 'Sort Final', kind: 'enum', choices: this.finalActionSelector.AppraisalRule, displayValue: (x) => this.appraisalFinalAction[x].label
+      }
+    },
+    StorageRule: {
+      FinalAction: {
+        label: 'Sort Final', kind: 'enum', choices: this.finalActionSelector.StorageRule, displayValue: (x) => this.storageFinalAction[x].label
+      }
+    },
+    ClassificationRule: {
+      ClassificationOwner: {
+        label: 'Service émetteur', kind: 'string', displayValue: (x) => x
+      },
+      ClassificationLevel: {
+        label: 'Niveau de classification', kind: 'string', displayValue: (x) => x
+      },
+      ClassificationAudience: {
+        label: 'Champ de diffusion', kind: 'string', displayValue: (x) => x
+      },
+      ClassificationReassessingDate: {
+        label: 'Date de réévaluation', kind: 'date', displayValue: (x) => DateService.handleDate(x)
+      },
+      NeedReassessingAuthorization: {
+        label: 'Modifications soumises à validation', kind: 'boolean', displayValue: (x) => x ? 'Oui' : 'Non'
+      },
+    }
+  };
+
+  public rulesCategories = [
+    {
+      rule: 'AccessRule', label: 'Délai de communicabilité', properties: {}
+    }, {
+      rule: 'AppraisalRule', label: 'Durée d\'utilité administrative',
+      properties: this.ruleProperties.AppraisalRule
+    }, {
+      rule: 'ClassificationRule', label: 'Durée de classification',
+      properties: this.ruleProperties.ClassificationRule
+    },
+    {
+      rule: 'DisseminationRule', label: 'Délai de diffusion', properties: {}
+    },
+    {
+      rule: 'ReuseRule', label: 'Durée de réutilisation', properties: {}
+    },
+    {
+      rule: 'StorageRule', label: 'Durée d\'utilité courante',
+      properties: this.ruleProperties.StorageRule
+    }
+  ];
   public textAreaFields = [
     'Description',
     'CustodialHistory.CustodialHistoryItem',
@@ -64,24 +111,24 @@ export class ArchiveUnitHelper {
     ]
   };
   public unece = [{label: 'centimètre', value: 'CMT'},
-                  {label: 'centimètre', value: 'centimetre'},
-                  {label: 'micromètre', value: 'micrometre'},
-                  {label: 'micromètre', value: '4H'},
-                  {label: 'millimètre', value: 'millimetre'},
-                  {label: 'millimètre', value: 'MMT'},
-                  {label: 'mètre', value: 'metre'},
-                  {label: 'pouce', value: 'inch'},
-                  {label: 'pouce', value: 'INH'},
-                  {label: 'pied', value: 'foot'},
-                  {label: 'pied', value: 'FOT'},
-                  {label: 'microgramme', value: 'microgram'},
-                  {label: 'microgramme', value: 'MC'},
-                  {label: 'milligramme', value: 'milligram'},
-                  {label: 'milligramme', value: 'MGM'},
-                  {label: 'gramme', value: 'gram'},
-                  {label: 'gramme', value: 'GRM'},
-                  {label: 'kilogramme', value: 'kilogram'},
-                  {label: 'kilogramme', value: 'KGM'}];
+    {label: 'centimètre', value: 'centimetre'},
+    {label: 'micromètre', value: 'micrometre'},
+    {label: 'micromètre', value: '4H'},
+    {label: 'millimètre', value: 'millimetre'},
+    {label: 'millimètre', value: 'MMT'},
+    {label: 'mètre', value: 'metre'},
+    {label: 'pouce', value: 'inch'},
+    {label: 'pouce', value: 'INH'},
+    {label: 'pied', value: 'foot'},
+    {label: 'pied', value: 'FOT'},
+    {label: 'microgramme', value: 'microgram'},
+    {label: 'microgramme', value: 'MC'},
+    {label: 'milligramme', value: 'milligram'},
+    {label: 'milligramme', value: 'MGM'},
+    {label: 'gramme', value: 'gram'},
+    {label: 'gramme', value: 'GRM'},
+    {label: 'kilogramme', value: 'kilogram'},
+    {label: 'kilogramme', value: 'KGM'}];
 
   constructor() { }
 
@@ -109,9 +156,9 @@ export class ArchiveUnitHelper {
 
   getTitle(unitData: any) {
     if (unitData.Title !== undefined) {
-        return unitData.Title;
+      return unitData.Title;
     } else if (unitData.Title_ !== undefined && unitData.Title_.fr !== undefined) {
-        return unitData.Title_.fr;
+      return unitData.Title_.fr;
     }
     return '';
   }
@@ -178,7 +225,7 @@ export class ArchiveUnitHelper {
   isTextArea(field: string): boolean {
     return this.textAreaFields.indexOf(field) !== -1;
   }
-    
+
   isSchemaJsonMode(field: string): boolean {
     return this.jsonSchemaFields.indexOf(field) !== -1;
   }

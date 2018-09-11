@@ -69,11 +69,11 @@ export class ArchiveUnitComponent extends PageComponent {
         let finalActions: DynamicSelectItem[] = [];
 
       finalActions = finalActions.concat(
-            this.archiveUnitHelper.finalActionSelector.AppraisalRule.map(
-              x => new DynamicSelectItem(x.label, x.value, 'AppraisalRule')));
+            this.archiveUnitHelper.finalActionSelector.AppraisalRule
+              .map(x => new DynamicSelectItem(x.label, x.value, 'AppraisalRule')));
       finalActions = finalActions.concat(
-            this.archiveUnitHelper.finalActionSelector.StorageRule.map(
-              x => new DynamicSelectItem(x.label, x.value, 'StorageRule')));
+            this.archiveUnitHelper.finalActionSelector.StorageRule
+              .map(x => new DynamicSelectItem(x.label, x.value, 'StorageRule')));
 
         return finalActions;
     }

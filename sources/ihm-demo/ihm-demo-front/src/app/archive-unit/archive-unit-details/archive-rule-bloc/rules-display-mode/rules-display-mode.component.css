@@ -1,0 +1,22 @@
+.wrappedValue {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detailsHighlight {
+    background-color: #EEE;
+}
+
+.itemLabel {
+    font-style: italic;
+}
+
+.itemValue {
+    font-style: italic;
+}
+
+.detailsItemLabel {
+    font-weight: bold;
+    text-align: left;
+}

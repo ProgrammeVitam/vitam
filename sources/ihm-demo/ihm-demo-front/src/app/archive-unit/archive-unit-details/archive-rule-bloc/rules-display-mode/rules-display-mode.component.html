@@ -1,0 +1,140 @@
+<div class="ui-g">
+  <div class="ui-g-10"></div>
+  <div class="ui-g-2">
+    <button pButton class="ui-button" (click)="enableUpdateMode()" label="Modifier"
+            icon="fa-edit" iconPos="left"></button>
+  </div>
+</div>
+
+<div class="ui-g-12" *ngIf="computedData">
+  <div class="ui-g-12">
+    <div class="ui-g-6">
+      <label class="ui-g-4" style="font-weight: bold;">Modifications soumises à validation</label>
+      <span class="ui-g-8">{{computedData.NeedAuthorization ? 'Oui' : 'Non'}}</span> <!-- Boolean ? -->
+    </div>
+    <div class="ui-g-6">
+      <label class="ui-g-4" style="font-weight: bold;">Profil d'unité archivistique</label>
+      <span class="ui-g-8">{{computedData.ArchiveUnitProfile}}</span>
+    </div>
+  </div>
+
+  <ng-template ngFor let-category [ngForOf]="MANAGEMENT_RULE_CATEGORIES">
+    <p-fieldset [legend]="category.label" class="ui-g-12" [toggleable]="true" [collapsed]="false"
+                *ngIf="!!computedData[category.rule] && !(category === 'NeedAuthorization' || category === 'ArchiveUnitProfile')">
+      <div class="ui-g-12 ui-g-nopad">
+
+        <!-- Inheritance properties -->
+        <div class="ui-g-12" *ngIf="computedData[category.rule].Inheritance">
+          <span *ngIf="computedData[category.rule].Inheritance.PreventInheritance"
+                class="preventInheritance ui-g-6">Cette unité archivistique n'hérite d'aucune règle</span>
+
+          <div class="ui-g-6" *ngIf="computedData[category.rule].Inheritance.PreventRulesId && computedData[category.rule].Inheritance.PreventRulesId.length > 0">
+            <span class="ui-g-5">Règles désactivées:</span>
+            <ul class="ui-g-7" >
+              <li *ngFor="let nonRefId of computedData[category.rule].Inheritance.PreventRulesId">{{nonRefId}}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Rules table-->
+        <div class="ui-g-12" *ngIf="computedData[category.rule].Rules.length > 0">
+          <div class="ui-g-3" style="font-weight: bold;">Règle</div>
+          <div class="ui-g-3" style="font-weight: bold;">Début</div>
+          <div class="ui-g-3" style="font-weight: bold;">Fin</div>
+          <div class="ui-g-2" style="font-weight: bold;">Héritée</div>
+          <div class="ui-g-1" style="font-weight: bold;">Détail</div>
+          <ng-template ngFor let-rule [ngForOf]="computedData[category.rule].Rules">
+            <div class="ui-g-12">
+              <div class="ui-g-3">{{rule.Rule}}</div>
+              <div class="ui-g-3">{{rule.StartDate | date:'dd/MM/yyyy'}}</div>
+              <div class="ui-g-3">{{rule.EndDate | date:'dd/MM/yyyy'}}</div>
+              <div class="ui-g-2">{{isInherited(rule)}}</div>
+              <div class="ui-g-1" (click)="toggleRuleDetails(rule)">
+                <i class="fa fa-chevron-up clickableDiv" *ngIf="displayDetails[rule.Rule + '-' + rule.UnitId]"></i>
+                <i class="fa fa-chevron-down clickableDiv" *ngIf="!displayDetails[rule.Rule + '-' + rule.UnitId]"></i>
+              </div>
+            </div>
+            <!-- TODO: Factorize me with Property bloc ? -->
+            <div class="ui-g-12 detailsHighlight" *ngIf="displayDetails[rule.Rule + '-' + rule.UnitId]">
+              <div class="ui-g-12" *ngIf="rule.Paths.length >= 1">
+                <label class="detailsItemLabel ui-g-12">Chemins d'héritage</label>
+                <ul class="ui-g-12">
+                  <li class="ui-g-12" *ngFor="let path of rule.Paths">
+                    <div style="float: left" *ngFor="let unitId of path | reverse; let first = first; let  i = index">
+                      <div style="float: left" *ngIf="path.length <= 5 || i < 3 || i >= path.length - 2">
+                        <i style="float: left; padding-left: 5px" *ngIf="!first" class="fa fa-chevron-right"></i>
+                        <span style="float: left" *ngIf="path.length > 4 && i === 2;else displayContent">...</span>
+                        <ng-template style="float: left" #displayContent>
+                          <a style="float: left" class="itemValue" [routerLink]="'/search/archiveUnit/' + unitId">
+                            <!-- TODO: Attention, ne pas afficher les chemins inaccessibles... -->
+                            <span style="float: left">{{ titles[unitId]? titles[unitId]: 'Inaccessible' }}</span>
+                          </a>
+                        </ng-template>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div class="form-group ui-g-12 ui-g-nopad" *ngIf="rule.OriginatingAgency"> <!-- Lien vers SP ? -->
+                <label class="detailsItemLabel ui-g-12">Service producteur</label>
+                <span class="ui-g-12" style="text-align: left">{{rule.OriginatingAgency}}</span>
+              </div>
+              <div class="form-group ui-g-12 ui-g-nopad" *ngIf="unitProperties[rule.UnitId + '-' + category.rule]">
+                <label class="detailsItemLabel ui-g-12">Propriétés associées à cette unité archivistique</label>
+                <div class="ui-g-12" *ngFor="let property of unitProperties[rule.UnitId + '-' + category.rule]">
+                  <label class="detailsItemLabel ui-g-3">{{property.PropertyName}}</label>
+                  <span class="ui-g-4">{{property.PropertyValue}}</span>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Properties table -->
+        <div class="ui-g-12" *ngIf="computedData[category.rule].Properties.length > 0">
+          <div class="ui-g-3" style="font-weight: bold;">Propriété</div>
+          <div class="ui-g-6" style="font-weight: bold;">Valeur</div>
+          <div class="ui-g-2" style="font-weight: bold;">Héritée</div>
+          <div class="ui-g-1" style="font-weight: bold;">Détail</div>
+          <div *ngFor="let property of computedData[category.rule].Properties">
+            <div class="ui-g-12">
+              <div class="ui-g-3">{{MANAGEMENT_PROPERTIES[category.rule][property.PropertyName].label}}</div>
+              <div class="ui-g-6">{{MANAGEMENT_PROPERTIES[category.rule][property.PropertyName].displayValue(property.PropertyValue)}}</div>
+              <div class="ui-g-2">{{isInherited(property)}}</div>
+              <div class="ui-g-1" (click)="togglePropertyDetails(property)">
+                <i class="fa fa-chevron-up clickableDiv" *ngIf="displayDetails[property.PropertyName + '-' + property.PropertyValue + '-' + property.UnitId]"></i>
+                <i class="fa fa-chevron-down clickableDiv" *ngIf="!displayDetails[property.PropertyName + '-' + property.PropertyValue + '-' + property.UnitId]"></i>
+              </div>
+            </div>
+            <!-- TODO: Factorize me with Rule bloc ? -->
+            <div class="ui-g-12" style="background-color: #EEE" *ngIf="displayDetails[property.PropertyName + '-' + property.PropertyValue + '-' + property.UnitId]">
+              <div class="ui-g-12 ui-g-nopad" *ngIf="property.Paths.length >= 1">
+                <label class="detailsItemLabel ui-g-12">Chemins d'héritage</label>
+                <ul class="ui-g-12">
+                  <li class="ui-g-12" *ngFor="let path of property.Paths">
+                    <div style="float: left" *ngFor="let unitId of path | reverse; let first = first; let  i = index">
+                      <div style="float: left" *ngIf="path.length <= 5 || i < 3 || i >= path.length - 2">
+                        <i style="float: left; padding-left: 5px" *ngIf="!first" class="fa fa-chevron-right"></i>
+                        <span style="float: left" *ngIf="path.length > 4 && i === 2;else displayContent">...</span>
+                        <ng-template style="float: left" #displayContent>
+                          <a style="float: left" class="itemValue" [routerLink]="'/search/archiveUnit/' + unitId">
+                            <!-- TODO: Attention, ne pas afficher les chemins inaccessibles... -->
+                            <span style="float: left">{{ titles[unitId]? titles[unitId]: 'Inaccessible' }}</span>
+                          </a>
+                        </ng-template>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div class="form-group ui-g-12 ui-g-nopad" *ngIf="property.OriginatingAgency">
+                <label class="detailsItemLabel ui-g-12">Service producteur</label>
+                <span class="ui-g-12" style="text-align: left">{{property.OriginatingAgency}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-fieldset>
+  </ng-template>
+</div>
