@@ -184,7 +184,6 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         manager.logStarted(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null);
 
         final Set<String> profileIdentifiers = new HashSet<>();
-        final Set<String> profileNames = new HashSet<>();
         ArrayNode archiveProfilesToPersist;
 
         final VitamError error =
@@ -216,16 +215,6 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     } else {
                         profileIdentifiers.add(aupm.getIdentifier());
                     }
-                    if (profileNames.contains(aupm.getName())) {
-                        error.addToErrors(
-                            getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                                "Duplicate archive unit profiles (Names)", StatusCode.KO)
-                                .setMessage(
-                                    "Archive unit profile name " + aupm.getName() + " already exists in the json"));
-                        continue;
-                    } else {
-                        profileNames.add(aupm.getName());
-                    }
                 }
 
                 // validate profile
@@ -245,13 +234,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                             .setDescription(checkSchema.get().getReason())
                             .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA)));
 
-                final Optional<ArchiveUnitProfileValidator.RejectionCause> resultName =
-                    manager.createCheckDuplicateNamesInDatabaseValidator().validate(aupm);
-                resultName.ifPresent(t -> error
-                    .addToErrors(
-                        new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                            .setDescription(resultName.get().getReason())
-                            .setMessage(ArchiveUnitProfileManager.DUPLICATE_IN_DATABASE)));
+
 
                 if (slaveMode) {
                     final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
