@@ -121,7 +121,7 @@ filter
             target => [ "@timestamp" ]
         }
     }
-{% if syslog.name =="syslog-ng" %}
+{% if syslog.name == 'syslog-ng' %}
     else if [vitam_component] =~ "systemd" or  [vitam_component] =~ "sudo" or [vitam_component] =~ "ansible" {
         grok {
             break_on_match => false
@@ -258,17 +258,38 @@ filter
     # todo change module name to thread name (everywhere)
     else {
         grok {
-            break_on_match => false
-            keep_empty_captures => true
-            match => [
-                "message",
-                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<java_thread>.*)\]\]%{SPACE}\[(?<request_id>.*)?\]%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
-            ]
-            match => [
-                "msg_data",
-                "(?<java_class>%{JAVACLASS})%{SPACE}-%{SPACE}Caller[^%{SPACE}]+%{SPACE}at[%{SPACE}\n]+(?<java_caller>[^\s]*)%{SPACE}:%{SPACE}(?:%{JAVALOGMESSAGE:log_message})"
-            ]
-            overwrite => [ "timestamp" ]
+             break_on_match => false
+             keep_empty_captures => true
+             match => [
+                 "message",
+                 "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<java_thread>.*)\]\]%{SPACE}\[(?<request_id>.*)?\]%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
+             ]
+             match => [
+                 "msg_data",
+                 "(?<java_class>%{JAVACLASS})%{SPACE}-%{SPACE}Caller[^%{SPACE}]+%{SPACE}at[%{SPACE}\n]+(?<java_caller>[^\s]*)%{SPACE}:%{SPACE}(?:%{JAVALOGMESSAGE:log_message})"
+             ]
+             match => [
+                 "log_message",
+                 "\[%{GREEDYDATA:component}\]%{SPACE}STP_%{GREEDYDATA:stepName}\,%{GREEDYDATA:taskName}\,%{GREEDYDATA:treatmentName}\,%{NUMBER:time}"
+             ]
+
+             overwrite => [ "timestamp" ]
+        }
+
+        if [time] != "" {
+               mutate { convert => { "time" => "integer" } }
+        }
+        if [treatmentName] != "" {
+               mutate { add_field => { "type" => "treatment" } }
+        }
+        else if [taskName] != ""  {
+               mutate { add_field => { "type" => "task" } }
+        }
+        else if [stepName] != ""  {
+               mutate { add_field => { "type" => "step" } }
+        }
+        else {
+               mutate { add_field => { "type" => "undefined" } }
         }
         mutate { add_field => { "logger" => "logback" } }
         date {

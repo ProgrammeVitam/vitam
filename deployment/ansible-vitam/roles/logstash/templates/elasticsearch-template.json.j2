@@ -11,7 +11,12 @@
   },
   "mappings" : {
     "_default_" : {
-      "dynamic_templates" : [ 
+      "properties": {
+         "time": {
+            "type": "integer"
+          }
+      },
+      "dynamic_templates" : [
         {
           "message_field" : {
             "path_match" : "message",
@@ -21,7 +26,7 @@
               "norms" : false
             }
           }
-        }, 
+        },
         {
           "string_fields" : {
             "match" : "*",
@@ -33,7 +38,7 @@
               }
             }
           }
-        } 
+        }
       ]
     }
   }
