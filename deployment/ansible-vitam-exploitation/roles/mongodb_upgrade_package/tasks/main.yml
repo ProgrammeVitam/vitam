@@ -1,0 +1,12 @@
+---
+
+# Upgrade the packages
+
+- include_tasks: update_packages_mongoc.yml
+  when: mongo_type == 'mongoc'
+
+- include_tasks: update_packages_mongod.yml
+  when: mongo_type == 'mongod'
+
+- include_tasks: update_packages_mongos.yml
+  when: mongo_type == 'mongos'

@@ -110,7 +110,7 @@
         <!-- TODO : no online maven repo for icu plugin V 5.6.1 -->
         <elasticsearch.icu.plugin.version>5.0.0-alpha5</elasticsearch.icu.plugin.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
-        <mongo.version>3.4.2</mongo.version>
+        <mongo.version>3.4.3</mongo.version>
         <apache-shiro.version>1.3.2</apache-shiro.version>
         <jetty.version>9.4.6.v20170531</jetty.version>
         <assertj.version>3.9.0</assertj.version>
@@ -119,7 +119,7 @@
         <junit.version>4.12</junit.version>
         <!-- TODO: after beta, see why 2.2.12 release does not work correctly -->
         <mockito.version>1.10.19</mockito.version>
-        <flapdoodle.version>2.0.0</flapdoodle.version>
+        <flapdoodle.version>2.1.1</flapdoodle.version>
         <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
         <org.json.version>20170516</org.json.version>
