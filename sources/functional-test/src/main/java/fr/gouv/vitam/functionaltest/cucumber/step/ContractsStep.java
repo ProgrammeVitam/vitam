@@ -148,7 +148,7 @@ public class ContractsStep {
     public void upload_contract_without_fail(String type) throws IOException {
         try {
             uploadContract(type, CONTEXT_IDENTIFIER, true);
-        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException | InvalidCreateOperationException | VitamClientException e) {
+        } catch (Exception e) {
             // catch nothing
         }
     }
@@ -203,7 +203,7 @@ public class ContractsStep {
 
                     if (changed) {
                         updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                            permissions);
+                            permissions, withoutFailure);
                     }
                 }
 
@@ -245,7 +245,7 @@ public class ContractsStep {
 
                     if (changed) {
                         updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                            permissions);
+                            permissions, withoutFailure);
                     }
                 }
             }
@@ -254,7 +254,7 @@ public class ContractsStep {
     }
 
     public static void updateContext(AdminExternalClient adminExternalClient, String applicationSessionId,
-        String contextIdentifier, List<PermissionModel> permissions)
+        String contextIdentifier, List<PermissionModel> permissions, boolean withoutFailure)
         throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientException {
         // update contexte
         ObjectNode permissionsNode = JsonHandler.createObjectNode();
@@ -268,7 +268,10 @@ public class ContractsStep {
 
         RequestResponse<ContextModel> requestResponse =
             adminExternalClient.updateContext(context, contextIdentifier, queryDsl);
-        assertThat(requestResponse.isOk()).isTrue();
+
+        if (!withoutFailure) {
+            assertThat(requestResponse.isOk()).isTrue();
+        }
     }
 
     /**

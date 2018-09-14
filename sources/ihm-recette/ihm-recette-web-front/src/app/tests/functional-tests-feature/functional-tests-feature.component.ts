@@ -20,9 +20,10 @@ const breadcrumb: BreadcrumbElement[] = [
 
 export class FunctionalTestsFeatureComponent extends PageComponent {
 
-
+  updateOk:boolean;
   featureText : string;
   requestResponse : String;
+  synchroResponse: String;
   constructor( public breadcrumbService: BreadcrumbService,public service: FunctionalTestsFeatureService, public titleService: Title) {
     super('Test tnr',breadcrumb, titleService, breadcrumbService);
 
@@ -36,6 +37,16 @@ export class FunctionalTestsFeatureComponent extends PageComponent {
         this.requestResponse = JSON.stringify(response, null, 2);
       },(error)=>{
         this.requestResponse = JSON.stringify(error, null, 2);
+
+    });
+  };
+
+  sync() {
+    this.service.sync().subscribe(
+      (response) => {
+        this.updateOk = true;
+      },(error)=>{
+        this.synchroResponse = "Synchro Ko";
 
     });
   };

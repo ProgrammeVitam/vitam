@@ -2,6 +2,10 @@
 <label for="query">Exécution manuelle de TNR  </label>
 
 <div class="ui-g-12">
+    <button pButton type="button" label='Mise à jour référentiel' (click)="sync()">
+    </button>
+</div>
+<div class="ui-g-12">
 <textarea class="textarea-dsl ui-g-12" id="query" rows="25" cols="12" pInputTextarea [(ngModel)]="featureText"></textarea>
 </div>
 
@@ -19,4 +23,11 @@
 <div class="ui-g-12">
     <textarea class="textarea-dsl ui-g-12" id="response" rows="25" cols="12" pInputTextarea [(ngModel)]="requestResponse"></textarea>
 </div>
+
+<p-dialog header="Mise à jour du référentiel git"  [(visible)]="updateOk" modal="modal" [responsive]="true">
+    <p>Le réferentiel  à été  mis à jour </p>
+    <p-footer>
+        <button type="button" pButton icon="fa-check" (click)="updateOk=false" label="OK"></button>
+    </p-footer>
+</p-dialog>
 
