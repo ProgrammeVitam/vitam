@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -1269,6 +1268,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
                     JsonNode classificationOwner =
                         updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
+                    JsonNode classificationAudience =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE);
+                    JsonNode classificationReassessingDate =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE);
+                    JsonNode classificationNeedReassessingAuthorization =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
+
                     fullupdatedInheritanceNode = updatedCategoryRules.get(category).get(INHERITANCE_KEY);
                     updatedPreventInheritanceNode =
                         updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY) != null
@@ -1339,6 +1345,18 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     if (classificationOwner != null) {
                         action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
                             classificationOwner);
+                    }
+                    if (classificationAudience != null) {
+                        action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE,
+                            classificationAudience);
+                    }
+                    if (classificationNeedReassessingAuthorization != null) {
+                        action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
+                            classificationNeedReassessingAuthorization);
+                    }
+                    if (classificationReassessingDate != null) {
+                        action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE,
+                            classificationReassessingDate);
                     }
 
                     try {
