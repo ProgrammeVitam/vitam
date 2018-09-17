@@ -121,6 +121,114 @@ filter
             target => [ "@timestamp" ]
         }
     }
+{% if syslog.name =="syslog-ng" %}
+    else if [vitam_component] =~ "systemd" or  [vitam_component] =~ "sudo" or [vitam_component] =~ "ansible" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{GREEDYDATA:log_message}"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "systemd" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "kibana" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{GREEDYDATA:log_message}"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "kibana" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "syslog-ng" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{GREEDYDATA:log_message}"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "syslog-ng" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+
+{% endif %}
+    else if [vitam_component] =~ "yum" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "[%{LOGLEVEL:log_level}]%{SPACE}(?:%{GREEDYDATA:msg_data})"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "yum" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "cerebro" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "[%{LOGLEVEL:log_level}]%{SPACE}(?:%{GREEDYDATA:msg_data})"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "cerebro" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "useradd" or  [vitam_component] =~ "groupadd" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "[%{LOGLEVEL:log_level}]%{SPACE}(?:%{GREEDYDATA:msg_data})"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "usermgmt" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "dns_localhost_enforce" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "[%{LOGLEVEL:log_level}]%{SPACE}(?:%{GREEDYDATA:msg_data})"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "systemd" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
     else if [vitam_component] =~ "logstash" {
         json {
             source => "message"
@@ -165,6 +273,39 @@ filter
         mutate { add_field => { "logger" => "logback" } }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
+            target => [ "@timestamp" ]
+        }
+    }
+    # kernel part
+
+    if [facility_label] =~ "kernel"  {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{GREEDYDATA:log_message}"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "kernel" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
+
+    if [log_message] =~ "keyFile"  {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{GREEDYDATA:log_message}"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "logger" => "kernel" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
         }
     }

@@ -78,6 +78,10 @@ kibana:
         shards: 10
         replica: 2
 
+syslog:
+    # value can be syslog-ng or rsyslog
+    name: "rsyslog" 
+
 cerebro:
     baseuri: "cerebro"
     port: 9000

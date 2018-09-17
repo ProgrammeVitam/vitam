@@ -84,7 +84,7 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - rsyslog
+    - log_send
 
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts-elasticsearch-data
