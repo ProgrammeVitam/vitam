@@ -33,7 +33,11 @@ export class ReferentialHelper {
     ]
   };
 
-  getOptions(field: string): any[] {
-    return this.selectionOptions[field];
+  getOptions(field: string, filter?: string[]): any[] {
+    if(filter && filter.length > 0) {
+      return this.selectionOptions[field].filter(obj => filter.includes(obj.value));
+    } else {
+      return this.selectionOptions[field];
+    }
   }
 }
