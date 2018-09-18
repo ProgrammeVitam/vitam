@@ -190,11 +190,27 @@ public class ApplicativeTestResource {
      */
 
     @POST
-    @Path("/sync")
-    public Response synchronizedTestDirectory() throws IOException, InterruptedException {
-        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), applicativeTestService.getTnrBranch());
+    @Path("/syncTnrPieces")
+    public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
+        return synchronizeGit("tnr_master");
+    }
+
+    private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {
+        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), tnr_master);
         int status = applicativeTestService.synchronizedTestDirectory(Paths.get(testSystemSipDirectory));
         return Response.ok().entity(status).build();
+    }
+
+    /**
+     * synchronize tnr directory
+     *
+     * @return status of the command
+     */
+
+    @POST
+    @Path("/sync")
+    public Response synchronizedTestDirectory() throws IOException, InterruptedException {
+        return synchronizeGit(applicativeTestService.getTnrBranch());
     }
 
 }

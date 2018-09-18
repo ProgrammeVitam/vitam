@@ -224,12 +224,12 @@ public class ContextResource {
      * @param contextId
      * @return Response
      */
-    Response deleteContext(String contextId) {
+    Response deleteContext(String contextId, boolean force ) {
 
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
                 functionalBackupService, adminManagementClient);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
-            RequestResponse requestResponse = contextService.deleteContext(contextId);
+            RequestResponse requestResponse = contextService.deleteContext(contextId, force);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             }

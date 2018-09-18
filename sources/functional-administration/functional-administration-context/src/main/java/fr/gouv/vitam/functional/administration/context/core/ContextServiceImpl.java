@@ -311,7 +311,7 @@ public class ContextServiceImpl implements ContextService {
     }
 
     @Override
-    public RequestResponse<ContextModel> deleteContext(String contextId) throws VitamException {
+    public RequestResponse<ContextModel> deleteContext(String contextId, boolean forceDelete) throws VitamException {
 
         SanityChecker.checkParameter(contextId);
 
@@ -340,7 +340,7 @@ public class ContextServiceImpl implements ContextService {
                         .setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             }
 
-            if (internalSecurityClient.contextIsUsed(contextId)) {
+            if (internalSecurityClient.contextIsUsed(contextId) && !forceDelete) {
                 manager.logValidationError("Delete context error : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
                 return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Delete context error : " + contextId, StatusCode.KO)
                         .setHttpCode(Response.Status.FORBIDDEN.getStatusCode())

@@ -103,6 +103,6 @@ public class AdminContextResource {
         LOGGER.info("using of admin tenant: 1");
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return contextResource.deleteContext(contextId);
+        return contextResource.deleteContext(contextId,true);
     }
 }
