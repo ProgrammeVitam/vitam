@@ -81,6 +81,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -858,6 +859,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     final JsonNode value = fieldName.findValue(field);
                     validateUpdateAction(manager, accContractModel.getName(), error, field, value);
                 }
+
+                ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
