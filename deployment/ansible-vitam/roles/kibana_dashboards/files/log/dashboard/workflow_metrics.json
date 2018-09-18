@@ -1,0 +1,12 @@
+{
+    "title": "Metrics workflow vitam",
+    "hits": 0,
+    "description": "Information sur les performances des workflows",
+    "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"x\":0,\"y\":0,\"w\":24,\"h\":15,\"i\":\"1\"},\"id\":\"totaltimeworkflow\",\"panelIndex\":\"1\",\"title\":\"temps total du workflow\",\"type\":\"visualization\",\"version\":\"6.4.0\"},{\"embeddableConfig\":{\"vis\":{\"legendOpen\":false}},\"gridData\":{\"x\":24,\"y\":0,\"w\":24,\"h\":15,\"i\":\"2\"},\"id\":\"totaltimestepsprocessing\",\"panelIndex\":\"2\",\"title\":\"Temps total des steps vu par le processing\",\"type\":\"visualization\",\"version\":\"6.4.0\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":0,\"y\":15,\"w\":24,\"h\":15,\"i\":\"3\"},\"id\":\"totaltimeworkers\",\"panelIndex\":\"3\",\"title\":\"temps total vu par les workers\",\"type\":\"visualization\",\"version\":\"6.4.0\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":24,\"y\":15,\"w\":24,\"h\":15,\"i\":\"4\"},\"id\":\"timetratmenttasks\",\"panelIndex\":\"4\",\"title\":\"temps de traitement des tâches\",\"type\":\"visualization\",\"version\":\"6.4.0\"},{\"embeddableConfig\":{},\"gridData\":{\"x\":0,\"y\":30,\"w\":24,\"h\":15,\"i\":\"5\"},\"id\":\"betatreatmenttime\",\"panelIndex\":\"5\",\"title\":\"temps des traitements (experimental)\",\"type\":\"visualization\",\"version\":\"6.4.0\"}]",
+    "optionsJSON": "{\"darkTheme\":false,\"hidePanelTitles\":false,\"useMargins\":true}",
+    "version": 1,
+    "timeRestore": false,
+    "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":\"X-request-Id\",\"disabled\":false,\"index\":\"logstash-vitam*\",\"key\":\"request_id.keyword\",\"negate\":false,\"params\":{\"query\":\"aeeaaaaaacheqkpnabmrualf4kjcspqaaaaq\",\"type\":\"phrase\"},\"type\":\"phrase\",\"value\":\"aeeaaaaaacheqkpnabmrualf4kjcspqaaaaq\"},\"query\":{\"match\":{\"request_id.keyword\":{\"query\":\"aeeaaaaaacheqkpnabmrualf4kjcspqaaaaq\",\"type\":\"phrase\"}}}}]}"
+    }
+}
