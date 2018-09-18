@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -463,6 +464,15 @@ public class ContextServiceImpl implements ContextService {
 
         String diff = null;
         RequestResponseOK response = new RequestResponseOK<>();
+
+        final JsonNode actionNode = queryDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
+        for (final JsonNode fieldToSet : actionNode) {
+            final JsonNode fieldName = fieldToSet.get(BuilderToken.UPDATEACTION.SET.exactToken());
+            if (fieldName != null) {
+                ((ObjectNode) fieldName).remove(ContextModel.TAG_CREATION_DATE);
+                ((ObjectNode) fieldName).put(ContextModel.TAG_LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            }
+        }
 
         try {
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);

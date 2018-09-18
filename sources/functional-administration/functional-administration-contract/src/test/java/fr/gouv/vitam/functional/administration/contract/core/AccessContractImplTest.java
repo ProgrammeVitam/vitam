@@ -395,15 +395,6 @@ public class AccessContractImplTest {
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
 
-        ObjectNode versionNode = JsonHandler.createObjectNode();
-        versionNode.set(AccessContractModel.DATA_OBJECT_VERSION, JsonHandler.createArrayNode().add("fjsdf"));
-        final SetAction setActionUsage = UpdateActionHelper.set(versionNode);
-        update.getActions().clear();
-        update.addActions(setActionUsage);
-        RequestResponse<AccessContractModel> updateContractStatus2 =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
-        assertThat(updateContractStatus2.isOk()).isFalse();
-
         // Test update for access contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusActive = UpdateActionHelper.set("Status", ActivationStatus.ACTIVE.toString());
@@ -433,7 +424,7 @@ public class AccessContractImplTest {
         RequestResponse responseUpdate =
             accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
         assertThat(!responseUpdate.isOk());
-        assertEquals(responseUpdate.getStatus(), StatusCode.BAD_REQUEST.getCode());
+        assertEquals(200, responseUpdate.getStatus());
 
     }
 
