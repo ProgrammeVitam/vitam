@@ -127,9 +127,11 @@ export class DagVisualizationComponent extends PageComponent {
     const nbUnits = !units ? 0 : units.length;
     const unitNodes = [];
     const unitEdges = [];
-    let nbEdges = 0;
+    const gotNodes = [];
+    const gotEdges = [];
+
     for (let i = 0; i < nbUnits; i++) {
-      unitNodes[i] = {
+      unitNodes.push({
         // data
         id: units[i]['#id'],
         label: units[i]['Title'],
@@ -137,20 +139,33 @@ export class DagVisualizationComponent extends PageComponent {
         widthConstraint: {maximum: 200},
         heightConstraint: {maximum: 200},
         group: units[i]['#max']
-      };
+      });
       if (units[i]['#unitups'] !== undefined) {
         const nbUps = units[i]['#unitups'].length;
         for (let e = 0; e < nbUps; e++) {
-          unitEdges[nbEdges] = {from: units[i]['#id'], to: units[i]['#unitups'][e]};
-          nbEdges++;
+          unitEdges.push({from: units[i]['#id'], to: units[i]['#unitups'][e], arrows:'to'});
         }
+      }
+      if (units[i]['#object'] !== undefined) {
+        const gotId = units[i]['#object'];
+
+        if(gotNodes.find(function(e) { return e.id === gotId } ) === undefined) {
+          gotNodes.push({
+            id: gotId,
+            label: "ObjectGroup: " + gotId,
+            // options
+            widthConstraint: {maximum: 200},
+            heightConstraint: {maximum: 200}
+          });
+        }
+        gotEdges.push({from: gotId, to: units[i]['#id'], arrows:'to ', dashes:true});
       }
     }
 
     // create an array with nodes
-    const nodes = new VisNodes(unitNodes);
+    const nodes = new VisNodes(gotNodes.concat(unitNodes));
     // create an array with edges
-    const edges = new VisEdges(unitEdges);
+    const edges = new VisEdges(unitEdges.concat(gotEdges));
 
     this.visNetworkData = {
       nodes,
@@ -166,18 +181,6 @@ export class DagVisualizationComponent extends PageComponent {
         }
       },
       interaction: {hover: true},
-      /*pathysics: {
-        forceAtlas2Based: {
-          gravitationalConstant: -26,
-          centralGravity: 0.005,
-          springLength: 230,
-          springConstant: 0.18
-        },
-        maxVelocity: 146,
-        solver: 'forceAtlas2Based',
-        timestep: 0.35,
-        stabilization: {iterations: 150}
-      },*/
       nodes: {
         shape: 'box'
       }

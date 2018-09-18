@@ -105,6 +105,8 @@ public final class DslQueryHelper {
     private static final String ORIGINATING_AGENCY_TAG = "#originating_agency";
     private static final String ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.DestroyableOriginatingAgencies";
     private static final String ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.NonDestroyableOriginatingAgencies";
+    private static final String ELIMINATION_GLOBAL_STATUS_TAG = "#elimination.GlobalStatus";
+    private static final String ELIMINATION_EXTENDED_INFO_TYPE_TAG = "#elimination.ExtendedInfo.ExtendedInfoType";
 
     private static final String DESCRIPTION_LEVEL_TAG = "DescriptionLevel";
     private static final String DESCRIPTION = "Description";
@@ -687,6 +689,8 @@ public final class DslQueryHelper {
                     switch (requestFacetItem.getField()) {
                         case ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG:
                         case ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG:
+                        case ELIMINATION_GLOBAL_STATUS_TAG:
+                        case ELIMINATION_EXTENDED_INFO_TYPE_TAG:
                         case ORIGINATING_AGENCY_TAG:
                         case DESCRIPTION_LEVEL_TAG:
                             advancedFacetQuery = true;

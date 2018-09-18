@@ -103,7 +103,7 @@ public class EliminationAnalysisService {
         } else if (nonDestroyableOriginatingAgencies.isEmpty()) {
             return EliminationGlobalStatus.DESTROY;
         } else {
-            return EliminationGlobalStatus.PARTIAL_DESTROY;
+            return EliminationGlobalStatus.CONFLICT;
         }
     }
 

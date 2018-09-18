@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Elimination evDetData Model
@@ -34,6 +35,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EliminationEventDetails {
 
+    @JsonProperty("error")
+    private String error;
+
+    @JsonProperty("expirationDate")
     private String expirationDate;
 
     public EliminationEventDetails() {
@@ -46,6 +51,15 @@ public class EliminationEventDetails {
 
     public EliminationEventDetails setExpirationDate(String expirationDate) {
         this.expirationDate = expirationDate;
+        return this;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public EliminationEventDetails setError(String error) {
+        this.error = error;
         return this;
     }
 }

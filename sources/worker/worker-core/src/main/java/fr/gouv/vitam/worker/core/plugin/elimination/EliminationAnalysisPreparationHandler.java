@@ -39,13 +39,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -81,6 +77,9 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
 
     private static final String ELIMINATION_ANALYSIS_PREPARATION = "ELIMINATION_ANALYSIS_PREPARATION";
     private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
+    private static final String COULD_NOT_PARSE_DATE_FROM_REQUEST = "Could not not parse date from request";
+    private static final String COULD_NOT_PARSE_DSL_REQUEST = "Could not parse DSL request";
+    private static final String INVALID_REQUEST = "Invalid request";
 
     private static final String REQUEST_JSON = "request.json";
     private static final String UNITS_JSONL_FILE = "units.jsonl";
@@ -116,7 +115,6 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
 
             EliminationRequestBody eliminationRequestBody = loadRequestJsonFromWorkspace(handler);
 
-            // Check graph (check unit types & graph cycles)
             process(eliminationRequestBody, param, handler);
 
             LOGGER.info("Elimination analysis preparation succeeded");
@@ -137,7 +135,9 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
             throw new EliminationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
         } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.KO, "Invalid request", e);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setError(INVALID_REQUEST);
+            throw new EliminationException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
         }
     }
 
@@ -166,25 +166,19 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
 
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
-                    String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
-                        unit.get(VitamFieldsHelper.originatingAgency()).asText() :
-                        null;
 
-                    InheritedRuleCategoryResponseModel inheritedRuleCategory = parseAppraisalRuleCategory(unit);
-
-                    EliminationAnalysisResult eliminationAnalysisResult =
-                        eliminationAnalysisService.analyzeElimination(
-                            param.getRequestId(),
-                            inheritedRuleCategory.getRules(),
-                            inheritedRuleCategory.getProperties(),
-                            expirationDate,
-                            originatingAgency);
+                    EliminationAnalysisResult eliminationAnalysisResult = EliminationUtils
+                        .computeEliminationAnalysisForUnitWithInheritedRules(unit, eliminationAnalysisService, param,
+                            expirationDate);
 
                     if (eliminationAnalysisResult.getGlobalStatus() != EliminationGlobalStatus.KEEP) {
 
-                        unitWriter.addEntry(new JsonLineModel(unitId, null,
-                            JsonHandler.toJsonNode(eliminationAnalysisResult)));
+                        JsonLineModel entry = new JsonLineModel(unitId, null,
+                            JsonHandler.toJsonNode(eliminationAnalysisResult));
+                        unitWriter.addEntry(entry);
 
+                        // FIXME : Should load unit from distribution (JSONL params not implemented yet)
+                        EliminationUtils.storeEntryMetadata(handler, "unitMetadata", entry);
                     }
                 }
             }
@@ -204,7 +198,9 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         try {
             expirationDate = LocalDate.parse(eliminationRequestBody.getDate());
         } catch (DateTimeParseException e) {
-            throw new EliminationException(StatusCode.KO, "Invalid date", e);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setError(COULD_NOT_PARSE_DATE_FROM_REQUEST);
+            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
         }
         return expirationDate;
     }
@@ -226,22 +222,9 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
             return request;
 
         } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.KO, "Could not parse DSL request", e);
-        }
-    }
-
-    private InheritedRuleCategoryResponseModel parseAppraisalRuleCategory(JsonNode unit) throws EliminationException {
-
-        try {
-            JsonNode inheritedRules = unit.get(MetadataRuleService.INHERITED_RULES);
-
-            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
-                JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
-
-            return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
-
-        } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.KO, "Could not parse unit information", e);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setError(COULD_NOT_PARSE_DSL_REQUEST);
+            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
     }
 
