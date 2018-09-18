@@ -145,7 +145,7 @@ export class RulesUpdateModeComponent implements OnInit {
       this.computeRulesUtilsService.getUpdateInformation(this.updateValues, this.management, this.deletedRules, this.localProperties);
 
     const rules = info.rules;
-    if (rules.length > 0 || info.NeedAuthorization || info.ArchiveUnitProfile) {
+    if (rules.length > 0 || info.NeedAuthorization !== undefined || info.ArchiveUnitProfile !== undefined) {
       this.computeConfirmationMessageInfo(info)
     } else {
       this.disableUpdateMode();

@@ -1188,6 +1188,7 @@ public class ParserTokens extends BuilderToken {
             case "ExtendedInfoType":
             case "ExtendedInfoDetails":
             case "ParentUnitId":
+            case "_mgt.NeedAuthorization":
                 // OG
                 return false;
             default:

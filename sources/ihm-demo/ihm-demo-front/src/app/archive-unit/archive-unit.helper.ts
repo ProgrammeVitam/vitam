@@ -7,7 +7,8 @@ export class ArchiveUnitHelper {
 
 
   private mustExclude = ['#id', 'StartDate', 'EndDate', 'Title', 'DescriptionLevel', 'Description',
-    ['#management.SubmissionAgency'], ['#management.OriginatingAgency'], 'inheritedRule'];
+    ['#management.SubmissionAgency'], ['#management.OriginatingAgency'], 'InheritedRules', 'ArchiveUnitProfile',
+    ['#management.NeedAuthorization'] ];
   public storageFinalAction = {
     RestrictAccess: {id: 'RestrictAccess', label: 'Accès Restreint'},
     Transfer: {id: 'Transfer', label: 'Transférer'},
