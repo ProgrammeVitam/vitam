@@ -1,7 +1,7 @@
-Recherche et Consultation
-#########################
+Recherche, Consultation et Modification
+#######################################
 
-Cette partie décrit les fonctionnalités de recherche et de consultation d'une unité archivistique ou d'un fonds d'archives dans la solution logicielle Vitam.
+Cette partie décrit les fonctionnalités de recherche, de consultation et de modification d'une unité archivistique ou d'un fonds d'archives dans la solution logicielle Vitam.
 
 Recherche d'une unité archivistique
 ===================================
@@ -149,7 +149,7 @@ La page est divisée en plusieurs sections :
 - d'autres, masquées, peuvent être visualisée en cliquant sur le "+" situé à droite de leur titre
 
 **Contexte de l'unité archivistique**
-
+"""""""""""""""""""""""""""""""""""""
 Affichée par défaut, cette section permet de visualiser et naviguer dans l'arborescence montante et descendante de l'unité archivistique.
 
 L'unité archivistique que l'on consulte est signalée en gras et par un pictogramme de maison situé à gauche. Les niveaux supérieurs ou parents sont indiqués par des chevrons, les niveaux inférieurs ou enfants, par des plus. Un clic sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'unité archivistique sélectionnée. La racine est indiquée par une cible. 
@@ -191,7 +191,7 @@ Un pictogramme de croix, placé en haut à droite de la fenêtre permet de la re
 
 
 **Description principale**
-
+""""""""""""""""""""""""""
 Affichée par défaut, cette section contient les principales métadonnées descriptives de l'unité archivistique.
 
 Concernant les services producteurs, il faut différencier :
@@ -217,68 +217,99 @@ Les anciennes valeurs sont sauvegardées à titre informatif dans la colonne dé
 
 
 **Description complémentaire**
-
+""""""""""""""""""""""""""""""
 Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content> du bordereau de transfert. 
 
 
 .. image:: images/au_desc_c.png
 
 
-**Règles de gestion**
+**Métadonnées de gestion**
+""""""""""""""""""""""""""
+Cette partie permet de visualiser, modifier ou supprimer les métadonnées de gestion d'une unité archivistique. Pour modifier les règles de gestion, cliquez sur le bouton "Modifier" dans le bloc "Métadonnées de gestion".
 
-Si des règles de gestion s'appliquent à l'unité archivistique, alors celles-ci sont listées parmi les catégories suivantes :
+Un premier bloc concerne deux champs spécifiques : "Modifications soumises à validation" et "Profil d'unité archivistique". Ces champs ne sont pas associés à une catégorie de règle. Les valeurs sont prises en compte pour l'ensemble des règles de gestion s'appliquant à l'unité archivistique.
 
-- Règle de durée d'utilité administrative
-- Règle de communicabilité
-- Règle de durée d'utilité courante
-- Règle de diffusion
-- Règle de réutilisation
-- Règle de classification
+- Un premier champ "modifications soumises à validation" concerne le camp du SEDA NeedAuthorization dont la valeur peut être "oui" ou "non". Cette information doit indiquer au front office si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion sur une unité archivistique donnée.
 
-Ces règles ont les attributs suivants :
+- Un deuxième champ "Profil d'unité archivistique" permet d'associer un profil d'unité archivistique (document type) existant dans le référentiel, à une unité archivistique. 
 
-- Identifiant : le code affecté à la règle appliquée à cette unité. Par exemple ACC-00010.
-- Date de début : date du début d'application de la règle
-- Date de fin : date de fin d'application de la règle
-- Sort final : optionnel, dans le cas où la règle possède un sort final
-- Héritage
-- Détail : indique l'origine de la règle, suite à un clic sur le chevron situé à droite de la règle
+.. image:: images/detail_need_authorization.png
 
-Une même unité archivistique peut avoir plusieurs règles définies dans la même catégorie de règles (Exemple : plusieurs délais de communicabilité).
-
-Ces règles de gestion peuvent être bloquées de 2 façons différentes: 
-
-- Soit par catégorie : l'information "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
-- Soit par identifiant correspondant à une seule règle : l'information "Règle désactivée" précise l'identifiant des règles, provenant d'unités archivistisques parentes et qui ne sont plus appliquées à partir de cette unité archivistique.
+Les blocs suivants permettent de visualiser, d'ajouter, de modifier et de supprimer des catégories de règles et propriétés associés portées par l'unité archivistique. 
 
 
-.. image:: images/au_rg.png
+**Champs valables pour les différentes catégories de règles**
 
+**Héritage des règles de gestion**
 
-Les règles de gestion non héritées peuvent être modifiées ou supprimées en cliquant sur le bouton "Modifier".
+  Pour chaque règle, il est possible de gérer l'héritage des règles. Deux possibilités sont autorisées par le SEDA, soit toutes les règles de la catégorie sont désactivées (cette action est effectuée en cliquant sur le bouton "Désactiver l'héritage", soit l'héritage d'un règle spécifique est activée ou désactivée en spécifiant la règle concernée (ex: ACC-00003). Dans le premier cas, l’information « Cette unité archivistique n’hérite d’aucune règle » indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique. Dans le second, l’information « Règle désactivée » précise l’identifiant des règles, provenant d’unités archivistisques parentes ne sont plus appliquées à partir de cette unité archivistique. 
 
-.. image:: images/au_rg_modif.png
+.. image:: images/prevent_rule.png
+ 
+**Consultation et modification**
 
+   - En cliquant sur le pictogramme de "Détail" le chemin d'héritage et le service producteur est indiqué. 
+   - Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles en cliquant sur le bouton "Ajouter une règle".
+   
+.. image:: images/detail_regle_de_gestion.png
+  
+ 
+- **Délai de communicabilité** 
+   - Identifiant : le code affecté à la règle appliquée à cette unité. Par exemple ACC-00010.
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
 
-Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles en cliquant sur le bouton "Ajouter une règle". 
+- **Durée d'utilité administrative**
+   - Sort final : conserver ou détruire 
+   - Identifiant : le code affecté à la règle appliquée à cette unité. Par exemple APP-00005.
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
 
-.. image:: images/au_rg_ajout.png
-   :scale: 50
+- **Durée de classification** 
+   - Règle : identifiant de la règle 
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
 
+  .. admonition:: Les propriétés
 
-Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la seconde est modifiable.
+   - Modifications soumises à validation : la valeur attendue est oui ou non
+   - Service émetteur : ce champ est libre, il n'est pas contrôlé par un référentiel
+   - Niveau de classification : cette valeur est déterminée lors de l'installation de la plateforme dans les paramètres de configuration. Par souci de démonstration dans cette IHM les deux niveaux sont indiqués "Confidentiel défense" ou "Secret défense".
+   - Champ de diffusion : cette propriété restreint ou non l'accès à certains ressortissants (ex : spécial France, spécial Union Européènne)
+   - Date de réevaluation : date à laquelle cette règle peut changer de statut
 
-.. image:: images/au_rg_supp.png
-   :scale: 50
+- **Délai de diffusion** 
+   - Règle : identifiant de la règle 
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
 
+- **Durée de réutilisation** 
+   - Règle : identifiant de la règle 
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
 
-La suppression d'une règle s'effectue en cliquant sur la corbeille. Il est possible d'annuler l'action de suppression avant la validation des modifications en cliquant sur le pictogramme "+" situé à droite.
+- **Durée d'utilité courante** 
+   - Règle : identifiant de la règle 
+   - Date de début : date du début d'application de la règle
+   - Date de fin : date de fin d'application de la règle
+   - Hérité : la règle est hérité ou non de son parent 
+   - Sort final : déclaration du sort final de l'unité archivistique : Accès restreint / Transférer / Copier
+
+**Validation des modifications**
+
+La suppression d'une règle s'effectue en cliquant sur la corbeille. 
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier les modifications. Un clic sur le bouton "Modifier" met à jour et sauvegarde les règles de gestion.
 
 |
 
-.. image:: images/au_rg_pop.png
+.. image:: images/pop_confirmation_modif_regles.png
 
 |
 
