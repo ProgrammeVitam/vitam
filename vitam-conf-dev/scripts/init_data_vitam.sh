@@ -1,18 +1,5 @@
 #!/bin/bash
 
-if [ -d /vitam/data/offer ]; then
-  rm -rf /vitam/data/offer/*_backup
-fi
-
-echo "Import security profile"
-echo "Begin"
-curl -d '[{"Name": "admin-security-profile", "Identifier": "admin-security-profile", "FullAccess": true, "Permissions": null }]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/securityprofiles
-echo "End"
-
-echo "Import context"
-echo "Begin"
-curl -d '[{"Name": "admin-context", "Status": "ACTIVE", "SecurityProfile": "admin-security-profile", "Permissions": [ {"tenant": 0, "AccessContracts": [], "IngestContracts": []},{"tenant": 1, "AccessContracts": [], "IngestContracts": []}, {"tenant": 2, "AccessContracts": [], "IngestContracts": []} ]}]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/contexts
-echo "End"
 
 ## TODO use real certificates in base64 instead of already hardcoded value
 echo "Import ihm-demo certificate"
