@@ -63,7 +63,7 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
  */
 public class DriverManagerTest {
 
-    private static final String MON_MODULE_DRIVER_MON_DRIVER = "mon.module.driver.MonDriver";
+    private static final String MON_MODULE_DRIVER_MON_DRIVER = "fr.gouv.vitam.driver.fake.FakeDriverImpl";
     private static final String THE_DRIVER_THE_DRIVER = "the.driver.TheDriver";
     private static final String OFFER_1 = "DriverManagerTestoffer1";
     private static final String OFFER_2 = "DriverManagerTestoffer2";

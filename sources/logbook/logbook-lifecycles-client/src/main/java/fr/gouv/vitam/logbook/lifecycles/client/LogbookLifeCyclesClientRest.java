@@ -26,19 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.error.VitamError;
@@ -67,7 +67,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-
 /**
  * LogbookLifeCyclesClient REST implementation
  */
@@ -930,6 +929,68 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             if (status.getFamily() != Status.Family.SUCCESSFUL) {
                 throw new VitamRuntimeException("unable to store lifecycle, error code is :" + status.getStatusCode());
             }
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void deleteLifecycleUnitsBulk(Collection<String> unitsIds)
+        throws LogbookClientServerException, LogbookClientBadRequestException {
+        ParametersChecker.checkParameter("List has to be provided ", unitsIds);
+        Response response = null;
+
+        try {
+            response =
+                performRequest(HttpMethod.DELETE, "/lifeCycleUnits/bulkDelete", null, unitsIds, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                // Every thing is OK
+                return;
+            }
+            if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                LOGGER.debug(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                throw new LogbookClientBadRequestException(
+                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            }
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public void deleteLifecycleObjectGroupBulk(Collection<String> objectGroupIds)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.DELETE, "/objectgrouplifecycles/bulkDelete", null, objectGroupIds, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                // Every thing is OK
+                return;
+            }
+            if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                LOGGER.debug(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                throw new LogbookClientBadRequestException(
+                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            }
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }

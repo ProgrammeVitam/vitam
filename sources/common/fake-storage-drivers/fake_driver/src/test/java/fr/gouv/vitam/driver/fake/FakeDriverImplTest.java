@@ -111,16 +111,9 @@ public class FakeDriverImplTest {
         assertNotNull(connect.putObject(putObjectRequest3));
         assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
-        assertThatCode(() -> {
-            final StorageRemoveRequest storageRemoveRequest =
-                new StorageRemoveRequest(tenant, "type", "digest_bad_test", VitamConfiguration.getDefaultDigestType(),
-                    "digest_test");
-            connect.removeObject(storageRemoveRequest);
-        }).isInstanceOf(StorageDriverException.class);
 
         assertNotNull(connect.removeObject(
-            new StorageRemoveRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType(),
-                "digest_test")));
+            new StorageRemoveRequest(tenant, "type", "guid")));
 
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
 

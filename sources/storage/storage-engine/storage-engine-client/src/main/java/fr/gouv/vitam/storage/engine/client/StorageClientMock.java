@@ -129,12 +129,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest)
+    public boolean delete(String strategyId, DataCategory type, String guid)
         throws StorageServerClientException {
         return true;
     }
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
+    public boolean delete(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         return true;
     }

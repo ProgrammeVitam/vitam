@@ -2207,4 +2207,76 @@ public class LogbookResource extends ApplicationStatusResource {
         }
 
     }
+
+    @DELETE
+    @Path("/objectgrouplifecycles/bulkDelete")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteObjectGroups(List<String> objectGroupIds) {
+        Status status;
+        JsonNode jsonNode;
+
+        try {
+            jsonNode = JsonHandler.toJsonNode(objectGroupIds);
+
+            logbookLifeCycle.deleteLifeCycleObjectGroups(objectGroupIds);
+
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (DatabaseException e) {
+         return    Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                .build();
+        }
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK<String>(jsonNode)
+                .setHits(objectGroupIds.size(), 0, 1)
+                .setHttpCode(Status.OK.getStatusCode()))
+            .build();
+
+    }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/lifeCycleUnits/bulkDelete")
+    public Response deleteUnits(List<String> unitsIdentifier) {
+        Status status;
+        JsonNode jsonNode;
+        try {
+            jsonNode = JsonHandler.toJsonNode(unitsIdentifier);
+            logbookLifeCycle.deleteLifeCycleUnits(unitsIdentifier);
+
+        }
+        catch (DatabaseException e) {
+           return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                .build();
+        }
+        catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK<String>(jsonNode)
+                .setHits(unitsIdentifier.size(), 0, 1)
+                .setHttpCode(Status.OK.getStatusCode()))
+            .build();
+    }
 }

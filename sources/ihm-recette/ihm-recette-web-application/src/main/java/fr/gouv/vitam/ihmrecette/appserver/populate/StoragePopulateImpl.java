@@ -229,7 +229,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 LOGGER.warn(THREAD_SLEEP_TO_WAIT_ALL_TASK_SUBMISSION_INTERRUPTED, exc);
                 if (!datas.getKoOffers().isEmpty()) {
                     try {
-                        deleteObjects(datas.getOkOffers(), tenantId, category, objectId, digest);
+                        deleteObjects(datas.getOkOffers(), tenantId, category, objectId);
                     } catch (StorageTechnicalException e) {
                         LOGGER.error("Cannot delete object {}", objectId, e);
                         throw e;
@@ -295,7 +295,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
         // TODO : error management (US #2009)
         if (!datas.getKoOffers().isEmpty()) {
-            deleteObjects(datas.getOkOffers(), tenantId, category, objectId, digest);
+            deleteObjects(datas.getOkOffers(), tenantId, category, objectId);
         }
     }
 
@@ -347,8 +347,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         return offerReferences;
     }
 
-    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId,
-        Digest digest)
+    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
         throws StorageTechnicalException {
         // Map here to keep offerId linked to Future
         Map<String, Future<Boolean>> futureMap = new HashMap<>();
@@ -356,8 +355,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             final Driver driver = retrieveDriverInternal(offerId);
             // TODO: review if digest value is really good ?
             StorageRemoveRequest request =
-                new StorageRemoveRequest(tenantId, category.getFolder(), objectId, digestType,
-                    digest.digestHex());
+                new StorageRemoveRequest(tenantId, category.getFolder(), objectId);
             futureMap.put(offerId, executor.submit(new DeleteThread(driver, request, offerId)));
         }
 

@@ -1,25 +1,5 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
-import static fr.gouv.vitam.metadata.core.database.collections.Unit.GRAPH;
-import static fr.gouv.vitam.metadata.core.database.collections.Unit.PARENT_ORIGINATING_AGENCIES;
-import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITDEPTHS;
-import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITUPS;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoBulkWriteException;
@@ -30,15 +10,26 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
 
 /**
  * Repository to access to metadata collection
@@ -103,6 +94,31 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
                 throw new MetaDataAlreadyExistException("Metadata already exists: " + ids);
             }
             throw new MetaDataExecutionException(e);
+        } catch (final MongoException | IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
+    }
+
+    /**
+     * delete bulk documents
+     * @param metadataDocuments  metadataDocuments
+     * @throws MetaDataExecutionException MetaDataExecutionException
+     */
+    public void delete(List<T> metadataDocuments) throws MetaDataExecutionException {
+
+        BulkWriteOptions options = new BulkWriteOptions();
+        options.ordered(false);
+        try {
+            List<DeleteOneModel<T>> collect = new ArrayList<>();
+            metadataDocuments.forEach(metadataDocument -> {
+                DeleteOneModel<T> tDeleteOneModel = new DeleteOneModel<>(metadataDocument);
+                collect.add(tDeleteOneModel);
+            });
+            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            if (bulkWriteResult.getDeletedCount() != metadataDocuments.size()) {
+                throw new MetaDataExecutionException(
+                    String.format("Error while bulk delete document count : %s != size : %s :", bulkWriteResult.getDeletedCount(), metadataDocuments.size()));
+            }
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }

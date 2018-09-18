@@ -137,11 +137,11 @@ public class MetaDataImpl implements MetaData {
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     public static final String ORIGINATING_AGENCY = "originatingAgency";
-    public static final String OPI = "opi";
+    private static final String OPI = "opi";
     public static final String QUALIFIER_VERSION_OPI = "qualifierVersionOpi";
     public static final String TOTAL_SIZE = "totalSize";
     public static final String TOTAL_OBJECT = "totalObject";
-    public static final String LIST_GOT = "listGOT";
+    private static final String LIST_GOT = "listGOT";
     public static final String TOTAL_GOT = "totalGOT";
     public static final String COUNT = "count";
     public static final String SP = "sp";
@@ -210,6 +210,24 @@ public class MetaDataImpl implements MetaData {
             }
             throw e;
         }
+    }
+
+    @Override
+    public void deleteUnits(List<String> idList)
+        throws IllegalArgumentException, MetaDataExecutionException {
+
+        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+        dbRequest.deleteUnits(idList);
+
+    }
+
+    @Override
+    public void deleteObjectGroups(List<String> idList)
+        throws IllegalArgumentException, MetaDataExecutionException {
+
+        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+        dbRequest.deleteObjectGroups(idList);
+
     }
 
     @Override

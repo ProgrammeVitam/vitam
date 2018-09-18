@@ -1,0 +1,35 @@
+{
+  "_id": "aeaqaaaaaqhdytymabdeialenehzpbqaaaaq",
+  "_mgt": {},
+  "DescriptionLevel": "Series",
+  "Title": "Archives antérieures à 1789",
+  "OriginatingAgencyArchiveUnitIdentifier": [
+    "AR."
+  ],
+  "SedaVersion": "2.1",
+  "ImplementationVersion": "1.7.0-SNAPSHOT",
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_ops": [
+    "aeeaaaaaashi422cab3gyalenehy62iaaaaq"
+  ],
+  "_opi": "aeeaaaaaashi422cab3gyalenehy62iaaaaq",
+  "_unitType": "HOLDING_UNIT",
+  "_up": [],
+  "_us": [],
+  "_graph": [],
+  "_sps": [],
+  "_uds": {},
+  "_us_sp": {},
+  "_min": 1,
+  "_max": 1,
+  "_glpd": "2018-07-05T06:09:51.109",
+  "_v": 0,
+  "_tenant": 0
+}

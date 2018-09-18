@@ -43,8 +43,7 @@ public class StorageRemoveRequestTest {
 
     @BeforeClass
     public static void init() {
-        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid", VitamConfiguration.getDefaultDigestType(),
-                "digest_test");
+        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid");
     }
 
     @Test
@@ -62,13 +61,5 @@ public class StorageRemoveRequestTest {
         assertEquals("guid", storageRemoveRequest.getGuid());
     }
 
-    @Test
-    public void testGetDigestAlgorithm() throws Exception {
-        assertEquals(VitamConfiguration.getDefaultDigestType(), storageRemoveRequest.getDigestAlgorithm());
-    }
 
-    @Test
-    public void testGetDigestHashBase16() throws Exception {
-        assertEquals("digest_test", storageRemoveRequest.getDigestHashBase16());
-    }
 }

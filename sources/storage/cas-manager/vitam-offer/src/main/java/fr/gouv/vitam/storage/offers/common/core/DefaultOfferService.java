@@ -165,14 +165,12 @@ public interface DefaultOfferService {
      *
      * @param containerName   container where this exists.
      * @param objectId        the objectId to delete
-     * @param digest          the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
      * @param type            the object type to delete
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
      *                                                    be located in the container.
      * @throws ContentAddressableStorageException         Thrown when delete action failed due some other failure
      */
-    void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm,
+    void deleteObject(String containerName, String objectId,
         DataCategory type)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 

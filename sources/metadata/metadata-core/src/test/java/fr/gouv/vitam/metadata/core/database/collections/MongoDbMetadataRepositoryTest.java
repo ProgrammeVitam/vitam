@@ -24,6 +24,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.List;
+
 public class MongoDbMetadataRepositoryTest {
 
     public static final int TENANT_ID = 0;
@@ -102,6 +104,27 @@ public class MongoDbMetadataRepositoryTest {
         // When
         assertThatThrownBy(() -> unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3)))
             .isInstanceOf(MetaDataAlreadyExistException.class).hasMessageContaining(id1);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_delete_many_document_in_bulk_mode() throws Exception {
+        // Given
+        String id1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        String id2 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+
+        Unit unit1 = createUnit(id1);
+        Unit unit2 = createUnit(id2);
+
+        unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2));
+
+        unitMongoDbMetadataRepository.delete(Lists.newArrayList(unit1,unit2));
+
+        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(UNIT.getName());
+
+
+        assertThat(mongoCollection.find()).isEmpty();
     }
 
     private Unit createUnit(String id) {

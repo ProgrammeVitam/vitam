@@ -57,6 +57,10 @@ public enum StorageLogbookParameterName {
      */
     objectIdentifier,
     /**
+     * Data category
+     */
+    dataCategory,
+    /**
      * Object Group Identifier.<br>
      * Identifier of the object group corresponding to the object written in the
      * storage offer. <br>
@@ -90,20 +94,6 @@ public enum StorageLogbookParameterName {
      * One must use the StorageLogbookOutcome enum. <br>
      */
     outcome,
-    /**
-     * Message output, whatever the "outcome" status <br>
-     * Can be null
-     */
-    outcomeDetailMessage,
-    /**
-     * External Object Identifier on the current object<br>
-     * <br>
-     * For instance: from Ingest, in the manifest.xml, this field is
-     * "MessageIdentifier" <br>
-     * <br>
-     * Can be null
-     */
-    objectIdentifierIncome,
     /**
      * Object qualifier in the objectGroup
      */

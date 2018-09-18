@@ -285,7 +285,7 @@ public class StorageDistributionImplTest {
 
         DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0);
 
-        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, digest.toString());
+        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
 
     }
 
@@ -477,7 +477,7 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0);
 
-        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, "digest");
+        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
     }
 
     @RunWithCustomExecutor
@@ -487,19 +487,7 @@ public class StorageDistributionImplTest {
         DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0);
 
         try {
-            customDistribution.deleteObjectInAllOffers(null, context, null);
-            fail("Exception excepted");
-        } catch (final IllegalArgumentException exc) {
-            // nothing, exception needed
-        }
-        try {
-            customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, null);
-            fail("Exception excepted");
-        } catch (final IllegalArgumentException exc) {
-            // nothing, exception needed
-        }
-        try {
-            customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context, null);
+            customDistribution.deleteObjectInAllOffers(null, context);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed

@@ -241,20 +241,20 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest)
+    public boolean delete(String strategyId, DataCategory type, String guid)
         throws StorageServerClientException {
-        return delete(strategyId, type, guid, digest, new ArrayList<>());
+        return delete(strategyId, type, guid,  new ArrayList<>());
     }
 
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest, List<String> offerIds)
+    public boolean delete(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        ParametersChecker.checkParameter(DIGEST_MUST_HAVE_A_VALID_VALUE, digest);
+
         if (DataCategory.CONTAINER.equals(type)) {
             throw new IllegalArgumentException(
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
@@ -265,9 +265,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
-            if (digest != null) {
-                headers.add(GlobalDataRest.X_DIGEST, digest);
-            }
+
             headers.add(GlobalDataRest.X_DATA_CATEGORY, type.name());
 
             if (offerIds != null && !offerIds.isEmpty()) {

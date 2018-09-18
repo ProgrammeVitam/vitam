@@ -56,10 +56,8 @@ public class RequestResultTest {
     public static void init() {
         getObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "oi");
         getObjectResult = new StorageGetResult(TENANT_ID, "object", "oi", Response.ok(BYTES).build());
-        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi", VitamConfiguration.getDefaultDigestType(),
-                "digest");
-        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi", VitamConfiguration.getDefaultDigestType(),
-                "digest", true);
+        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi");
+        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi",  true);
         storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
         storageCountResult = new StorageCountResult(TENANT_ID, "object", 2L);
     }

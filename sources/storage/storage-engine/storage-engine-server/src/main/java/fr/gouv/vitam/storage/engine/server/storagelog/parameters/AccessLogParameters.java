@@ -77,15 +77,13 @@ public class AccessLogParameters implements StorageLogStructure {
     /**
      * Check if mandatories parameters are not empty or null
      *
-     * @return true if mandatories parameters are ok
      * @throws IllegalArgumentException
      *             thrown when one parameter is empty or null
      */
-    public boolean checkMandatoryParameters() throws IllegalArgumentException {
+    public void checkMandatoryParameters() throws IllegalArgumentException {
         for (final StorageLogbookParameterName s : mandatoryParameters) {
             ParametersChecker.checkParameter(MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY, mapParameters.get(s));
         }
-        return true;
     }
 
     /**
@@ -96,31 +94,5 @@ public class AccessLogParameters implements StorageLogStructure {
     @JsonIgnore
     public Map<StorageLogbookParameterName, String> getMapParameters() {
         return mapParameters;
-    }
-
-    /**
-     * set The output detail message of the operation
-     *
-     * @param outcomeDetailMessage
-     *            the output message
-     * @return the AccessLogParameters after the parameter has been added
-     */
-    @JsonIgnore
-    public AccessLogParameters setOutcomDetailMessage(String outcomeDetailMessage) {
-        mapParameters.put(StorageLogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
-        return this;
-    }
-
-    /**
-     * set The External Object Identifier
-     *
-     * @param objectIdentifierIncome
-     *            the External Object Identifier
-     * @return the AccessLogParameters after the parameter has been added
-     */
-    @JsonIgnore
-    public AccessLogParameters setObjectIdentifierIncome(String objectIdentifierIncome) {
-        mapParameters.put(StorageLogbookParameterName.objectIdentifierIncome, objectIdentifierIncome);
-        return this;
     }
 }

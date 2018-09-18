@@ -290,14 +290,12 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
-        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
-        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, request.getDigestHashBase16(),
-                    request.getDigestAlgorithm().getName(), null),
+                getDefaultHeaders(request.getTenantId(), null, null,
+                    null, null),
                 MediaType.APPLICATION_JSON_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -305,11 +303,11 @@ public class ConnectionImpl extends AbstractConnection {
                 case OK:
                     final JsonNode json = handleResponseStatus(response, JsonNode.class);
                     final StorageRemoveResult result = new StorageRemoveResult(request.getTenantId(), request.getType(),
-                        request.getGuid(), request.getDigestAlgorithm(), request.getDigestHashBase16(),
+                        request.getGuid(),
                         Response.Status.OK.toString().equals(json.get("status").asText()));
                     return result;
                 case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
+                    LOGGER.warn(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverNotFoundException(getDriverName(), "Object " + request.getGuid() +
                         "not found");
                 case BAD_REQUEST:

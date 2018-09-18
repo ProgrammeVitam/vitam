@@ -232,20 +232,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm,
-        DataCategory type)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public void deleteObject(String containerName, String objectId, DataCategory type)
+        throws  ContentAddressableStorageException {
         if (!type.canDelete()) {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
-        // TODO G1 : replace with checkObject when merged
-        String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
-        if (offerDigest.equals(digest)) {
             defaultStorage.deleteObject(containerName, objectId);
-        } else {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
-        }
+
     }
 
     @Override

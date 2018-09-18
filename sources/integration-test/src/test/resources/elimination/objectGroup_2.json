@@ -1,0 +1,66 @@
+{
+  "_id": "aebaaaaaaqhad455abryqalenekbcqqaaaaq",
+  "_tenant": 0,
+  "_profil": "",
+  "FileInfo": {
+    "Filename": "009734_20130456_0001_20111116_DI_AN_PJLO_constitution_art_11_referendum_initiative_populaire.pdf.pdf",
+    "LastModified": "2012-10-22T13:26:32.000+02:00"
+  },
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaahad455abryqalenekbcqiaaada",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcqqaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/354"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0001_20111116_DI_AN_PJLO_constitution_art_11_referendum_initiative_populaire.pdf.pdf",
+            "LastModified": "2012-10-22T13:26:32.000+02:00"
+          },
+          "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 33988,
+          "Uri": "Content/ID731.pdf",
+          "MessageDigest": "cea4563ceccd591b492470ce39ed433fbc33027d1ea2254640f886466148927a1ece65b0ce33518e7d47be36affc4373897210f2ac95b143014084e03dda7d30",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "_up": [
+    "aeaqaaaaaqhad455abryqalenekbdgiaaaca"
+  ],
+  "_nbc": 1,
+  "_ops": [
+    "aeeaaaaaashi422cab3gyalenej2kcyaaaaq"
+  ],
+  "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+  "_sp": "MICHEL_MERCIER",
+  "_sps": [
+    "MICHEL_MERCIER"
+  ],
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_v": 0,
+  "_glpd": "2018-07-05T13:55:39.853"
+}

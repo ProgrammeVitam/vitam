@@ -51,42 +51,43 @@ public interface StorageDistribution extends VitamAutoCloseable {
 
 
 
-
     /**
      * copy object from on offer to an another
      *
-     * @param context          the context
+     * @param context the context
      * @param destinationOffer destination Offer
-     * @param sourceOffer      source offer
+     * @param sourceOffer source offer
      * @return StoredInfoResult Object
      * @throws StorageException StorageException
      */
     StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String sourceOffer, String destinationOffer)
         throws StorageException;
+
     /**
      * Store data of any type for given tenant on storage offers associated to
      * given strategy
      *
-     * @param strategyId              id of the strategy
-     * @param objectId                the workspace URI of the data to be retrieve (and stored in
-     *                                offer)
+     * @param strategyId id of the strategy
+     * @param objectId the workspace URI of the data to be retrieve (and stored in
+     * offer)
      * @param createObjectDescription object additional informations
-     * @param category                the category of the data to store (unit, object...)
-     * @param requester               the requester information
+     * @param category the category of the data to store (unit, object...)
+     * @param requester the requester information
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageException StorageException
      */
     StoredInfoResult storeDataInAllOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester) throws StorageException;
+
     /**
      * Store data of any type for given tenant on the given storage offer.
      *
      * @param strategyId id of the strategy
-     * @param objectId   the workspace URI of the data to be retrieve (and stored in
-     * @param category   the category of the data to store (unit, object...)
-     * @param requester  the requester information
-     * @param offerIds    offer identfier
-     * @param response   the response
+     * @param objectId the workspace URI of the data to be retrieve (and stored in
+     * @param category the category of the data to store (unit, object...)
+     * @param requester the requester information
+     * @param offerIds offer identfier
+     * @param response the response
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageException StorageException
      */
@@ -94,12 +95,11 @@ public interface StorageDistribution extends VitamAutoCloseable {
         DataCategory category, String requester, List<String> offerIds, Response response) throws StorageException;
 
     /**
-     *
      * @param strategyId id of the strategy
      * @param streamAndInfo streamAndInfo
      * @param objectId id of the object
      * @param category the object type to list
-     * @param requester  the requester information
+     * @param requester the requester information
      * @param offerIds offer identfiers
      * @return StoredInfoResult
      * @throws StorageException StorageException
@@ -108,6 +108,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
         DataCategory category, String requester,
         List<String> offerIds)
         throws StorageException;
+
     /**
      * get  offer ids list
      *
@@ -122,7 +123,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *
      * @param strategyId id of the strategy
      * @return a JsonNode containing informations about the storage
-     * @throws StorageNotFoundException  Thrown if the Container does not exist
+     * @throws StorageNotFoundException Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
      */
     JsonNode getContainerInformation(String strategyId) throws StorageException;
@@ -144,8 +145,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * List container objects
      *
      * @param strategyId the strategy id to get offers
-     * @param category   the object type to list
-     * @param cursorId   the cursorId if exists
+     * @param category the object type to list
+     * @param cursorId the cursorId if exists
      * @return a response with object listing
      * @throws StorageException thrown in case of any technical problem
      */
@@ -156,10 +157,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Get offer log from referent
      *
      * @param strategyId the strategy id to get offers
-     * @param category   the object type to list
-     * @param offset     offset of the excluded object
-     * @param limit      the number of result wanted
-     * @param order      order
+     * @param category the object type to list
+     * @param offset offset of the excluded object
+     * @param limit the number of result wanted
+     * @param order order
      * @return list of offer log
      * @throws StorageException thrown in case of any technical problem
      */
@@ -171,10 +172,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *
      * @param strategyId the strategy id to get offers
      * @param offerId
-     * @param category   the object type to list
-     * @param offset     offset of the excluded object
-     * @param limit      the number of result wanted
-     * @param order      order
+     * @param category the object type to list
+     * @param offset offset of the excluded object
+     * @param limit the number of result wanted
+     * @param order order
      * @return list of offer log
      * @throws StorageException thrown in case of any technical problem
      */
@@ -186,26 +187,27 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Get a specific Object binary data as an input stream
      * <p>
      *
-     * @param strategyId     id of the strategy
-     * @param objectId       id of the object
-     * @param category       category of the object
+     * @param strategyId id of the strategy
+     * @param objectId id of the object
+     * @param category category of the object
      * @param logInformation information for accessLog
      * @return an object as a Response with an InputStream
-     * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AccessLogInfoModel logInformation) throws StorageException;
+    Response getContainerByCategory(String strategyId, String objectId, DataCategory category,
+        AccessLogInfoModel logInformation) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream
      * <p>
      *
      * @param strategyId id of the strategy
-     * @param objectId   id of the object
+     * @param objectId id of the object
      * @param category category
      * @param offerId offer identfier
      * @return an object as a Response with an InputStream
-     * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
     Response getContainerByCategory(String strategyId, String objectId, DataCategory category, String offerId)
@@ -215,9 +217,9 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Get a specific Object information
      *
      * @param strategyId id of the strategy
-     * @param type       data category
-     * @param objectId   id of the object
-     * @param offerIds   list id of offers
+     * @param type data category
+     * @param objectId id of the object
+     * @param offerIds list id of offers
      * @return JsonNode containing informations about the requested object
      * @throws StorageException
      */
@@ -229,10 +231,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Verify if object exists
      *
      * @param strategyId id of the strategy
-     * @param objectId   id of the object
-     * @param offerIds   list id of offers
+     * @param objectId id of the object
+     * @param offerIds list id of offers
      * @return boolean
-     * @throws StorageException  StorageException
+     * @throws StorageException StorageException
      */
     boolean checkObjectExisting(String strategyId, String objectId, DataCategory category,
         List<String> offerIds) throws StorageException;
@@ -242,11 +244,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Delete an object
      *
      * @param strategyId id of the strategy
-     * @param digest     the digest to be compared with
-     * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObjectInAllOffers(String strategyId, DataContext context, String digest)
+    void deleteObjectInAllOffers(String strategyId, DataContext context)
         throws StorageException;
 
 
@@ -254,13 +255,12 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * Delete an object in  offers
      *
      * @param strategyId id of the strategy
-     * @param context    context
-     * @param digest     the digest to be compared with
-     * @param offers     offers
-     * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+     * @param context context
+     * @param offers offers
+     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObjectInOffers(String strategyId, DataContext context, String digest, List<String> offers)
+    void deleteObjectInOffers(String strategyId, DataContext context, List<String> offers)
         throws StorageException;
 
 

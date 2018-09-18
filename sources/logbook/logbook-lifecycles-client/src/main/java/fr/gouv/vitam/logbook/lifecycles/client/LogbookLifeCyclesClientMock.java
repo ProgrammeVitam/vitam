@@ -58,6 +58,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -369,6 +370,20 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
         throws LogbookClientBadRequestException, LogbookClientServerException {
     }
+
+    @Override
+    public void deleteLifecycleUnitsBulk(Collection<String> listIds)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+        throw  new IllegalArgumentException("Stop mocking in production ");
+
+    }
+
+    @Override
+    public void deleteLifecycleObjectGroupBulk(Collection<String> listIds)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+        throw  new IllegalArgumentException("Stop mocking in production ");
+    }
+
 
     @Override
     public void bulkLifeCycleTemporary(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException {

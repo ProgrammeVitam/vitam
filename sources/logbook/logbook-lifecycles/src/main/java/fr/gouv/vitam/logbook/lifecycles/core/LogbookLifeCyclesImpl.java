@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -455,6 +456,24 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         mongoDbAccess.updateLogbookLifeCycle(logbookCollections, logbookLifeCycleParametersBulk);
+    }
+
+    @Override
+    public void deleteLifeCycleObjectGroups(List<String> objectGroupIds) throws DatabaseException {
+        VitamMongoRepository repo = VitamRepositoryFactory.get()
+            .getVitamMongoRepository(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection());
+        repo.remove(Filters.and(
+            Filters.in(VitamDocument.ID, objectGroupIds),
+            Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())));
+    }
+
+    @Override
+    public void deleteLifeCycleUnits(List<String> unitsIdentifier) throws DatabaseException {
+        VitamMongoRepository repo = VitamRepositoryFactory.get()
+            .getVitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection());
+        repo.remove(Filters.and(
+            Filters.in(VitamDocument.ID, unitsIdentifier),
+            Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())));
     }
 
     private JsonNode getRawLifecycleById(String id, LogbookCollections collection)

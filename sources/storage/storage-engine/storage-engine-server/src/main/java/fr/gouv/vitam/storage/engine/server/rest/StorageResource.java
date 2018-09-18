@@ -108,6 +108,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
@@ -124,7 +125,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private static final String STRATEGY_ID_IS_REQUIRED = "Strategy ID is required";
 
     private static final String STRATEGY_ID = "default";
-    public static final String ERROR_WHEN_COPING_CONTEXT = "Error when coping context: ";
+    private static final String ERROR_WHEN_COPING_CONTEXT = "Error when coping context: ";
     private static final String DATA_CATEGORY_ID_IS_MANDATORY = "DataCategory is mandatory";
     private final StorageDistribution distribution;
     private final TraceabilityStorageService traceabilityLogbookService;
@@ -346,14 +347,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param headers http headers
      * @return null if strategy, tenant, digest and digest algorithm headers have values, an error response otherwise
      */
-    private Response checkDigestAlgorithmHeader(HttpHeaders headers) {
+    private Optional<Response> checkDigestAlgorithmHeader(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST)
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)
             ) {
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            return Optional.of(buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER));
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -798,11 +798,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 .build();
         }
 
-        response = checkDigestAlgorithmHeader(headers);
+        Optional<Response> optionalResponse= checkDigestAlgorithmHeader(headers);
 
-        if (response == null) {
+        if (!optionalResponse.isPresent()) {
             String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            String digest = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST).get(0);
 
             try {
                 DataContext context = new DataContext(objectId, category, httpServletRequest.getRemoteHost(),
@@ -812,23 +811,23 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
                 if (headerValues == null || headerValues.isEmpty()) {
                     distribution
-                        .deleteObjectInAllOffers(strategyId, context, digest);
+                        .deleteObjectInAllOffers(strategyId, context);
                 } else {
                     distribution
-                        .deleteObjectInOffers(strategyId, context, digest,
+                        .deleteObjectInOffers(strategyId, context,
                             Arrays.asList(headerValues.get(0).split(",")));
                 }
 
                 return Response.status(Status.NO_CONTENT).build();
 
-            } catch (final StorageNotFoundException exc) {
-                LOGGER.error(exc);
+            } catch (final StorageNotFoundException e) {
+                LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            } catch (final IllegalArgumentException exc) {
-                LOGGER.error(exc);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
             }
         }
@@ -1526,7 +1525,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Post a new accesslog object
      * @param httpServletRequest http servlet request to get requester
      * @param headers http header
-     * @param storageLogname the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */

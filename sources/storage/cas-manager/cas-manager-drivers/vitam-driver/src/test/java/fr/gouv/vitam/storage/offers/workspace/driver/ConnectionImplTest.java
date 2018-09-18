@@ -846,31 +846,19 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
         }
         try {
-            connection.removeObject(getStorageRemoveRequest(false, true, true, true, true));
+            connection.removeObject(getStorageRemoveRequest(false, true, true));
             fail("Should raized an exception");
         } catch (IllegalArgumentException e) {
 
         }
         try {
-            connection.removeObject(getStorageRemoveRequest(true, false, true, true, true));
+            connection.removeObject(getStorageRemoveRequest(true, false, true));
             fail("Should raized an exception");
         } catch (IllegalArgumentException e) {
 
         }
         try {
-            connection.removeObject(getStorageRemoveRequest(true, true, false, true, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.removeObject(getStorageRemoveRequest(true, true, true, false, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.removeObject(getStorageRemoveRequest(true, true, true, true, false));
+            connection.removeObject(getStorageRemoveRequest(true, true, false));
             fail("Should raized an exception");
         } catch (IllegalArgumentException e) {
 
@@ -881,13 +869,13 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void deleteObjectTestOK() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResult()).build());
         StorageRemoveResult storageRemoveResult =
-            connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+            connection.removeObject(getStorageRemoveRequest(true, true, true));
         assertNotNull(storageRemoveResult);
         assertTrue(storageRemoveResult.isObjectDeleted());
 
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResultNotFound()).build());
         StorageRemoveResult storageRemoveResult2 =
-            connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+            connection.removeObject(getStorageRemoveRequest(true, true, true));
         assertNotNull(storageRemoveResult2);
         assertTrue(!storageRemoveResult2.isObjectDeleted());
     }
@@ -895,25 +883,25 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void deleteObjectTestNotFound() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        connection.removeObject(getStorageRemoveRequest(true, true, true));
     }
 
     @Test(expected = StorageDriverException.class)
     public void deleteObjectTestPreconditionFailed() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        connection.removeObject(getStorageRemoveRequest(true, true, true));
     }
 
     @Test(expected = StorageDriverException.class)
     public void deleteObjectTestBadRequest() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        connection.removeObject(getStorageRemoveRequest(true, true, true));
     }
 
     @Test(expected = StorageDriverException.class)
     public void deleteObjectTestInternalServerError() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        connection.removeObject(getStorageRemoveRequest(true, true, true));
     }
 
     @Test
@@ -925,21 +913,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
         assertNotNull(jsonNodeRequestResponse);
     }
 
-    private StorageRemoveRequest getStorageRemoveRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
+    private StorageRemoveRequest getStorageRemoveRequest(boolean putGuid,
         boolean putTenantId, boolean putType)
         throws Exception {
-        DigestType digestType = null;
-        String digest = null;
         String guid = null;
         Integer tenantId = null;
         String type = null;
-
-        if (putDigestType) {
-            digestType = VitamConfiguration.getDefaultDigestType();
-        }
-        if (putDigestA) {
-            digest = "digest";
-        }
         if (putGuid) {
             guid = DEFAULT_GUID;
         }
@@ -949,7 +928,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         if (putType) {
             type = DataCategory.OBJECT.getFolder();
         }
-        return new StorageRemoveRequest(tenantId, type, guid, digestType, digest);
+        return new StorageRemoveRequest(tenantId, type, guid);
     }
 
     private JsonNode getRemoveObjectResult() throws IOException {
