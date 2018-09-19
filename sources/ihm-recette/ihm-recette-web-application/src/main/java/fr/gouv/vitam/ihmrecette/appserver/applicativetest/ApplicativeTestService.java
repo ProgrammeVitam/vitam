@@ -73,6 +73,8 @@ public class ApplicativeTestService {
      * flag to indicate if  TnrMasterActived  .
      */
     private AtomicBoolean isTnrMasterActived;
+
+    private String tnrBranch = "master";
     /**
      * cucumber launcher
      */
@@ -88,7 +90,7 @@ public class ApplicativeTestService {
         this.inProgress = new AtomicBoolean(false);
         this.executor = Executors.newSingleThreadExecutor();
         this.cucumberLauncher = new CucumberLauncher(tnrReportDirectory);
-        this.isTnrMasterActived=  new AtomicBoolean(false);
+        this.isTnrMasterActived = new AtomicBoolean(false);
     }
 
     /**
@@ -125,7 +127,8 @@ public class ApplicativeTestService {
 
         try {
             Files.write(featureFile.toPath(), pieces.getBytes());
-            List<String> arguments = cucumberLauncher.buildCucumberArgument(GLUE_CODE_PACKAGE, featureFile.toPath(), reportFile.getAbsolutePath());
+            List<String> arguments = cucumberLauncher
+                .buildCucumberArgument(GLUE_CODE_PACKAGE, featureFile.toPath(), reportFile.getAbsolutePath());
             cucumberLauncher.launchCucumberTest(arguments);
             final String result = String.join(System.lineSeparator(), Files.readAllLines(reportFile.toPath()));
 
@@ -188,5 +191,13 @@ public class ApplicativeTestService {
 
     public AtomicBoolean getIsTnrMasterActived() {
         return isTnrMasterActived;
+    }
+
+    public String getTnrBranch() {
+        return tnrBranch;
+    }
+
+    public void setTnrBranch(String tnrBranch) {
+        this.tnrBranch = tnrBranch;
     }
 }

@@ -6,12 +6,17 @@ import {Observable} from 'rxjs/Observable';
 @Injectable()
 export class FunctionalTestsFeatureService {
   FEATURE_TNR='applicative-test/testFeature';
+  SYNC='applicative-test/syncTnrPieces';
 
   constructor(private resourceService: ResourcesService) {
   }
 
   public launchFeature(text: string): Observable<any> {
     return this.resourceService.post(`${this.FEATURE_TNR}`,null,text);
+
+  }
+  public sync(): Observable<any> {
+    return this.resourceService.post(`${this.SYNC}`);
 
   }
 }

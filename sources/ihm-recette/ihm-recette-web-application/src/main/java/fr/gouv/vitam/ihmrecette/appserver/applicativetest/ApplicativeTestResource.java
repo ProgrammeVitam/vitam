@@ -85,6 +85,7 @@ public class ApplicativeTestResource {
             if (applicativeTestService.getIsTnrMasterActived().get()) {
 
                 applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(false));
+                applicativeTestService.setTnrBranch("master");
                 applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "master");
             }
             String fileName = applicativeTestService.launchCucumberTest(Paths.get(testSystemSipDirectory));
@@ -112,6 +113,7 @@ public class ApplicativeTestResource {
 
             if (!applicativeTestService.getIsTnrMasterActived().get()) {
                 applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "tnr_master");
+                applicativeTestService.setTnrBranch("tnr_master");
                 applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(true));
             }
             results = applicativeTestService.launchPiecesCucumberTest(pieces + "\n");
@@ -188,11 +190,27 @@ public class ApplicativeTestResource {
      */
 
     @POST
-    @Path("/sync")
-    public Response synchronizedTestDirectory() throws IOException, InterruptedException {
-        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "master");
+    @Path("/syncTnrPieces")
+    public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
+        return synchronizeGit("tnr_master");
+    }
+
+    private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {
+        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), tnr_master);
         int status = applicativeTestService.synchronizedTestDirectory(Paths.get(testSystemSipDirectory));
         return Response.ok().entity(status).build();
+    }
+
+    /**
+     * synchronize tnr directory
+     *
+     * @return status of the command
+     */
+
+    @POST
+    @Path("/sync")
+    public Response synchronizedTestDirectory() throws IOException, InterruptedException {
+        return synchronizeGit(applicativeTestService.getTnrBranch());
     }
 
 }

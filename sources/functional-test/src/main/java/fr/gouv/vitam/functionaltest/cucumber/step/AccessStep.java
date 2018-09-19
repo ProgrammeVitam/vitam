@@ -147,8 +147,8 @@ public class AccessStep {
      * Check facet bucket value count
      *
      * @param facetName facet name
-     * @param count bucket count
-     * @param value bucket value
+     * @param count     bucket count
+     * @param value     bucket value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
@@ -167,7 +167,7 @@ public class AccessStep {
      * Check facet does not contains bucket for value
      *
      * @param facetName facet name
-     * @param value value
+     * @param value     value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
@@ -195,7 +195,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable dataTable
+     * @param dataTable    dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -264,6 +264,7 @@ public class AccessStep {
             ContextModel contextModel = ((RequestResponseOK<ContextModel>) res).getFirstResult();
             assertThat(contextModel).isNotNull();
             List<PermissionModel> permissions = contextModel.getPermissions();
+
             assertThat(permissions).isNotEmpty();
 
 
@@ -281,7 +282,7 @@ public class AccessStep {
 
             if (changed) {
                 ContractsStep.updateContext(world.getAdminClient(), world.getApplicationSessionId(), CONTEXT_IDENTIFIER,
-                    permissions);
+                    permissions, false);
             }
 
         }
@@ -320,7 +321,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -418,7 +419,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value the valeur to replace the parameter
+     * @param value     the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -677,7 +678,8 @@ public class AccessStep {
         }
     }
 
-    private JsonNode selectUnitInheritedRulesByTitle(String unitTitle) throws InvalidCreateOperationException, VitamClientException {
+    private JsonNode selectUnitInheritedRulesByTitle(String unitTitle)
+        throws InvalidCreateOperationException, VitamClientException {
         String unitGuid = getUnitGuidByTitle(unitTitle);
         if (unitGuid == null) {
             Fail.fail("No such unit with title '" + unitTitle + "'");
@@ -872,8 +874,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -1056,7 +1058,7 @@ public class AccessStep {
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()),
-                new EliminationRequestBody(expirationDate, queryJSON));
+            new EliminationRequestBody(expirationDate, queryJSON));
 
         if (!requestResponse.isOk()) {
             VitamError vitamError = (VitamError) requestResponse;

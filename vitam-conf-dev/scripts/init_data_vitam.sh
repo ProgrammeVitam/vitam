@@ -11,7 +11,7 @@ echo "End"
 
 echo "Import context"
 echo "Begin"
-curl -d '[{"Name": "admin-context", "Status": "ACTIVE", "SecurityProfile": "admin-security-profile", "Permissions": [ {"tenant": 0, "AccessContracts": [], "IngestContracts": []},{"tenant": 1, "AccessContracts": [], "IngestContracts": []}, {"tenant": 2, "AccessContracts": [], "IngestContracts": []} ]}]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/contexts
+curl -d '[{"Name": "admin-context", "Status": "ACTIVE","Identifier": "CT-000001", "SecurityProfile": "admin-security-profile", "Permissions": [ {"tenant": 0, "AccessContracts": [], "IngestContracts": []},{"tenant": 1, "AccessContracts": [], "IngestContracts": []}, {"tenant": 2, "AccessContracts": [], "IngestContracts": []} ]}]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/contexts
 echo "End"
 
 ## TODO use real certificates in base64 instead of already hardcoded value

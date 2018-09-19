@@ -330,7 +330,7 @@ public class ContextServiceImplTest {
 
         reset(functionalBackupService);
 
-        final RequestResponse<ContextModel> deleteError = contextService.deleteContext(context.getIdentifier());
+        final RequestResponse<ContextModel> deleteError = contextService.deleteContext(context.getIdentifier(), false);
         assertTrue(deleteError.isOk());
         assertThat(deleteError.getHttpCode()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
         verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());

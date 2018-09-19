@@ -85,8 +85,9 @@ public interface ContextService extends VitamAutoCloseable {
      * Delete a context
      *
      * @param contextId the id of the context
+     * @param forceDelete
      * @return a response as a RequestResponse<ContextModel> object
      * @throws VitamException thrown if operation could not be done
      */
-    RequestResponse<ContextModel> deleteContext(String contextId) throws VitamException;
+    RequestResponse<ContextModel> deleteContext(String contextId, boolean forceDelete) throws VitamException;
 }
