@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -53,7 +54,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationExcepti
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.FileUtils;
 
@@ -64,6 +64,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Iterator;
 
+import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 
@@ -76,12 +77,9 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(EliminationAnalysisPreparationHandler.class);
 
     private static final String ELIMINATION_ANALYSIS_PREPARATION = "ELIMINATION_ANALYSIS_PREPARATION";
-    private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
     private static final String COULD_NOT_PARSE_DATE_FROM_REQUEST = "Could not not parse date from request";
     private static final String COULD_NOT_PARSE_DSL_REQUEST = "Could not parse DSL request";
-    private static final String INVALID_REQUEST = "Invalid request";
 
-    private static final String REQUEST_JSON = "request.json";
     private static final String UNITS_JSONL_FILE = "units.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -125,19 +123,6 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         } catch (EliminationException e) {
             LOGGER.error("Elimination analysis preparation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, e.getStatusCode(), e.getEventDetails());
-        }
-    }
-
-    private EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws EliminationException {
-        try {
-            return JsonHandler.getFromInputStream(
-                handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
-            throw new EliminationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
-        } catch (InvalidParseOperationException e) {
-            EliminationEventDetails eventDetails = new EliminationEventDetails()
-                .setError(INVALID_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
         }
     }
 

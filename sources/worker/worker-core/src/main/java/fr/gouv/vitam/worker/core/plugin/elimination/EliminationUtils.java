@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
@@ -41,12 +42,19 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 
 public final class EliminationUtils {
+
+    private static final String REQUEST_JSON = "request.json";
+    private static final String INVALID_REQUEST = "Invalid request";
+    private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
 
     private EliminationUtils() {
         // Private constructor
@@ -119,4 +127,16 @@ public final class EliminationUtils {
         }
     }
 
+    public static EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws EliminationException {
+        try {
+            return JsonHandler.getFromInputStream(
+                handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
+            throw new EliminationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
+        } catch (InvalidParseOperationException e) {
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setError(INVALID_REQUEST);
+            throw new EliminationException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
+        }
+    }
 }

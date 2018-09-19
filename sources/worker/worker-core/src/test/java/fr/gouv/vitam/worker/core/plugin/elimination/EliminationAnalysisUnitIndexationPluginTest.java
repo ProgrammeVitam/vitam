@@ -86,11 +86,9 @@ public class EliminationAnalysisUnitIndexationPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testIndexUnit_OK() throws Exception {
+    public void testIndexUnitOK() throws Exception {
 
-        // Given
-
-        // When
+        // Given / When
         instance.execute(parameters, handlerIO);
 
         // Then
@@ -104,7 +102,7 @@ public class EliminationAnalysisUnitIndexationPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testIndexUnit_OnMetadataExceptionThenFatal() throws Exception {
+    public void testIndexUnitOnMetadataExceptionThenFatal() throws Exception {
 
         // Given
         doThrow(MetaDataExecutionException.class).when(metaDataClient).updateUnitbyId(any(), any());

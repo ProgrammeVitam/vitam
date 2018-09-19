@@ -272,15 +272,6 @@ public enum VitamCode {
         Status.UNAUTHORIZED,
         "Update internal data is Unauthorized"),
 
-    INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_EXCEDEED(ServiceName.VITAM, DomainName.SECURITY, "47", Status.UNAUTHORIZED,
-        "Update threshold excedeed"),
-
-    INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_OVERCOME_EXCEDEED(ServiceName.VITAM, DomainName.SECURITY, "48",
-        Status.UNAUTHORIZED,
-        "Update threshold overcome excedeed"),
-
-
-
     ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "14",
         Status.BAD_REQUEST,
         "Admin external client error in findDocuments method."),

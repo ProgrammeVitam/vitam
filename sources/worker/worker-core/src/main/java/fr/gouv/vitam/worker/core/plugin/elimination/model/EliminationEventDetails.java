@@ -38,6 +38,9 @@ public class EliminationEventDetails {
     @JsonProperty("error")
     private String error;
 
+    @JsonProperty("warning")
+    private String warning;
+
     @JsonProperty("expirationDate")
     private String expirationDate;
 
@@ -60,6 +63,15 @@ public class EliminationEventDetails {
 
     public EliminationEventDetails setError(String error) {
         this.error = error;
+        return this;
+    }
+
+    public String getWarning() {
+        return warning;
+    }
+
+    public EliminationEventDetails setWarning(String warning) {
+        this.warning = warning;
         return this;
     }
 }

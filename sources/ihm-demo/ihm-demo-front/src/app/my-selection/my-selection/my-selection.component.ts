@@ -361,6 +361,7 @@ export class MySelectionComponent extends PageComponent {
           let eliminationInfo = {
             query: query,
             date: DateService.dateToString(this.form.eliminationDate),
+            threshold: this.form.eliminationThreshold,
             mode: this.form.eliminationMode
           };
 
@@ -414,6 +415,7 @@ export class MySelectionComponent extends PageComponent {
       case 'ELIMINATION':
         this.form.eliminationMode = false;
         this.form.eliminationDate = null;
+        this.form.eliminationThreshold = null;
         break;
       case 'MASS_UPDATE':
         break;

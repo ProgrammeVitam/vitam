@@ -56,12 +56,19 @@
 
     <!-- Specific Elimination form -->
     <div class="ui-g" *ngIf="selectedOption === 'ELIMINATION'">
-        <div class="ui-g-12" style="height: 100px;">
+        <div class="ui-g-12" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Date d'échéance demandée</div>
             <p-calendar class="ui-g-4" type="date" placeholder="jj/mm/aaaa" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
                         [yearRange]="'400:2500'" [locale]="frLocale" [(ngModel)]="form.eliminationDate"></p-calendar>
         </div>
-        <div class="ui-g-12 ui-g-nopad" style="height: 100px;">
+
+        <div class="ui-g-12 ui-g-nopad" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Nombre maximum d'unités archivistiques à traiter</div>
+            <div class="ui-g-1"></div>
+            <input class="ui-g-2" type="number" pInputText [(ngModel)]="form.eliminationThreshold" min="1" />
+        </div>
+
+        <div class="ui-g-12 ui-g-nopad" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Mode d'élimination</div>
             <p-toggleButton class="ui-g-4" onLabel="Action" offLabel="Analyse" [(ngModel)]="form.eliminationMode"></p-toggleButton>
         </div>

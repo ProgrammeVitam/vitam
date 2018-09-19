@@ -51,6 +51,8 @@ public class SelectMultiQuery extends RequestMultiple {
      */
     protected List<Facet> facets = new ArrayList<>();
 
+    protected Long threshold;
+
     /**
      *
      * @return this Request
@@ -314,6 +316,7 @@ public class SelectMultiQuery extends RequestMultiple {
     public final ObjectNode getFinalSelect() {
         final ObjectNode node = selectGetFinalSelect();
         addFacetsToNode(node);
+        addThresholdToNode(node);
         return node;
     }
 
@@ -344,6 +347,12 @@ public class SelectMultiQuery extends RequestMultiple {
             node.set(GLOBAL.FACETS.exactToken(), array);
         } else {
             node.putArray(GLOBAL.FACETS.exactToken());
+        }
+    }
+
+    private void addThresholdToNode(ObjectNode node) {
+        if(threshold != null) {
+            node.put(GLOBAL.THRESOLD.exactToken(), threshold);
         }
     }
 
@@ -409,6 +418,24 @@ public class SelectMultiQuery extends RequestMultiple {
         return this;
     }
 
+    /**
+     * Getter for threshold
+     *
+     * @return the threshold
+     */
+    public Long getThreshold() {
+        return threshold;
+    }
+
+    /**
+     * Setter for threshold
+     *
+     * @param threshold the value to set for the threshold
+     */
+    public void setThreshold(Long threshold) {
+        this.threshold = threshold;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -418,6 +445,7 @@ public class SelectMultiQuery extends RequestMultiple {
         for (final Facet subrequest : getFacets()) {
             builder.append("\n").append(subrequest);
         }
+        builder.append("\n\tThreshold: ").append(threshold);
         return builder.toString();
     }
 }

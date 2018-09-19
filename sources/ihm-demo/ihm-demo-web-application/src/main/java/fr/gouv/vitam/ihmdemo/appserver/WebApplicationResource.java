@@ -27,62 +27,10 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.InvalidParameterException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.dip.DataObjectVersions;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -96,6 +44,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -131,6 +80,8 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -158,6 +109,57 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 /**
  * Web Application Resource class
@@ -364,7 +366,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archivesearch/unitsWithInheritedRules/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("archivesearch:units:read")
-    public Response getArchiveUnitDetailsWithInheritance(@Context HttpServletRequest request, @PathParam("id") String unitId) {
+    public Response getArchiveUnitDetailsWithInheritance(@Context HttpServletRequest request,
+        @PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
@@ -377,7 +380,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ObjectNode preparedQueryDsl = select.getFinalSelect();
 
             final RequestResponse<JsonNode> archiveDetails = UserInterfaceTransactionManager
-                .selectUnitsWithInheritedRules(preparedQueryDsl, UserInterfaceTransactionManager.getVitamContext(request));
+                .selectUnitsWithInheritedRules(preparedQueryDsl,
+                    UserInterfaceTransactionManager.getVitamContext(request));
 
             return archiveDetails.toResponse();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -648,10 +652,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
-            		InputStream fileInputStream = new FileInputStream(temporarSipFile)) {
+                InputStream fileInputStream = new FileInputStream(temporarSipFile)) {
                 final RequestResponse<Void> finalResponse =
                     client.ingest(new VitamContext(tenantId)
-                        .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
+                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
                         fileInputStream, contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
@@ -849,8 +853,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode updateJsonNode = JsonHandler.getFromString(updateSet);
             ObjectNode query = JsonHandler.createObjectNode();
             query.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
-            query.set(BuilderToken.GLOBAL.QUERY.exactToken(), updateJsonNode.get("query").get(BuilderToken.GLOBAL.QUERY.exactToken()));
-
+            query.set(BuilderToken.GLOBAL.QUERY.exactToken(),
+                updateJsonNode.get("query").get(BuilderToken.GLOBAL.QUERY.exactToken()));
+            if (updateJsonNode.has("threshold") && !updateJsonNode.get("threshold").isNull()) {
+                if (!updateJsonNode.get("threshold").isIntegralNumber()) {
+                    throw new InvalidParseOperationException("invalid request");
+                }
+                query.put(BuilderToken.GLOBAL.THRESOLD.exactToken(), updateJsonNode.get("threshold").longValue());
+            }
             EliminationRequestBody requestBody = new EliminationRequestBody();
             requestBody.setDate(updateJsonNode.get("date").asText());
             requestBody.setDslRequest(query);
