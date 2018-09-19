@@ -31,7 +31,9 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.NBCHILD;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,11 +63,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -88,57 +87,98 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
      */
     public IndexObjectGroupActionPlugin() {
         // empty constructor
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
-        checkMandatoryParameters(params);
-        handlerIO = actionDefinition;
-        final ItemStatus itemStatus = new ItemStatus(OG_INDEXATION);
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
 
-        try {
-            checkMandatoryIOParameter(actionDefinition);
-            indexObjectGroup(params, itemStatus);
+        handlerIO = handler;
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            List<ItemStatus> aggregateItemStatus = new ArrayList<>();
+            List<JsonNode> objectGroups = new ArrayList<>();
+            for (String objectId : workerParameters.getObjectNameList()) {
 
-        } catch (final StepAlreadyExecutedException e) {
-            LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-        } catch (final ProcessingInternalServerException exc) {
-            LOGGER.error(exc);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.WARNING);
+                workerParameters.setObjectName(objectId);
+                handler.setCurrentObjectId(objectId);
+
+                checkMandatoryParameters(workerParameters);
+
+                final ItemStatus itemStatus = new ItemStatus(OG_INDEXATION);
+
+                try {
+                    checkMandatoryIOParameter(handler);
+
+                    JsonNode objectNode = indexObjectGroup(workerParameters, itemStatus);
+                    if (objectNode != null) {
+                        objectGroups.add(objectNode);
+                    }
+
+                } catch (final StepAlreadyExecutedException e) {
+                    LOGGER.warn(e);
+                    itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+                } catch (final ProcessingInternalServerException exc) {
+                    LOGGER.error(exc);
+                    itemStatus.increment(StatusCode.FATAL);
+                } catch (final ProcessingException e) {
+                    LOGGER.error(e);
+                    itemStatus.increment(StatusCode.WARNING);
+                }
+
+                if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+                    itemStatus.increment(StatusCode.WARNING);
+                }
+
+                aggregateItemStatus.add(new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION, itemStatus));
+            }
+
+            if (!objectGroups.isEmpty()) {
+                try {
+                    metadataClient.insertObjectGroups(objectGroups);
+                } catch (final MetaDataAlreadyExistException e) {
+                    LOGGER.warn(e);
+                    for (ItemStatus itemStatus : aggregateItemStatus) {
+                        itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+                    }
+                } catch (final MetaDataException | InvalidParseOperationException e) {
+                    LOGGER.error(e);
+
+                    for (ItemStatus itemStatus : aggregateItemStatus) {
+                        itemStatus.increment(StatusCode.FATAL);
+                    }
+
+                }
+            }
+            return aggregateItemStatus;
+
+        } finally {
+            handler.setCurrentObjectId(null);
         }
+    }
 
-
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.WARNING);
-        }
-
-        return new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION, itemStatus);
+    @Override
+    public ItemStatus execute(WorkerParameters params, HandlerIO param) {
+        throw new RuntimeException();
     }
 
 
     /**
      * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
      *
-     * @param params work parameters
+     * @param params     work parameters
      * @param itemStatus item status
+     *
      * @throws ProcessingException when error in execution
      */
-    private void indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
+    private ObjectNode indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final String objectName = params.getObjectName();
+
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
-            handleExistingObjectGroup(json, metadataClient, params, itemStatus);
-        } catch (final MetaDataAlreadyExistException e) {
-            throw new StepAlreadyExecutedException("Object " + objectName + " already processed", e);
+
+            return handleExistingObjectGroup(json, metadataClient, params, itemStatus);
         } catch (final MetaDataException | VitamClientException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -146,10 +186,10 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private void handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params, ItemStatus itemStatus)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, MetadataInvalidSelectException,
-        MetaDataClientServerException, InvalidParseOperationException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, InvalidCreateOperationException, VitamClientException {
+    private ObjectNode handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params, ItemStatus itemStatus)
+        throws MetaDataExecutionException,
+        MetaDataClientServerException, InvalidParseOperationException,
+        InvalidCreateOperationException, VitamClientException {
         JsonNode work = json.remove(SedaConstants.PREFIX_WORK);
         if (work != null && work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID) != null &&
             !work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText().isEmpty()) {
@@ -169,7 +209,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 if (originatingAgency != null && !originatingAgency.equals(ogOriginatingAgency)) {
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setGlobalOutcomeDetailSubcode(AGENCY_CHECK);
-                    return;
+                    return null;
                 }
             }
 
@@ -191,14 +231,15 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 String evDevDetailData = JsonHandler.unprettyPrint(infoNode);
                 itemStatus.setEvDetailData(evDevDetailData);
                 itemStatus.increment(StatusCode.OK);
-                return;
+                return null;
             }
         }
 
         final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
-        metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
-
+        ObjectNode finalInsert = insertRequest.getFinalInsert();
         itemStatus.increment(StatusCode.OK);
+
+        return finalInsert;
     }
 
     private Action generateQualifiersUpdate(ArrayNode originQualifiers, ArrayNode newQualifiers, ObjectNode infoNode)

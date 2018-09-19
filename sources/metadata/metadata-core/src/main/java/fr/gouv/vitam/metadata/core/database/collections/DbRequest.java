@@ -47,18 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.metadata.core.graph.GraphLoader;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -101,6 +89,7 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -120,6 +109,16 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 
 /**
  * DB Request using MongoDB only
@@ -147,10 +146,8 @@ public class DbRequest {
     private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
-    // TODO JE final
-    private MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
+    private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
 
-    // TODO JE final
     private MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
 
     private ChangesTrigger changesTrigger = null;
@@ -176,8 +173,8 @@ public class DbRequest {
      * Constructor
      */
     public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
-        this(   new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
-                new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
+        this(new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
         this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
     }
 
@@ -185,8 +182,10 @@ public class DbRequest {
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
+     *
      * @return the Result
-     * @throws MetaDataExecutionException when select/update/delete on metadata collection exception occurred
+     *
+     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
@@ -302,6 +301,7 @@ public class DbRequest {
      * Check Unit at startup against Roots
      *
      * @param request
+     *
      * @return the valid root ids
      */
     protected Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
@@ -316,6 +316,7 @@ public class DbRequest {
      * Check ObjectGroup at startup against Roots
      *
      * @param request
+     *
      * @return the valid root ids
      */
     protected Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
@@ -327,20 +328,20 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current set of result id
+     * @param current         set of result id
      * @param defaultStartSet
+     *
      * @return the valid root ids set
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current,
-        final Result<MetadataDocument<?>> defaultStartSet) {
+                                                final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
             return current;
         }
         // TODO P1 add unit tests
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
@@ -358,16 +359,18 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank current rank query
-     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     * @param rank             current rank query
+     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     *
      * @return the new Result from this request
+     *
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> executeQuery(final RequestParserMultiple requestParser,
-        final RequestToAbstract requestToMongodb, final int rank,
-        final Result<MetadataDocument<?>> previous)
+                                                       final RequestToAbstract requestToMongodb, final int rank,
+                                                       final Result<MetadataDocument<?>> previous)
         throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         final boolean isLastQuery = requestToMongodb.getNbQueries() == rank + 1;
@@ -466,14 +469,16 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     *
      * @return the associated Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+                                                              int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                              final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
@@ -514,14 +519,16 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     *
      * @return the associated Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
-        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+                                                                 int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
+                                                                 final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
@@ -574,6 +581,7 @@ public class DbRequest {
      *
      * @param ids
      * @param relativeDepth
+     *
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Collection<String> ids, int relativeDepth) {
@@ -588,14 +596,12 @@ public class DbRequest {
                 MongoDbHelper.bsonToString(group, false));
         }
         final List<Bson> pipeline = Arrays.asList(match, group);
-        @SuppressWarnings("unchecked")
-        final AggregateIterable<Unit> aggregateIterable =
+        @SuppressWarnings("unchecked") final AggregateIterable<Unit> aggregateIterable =
             MetadataCollections.UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
-            @SuppressWarnings("unchecked")
-            final List<Map<String, List<String>>> array =
+            @SuppressWarnings("unchecked") final List<Map<String, List<String>>> array =
                 (List<Map<String, List<String>>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
             for (final Map<String, List<String>> map : array) {
@@ -622,14 +628,16 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     *
      * @return the associated Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+                                                             Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                             final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
@@ -656,19 +664,21 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous units, Note: only immediate Unit parents are allowed
+     * @param previous  units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
      * @param limit
+     *
      * @return the associated Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets)
+                                                           Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                           final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
@@ -700,11 +710,13 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
+     *
      * @return the final Result
+     *
      * @throws InvalidParseOperationException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last, boolean checkConsistency)
+                                                                     Result<MetadataDocument<?>> last, boolean checkConsistency)
         throws InvalidParseOperationException, VitamDBException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson projection = requestToMongodb.getFinalProjection();
@@ -717,8 +729,7 @@ public class DbRequest {
         }
         if (model == FILTERARGS.UNITS) {
             final Map<String, Unit> units = new HashMap<>();
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     roots, projection, null, -1, -1);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -770,8 +781,7 @@ public class DbRequest {
         }
         // OBJECTGROUPS:
         final Map<String, ObjectGroup> obMap = new HashMap<>();
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
                 MetadataCollections.OBJECTGROUP,
                 roots, projection, null, -1, -1);
@@ -828,14 +838,16 @@ public class DbRequest {
      * @param requestToMongodb
      * @param last
      * @param requestParser
+     *
      * @return the final Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetadataInvalidUpdateException
      */
     protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last,
-        RequestParserMultiple requestParser)
+                                                                     Result<MetadataDocument<?>> last,
+                                                                     RequestParserMultiple requestParser)
         throws InvalidParseOperationException, MetaDataExecutionException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
@@ -940,7 +952,7 @@ public class DbRequest {
     }
 
     private int incrementDocumentVersionIfRequired(FILTERARGS model, MongoDbInMemory mongoInMemory,
-        int documentVersion) {
+                                                   int documentVersion) {
 
         // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted" and always increment document version (DbRequest, and any other document update like graph computation, indexation, reconstruction...)
 
@@ -981,7 +993,7 @@ public class DbRequest {
     }
 
     private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
-        SchemaValidationUtils validator)
+                                           SchemaValidationUtils validator)
         throws MetaDataExecutionException {
         String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
         Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
@@ -1016,6 +1028,7 @@ public class DbRequest {
      * indexFieldsUpdated : Update index related to Fields updated
      *
      * @param last : contains the Result to be indexed
+     *
      * @throws Exception
      */
     private void indexFieldsUpdated(Result<MetadataDocument<?>> last, Integer tenantId) throws Exception {
@@ -1030,8 +1043,7 @@ public class DbRequest {
             finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
                 eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
             .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -1044,6 +1056,7 @@ public class DbRequest {
      * indexFieldsOGUpdated : Update index OG related to Fields updated
      *
      * @param last : contains the Result to be indexed
+     *
      * @throws Exception
      */
     private void indexFieldsOGUpdated(Result<MetadataDocument<?>> last, Integer tenantId) throws Exception {
@@ -1058,8 +1071,7 @@ public class DbRequest {
         } else {
             finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper
                 .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
@@ -1074,6 +1086,7 @@ public class DbRequest {
      * removeOGIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
+     *
      * @throws Exception
      */
     private void removeOGIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1090,6 +1103,7 @@ public class DbRequest {
      * removeUnitIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
+     *
      * @throws Exception
      */
     private void removeUnitIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1106,10 +1120,11 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     *
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
-     * @throws MetaDataNotFoundException when metadata not found exception
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataNotFoundException      when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
@@ -1122,42 +1137,36 @@ public class DbRequest {
     /**
      * Inserts an object group
      *
-     * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     * @param requestParsers the list of InsertParserMultiple to execute
+     *
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
      */
-    public void execInsertObjectGroupRequest(InsertParserMultiple requestParser)
+    public void execInsertObjectGroupRequests(List<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
 
-        LOGGER.debug("Exec db insert object group request: %s", requestParser);
+        LOGGER.debug("Exec db insert object group request: %s", requestParsers);
 
-        try {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        List<ObjectGroup> objectGroups = new ArrayList<>();
 
-            final InsertToMongodb requestToMongodb =
-                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
+        for (InsertParserMultiple insertParserMultiple : requestParsers) {
 
-            final ObjectGroup og = new ObjectGroup(requestToMongodb.getFinalData());
+            InsertToMongodb requestToMongodb =
+                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(insertParserMultiple);
+            objectGroups.add(new ObjectGroup(requestToMongodb.getFinalData()));
 
-            String odId = og.getId();
-
-            Stopwatch mongoWatch = Stopwatch.createStarted();
-            og.insert();
-            PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION","storeMongo", mongoWatch.elapsed(TimeUnit.MILLISECONDS));
-
-            final Integer tenantId = ParameterHelper.getTenantParameter();
-
-            Stopwatch elasticsearchWatch = Stopwatch.createStarted();
-            MetadataCollections.OBJECTGROUP.getEsClient()
-                .insertFullDocument(MetadataCollections.OBJECTGROUP, tenantId, odId, og);
-
-            PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeElastic", elasticsearchWatch.elapsed(TimeUnit.MILLISECONDS));
-
-        } catch (final MongoWriteException e) {
-            throw e;
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException("Insert concern", e);
         }
+
+        Stopwatch mongoWatch = Stopwatch.createStarted();
+        mongoDbObjectGroupRepository.insert(objectGroups);
+        PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeMongo", mongoWatch.elapsed(TimeUnit.MILLISECONDS));
+
+        Stopwatch elasticsearchWatch = Stopwatch.createStarted();
+        MetadataCollections.OBJECTGROUP.getEsClient()
+            .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroups);
+        PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeElastic", elasticsearchWatch.elapsed(TimeUnit.MILLISECONDS));
     }
 
     /**
@@ -1165,12 +1174,14 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
+     *
      * @return the final Result
+     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastDeleteFilterProjection(DeleteToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last)
+                                                                     Result<MetadataDocument<?>> last)
         throws InvalidParseOperationException, MetaDataExecutionException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         if (LOGGER.isDebugEnabled()) {
@@ -1213,10 +1224,11 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParsers list of InsertParserMultiple to execute
-     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     *
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
-     * @throws MetaDataNotFoundException when metadata not found exception
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataNotFoundException      when metadata not found exception
      */
     public void execInsertUnitRequests(Collection<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
@@ -1241,7 +1253,7 @@ public class DbRequest {
 
             Stopwatch computeAU = Stopwatch.createStarted();
 
-            for (InsertParserMultiple requestParser: requestParsers) {
+            for (InsertParserMultiple requestParser : requestParsers) {
                 final InsertToMongodb requestToMongodb = new InsertToMongodb(requestParser);
                 final Unit unit = new Unit(requestToMongodb.getFinalData());
 
@@ -1286,7 +1298,7 @@ public class DbRequest {
                 PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInElastic", saveAU.elapsed(TimeUnit.MILLISECONDS));
             }
 
-            if(!objectGroupToSave.isEmpty()) {
+            if (!objectGroupToSave.isEmpty()) {
                 Stopwatch saveGOT = Stopwatch.createStarted();
                 mongoDbObjectGroupRepository.update(objectGroupToSave);
                 PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInMongo", saveGOT.elapsed(TimeUnit.MILLISECONDS));

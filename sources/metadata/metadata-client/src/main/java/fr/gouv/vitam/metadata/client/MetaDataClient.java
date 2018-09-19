@@ -175,6 +175,10 @@ public interface MetaDataClient extends BasicClient {
     void updateObjectGroupById(JsonNode updateQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 
+    JsonNode insertObjectGroups(List<JsonNode> insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
+
     /**
      * @param operationId
      * @return the list of UnitsPerOriginatingAgency

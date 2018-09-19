@@ -27,6 +27,33 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Collections.singletonList;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -34,6 +61,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -98,32 +126,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -219,9 +221,39 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            DbRequestFactoryImpl.getInstance().create().execInsertObjectGroupRequest(insertParser);
+            DbRequestFactoryImpl.getInstance().create().execInsertObjectGroupRequests(singletonList(insertParser));
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
+        }
+    }
+
+    @Override
+    public void insertObjectGroups(List<JsonNode> objectGroupRequest)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataAlreadyExistException {
+
+        try {
+            DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+            List<InsertParserMultiple> collect = objectGroupRequest.stream().map(insertRequest -> {
+                    InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
+                    try {
+                        insertParser.parse(insertRequest);
+                    } catch (InvalidParseOperationException e) {
+                        throw new VitamRuntimeException(e);
+                    }
+                    return insertParser;
+                }
+            ).collect(Collectors.toList());
+
+            dbRequest.execInsertObjectGroupRequests(collect);
+
+        } catch (final MongoWriteException e) {
+            throw new MetaDataAlreadyExistException(e);
+        } catch (VitamRuntimeException e) {
+            if (e.getCause() instanceof InvalidParseOperationException) {
+                throw (InvalidParseOperationException) e.getCause();
+            }
+            throw e;
         }
     }
 
@@ -498,7 +530,7 @@ public class MetaDataImpl implements MetaData {
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
+        return selectMetadataObject(selectQuery, null, singletonList(BuilderToken.FILTERARGS.UNITS));
 
     }
 
@@ -507,7 +539,7 @@ public class MetaDataImpl implements MetaData {
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("selectObjectGroupsByQuery/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
+        return selectMetadataObject(selectQuery, null, singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
 
     }
 
@@ -516,7 +548,7 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, unitId, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
+        return selectMetadataObject(selectQuery, unitId, singletonList(BuilderToken.FILTERARGS.UNITS));
     }
 
     @Override
@@ -526,7 +558,7 @@ public class MetaDataImpl implements MetaData {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
         return selectMetadataObject(selectQuery, objectGroupId,
-            Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
+            singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
 
@@ -773,7 +805,7 @@ public class MetaDataImpl implements MetaData {
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
         RequestResponseOK unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
-            Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
+            singletonList(BuilderToken.FILTERARGS.UNITS));
 
         Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents.getResults());
         UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
