@@ -48,6 +48,7 @@ Exemple de JSON stocké en base comprenant l''exhaustivité des champs de la col
    "Description":"Document type d''une facture associée à un dossier de marché",
    "Status":"ACTIVE",
    "ControlSchema":"{}",
+   "Fields":[],
    "LastUpdate":"10/12/2016",
    "CreationDate":"10/12/2016",
    "ActivationDate":"10/12/2016",
@@ -111,6 +112,13 @@ Détail des champs de la collection ArchiveUnitProfile
      ]
  }
  
+
+**"Fields"** : liste des champs contrôlés
+
+    * Il s'agit d'un tableau de chaînes de caractères
+    * Liste les champs déclarés dans le schéma de contrôle
+    * Renseigné automatiquement par la solution logicielle Vitam
+    * Cardinalité 0-1
 
 **"CreationDate":** date de création du Document type.
 
