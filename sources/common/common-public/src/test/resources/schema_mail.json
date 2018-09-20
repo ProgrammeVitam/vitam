@@ -3,6 +3,14 @@
   "id": "http://example.com/root.json",
   "type": "object",
   "additionalProperties": false,
+  "patternProperties": {
+    "^_": {
+      "description": "autorise tous les champs techniques"
+    },
+    "^DataObjectReference$": {},
+    "^ImplementationVersion$": {},
+    "^SedaVersion$": {}
+  },
   "anyOf": [
     {
       "required": [

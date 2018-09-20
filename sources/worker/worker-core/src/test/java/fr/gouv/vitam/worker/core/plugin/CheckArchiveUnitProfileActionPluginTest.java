@@ -74,6 +74,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID;
+import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.RULE_DATE_FORMAT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -265,7 +266,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
         ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(NOT_AU_JSON_VALID.name()));
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(RULE_DATE_FORMAT.name()));
     }
 
     @Test
@@ -277,7 +278,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(NOT_AU_JSON_VALID.name()));
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(RULE_DATE_FORMAT.name()));
     }
 
     @Test
