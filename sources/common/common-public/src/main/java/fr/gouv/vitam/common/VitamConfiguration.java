@@ -26,16 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -348,6 +348,27 @@ public class VitamConfiguration {
      * Optimistic lock sleep time in milliseconds, the sleep time after each retry
      */
     private static int optimisticLockSleepTime = 20;
+
+
+    /**
+     * This is a limitation of lucene.
+     * Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
+     */
+    private static int keywordMaxLength = 32766;
+    /**
+     * There is not a limitation in lucene for text fields.
+     * In VITAM, to enable sorting on some fields (title, ...), those fields are also not analysed (fielddata set to true)
+     *
+     * Problem:
+     * - Indexing text fields with value length > keywordMaxLength
+     * - Change mapping on ES to set fielddata = true on those fields
+     * - Re-index
+     * => Lucene will throws an exception as keywords can't be longer than max length (keywordMaxLength)
+     *
+     * So this is a vitam limitation.
+     */
+    private static int textMaxLength = 32766;
+
 
     /**
      * default offset for lifecycleSpliterator
@@ -848,6 +869,14 @@ public class VitamConfiguration {
         if (null != parameters.getReclassificationMaxGuildListSizeInLogbookOperation()) {
             setReclassificationMaxGuildListSizeInLogbookOperation(
                 parameters.getReclassificationMaxGuildListSizeInLogbookOperation());
+        }
+
+        if (null != parameters.getKeywordMaxLength()) {
+            setKeywordMaxLength(parameters.getKeywordMaxLength());
+        }
+
+        if (null != parameters.getTextMaxLength()) {
+            setTextMaxLength(parameters.getTextMaxLength());
         }
     }
 
@@ -1978,6 +2007,43 @@ public class VitamConfiguration {
      */
     public static void setOptimisticLockSleepTime(int optimisticLockSleepTime) {
         VitamConfiguration.optimisticLockSleepTime = optimisticLockSleepTime;
+    }
+
+
+    /**
+     * Getter
+     *
+     * @return keywordMaxLength
+     */
+    public static int getKeywordMaxLength() {
+        return keywordMaxLength;
+    }
+
+    /**
+     * Setter
+     *
+     * @param keywordMaxLength
+     */
+    public static void setKeywordMaxLength(int keywordMaxLength) {
+        VitamConfiguration.keywordMaxLength = keywordMaxLength;
+    }
+
+    /**
+     * Getter
+     *
+     * @return textMaxLength
+     */
+    public static int getTextMaxLength() {
+        return textMaxLength;
+    }
+
+    /**
+     * Setter
+     *
+     * @param textMaxLength
+     */
+    public static void setTextMaxLength(int textMaxLength) {
+        VitamConfiguration.textMaxLength = textMaxLength;
     }
 
     /**
