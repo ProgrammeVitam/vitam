@@ -2266,7 +2266,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Select units with inherited rules with access contract
 
-        SelectMultiQuery select3 = select2;
+
         VitamThreadUtils.getVitamSession().setContractId("aName4");
         final RequestResponseOK<JsonNode> results3 =
             (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());

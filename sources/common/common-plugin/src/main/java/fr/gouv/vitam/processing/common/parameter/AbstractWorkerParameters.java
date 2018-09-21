@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -184,6 +185,25 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
 
     @JsonIgnore
     @Override
+    public JsonNode getObjectMetadata() {
+        try {
+            return JsonHandler.getFromString(mapParameters.get(WorkerParameterName.objectMetadata));
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setObjectMetadata(JsonNode objectMetadata) {
+        if(objectMetadata != null) {
+            mapParameters.put(WorkerParameterName.objectMetadata, JsonHandler.unprettyPrint(objectMetadata));
+        }
+        return this;
+    }
+
+    @JsonIgnore
+    @Override
     public List<String> getObjectNameList() {
         String objectList = mapParameters.get(WorkerParameterName.objectNameList);
         try {
@@ -200,6 +220,34 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "objectNameList"), objectNameList);
         try {
             mapParameters.put(WorkerParameterName.objectNameList, JsonHandler.writeAsString(objectNameList));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException(e);
+        }
+        return this;
+    }
+
+    @JsonIgnore
+    @Override
+    public List<JsonNode> getObjectMetadataList() {
+        String objectList = mapParameters.get(WorkerParameterName.objectMetadata);
+        if (objectList == null) {
+            return null;
+        }
+        try {
+            return JsonHandler.getFromString(objectList, List.class, JsonNode.class);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setObjectMetadataList(List<JsonNode> objectMetaDataList) {
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "objectMetaList"), objectMetaDataList);
+        try {
+            mapParameters.put(WorkerParameterName.objectMetadata, JsonHandler.writeAsString(objectMetaDataList));
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new IllegalArgumentException(e);
