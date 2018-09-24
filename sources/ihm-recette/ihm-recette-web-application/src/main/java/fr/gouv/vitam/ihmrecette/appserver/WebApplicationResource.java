@@ -246,7 +246,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
-        } catch (StorageServerClientException | StorageNotFoundClientException e) {
+        } catch (StorageServerClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }

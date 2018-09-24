@@ -26,11 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -49,6 +45,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import org.bson.Document;
 
+import java.util.List;
+
 /**
  * MetaData interface for database operations
  */
@@ -58,6 +56,7 @@ public interface MetaData {
 
     /**
      * insert Unit
+     *
      * @param insertRequest as String { $roots: roots, $query : query, $filter : multi, $data : data}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws IllegalArgumentException Throw if arguments of insert query is invalid
@@ -74,6 +73,7 @@ public interface MetaData {
 
     /**
      * Select an Accession Register linked to an Operation
+     *
      * @param operationId the operation identifier
      * @return the list of documents
      */
@@ -82,6 +82,7 @@ public interface MetaData {
 
     /**
      * Search UNITs by Select {@link Select}Query
+     *
      * @param selectQuery the query of type JsonNode
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      * $context will be added later (Access)</br>
@@ -99,6 +100,7 @@ public interface MetaData {
 
     /**
      * Search ObjectGroups by Select {@link Select}Query
+     *
      * @param selectQuery the query of type JsonNode
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      * $context will be added later (Access)</br>
@@ -114,12 +116,15 @@ public interface MetaData {
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
+
+
     /**
      * Search UNITs by Id {@link Select}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{
      * <h3>$roots:[{id:"id"}]</h3>,<br>
      * $query{}, ..}
+     *
      * @param selectQuery the select query of type JsonNode
      * @param unitId the unit id for query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
@@ -142,6 +147,7 @@ public interface MetaData {
      * for example request :{
      * <h3>$roots:[{id:"id"}]</h3>,<br>
      * $query{}, ..}
+     *
      * @param selectQuery the query to filter results and make projections
      * @param objectGroupId the objectgroup id
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
@@ -165,6 +171,7 @@ public interface MetaData {
      * for example request :{
      * <h3>$roots:[{id:"id1"}, {id:"id2"}]</h3>,<br>
      * $query{}, ..}
+     *
      * @param updateQuery the update query as JsonNode containing unitIds in root parts
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      * $context will be added later (Access)</br>
@@ -180,6 +187,7 @@ public interface MetaData {
      * for example request :{
      * <h3>$roots:[{id:"id"}]</h3>,<br>
      * $query{}, ..}
+     *
      * @param updateQuery the update query as JsonNode
      * @param unitId the id of Unit for query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
@@ -198,6 +206,7 @@ public interface MetaData {
 
     /**
      * Insert an objectGroup
+     *
      * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
@@ -224,14 +233,17 @@ public interface MetaData {
 
     /**
      * find the number of archive unit per originating agency for a operationId
+     *
      * @param operationId operation id
      * @return the list of documents
      */
-    List<FacetBucket> selectOwnAccessionRegisterOnUnitByOperationId(String operationId) throws MetaDataExecutionException;
+    List<FacetBucket> selectOwnAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataExecutionException;
 
 
     /**
      * Update an object group
+     *
      * @param updateRequest the request as a json
      * @param objectId the id of the object to be updated
      * @throws InvalidParseOperationException Thrown when json format is not correct
@@ -243,6 +255,7 @@ public interface MetaData {
 
     /**
      * Flush Unit Index
+     *
      * @throws IllegalArgumentException if tenant is wrong
      * @throws VitamThreadAccessException if tenant is wrong
      */
@@ -250,6 +263,7 @@ public interface MetaData {
 
     /**
      * Flush ObjectGroup Index
+     *
      * @throws IllegalArgumentException if tenant is wrong
      * @throws VitamThreadAccessException if tenant is wrong
      */
@@ -257,6 +271,7 @@ public interface MetaData {
 
     /**
      * Reindex one or more collections
+     *
      * @param indexParam the parameters specifying what to reindex
      * @return the reindexation result as a IndexationResult Object
      */
@@ -264,6 +279,7 @@ public interface MetaData {
 
     /**
      * Switch indexes for one or more collections
+     *
      * @param alias the alias name
      * @param newIndexName the new index to be pointed on
      * @throws DatabaseException in case error with database occurs
@@ -273,4 +289,19 @@ public interface MetaData {
     void insertUnits(List<JsonNode> jsonNodes)
         throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException, VitamDBException;
+
+    /**
+     * delete units
+     *
+     * @param idsList idsList
+     */
+    void deleteUnits(List<String> idsList) throws IllegalArgumentException, MetaDataExecutionException;
+
+    /**
+     * delete objectsGroups
+     *
+     * @param idsList idsList
+     */
+    void deleteObjectGroups(List<String> idsList) throws IllegalArgumentException, MetaDataExecutionException;
+
 }

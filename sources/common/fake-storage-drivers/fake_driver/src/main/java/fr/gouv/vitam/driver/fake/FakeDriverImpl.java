@@ -254,15 +254,10 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
-            if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException("removeObject",
-                    "ExceptionTest");
 
-            } else {
                 return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
-                    objectRequest.getGuid(),
-                    objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(), true);
-            }
+                    objectRequest.getGuid(), true);
+
         }
 
         @Override

@@ -81,6 +81,7 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisCheckDistributionThresholdHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
@@ -211,6 +212,8 @@ public class WorkerImpl implements Worker {
             new ReclassificationPreparationUpdateDistributionHandler());
         actions.put(ReclassificationFinalizationHandler.getId(), new ReclassificationFinalizationHandler());
 
+        actions.put(EliminationAnalysisCheckDistributionThresholdHandler.getId(),
+            new EliminationAnalysisCheckDistributionThresholdHandler());
         actions.put(EliminationAnalysisPreparationHandler.getId(), new EliminationAnalysisPreparationHandler());
         actions.put(EliminationAnalysisFinalizationHandler.getId(), new EliminationAnalysisFinalizationHandler());
     }

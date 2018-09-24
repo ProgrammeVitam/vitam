@@ -38,9 +38,5 @@ public enum StorageLogbookOutcome {
     /**
      * To be used when one storage operation in status KO
      */
-    KO,
-    /**
-     * To be used when one storage operation in status Pending
-     */
-    PENDING
+    KO
 }

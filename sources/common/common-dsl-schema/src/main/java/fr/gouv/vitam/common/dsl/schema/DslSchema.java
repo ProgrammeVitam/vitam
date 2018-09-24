@@ -32,7 +32,7 @@ package fr.gouv.vitam.common.dsl.schema;
 public enum DslSchema {
     SELECT_MULTIPLE("select-query-multiple-dsl-schema.json"),
     SELECT_SINGLE("select-query-single-dsl-schema.json"),
-    SELECT_ONLY_QUERY_MULTIPLE("select-only-query-multiple-dsl-schema.json"),
+    ELIMINATION_QUERY("elimination-query-dsl-schema.json"),
     GET_BY_ID("get-by-id-query-dsl-schema.json"),
     UPDATE_BY_ID("update-by-id-query-dsl-schema.json"),
     MASS_UPDATE("update-mass-query-dsl-schema.json"),

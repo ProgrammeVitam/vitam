@@ -26,17 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import fr.gouv.vitam.common.ParametersChecker;
+
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 
 /**
  * Storage Logbook Parameters Class
@@ -44,20 +43,26 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 @JsonSerialize(using = StorageLogbookParametersSerializer.class)
 public class StorageLogbookParameters implements StorageLogStructure {
 
-    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY = "Mandatory parameters can not be null or empty";
+    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY =
+        "Mandatory parameters can not be null or empty";
 
-    private static final Set<StorageLogbookParameterName> mandatoryParameters = new HashSet<>();
+    private static final Set<StorageLogbookParameterName> mandatoryParametersForCreate =
+        new HashSet<>(Arrays.asList(StorageLogbookParameterName.objectIdentifier,
+            StorageLogbookParameterName.digest,
+            StorageLogbookParameterName.digestAlgorithm,
+            StorageLogbookParameterName.size,
+            StorageLogbookParameterName.agentIdentifiers,
+            StorageLogbookParameterName.dataCategory,
+            StorageLogbookParameterName.eventType,
+            StorageLogbookParameterName.outcome));
 
-    /**
-     * Mandatories parameters initialisation
-     */
-    static {
-        mandatoryParameters.add(StorageLogbookParameterName.objectIdentifier);
-        mandatoryParameters.add(StorageLogbookParameterName.digest);
-        mandatoryParameters.add(StorageLogbookParameterName.digestAlgorithm);
-        mandatoryParameters.add(StorageLogbookParameterName.size);
-        mandatoryParameters.add(StorageLogbookParameterName.agentIdentifiers);
-    }
+    private static final Set<StorageLogbookParameterName> mandatoryParametersForDelete =
+        new HashSet<>(Arrays.asList(StorageLogbookParameterName.objectIdentifier,
+            StorageLogbookParameterName.agentIdentifiers,
+            StorageLogbookParameterName.dataCategory,
+            StorageLogbookParameterName.eventType,
+            StorageLogbookParameterName.outcome));
+
 
     @JsonIgnore
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
@@ -67,13 +72,22 @@ public class StorageLogbookParameters implements StorageLogStructure {
      * StorageLogbookParameters. This constructor checks if all mandatory
      * parameters are set
      *
-     * @param mapParameters
-     *            The initial parameters (MUST contains mandatory parameters
-     * @throws StorageException
+     * @param mapParameters The initial parameters (MUST contains mandatory parameters
      */
-    public StorageLogbookParameters(Map<StorageLogbookParameterName, String> mapParameters) {
+    private StorageLogbookParameters(Map<StorageLogbookParameterName, String> mapParameters) {
         this.mapParameters.putAll(mapParameters);
-        checkMandatoryParameters();
+    }
+
+    public static StorageLogbookParameters buildCreateLogParameters(
+        Map<StorageLogbookParameterName, String> mapParameters) {
+        checkMandatoryParameters(mapParameters, mandatoryParametersForCreate);
+        return new StorageLogbookParameters(mapParameters);
+    }
+
+    public static StorageLogbookParameters buildDeleteLogParameters(
+        Map<StorageLogbookParameterName, String> mapParameters) {
+        checkMandatoryParameters(mapParameters, mandatoryParametersForDelete);
+        return new StorageLogbookParameters(mapParameters);
     }
 
     /**
@@ -90,8 +104,7 @@ public class StorageLogbookParameters implements StorageLogStructure {
     /**
      * set The status of the operation
      *
-     * @param outcome
-     *            the outcome
+     * @param outcome the outcome
      * @return the StorageLogbookParameters after the parameter has been added
      */
     @JsonIgnore
@@ -115,14 +128,14 @@ public class StorageLogbookParameters implements StorageLogStructure {
      * Check if mandatories parameters are not empty or null
      *
      * @return true if mandatories parameters are ok
-     * @throws IllegalArgumentException
-     *             thrown when one parameter is empty or null
+     * @throws IllegalArgumentException thrown when one parameter is empty or null
      */
-    public boolean checkMandatoryParameters() throws IllegalArgumentException {
+    private static void checkMandatoryParameters(Map<StorageLogbookParameterName, String> mapParameters,
+        Set<StorageLogbookParameterName> mandatoryParameters)
+        throws IllegalArgumentException {
         for (final StorageLogbookParameterName s : mandatoryParameters) {
             ParametersChecker.checkParameter(MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY, mapParameters.get(s));
         }
-        return true;
     }
 
     /**
@@ -133,31 +146,5 @@ public class StorageLogbookParameters implements StorageLogStructure {
     @JsonIgnore
     public Map<StorageLogbookParameterName, String> getMapParameters() {
         return mapParameters;
-    }
-
-    /**
-     * set The output detail message of the operation
-     *
-     * @param outcomeDetailMessage
-     *            the output message
-     * @return the StorageLogbookParameters after the parameter has been added
-     */
-    @JsonIgnore
-    public StorageLogbookParameters setOutcomDetailMessage(String outcomeDetailMessage) {
-        mapParameters.put(StorageLogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
-        return this;
-    }
-
-    /**
-     * set The External Object Identifier
-     *
-     * @param objectIdentifierIncome
-     *            the External Object Identifier
-     * @return the StorageLogbookParameters after the parameter has been added
-     */
-    @JsonIgnore
-    public StorageLogbookParameters setObjectIdentifierIncome(String objectIdentifierIncome) {
-        mapParameters.put(StorageLogbookParameterName.objectIdentifierIncome, objectIdentifierIncome);
-        return this;
     }
 }

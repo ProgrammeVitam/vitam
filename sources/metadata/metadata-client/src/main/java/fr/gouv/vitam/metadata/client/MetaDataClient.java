@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.metadata.client;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -314,7 +315,6 @@ public interface MetaDataClient extends BasicClient {
         throws MetaDataDocumentSizeException,
         InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 
-
     /**
      * Creates the AccessionRegisterSymbolics from ElasticSearch aggregations and nested aggregation request.
      * Because the AccessionRegisterSymbolic is not available from this package, it is a JsonNode
@@ -324,4 +324,21 @@ public interface MetaDataClient extends BasicClient {
      */
     JsonNode createAccessionRegisterSymbolic()
         throws MetaDataClientServerException, MetaDataExecutionException;
+
+    /**
+     * delete UnitsBulk
+     * @param listIds list of id to delete
+     * @throws MetaDataExecutionException MetaDataExecutionException
+     * @throws MetaDataClientServerException MetaDataClientServerException
+     */
+    void deleteUnitsBulk(Collection<String> listIds)
+        throws MetaDataExecutionException, MetaDataClientServerException;
+
+    /**
+     * Delete Object Group Bulk
+     * @param listIds list of id to delete
+     * @throws MetaDataExecutionException MetaDataExecutionException
+     * @throws MetaDataClientServerException MetaDataClientServerException
+     */
+    void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
 }

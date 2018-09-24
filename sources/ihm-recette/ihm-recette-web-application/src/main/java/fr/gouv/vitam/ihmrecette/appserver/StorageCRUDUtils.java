@@ -75,18 +75,8 @@ public class StorageCRUDUtils {
      * @param uid          uid of file
      */
     public boolean deleteFile(DataCategory dataCategory, String uid, String offerId)
-        throws StorageNotFoundClientException, StorageServerClientException {
-        boolean deleted = false;
-        List<String> offers = null;
-        offers = storageClient.getOffers(DEFAULT_STRATEGY);
-        JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, uid, offers);
-        JsonNode metadata = information.findValue(offerId);
-        if (metadata != null) {
-            String digestString = metadata.get("digest").asText();
-            deleted = storageClient
-                .delete(DEFAULT_STRATEGY, dataCategory, uid, digestString, Collections.singletonList(offerId));
-        }
-        return deleted;
+        throws StorageServerClientException {
+        return storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid,  Collections.singletonList(offerId));
     }
 
     /**
@@ -106,7 +96,7 @@ public class StorageCRUDUtils {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
 
-        } catch (StorageNotFoundClientException | StorageServerClientException  e) {
+        } catch (StorageServerClientException  e) {
             LOGGER.error("error when deleting file ", e);
         }
 

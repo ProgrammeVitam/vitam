@@ -372,30 +372,11 @@ public class DefaultOfferServiceTest {
         final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
         assertNotNull(response);
 
-        try {
-            // check that if we try to delete an object with a wrong digest, we
-            // get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest", VitamConfiguration
-                .getDefaultDigestType(), DataCategory.UNIT);
-            fail("Should raized an exception");
-        } catch (ContentAddressableStorageNotFoundException exc) {
 
-        }
 
-        try {
-            // check that if we try to delete an object with the wrong digest
-            // algorithm, we get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration
-                .getSecurityDigestType(), DataCategory.UNIT);
-            fail("Should raized an exception");
-        } catch (ContentAddressableStorageNotFoundException exc) {
-
-        }
-
-        // check that if we try to delete an object with the correct digest +
+        // check that if we try to delete an object
         // algorithm, it succeeds
-        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType(),
-            DataCategory.UNIT);
+        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, DataCategory.UNIT);
 
         try {
             // check that the object has been deleted

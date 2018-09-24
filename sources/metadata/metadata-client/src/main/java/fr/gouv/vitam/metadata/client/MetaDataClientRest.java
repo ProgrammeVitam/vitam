@@ -32,10 +32,12 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.OK;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -122,7 +124,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -158,7 +159,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -189,7 +189,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -221,7 +220,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -255,7 +253,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -290,7 +287,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -334,7 +330,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -366,7 +361,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -434,7 +428,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -474,7 +467,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
 
         } catch (VitamClientInternalException | InvalidParseOperationException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -509,7 +501,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -523,7 +514,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             response = performRequest(HttpMethod.PUT, "/units", null, APPLICATION_JSON_TYPE);
             return response.getStatus() == OK.getStatusCode();
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -537,7 +527,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             response = performRequest(HttpMethod.PUT, "/objectgroups", null, APPLICATION_JSON_TYPE);
             return response.getStatus() == OK.getStatusCode();
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -556,7 +545,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             return response.readEntity(JsonNode.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
             throw new MetaDataClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -575,7 +563,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             return response.readEntity(JsonNode.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
             throw new MetaDataClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -590,12 +577,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             response = performRequest(HttpMethod.GET, "/raw/units/" + unitId, null, null,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
-
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -615,7 +600,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -635,7 +619,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -656,7 +639,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -689,8 +671,55 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void deleteUnitsBulk(Collection<String> listIds)
+        throws MetaDataExecutionException, MetaDataClientServerException {
+
+        ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), listIds);
+        Response response = null;
+
+        try {
+            response =
+                performRequest(HttpMethod.DELETE, "/units/bulkDelete", null, listIds, APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                // Every thing is OK
+                return;
+            }
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR + ". Status= " + response.getStatus());
+
+        } catch (final VitamClientInternalException e) {
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void deleteObjectGroupBulk(Collection<String> listIds)
+        throws MetaDataExecutionException, MetaDataClientServerException {
+
+        ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), listIds);
+        Response response = null;
+
+        try {
+            response =
+                performRequest(HttpMethod.DELETE, "/objectGroups/bulkDelete", null, listIds, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                // Every thing is OK
+                return;
+            }
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR + ". Status= " + response.getStatus());
+
+        } catch (final VitamClientInternalException e) {
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -733,7 +762,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -766,7 +794,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);

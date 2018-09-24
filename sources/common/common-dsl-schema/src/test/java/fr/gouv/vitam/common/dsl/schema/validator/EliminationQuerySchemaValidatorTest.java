@@ -32,14 +32,14 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
-public class SelectOnlyQueryMultipleSchemaValidatorTest {
+public class EliminationQuerySchemaValidatorTest {
 
     @Test
     public void should_not_retrieve_any_exception_when_selectOnlyQueryMultiple() throws Exception {
         // Given
-        DslValidator dslValidator = new SelectOnlyQueryMultipleSchemaValidator();
+        DslValidator dslValidator = new EliminationQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select-only-query-multiple-complete.json"));
+            JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-complete.json"));
         // When
         // Then
         assertThatCode(() -> dslValidator.validate(selectOnlyQueryMultiple)).doesNotThrowAnyException();
@@ -48,9 +48,9 @@ public class SelectOnlyQueryMultipleSchemaValidatorTest {
     @Test
     public void should_retrieve_exception_when_filter_is_in_query() throws Exception {
         // Given
-        DslValidator dslValidator = new SelectOnlyQueryMultipleSchemaValidator();
+        DslValidator dslValidator = new EliminationQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select-only-query-multiple-invalid-with-filter.json"));
+            JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-filter.json"));
         // When
         // Then
         assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))
@@ -62,10 +62,10 @@ public class SelectOnlyQueryMultipleSchemaValidatorTest {
     @Test
     public void should_retrieve_exception_when_projection_is_in_query() throws Exception {
         // Given
-        DslValidator dslValidator = new SelectOnlyQueryMultipleSchemaValidator();
+        DslValidator dslValidator = new EliminationQuerySchemaValidator();
         JsonNode selectOnlyQueryMultiple =
             JsonHandler
-                .getFromFile(PropertiesUtils.findFile("select-only-query-multiple-invalid-with-projection.json"));
+                .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-projection.json"));
         // When
         // Then
         assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))
@@ -74,4 +74,17 @@ public class SelectOnlyQueryMultipleSchemaValidatorTest {
             .hasMessageContaining("INVALID_JSON_FIELD: $projection");
     }
 
+    @Test
+    public void should_retrieve_exception_when_invalid_threshold() throws Exception {
+        // Given
+        DslValidator dslValidator = new EliminationQuerySchemaValidator();
+        JsonNode selectOnlyQueryMultiple =
+            JsonHandler
+                .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-threshold.json"));
+        // When
+        // Then
+        assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))
+            .hasNoCause()
+            .hasMessageContaining("INVALID_VALUE: NUMBER ~ hint: Threshold");
+    }
 }

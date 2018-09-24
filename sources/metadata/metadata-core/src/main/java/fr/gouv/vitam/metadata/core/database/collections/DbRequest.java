@@ -29,24 +29,6 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Accumulators.addToSet;
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,7 +45,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -120,6 +101,24 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.mongodb.client.model.Accumulators.addToSet;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+
 /**
  * DB Request using MongoDB only
  */
@@ -143,7 +142,8 @@ public class DbRequest {
     private static final String DEPTH_ARRAY = "deptharray";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+    private static final String
+        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
@@ -154,7 +154,7 @@ public class DbRequest {
 
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
-              MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
+        MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
     }
@@ -1249,7 +1249,8 @@ public class DbRequest {
 
             Stopwatch loadParentAU = Stopwatch.createStarted();
             Map<String, UnitGraphModel> parentGraphs = graphLoader.loadGraphInfo(allRoots);
-            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "loadParentAU", loadParentAU.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "loadParentAU",
+                loadParentAU.elapsed(TimeUnit.MILLISECONDS));
 
             Stopwatch computeAU = Stopwatch.createStarted();
 
@@ -1286,27 +1287,34 @@ public class DbRequest {
                     objectGroupToSave.add(objectGroup);
                 }
             }
-            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "computeAU", computeAU.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "computeAU",
+                computeAU.elapsed(TimeUnit.MILLISECONDS));
 
             if (!unitToSave.isEmpty()) {
                 Stopwatch saveAU = Stopwatch.createStarted();
                 mongoDbUnitRepository.insert(unitToSave);
-                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInMongo", saveAU.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInMongo",
+                    saveAU.elapsed(TimeUnit.MILLISECONDS));
 
                 saveAU = Stopwatch.createStarted();
-                MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, tenantId, unitToSave);
-                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInElastic", saveAU.elapsed(TimeUnit.MILLISECONDS));
+                MetadataCollections.UNIT.getEsClient()
+                    .insertFullDocuments(MetadataCollections.UNIT, tenantId, unitToSave);
+                PerformanceLogger.getInstance()
+                    .log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInElastic",
+                        saveAU.elapsed(TimeUnit.MILLISECONDS));
             }
 
             if (!objectGroupToSave.isEmpty()) {
                 Stopwatch saveGOT = Stopwatch.createStarted();
                 mongoDbObjectGroupRepository.update(objectGroupToSave);
-                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInMongo", saveGOT.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInMongo",
+                    saveGOT.elapsed(TimeUnit.MILLISECONDS));
 
                 saveGOT = Stopwatch.createStarted();
                 MetadataCollections.OBJECTGROUP.getEsClient()
                     .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroupToSave);
-                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInElastic", saveGOT.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInElastic",
+                    saveGOT.elapsed(TimeUnit.MILLISECONDS));
             }
 
         } catch (final MongoWriteException e) {
@@ -1316,4 +1324,50 @@ public class DbRequest {
         }
     }
 
+    /**
+     * Delete units
+     */
+    public void deleteUnits(List<String> documentsToDelete)
+        throws MetaDataExecutionException {
+
+        if (documentsToDelete.isEmpty()) {
+            return;
+        }
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+
+        MetadataCollections.UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(documentsToDelete, tenantId);
+
+        List<Unit> documents = new ArrayList<>();
+        for (String id : documentsToDelete) {
+            documents
+                .add((Unit) new Unit().append(MetadataDocument.ID, id).append(MetadataDocument.TENANT_ID, tenantId));
+        }
+        mongoDbUnitRepository.delete(documents);
+
+    }
+
+    /**
+     * Delete object groups
+     */
+    public void deleteObjectGroups(List<String> documentsToDelete)
+        throws MetaDataExecutionException {
+
+        if (documentsToDelete.isEmpty()) {
+            return;
+        }
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+
+        MetadataCollections.OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(documentsToDelete, tenantId);
+
+        List<ObjectGroup> documents = new ArrayList<>();
+        for (String id : documentsToDelete) {
+            documents.add((ObjectGroup) new ObjectGroup().append(MetadataDocument.ID, id)
+                .append(MetadataDocument.TENANT_ID, tenantId));
+        }
+
+        mongoDbObjectGroupRepository.delete(documents);
+
+    }
 }

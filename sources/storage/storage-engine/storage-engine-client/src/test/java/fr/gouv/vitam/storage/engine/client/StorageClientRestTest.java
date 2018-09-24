@@ -508,10 +508,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest"));
-        assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest"));
-        assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest"));
-        assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest"));
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 
     @RunWithCustomExecutor
@@ -520,17 +520,17 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
 
-        assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest"));
-        assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest"));
-        assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest"));
-        assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest"));
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void deleteContainerWithIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.delete("idStrategy", DataCategory.CONTAINER, "guid", null, null);
+        client.delete("idStrategy", DataCategory.CONTAINER, "guid", null);
     }
 
     @RunWithCustomExecutor

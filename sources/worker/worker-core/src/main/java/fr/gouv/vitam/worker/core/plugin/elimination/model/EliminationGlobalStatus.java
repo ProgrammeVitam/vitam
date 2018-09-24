@@ -41,5 +41,5 @@ public enum EliminationGlobalStatus {
     /**
      * Unit is to be destroyed according to some originating agencies, and kept according to some others.
      */
-    PARTIAL_DESTROY
+    CONFLICT
 }

@@ -35,8 +35,6 @@ import fr.gouv.vitam.common.digest.DigestType;
  */
 public class StorageRemoveResult extends StorageObjectResult {
 
-    private final DigestType digestAlgorithm;
-    private final String digestHashBase16;
     private final boolean objectDeleted;
 
     /**
@@ -47,34 +45,14 @@ public class StorageRemoveResult extends StorageObjectResult {
      * @param type
      *            the type The request type
      * @param guid
-     *            the object guid
-     * @param digestAlgorithm
-     *            the digest algorithm
-     * @param digestHashBase16
-     *            the digest
+
      * @param objectDeleted
      *            true if the object has been deleted
      */
-    public StorageRemoveResult(Integer tenantId, String type, String guid, DigestType digestAlgorithm, String digestHashBase16,
+    public StorageRemoveResult(Integer tenantId, String type, String guid,
             boolean objectDeleted) {
         super(tenantId, type, guid);
-        this.digestAlgorithm = digestAlgorithm;
-        this.digestHashBase16 = digestHashBase16;
         this.objectDeleted = objectDeleted;
-    }
-
-    /**
-     * @return the digestAlgorithm
-     */
-    public DigestType getDigestAlgorithm() {
-        return digestAlgorithm;
-    }
-
-    /**
-     * @return the digestHashBase16
-     */
-    public String getDigestHashBase16() {
-        return digestHashBase16;
     }
 
     /**

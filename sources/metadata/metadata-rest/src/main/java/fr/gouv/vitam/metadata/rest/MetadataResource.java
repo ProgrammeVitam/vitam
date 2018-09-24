@@ -59,6 +59,7 @@ import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import org.elasticsearch.ElasticsearchParseException;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -1157,4 +1158,84 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
     }
+
+
+    @DELETE
+    @Path("objectGroups/bulkDelete")
+    public Response deleteObjectGroups(List<String> ids) {
+        Status status;
+        JsonNode jsonNode;
+
+        try {
+            jsonNode = JsonHandler.toJsonNode(ids);
+
+            metaData.deleteObjectGroups(ids);
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(METADATA)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK<String>(jsonNode)
+                .setHits(ids.size(), 0, 1)
+                .setHttpCode(Status.OK.getStatusCode()))
+            .build();
+
+    }
+
+    @DELETE
+    @Path("units/bulkDelete")
+    public Response deleteUnits(List<String> ids) {
+        Status status;
+        JsonNode jsonNode;
+        try {
+            jsonNode = JsonHandler.toJsonNode(ids);
+            metaData.deleteUnits(ids);
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(METADATA)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK<String>(jsonNode)
+                .setHits(ids.size(), 0, 1)
+                .setHttpCode(Status.OK.getStatusCode()))
+            .build();
+    }
+
 }

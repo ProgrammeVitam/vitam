@@ -2,7 +2,7 @@
   "id": "unit2",
   "params": {
     "OperationId": "opId",
-    "GlobalStatus": "PARTIAL_DESTROY",
+    "GlobalStatus": "CONFLICT",
     "DestroyableOriginatingAgencies": [
       "sp2"
     ],

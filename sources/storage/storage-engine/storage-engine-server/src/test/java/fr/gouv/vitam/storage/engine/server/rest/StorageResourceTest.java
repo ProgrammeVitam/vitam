@@ -1151,7 +1151,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public void deleteObjectInAllOffers(String strategyId, DataContext context, String digest)
+        public void deleteObjectInAllOffers(String strategyId, DataContext context)
             throws StorageException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
@@ -1164,7 +1164,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public void deleteObjectInOffers(String strategyId, DataContext context, String digest, List <String> offerId) {
+        public void deleteObjectInOffers(String strategyId, DataContext context,  List <String> offerId) {
             throw new UnsupportedOperationException("UnsupportedOperationException");
         }
 

@@ -24,48 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema.validator;
+package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import java.io.IOException;
-import java.io.InputStream;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.DslSchema;
-import fr.gouv.vitam.common.dsl.schema.ValidationException;
-import fr.gouv.vitam.common.dsl.schema.Validator;
-import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+public class EliminationAnalysisCheckDistributionThresholdHandler extends EliminationCheckDistributionThresholdBase {
 
-/**
- * SelectOnlyQueryMultipleSchemaValidator
- */
-public class SelectOnlyQueryMultipleSchemaValidator implements DslValidator {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SelectOnlyQueryMultipleSchemaValidator.class);
-    private final Schema schema;
+    private static final String ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD =
+        "ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD";
 
-    /**
-     * Constructor
-     *
-     * @throws IOException thrown when the schema file is not found or invalid
-     */
-    public SelectOnlyQueryMultipleSchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
-        LOGGER.debug("Loading schema {} from {}", DslSchema.SELECT_ONLY_QUERY_MULTIPLE.name(),
-            DslSchema.SELECT_ONLY_QUERY_MULTIPLE.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.SELECT_ONLY_QUERY_MULTIPLE.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
-        }
+    public EliminationAnalysisCheckDistributionThresholdHandler() {
+        super(MetaDataClientFactory.getInstance());
+    }
+
+    public EliminationAnalysisCheckDistributionThresholdHandler(
+        MetaDataClientFactory metaDataClientFactory) {
+        super(metaDataClientFactory);
     }
 
     @Override
-    public void validate(JsonNode dsl) throws ValidationException {
-        Validator.validate(schema, "DSL", dsl);
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+        return checkThreshold(handler, VitamConfiguration.getEliminationAnalysisThreshold(),
+            ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD);
     }
 
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // NOP.
+    }
 
+    public static String getId() {
+        return ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD;
+    }
 }

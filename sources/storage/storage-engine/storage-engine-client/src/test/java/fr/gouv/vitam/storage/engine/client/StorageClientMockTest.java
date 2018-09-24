@@ -97,13 +97,6 @@ public class StorageClientMockTest {
         assertTrue(client.existsContainer("idStrategy"));
     }
 
-    @Test
-    public void checkDelete() throws VitamClientException {
-        final StorageClient client = StorageClientFactory.getInstance().getClient();
-        assertNotNull(client);
-        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "guid", null, null));
-
-    }
 
     @Test
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {

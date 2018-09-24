@@ -40,7 +40,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 
 /**
- * Elimination analysis preparation handler.
+ * Elimination analysis finalization handler.
  */
 public class EliminationAnalysisFinalizationHandler extends ActionHandler {
 

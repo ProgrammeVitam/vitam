@@ -10,7 +10,7 @@ import { Preresult } from '../common/preresult';
 import { VitamResponse } from '../common/utils/response';
 import { ArchiveUnitService } from '../archive-unit/archive-unit.service';
 import { ReferentialsService } from '../referentials/referentials.service';
-import { DateRangeFacet, FacetDefinition, FacetType, RequestOrder, TermFacet } from '../common/facets/facet';
+import { FacetDefinition } from '../common/facets/facet';
 import { MySelectionService } from '../my-selection/my-selection.service';
 import { Router } from '@angular/router';
 
@@ -31,7 +31,7 @@ export class EliminationSearchComponent extends PageComponent {
   disabledFacet = false;
 
   searchFields: FieldDefinition[] = [
-    new FieldDefinition('EliminationOperationId', 'Opération d\'élmimination', 4, 12),
+    new FieldDefinition('EliminationOperationId', 'Opération d\'élimination', 4, 12),
     new FieldDefinition('title', 'Intitulé', 4, 12),
     new FieldDefinition('description', 'Description', 4, 12),
     new FieldDefinition('documentType', 'Document type', 4, 12)
@@ -40,7 +40,9 @@ export class EliminationSearchComponent extends PageComponent {
   facetDefinition: FacetDefinition[] = [
     FacetDefinition.makeTermFacetDefinition('Services producteurs éliminables', 'DestroyableOriginatingAgenciesFacet', '#elimination.DestroyableOriginatingAgencies'),
     FacetDefinition.makeTermFacetDefinition('Services producteurs non éliminables', 'NonDestroyableOriginatingAgenciesFacet', '#elimination.NonDestroyableOriginatingAgencies'),
-    FacetDefinition.makeTermFacetDefinition('Niveau de description', 'DescriptionLevelFacet', 'DescriptionLevel',),
+    FacetDefinition.makeTermFacetDefinition('Statut global d\'élimination', 'EliminationGlobalStatusFacet', '#elimination.GlobalStatus'),
+    FacetDefinition.makeTermFacetDefinition('Informations étendues d\'élimination', 'EliminationExtendedInfoTypeFacet', '#elimination.ExtendedInfo.ExtendedInfoType'),
+    FacetDefinition.makeTermFacetDefinition('Niveau de description', 'DescriptionLevelFacet', 'DescriptionLevel'),
     FacetDefinition.makeDateFacetDefinition('Date de début', 'StartDateFacet', 'StartDate', 800, new Date().getFullYear()),
     FacetDefinition.makeDateFacetDefinition('Date de fin', 'EndDateFacet', 'EndDate', 800, new Date().getFullYear()),
   ];

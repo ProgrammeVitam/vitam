@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.validator.EliminationQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
-import fr.gouv.vitam.common.dsl.schema.validator.SelectOnlyQueryMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -87,7 +87,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Access External Resource
@@ -289,8 +288,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("Missing dslRequest request", eliminationRequestBody.getDslRequest());
             ParametersChecker.checkDateParam("Bad formatted date", eliminationRequestBody.getDate());
 
-            SelectOnlyQueryMultipleSchemaValidator validator =
-                new SelectOnlyQueryMultipleSchemaValidator();
+            EliminationQuerySchemaValidator validator =
+                new EliminationQuerySchemaValidator();
             validator.validate(eliminationRequestBody.getDslRequest());
 
         } catch (IllegalArgumentException | IOException | ValidationException e) {

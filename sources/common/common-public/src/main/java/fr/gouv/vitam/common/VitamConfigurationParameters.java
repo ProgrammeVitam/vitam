@@ -105,6 +105,11 @@ public class VitamConfigurationParameters {
      * Max entries allowed for mass distribution
      */
     private Long distributionThreshold;
+
+    /**
+     * Max entries allowed for elimination analysis
+     */
+    private Long eliminationAnalysisThreshold;
     
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)
@@ -1050,6 +1055,14 @@ public class VitamConfigurationParameters {
      */
     public void setDistributionThreshold(Long distributionThreshold) {
         this.distributionThreshold = distributionThreshold;
+    }
+
+    public Long getEliminationAnalysisThreshold() {
+        return eliminationAnalysisThreshold;
+    }
+
+    public void setEliminationAnalysisThreshold(Long eliminationAnalysisThreshold) {
+        this.eliminationAnalysisThreshold = eliminationAnalysisThreshold;
     }
 
     /**

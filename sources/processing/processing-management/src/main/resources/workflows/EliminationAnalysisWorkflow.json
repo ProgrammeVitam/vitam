@@ -1,5 +1,4 @@
 {
-
   "id": "EliminationAnalysisWorkflow",
   "name": "Elimination analysis workflow",
   "identifier": "ELIMINATION_ANALYSIS",
@@ -14,6 +13,12 @@
         "kind": "REF"
       },
       "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING"
+          }
+        },
         {
           "action": {
             "actionKey": "ELIMINATION_ANALYSIS_PREPARATION",

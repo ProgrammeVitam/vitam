@@ -485,7 +485,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/{id:.+}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
         @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm, @PathParam("type") DataCategory
         type,
         @PathParam("id") String idObject) {
@@ -493,21 +492,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (Strings.isNullOrEmpty(xDigestAlgorithm)) {
-            LOGGER.error(MISSING_X_DIGEST_ALGORITHM);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (Strings.isNullOrEmpty(xDigest)) {
-            LOGGER.error(MISSING_X_DIGEST);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
+
         try {
             SanityChecker.checkParameter(idObject);
             VitamThreadUtils.getVitamSession()
                 .setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
             final String containerName = buildContainerName(type, xTenantId);
-            defaultOfferService.deleteObject(containerName, idObject, xDigest,
-                DigestType.fromValue(xDigestAlgorithm), type);
+            defaultOfferService.deleteObject(containerName, idObject, type);
             return Response.status(Response.Status.OK)
                 .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}")
                 .build();

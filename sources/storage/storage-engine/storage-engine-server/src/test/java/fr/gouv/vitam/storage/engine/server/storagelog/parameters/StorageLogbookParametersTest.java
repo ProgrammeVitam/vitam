@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.junit.Test;
 
 /**
@@ -49,23 +50,13 @@ public class StorageLogbookParametersTest {
     public void getParametersTest() {
         final StorageLogbookParameters parameters = getParameters();
         final Map<StorageLogbookParameterName, String> mapParameters = parameters.getMapParameters();
-        assertNull(mapParameters.get(StorageLogbookParameterName.outcomeDetailMessage));
-        assertNull(mapParameters.get(StorageLogbookParameterName.objectIdentifierIncome));
-
-        parameters.setOutcomDetailMessage("outcomeDetailMessage");
-        assertNotNull(mapParameters.get(StorageLogbookParameterName.outcomeDetailMessage));
-
-        parameters.setObjectIdentifierIncome("objectIdentifierIncome");
-        assertNotNull(mapParameters.get(StorageLogbookParameterName.objectIdentifierIncome));
-        assertEquals(mapParameters.get(StorageLogbookParameterName.outcomeDetailMessage), "outcomeDetailMessage");
-        assertEquals(mapParameters.get(StorageLogbookParameterName.objectIdentifierIncome), "objectIdentifierIncome");
-        assertEquals(parameters.checkMandatoryParameters(), true);
+        assertEquals(mapParameters.get(StorageLogbookParameterName.eventType), "CREATE");
 
         final LocalDateTime eventDate = parameters.getEventDateTime();
         assertEquals(LocalDateTime.parse(DATE), eventDate);
 
-        final StorageLogbookOutcome statusOutcom = parameters.getStatus();
-        assertEquals(OK_STATUS, statusOutcom);
+        final StorageLogbookOutcome statusOutcome = parameters.getStatus();
+        assertEquals(OK_STATUS, statusOutcome);
     }
 
     @Test
@@ -82,18 +73,14 @@ public class StorageLogbookParametersTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void getEmptyParametersTest() {
-        final StorageLogbookParameters parameters = getEmptyParameters();
-        parameters.checkMandatoryParameters();
-    }
-
-    private StorageLogbookParameters getEmptyParameters() {
-        return new StorageLogbookParameters(new HashMap<>());
+        StorageLogbookParameters.buildCreateLogParameters(new HashMap<>());
     }
 
     private StorageLogbookParameters getParameters() {
         final Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
 
         parameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        parameters.put(StorageLogbookParameterName.dataCategory, DataCategory.UNIT.getFolder());
         parameters.put(StorageLogbookParameterName.xRequestId, "abcd");
         parameters.put(StorageLogbookParameterName.tenantId, "0");
         parameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
@@ -106,7 +93,7 @@ public class StorageLogbookParametersTest {
         parameters.put(StorageLogbookParameterName.eventDateTime, DATE);
         parameters.put(StorageLogbookParameterName.outcome, OK_STATUS.name());
 
-        return new StorageLogbookParameters(parameters);
+        return StorageLogbookParameters.buildCreateLogParameters(parameters);
     }
 
 }

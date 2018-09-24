@@ -253,7 +253,8 @@ public class SelectMultiQueryTest {
         assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}",
             select.getProjection().toString());
         final String s = "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}" +
-            "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}\n\tFacets: ";
+            "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}\n\tFacets: \n" +
+            "\tThreshold: null";
         assertEquals(s, select.toString());
         select.parseRoots("[ 'id0' ]");
         assertEquals(1, select.roots.size());

@@ -1,0 +1,66 @@
+{
+  "_id": "aebaaaaaaqhad455abryqalenekbcoiaaabq",
+  "_tenant": 0,
+  "_profil": "",
+  "FileInfo": {
+    "Filename": "009734_20130456_0001_20110315_DI_AN_PJL_Darrois_PPL.pdf.pdf",
+    "LastModified": "2012-10-22T13:21:36.000+02:00"
+  },
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaahad455abryqalenekbcoiaaaba",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcoiaaabq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/354"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0001_20110315_DI_AN_PJL_Darrois_PPL.pdf.pdf",
+            "LastModified": "2012-10-22T13:21:36.000+02:00"
+          },
+          "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 52916,
+          "Uri": "Content/ID639.pdf",
+          "MessageDigest": "32e60ce268899e4b50d4d5f303e6ee60e89cb1c495c2d4ee13a02be5dffa95266516336b8fc013d2510e0fcc5252cb90535289b721633bada8f08adc608f2217",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "_up": [
+    "aeaqaaaaaqhad455abryqalenekbdfiaaafa"
+  ],
+  "_nbc": 1,
+  "_ops": [
+    "aeeaaaaaashi422cab3gyalenej2kcyaaaaq"
+  ],
+  "_opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+  "_sp": "MICHEL_MERCIER",
+  "_sps": [
+    "MICHEL_MERCIER"
+  ],
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_v": 0,
+  "_glpd": "2018-07-05T13:55:39.779"
+}

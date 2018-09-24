@@ -405,5 +405,24 @@ public interface LogbookLifeCycles {
     JsonNode getRawObjectGroupLifeCycleById(String id)
         throws LogbookNotFoundException, InvalidParseOperationException;
 
+    /**
+     * updateLogbookLifeCycleBulk
+     * @param lifecycleUnitInProcess lifecycleUnitInProcess
+     * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
+     */
     void updateLogbookLifeCycleBulk(LogbookCollections lifecycleUnitInProcess, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+
+    /**
+     * delete LifeCycle ObjectGroups
+     * @param objectGroupIds objectGroupIds
+     * @throws DatabaseException DatabaseException
+     */
+    void deleteLifeCycleObjectGroups(List<String> objectGroupIds) throws DatabaseException;
+
+    /**
+     * delete LifeCycle Units
+     * @param unitsIdentifier units lfc Identifier
+     * @throws DatabaseException DatabaseException
+     */
+    void deleteLifeCycleUnits(List<String> unitsIdentifier) throws DatabaseException;
 }

@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.facet.FacetParserHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -86,6 +87,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
         // $filter : filter, $projection : projection }
         projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
         facetsParse(rootNode.get(GLOBAL.FACETS.exactToken()));
+        thresholdParse(rootNode.get(GLOBAL.THRESOLD.exactToken()));
     }
 
     /**
@@ -195,6 +197,26 @@ public class SelectParserMultiple extends RequestParserMultiple {
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
                 "Parse in error for Projection: " + rootNode, e);
+        }
+    }
+
+    /**
+     * {$"threshold" : arg}
+     *
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
+     */
+    protected void thresholdParse(final JsonNode rootNode)
+        throws InvalidParseOperationException {
+        if (rootNode == null) {
+            return;
+        }
+
+        try {
+            ((SelectMultiQuery) request).setThreshold(rootNode.asLong());
+        } catch (final Exception e) {
+            throw new InvalidParseOperationException(
+                "Parse in error for Action: " + rootNode, e);
         }
     }
 

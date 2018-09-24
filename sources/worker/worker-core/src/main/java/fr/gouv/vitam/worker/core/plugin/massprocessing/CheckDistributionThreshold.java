@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -34,7 +35,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
-import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -53,6 +53,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Check distribution threshold.
@@ -80,14 +82,17 @@ public class CheckDistributionThreshold extends ActionHandler {
 
     /**
      * Constructor.
+     *
      * @param metaDataClientFactory
      */
-    @VisibleForTesting CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
     /**
      * Execute an action
+     *
      * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
@@ -98,8 +103,6 @@ public class CheckDistributionThreshold extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
 
-        final ItemStatus itemStatus = new ItemStatus(CHECK_DISTRIBUTION_THRESHOLD);
-
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             // get initial query string
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
@@ -107,57 +110,42 @@ public class CheckDistributionThreshold extends ActionHandler {
             // parse multi query
             UpdateMultiQuery multiQuery = getUpdateQueryFromJson(queryNode);
 
-            // get threshold 
-            Long threshold = multiQuery.getThreshold();
-            Long defaultThreashold = VitamConfiguration.getDistributionThreshold();
-
-            // compute min and max
-            long min, max;
-            if (threshold != null) {
-                max = Math.max(threshold, defaultThreashold);
-                min = Math.min(threshold, defaultThreashold);
-            } else {
-                min = max = defaultThreashold;
-            }
-
             // count elements
             SelectMultiQuery selectMulti = getSelectCountQueryFromUpdateQuery(multiQuery);
             JsonNode response = client.selectUnits(selectMulti.getFinalSelect());
             RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(response);
-            if (responseOK.isOk()) {
-                // get total 
-                long total = responseOK.getHits().getTotal();
 
-                // check against client threshold if exists
-                if (total <= min) {
-                    // OK : total <= default_threshold && overcome_threshold
-                    itemStatus.increment(StatusCode.OK);
-                } else if (total > max) {
-                    // KO : total > default_threshold && overcome_threshold
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_EXCEDEED.name());
-                } else if (max == defaultThreashold) {
-                    // KO : total > overcome_threshold (min)
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_THRESHOLD_EXCEDEED.name());
-                } else {
-                    // Warning : default_threshold < total < overcome_threshold
-                    itemStatus.increment(StatusCode.WARNING);
-                }
+            // get total
+            long total = responseOK.getHits().getTotal();
+
+            // get threshold
+            Long requestThreshold = multiQuery.getThreshold();
+            long defaultThreshold = VitamConfiguration.getDistributionThreshold();
+
+            long threshold = (requestThreshold != null) ? requestThreshold : defaultThreshold;
+
+            if (total > threshold) {
+                ObjectNode eventDetails = JsonHandler.createObjectNode()
+                    .put("error", "Too many units found. Threshold=" + threshold + ", found=" + total);
+                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.KO, eventDetails);
+            } else if (total > defaultThreshold) {
+                ObjectNode eventDetails = JsonHandler.createObjectNode()
+                    .put("warning", "Unit count exceeds default threshold. Default threshold=" + defaultThreshold
+                        + ", found=" + total);
+                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.WARNING, eventDetails);
             } else {
-                // not able to get count
-                itemStatus.increment(StatusCode.FATAL);
+                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.OK, null);
             }
+
         } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.FATAL, null);
         }
-
-        return new ItemStatus(CHECK_DISTRIBUTION_THRESHOLD).setItemsStatus(CHECK_DISTRIBUTION_THRESHOLD, itemStatus);
     }
 
     /**
      * getUpdateQueryFromJson
+     *
      * @param queryNode
      * @return
      * @throws InvalidParseOperationException
@@ -172,6 +160,7 @@ public class CheckDistributionThreshold extends ActionHandler {
 
     /**
      * getSelectCountQueryFromUpdateQuery
+     *
      * @param multiQuery
      * @return
      * @throws InvalidCreateOperationException
@@ -194,6 +183,7 @@ public class CheckDistributionThreshold extends ActionHandler {
 
     /**
      * Check mandatory parameter
+     *
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */

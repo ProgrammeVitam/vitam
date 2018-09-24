@@ -274,7 +274,7 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
-        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.PARTIAL_DESTROY);
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
     }
 
@@ -300,7 +300,7 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
-        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.PARTIAL_DESTROY);
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.KEEP_ACCESS_SP);
     }
@@ -327,7 +327,7 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
-        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.PARTIAL_DESTROY);
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.ACCESS_LINK_INCONSISTENCY);
         EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistencyDetails =
@@ -369,7 +369,7 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp3");
-        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.PARTIAL_DESTROY);
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(2);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.KEEP_ACCESS_SP);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(1).getType()).isEqualTo(EliminationExtendedInfoType.ACCESS_LINK_INCONSISTENCY);

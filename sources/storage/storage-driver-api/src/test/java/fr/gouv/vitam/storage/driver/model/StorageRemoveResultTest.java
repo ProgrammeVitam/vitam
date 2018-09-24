@@ -44,8 +44,7 @@ public class StorageRemoveResultTest {
 
     @BeforeClass
     public static void init() {
-        storageRemoveResult = new StorageRemoveResult(TENANT_ID, "object", "guid", VitamConfiguration.getDefaultDigestType(),
-                "digest", true);
+        storageRemoveResult = new StorageRemoveResult(TENANT_ID, "object", "guid", true);
     }
 
     @Test
@@ -63,15 +62,7 @@ public class StorageRemoveResultTest {
         assertEquals("guid", storageRemoveResult.getGuid());
     }
 
-    @Test
-    public void testGetDigestAlgorithm() throws Exception {
-        assertEquals(VitamConfiguration.getDefaultDigestType(), storageRemoveResult.getDigestAlgorithm());
-    }
 
-    @Test
-    public void testGetDigestHashBase16() throws Exception {
-        assertEquals("digest", storageRemoveResult.getDigestHashBase16());
-    }
 
     @Test
     public void testIsObjectDeleted() throws Exception {

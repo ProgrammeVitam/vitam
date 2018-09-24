@@ -277,8 +277,6 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
-        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
-        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
         OfferMaps offerMaps = GLOBAL_MAPS.get(offerName);
         String key = getName(request.getTenantId().toString(), DataCategory.getByFolder(request.getType()).getFolder(),
             request.getGuid());
@@ -300,8 +298,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         }
         final JsonNode json = handleResponseStatus(response, JsonNode.class);
         return new StorageRemoveResult(request.getTenantId(), request.getType(),
-            request.getGuid(), request.getDigestAlgorithm(), request.getDigestHashBase16(),
-            Response.Status.OK.toString().equals(json.get("status").asText()));
+            request.getGuid(), Response.Status.OK.toString().equals(json.get("status").asText()));
     }
 
     @Override
@@ -322,9 +319,9 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
     /**
      * Common method to handle response status
      *
-     * @param response the response to be handled
+     * @param response     the response to be handled
      * @param responseType the type to map the response into
-     * @param <R> the class type to be returned
+     * @param <R>          the class type to be returned
      * @return the response mapped as a POJO
      * @throws StorageDriverException if any from the server
      */
@@ -358,8 +355,8 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
     /**
      * Method performing a PutRequests
      *
-     * @param stream the stream to be chunked if necessary
-     * @param result the result received from the server after the init
+     * @param stream   the stream to be chunked if necessary
+     * @param result   the result received from the server after the init
      * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
