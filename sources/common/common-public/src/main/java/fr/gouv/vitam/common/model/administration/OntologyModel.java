@@ -38,6 +38,13 @@ import fr.gouv.vitam.common.model.ModelConstants;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class OntologyModel {
+
+    /**
+     * Document id
+     */
+    public static final String TAG_HASH_ID = ModelConstants.HASH + ModelConstants.TAG_ID;
+
+
     /**
      * Identifier Tag
      */

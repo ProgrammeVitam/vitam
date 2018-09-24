@@ -111,6 +111,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Accumulators.addToSet;
 import static com.mongodb.client.model.Aggregates.group;
@@ -996,23 +997,20 @@ public class DbRequest {
                                            SchemaValidationUtils validator)
         throws MetaDataExecutionException {
         String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
-        Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
+        Map<String, OntologyModel> ontologiesByIdentifier;
         try {
-            ((ArrayNode) JsonHandler.getFromString(finalOntologyAsString)).forEach(ontology -> {
-                try {
-                    OntologyModel model = JsonHandler.getFromJsonNode(ontology, OntologyModel.class);
-                    ontologyModelMap.put(model.getIdentifier(), model);
-                } catch (InvalidParseOperationException e) {
-                    LOGGER.warn("Unable to serialize ontology field");
-                }
-            });
+            List<OntologyModel> ontologies =
+                JsonHandler.getFromString(finalOntologyAsString, List.class, OntologyModel.class);
+           ontologiesByIdentifier =
+                ontologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
+
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Could not parse ontologies", e);
             throw new MetaDataExecutionException(e);
         }
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         // that means a transformation could be done so we need to process the full json
-        validator.verifyAndReplaceFields(updatedJsonDocument, ontologyModelMap, errors);
+        validator.verifyAndReplaceFields(updatedJsonDocument, ontologiesByIdentifier, errors);
 
         if (!errors.isEmpty()) {
             // archive unit could not be transformed, so the error would be thrown later by the schema

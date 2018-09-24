@@ -31,6 +31,7 @@ db.Profile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } 
 db.ArchiveUnitProfile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
 db.Ontology.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
+db.Ontology.createIndex( { "_tenant" : 1 , "Collections" : 1 } )
 
 db.Context.createIndex ( { "Identifier" : 1 } , { unique: true } )
 

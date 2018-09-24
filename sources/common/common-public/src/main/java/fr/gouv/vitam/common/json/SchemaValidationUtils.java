@@ -26,6 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
+import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -45,40 +68,17 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.OntologyType;
 import org.apache.commons.lang3.BooleanUtils;
-
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.StreamSupport;
-
-import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
-import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 /**
  * SchemaValidationUtils
@@ -195,7 +195,7 @@ public class SchemaValidationUtils {
     /**
      * Constructor with a specified schema filename or an external json schema as a string
      *
-     * @param schema schemaFilename or external json schema as a string
+     * @param schema   schemaFilename or external json schema as a string
      * @param external true if the schema is provided as a string
      * @throws FileNotFoundException
      * @throws ProcessingException
@@ -267,7 +267,7 @@ public class SchemaValidationUtils {
      * @param jsonNode
      * @param collectionName
      * @return a status ({@link SchemaValidationStatus})
-     * @throws FileNotFoundException if no schema has been found fot the specified collectionname
+     * @throws FileNotFoundException          if no schema has been found fot the specified collectionname
      * @throws InvalidParseOperationException
      * @throws ProcessingException
      */
@@ -482,9 +482,9 @@ public class SchemaValidationUtils {
     /**
      * Verify and replace fields.
      *
-     * @param node to modify
+     * @param node             to modify
      * @param ontologyModelMap where are ontologies
-     * @param errors of replacement
+     * @param errors           of replacement
      */
     public void verifyAndReplaceFields(JsonNode node, Map<String, OntologyModel> ontologyModelMap,
         List<String> errors) {
@@ -492,74 +492,121 @@ public class SchemaValidationUtils {
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             String fieldName = entry.getKey();
+
+            OntologyModel ontology = ontologyModelMap.get(fieldName);
             JsonNode fieldValue = entry.getValue();
             if (fieldValue == null || fieldValue.isMissingNode()) {
                 continue;
             }
-            if (ontologyModelMap.containsKey(fieldName)) {
-                errors.addAll(replaceProperFieldWithType(fieldValue, ontologyModelMap.get(fieldName), node, fieldName));
-            } else if (fieldValue.isObject()) {
+            if (fieldValue.isObject()) {
                 verifyAndReplaceFields(fieldValue, ontologyModelMap, errors);
             } else if (fieldValue.isArray()) {
-                fieldValue.forEach(o -> verifyAndReplaceFields(o, ontologyModelMap, errors));
+                for (int i = 0; i < fieldValue.size(); i++) {
+                    JsonNode jn = fieldValue.get(i);
+                    if (null == jn || null == jn.asText()) {
+                        continue;
+                    }
+
+                    if (jn.isObject() || jn.isArray()) {
+                        verifyAndReplaceFields(jn, ontologyModelMap, errors);
+                    } else {
+                        try {
+                            ((ArrayNode) fieldValue)
+                                .set(i, checkFieldLengthAndForceFieldTyping(fieldName, jn, ontology));
+                        } catch (IllegalArgumentException | DateTimeParseException e) {
+                            errors.add(String.format("Error '%s' on field '%s'.", e.getMessage(), fieldName));
+                        }
+                    }
+                }
+
+            } else {
+                errors.addAll(replacePropertyField(fieldValue, ontology, node, fieldName));
             }
         }
     }
 
-    private List<String> replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology,
-        JsonNode parent, String fieldName) {
-        if (archiveUnitFragment.isArray()) {
-            return replacePropertyFieldArray((ArrayNode) archiveUnitFragment, archiveUnitFragment.deepCopy(), ontology,
-                fieldName);
-        }
-        return replacePropertyField(archiveUnitFragment, ontology, parent, fieldName);
-    }
 
-    private List<String> replacePropertyFieldArray(ArrayNode originalFields, ArrayNode copyFields,
-        OntologyModel ontology, String fieldName) {
-        ArrayList<String> errors = new ArrayList<>();
-        for (int i = 0; i < copyFields.size(); i++) {
-            String field = copyFields.get(i).asText();
-            if (field == null) {
-                continue;
-            }
+    /**
+     * Example of fieldContainer:  fieldContainer = "{'fieldName': 'fieldValue'}"
+     *
+     * @param fieldValue
+     * @param ontology
+     * @param fieldContainer
+     * @param fieldName
+     * @return
+     */
+    private List<String> replacePropertyField(JsonNode fieldValue, OntologyModel ontology, JsonNode fieldContainer,
+        String fieldName) {
+        ObjectNode objectNodeContainer = (ObjectNode) fieldContainer;
+        if (!fieldValue.isNull() && !fieldValue.isMissingNode()) {
             try {
-                originalFields.set(i, mapFieldToOntology(field, ontology.getType()));
+                objectNodeContainer.set(fieldName,
+                    checkFieldLengthAndForceFieldTyping(fieldName, fieldValue, ontology));
             } catch (IllegalArgumentException | DateTimeParseException e) {
-                errors.add(String.format("Error '%s' on field '%s' should be of type '%s'.", e.getMessage(), fieldName,
-                    ontology.getType().name()));
-            }
-        }
-        return errors;
-    }
-
-    private List<String> replacePropertyField(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent, String fieldName) {
-        ObjectNode objectNodeParent = (ObjectNode) parent;
-        if (archiveUnitFragment.isTextual() && parent.isObject() && parent.get(ontology.getIdentifier()) != null) {
-            String field = archiveUnitFragment.asText();
-            try {
-                objectNodeParent.set(ontology.getIdentifier(), mapFieldToOntology(field, ontology.getType()));
-            } catch (IllegalArgumentException | DateTimeParseException e) {
-                return Collections.singletonList(String.format("Error: <%s> on field '%s' should be of type '%s'.", e.getMessage(), fieldName, ontology.getType().name()));
+                return Collections.singletonList(String
+                    .format("Error: <%s> on field '%s'.", e.getMessage(), fieldName));
             }
         }
         return Collections.emptyList();
     }
 
-    private JsonNode mapFieldToOntology(String field, OntologyType type) {
-        switch (type) {
-            case DOUBLE:
-                return new DoubleNode(Double.parseDouble(field));
-            case DATE:
-                return new TextNode(mapDateToOntology(field));
-            case LONG:
-                return new LongNode(Long.parseLong(field));
-            case BOOLEAN:
-                return BooleanNode.valueOf(BooleanUtils.toBoolean(field.toLowerCase(), TRUE.asText(), FALSE.asText()));
-            default:
-                LOGGER.warn(String.format("Not implemented for type %s", field));
-                throw new IllegalStateException(String.format("Not implemented for type %s", field));
+
+    private JsonNode checkFieldLengthAndForceFieldTyping(String fieldName, JsonNode fieldValueNode,
+        OntologyModel ontologyModel) {
+        // In case where no ontology is provided
+        if (null == ontologyModel) {
+            return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
+                "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length 32766");
+
         }
+
+        switch (ontologyModel.getType()) {
+            case TEXT:
+                return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
+                    "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length 32766");
+            case GEO_POINT:
+            case ENUM:
+            case KEYWORD:
+                return validateValueLength(fieldName, fieldValueNode,
+                    VitamConfiguration.getKeywordMaxLength(),
+                    "Not accepted value for the Keyword field (%s) whose UTF8 encoding is longer than the max length 32766");
+
+            case DOUBLE:
+                return new DoubleNode(Double.parseDouble(fieldValueNode.asText()));
+            case DATE:
+                return new TextNode(mapDateToOntology(fieldValueNode.asText()));
+            case LONG:
+                return new LongNode(Long.parseLong(fieldValueNode.asText()));
+            case BOOLEAN:
+                return BooleanNode
+                    .valueOf(
+                        BooleanUtils.toBoolean(fieldValueNode.asText().toLowerCase(), TRUE.asText(), FALSE.asText()));
+            default:
+                LOGGER.warn(String.format("Not implemented for type %s", fieldValueNode.asText()));
+                throw new IllegalArgumentException(
+                    String.format("Not implemented for type %s", fieldValueNode.asText()));
+        }
+    }
+
+    /**
+     * Check if value length is accepted or is longer than expected
+     *
+     * @param fieldName
+     * @param fieldValueNode
+     * @param maxLength
+     * @param message
+     * @return JsonNode
+     */
+    private JsonNode validateValueLength(String fieldName, JsonNode fieldValueNode, int maxLength,
+        String message) {
+        if (null == fieldValueNode || null == fieldValueNode.asText()) {
+            return null;
+        } else if (fieldValueNode.asText().getBytes(CharsetUtils.UTF8).length > maxLength) {
+            throw new IllegalArgumentException(String.format(
+                message,
+                fieldName));
+        }
+        return fieldValueNode;
     }
 
     private String mapDateToOntology(String field) {

@@ -102,6 +102,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -110,7 +111,6 @@ import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
@@ -2944,15 +2944,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void extractOntology() throws ProcessingException {
         Select selectOntologies = new Select();
-        List<OntologyModel> ontologyModelList = new ArrayList<OntologyModel>();
+        List<OntologyModel> ontologyModelList = new ArrayList<>();
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             selectOntologies.setQuery(
-                QueryHelper.and()
-                    .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
-                        OntologyType.BOOLEAN.getType(),
-                        OntologyType.DATE.getType(),
-                        OntologyType.LONG.getType())));
-            Map<String, Integer> projection = new HashMap<String, Integer>();
+                QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())
+            );
+            Map<String, Integer> projection = new HashMap<>();
             projection.put(OntologyModel.TAG_IDENTIFIER, 1);
             projection.put(OntologyModel.TAG_TYPE, 1);
             QueryProjection queryProjection = new QueryProjection();

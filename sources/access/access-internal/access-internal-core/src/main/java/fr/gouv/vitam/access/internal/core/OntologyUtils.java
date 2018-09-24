@@ -26,7 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -40,15 +43,13 @@ import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-
-import java.util.List;
 
 public class OntologyUtils {
 
@@ -59,56 +60,45 @@ public class OntologyUtils {
      * Add ontology's fields to be checked when executing the update.
      * This is done by adding a transient Action to the update query that contains the list of ontologies.
      * The transient action is removed by the executor of the Action (DBRequest)
-     * 
+     *
      * @param updateParser The parser containing the update Query
      * @throws InvalidCreateOperationException
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
     public static void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
-            throws InvalidCreateOperationException, AdminManagementClientServerException,
-            InvalidParseOperationException {
+        throws InvalidCreateOperationException, AdminManagementClientServerException,
+        InvalidParseOperationException {
         UpdateMultiQuery request = updateParser.getRequest();
         Select selectOntologies = new Select();
         List<OntologyModel> ontologyModelList;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             selectOntologies.setQuery(
-                    QueryHelper.and()
-                            .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
-                                    OntologyType.BOOLEAN.getType(),
-                                    OntologyType.DATE.getType(),
-                                    OntologyType.LONG.getType()))
-                            .add(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName()))
+                QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())
             );
+
+            Map<String, Integer> projection = new HashMap<>();
+            projection.put(OntologyModel.TAG_IDENTIFIER, 1);
+            projection.put(OntologyModel.TAG_TYPE, 1);
+            QueryProjection queryProjection = new QueryProjection();
+            queryProjection.setFields(projection);
             selectOntologies
-                    .setProjection(JsonHandler.getFromString("{\"$fields\": { \"Identifier\": 1, \"Type\": 1}}"));
+                .setProjection(JsonHandler.toJsonNode(queryProjection));
             RequestResponse<OntologyModel> responseOntologies =
-                    adminClient.findOntologies(selectOntologies.getFinalSelect());
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
             if (responseOntologies.isOk() &&
-                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
                 ontologyModelList =
-                        ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
             } else {
                 // no external ontology, nothing to do
                 return;
             }
-            if (ontologyModelList.size() > 0) {
-                ArrayNode ontologyArrayNode = JsonHandler.createArrayNode();
-                ontologyModelList.forEach(ontology -> {
-                    try {
-                        ontologyArrayNode.add(JsonHandler.toJsonNode(ontology));
-                    } catch (InvalidParseOperationException e) {
-                        LOGGER.error("could not parse this ontology", e);
-                    }
-                });
-                Action action =
-                        new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
-                                JsonHandler.unprettyPrint(ontologyArrayNode));
-                request.addActions(action);
-            }
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-                InvalidParseOperationException e) {
-            throw e;
+
+            Action action =
+                new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
+                    JsonHandler.unprettyPrint(ontologyModelList));
+            request.addActions(action);
         }
     }
 }

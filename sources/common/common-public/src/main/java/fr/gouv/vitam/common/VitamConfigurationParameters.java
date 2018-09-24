@@ -94,6 +94,26 @@ public class VitamConfigurationParameters {
      */
     private Integer optimisticLockSleepTime;
 
+    /**
+     * This is a limitation of lucene.
+     * Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
+     */
+    private Integer keywordMaxLength;
+    /**
+     * There is not a limitation in lucene for text fields.
+     * In VITAM, to enable sorting on some fields (title, ...), those fields are also not analysed (fielddata set to true)
+     *
+     * Problem:
+     *    - Indexing text fields with value length > keywordMaxLength
+     *    - Change mapping on ES to set fielddata = true on those fields
+     *    - Re-index
+     *    => Lucene will throws an exception as keywords can't be longer than max length (keywordMaxLength)
+     *
+     * So this is a vitam limitation.
+     */
+    private Integer textMaxLength;
+
+
 
     /**
      *
@@ -977,6 +997,37 @@ public class VitamConfigurationParameters {
     }
 
 
+    /**
+     * Getter
+     * @return keywordMaxLength
+     */
+    public Integer getKeywordMaxLength() {
+        return keywordMaxLength;
+    }
+
+    /**
+     * Setter
+     * @param keywordMaxLength
+     */
+    public void setKeywordMaxLength(Integer keywordMaxLength) {
+        this.keywordMaxLength = keywordMaxLength;
+    }
+
+    /**
+     * Getter
+     * @return textMaxLength
+     */
+    public Integer getTextMaxLength() {
+        return textMaxLength;
+    }
+
+    /**
+     * Setter
+     * @param textMaxLength
+     */
+    public void setTextMaxLength(Integer textMaxLength) {
+        this.textMaxLength = textMaxLength;
+    }
 
     /**
      * Getter for restore bulk size
