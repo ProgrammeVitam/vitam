@@ -196,9 +196,9 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
     /**
      * Set the object metadata value
      *
-     * @param objectMetadataList the object metadata value
+     * @param objectMetadataList the object metadataList value
      * @return the current instance of WorkerParameter
-     * @throws IllegalArgumentException if the objectName is null or empty
+     * @throws IllegalStateException if the metadataList is null or empty
      */
     WorkerParameters setObjectMetadataList(List<JsonNode> objectMetadataList);
 

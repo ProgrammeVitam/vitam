@@ -410,10 +410,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     }
 
                     if (!StringUtils.isBlank(chainedFile.getNextFile())) {
-                        // Terminal recursion
-                        // distributeChainedFiles(workParams.getContainerName(), chainedFile.getNextFile(),
-                        //        workParams, step, useDistributorIndex,
-                        //        tenantId);
 
                         recursion = true;
 
@@ -514,7 +510,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 }
 
             } catch (Exception e) {
-                LOGGER.error("Can't get distibutor index from workspace", e);
                 throw new ProcessingException("Can't get distibutor index from workspace", e);
             }
         }
@@ -597,7 +592,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 }
 
                 // update persisted DistributorIndex if not Fatal
-                updatePersitedDistrubitorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                updatePersitedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
                     "Error while persist DistributorIndex");
 
                 checkCancelledOrPaused(cancelled, paused);
@@ -611,16 +606,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return true;
     }
 
-    private void updatePersitedDistrubitorIndexIfNotFatal(String operationId, int offset,
-        DistributorIndex distributorIndex, ItemStatus itemStatus, String s) throws ProcessingException {
+    private void updatePersitedDistributorIndexIfNotFatal(String operationId, int offset,
+        DistributorIndex distributorIndex, ItemStatus itemStatus, String message) throws ProcessingException {
         try {
             processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
             LOGGER
                 .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
                     " GlobalStatus " + itemStatus.getGlobalStatus());
         } catch (Exception e) {
-            LOGGER.error(s, e);
-            throw new ProcessingException(s, e);
+            throw new ProcessingException(message, e);
         }
     }
 
@@ -632,8 +626,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Distribution on stream.
      *
-     * @param workerParameters workerParameters
-     * @param step  step
+     * @param workerParameters         workerParameters
+     * @param step                     step
      * @param bufferedReader
      * @param initFromDistributorIndex
      * @param tenantId
@@ -674,7 +668,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          * if the current level is not equals to the level in the initFromDistributorIndex
          * Then return false to passe to the next step
          */
+
+
         if (initFromDistributorIndex) {
+
             try {
                 distributorIndex = processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
                 if (distributorIndex == null) {
@@ -687,12 +684,22 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             distributorIndex.getStepId());
                 }
 
+
+
+                /*
+                 * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                 */
+                if (distributorIndex.isLevelFinished()) {
+                    step.setStepResponses(distributorIndex.getItemStatus());
+                    return true;
+                }
+
                 /*
                  * Initialization from DistributorIndex
                  */
                 offset = distributorIndex.getOffset();
 
-                bufferedReader.lines().skip(offset);
+                skipOffsetLines(bufferedReader, offset);
 
                 distributorIndex.getItemStatus().getItemsStatus()
                     .remove(PauseOrCancelAction.ACTION_PAUSE.name());
@@ -705,11 +712,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 updateElementToProcess = false;
                 if (distributorIndex.getRemainingElements() != null &&
                     !distributorIndex.getRemainingElements().isEmpty()) {
+
                     remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
                 }
 
             } catch (VitamException e) {
-                LOGGER.error(AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_GET_DISTIBUTOR_INDEX_FROM_WORKSPACE, e);
                 throw new ProcessingException(
                     AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_GET_DISTIBUTOR_INDEX_FROM_WORKSPACE, e);
             }
@@ -721,11 +728,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         int bulkSize = findBulkSize(step.getDistribution());
         int globalBatchSize = VitamConfiguration.getDistributeurBatchSize() * bulkSize;
-        Iterator<String> iterator = bufferedReader.lines().iterator();
 
-        PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(iterator);
+        PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(bufferedReader.lines().iterator());
 
-        JsonLineModel currentJsonLineModel = null;
 
 
         while (linesPeekIterator.hasNext()) {
@@ -737,12 +742,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             for (int i = offset; i < nextOffset && linesPeekIterator.hasNext(); i++) {
 
-                currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
+                JsonLineModel currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
 
-                if (currentJsonLineModel.getId() != null) {
-
-                    distributionList.add(currentJsonLineModel);
-                }
+                distributionList.add(currentJsonLineModel);
 
                 JsonLineModel nextJsonLineModel = null;
 
@@ -751,7 +753,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 }
 
                 boolean isLevelCompatible =
-                        nextJsonLineModel != null &&
+                    nextJsonLineModel != null &&
                         currentJsonLineModel.getDistribGroup() != null &&
                         nextJsonLineModel.getDistribGroup() != null &&
                         !currentJsonLineModel.getDistribGroup().equals(nextJsonLineModel.getDistribGroup());
@@ -779,7 +781,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * and we have to treat all elements of this batch
              */
             if (!remainingElementsFromRecover.isEmpty()) {
-                distributionList.retainAll(remainingElementsFromRecover);
+
+                ArrayList<JsonLineModel> retainedList = new ArrayList<>();
+                for (JsonLineModel model : distributionList) {
+                    if (remainingElementsFromRecover.contains(model.getId())) {
+                        retainedList.add(model);
+                    }
+                }
+                distributionList = retainedList;
             }
 
             prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, operationId,
@@ -816,8 +825,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 distributorIndex =
                     new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
                         remainingElements);
-
-                updatePersitedDistrubitorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                // All elements of the current level are treated so finish it
+                if (!linesPeekIterator.hasNext()) {
+                    distributorIndex.setLevelFinished(true);
+                }
+                updatePersitedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
                     AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX);
 
 
@@ -831,11 +843,21 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return true;
     }
 
+    private void skipOffsetLines(BufferedReader bufferedReader, int offset) throws ProcessingException {
+        for (int i = 0; i < offset; i++) {
+            try {
+                bufferedReader.readLine();
+            } catch (IOException e) {
+                throw new ProcessingException(e);
+            }
+        }
+    }
+
     private JsonLineModel readJsonLineModelFromBufferFromString(String value) throws ProcessingException {
         try {
             return JsonHandler.getFromString(value, JsonLineModel.class);
         } catch (InvalidParseOperationException e) {
-             throw new ProcessingException("Invalid Model");
+            throw new ProcessingException("Invalid Model");
         }
     }
 

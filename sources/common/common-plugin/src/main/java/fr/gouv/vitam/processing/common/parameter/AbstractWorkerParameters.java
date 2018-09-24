@@ -189,7 +189,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         try {
             return JsonHandler.getFromString(mapParameters.get(WorkerParameterName.objectMetadata));
         } catch (InvalidParseOperationException e) {
-            throw new IllegalArgumentException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -230,7 +230,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @JsonIgnore
     @Override
     public List<JsonNode> getObjectMetadataList() {
-        String objectList = mapParameters.get(WorkerParameterName.objectMetadata);
+        String objectList = mapParameters.get(WorkerParameterName.objectMetadataList);
         if (objectList == null) {
             return null;
         }
@@ -245,9 +245,9 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @JsonIgnore
     @Override
     public WorkerParameters setObjectMetadataList(List<JsonNode> objectMetaDataList) {
-        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "objectMetaList"), objectMetaDataList);
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "objectMetaDataList"), objectMetaDataList);
         try {
-            mapParameters.put(WorkerParameterName.objectMetadata, JsonHandler.writeAsString(objectMetaDataList));
+            mapParameters.put(WorkerParameterName.objectMetadataList, JsonHandler.writeAsString(objectMetaDataList));
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new IllegalArgumentException(e);
