@@ -1479,8 +1479,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
-        throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
         Response response = null;
         try {

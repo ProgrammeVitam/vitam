@@ -94,13 +94,10 @@ public class ProbativeValueReport extends ActionHandler {
 
             jsonGenerator.writeStartObject();
 
-            jsonGenerator.writeFieldName("request");
-
-            JsonNode request = JsonHandler.getFromFile(handler.getFileFromWorkspace("request" ));
-            jsonGenerator.writeObject(request);
 
 
-            gatherOperationInfo(param, jsonGenerator, jsonNode);
+
+            gatherOperationInfo(handler,param, jsonGenerator, jsonNode);
 
             operationAndDataChecks(handler, jsonGenerator, uriListObjectsWorkspace);
 
@@ -124,14 +121,19 @@ public class ProbativeValueReport extends ActionHandler {
         return new ItemStatus(PROBATIVE_VALUE_REPORTS).setItemsStatus(PROBATIVE_VALUE_REPORTS, itemStatus);
     }
 
-    public void gatherOperationInfo(WorkerParameters param, JsonGenerator jsonGenerator, JsonNode jsonNode)
-        throws IOException {
+    public void gatherOperationInfo(HandlerIO handler, WorkerParameters param,
+        JsonGenerator jsonGenerator, JsonNode jsonNode)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException {
         LogbookOperation logbookOperation =
             new LogbookOperation(jsonNode.get("$results").get(0));
         ObjectNode operation = JsonHandler.createObjectNode();
         operation.put("operationId", param.getContainerName());
         operation.put("operationDate",logbookOperation.getString("_lastPersistedDate"));
         operation.put("tenant",ParameterHelper.getTenantParameter());
+
+        JsonNode request = JsonHandler.getFromFile(handler.getFileFromWorkspace("request" ));
+        operation.set("request",request);
 
         jsonGenerator.writeFieldName("OperationInfo");
         jsonGenerator.writeObject(operation);
