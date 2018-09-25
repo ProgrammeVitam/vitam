@@ -118,12 +118,9 @@ public class ProbativeValueGenerateReports extends ActionHandler {
                     continue;
                 }
 
-                // todo Iterate
-
                 for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()){
                     probativeService.checkSecuredVersion(secureFileObject, usage);
                 }
-
 
                 writeAsFile(parameter, file);
 

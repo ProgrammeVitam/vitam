@@ -83,21 +83,25 @@ public class ProbativeValueReport extends ActionHandler {
             JsonGenerator jsonGenerator = createJsonGenerator(fileOutputStream);
             LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         ) {
+            jsonGenerator.writeFieldName("ReportVersion");
 
+            jsonGenerator.writeNumber(1);
             List<URI> uriListObjectsWorkspace =
                 handler.getUriList(handler.getContainerName(), "reports");
 
             jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter(""));
 
-            JsonNode jsonNode = client.selectOperationById(param.getContainerName());
+            JsonNode logBookJsonNode = client.selectOperationById(param.getContainerName());
 
 
             jsonGenerator.writeStartObject();
 
+            ObjectNode operationInfo = gatherOperationInfo(handler, param, logBookJsonNode);
 
 
+            jsonGenerator.writeFieldName("OperationInfo");
 
-            gatherOperationInfo(handler,param, jsonGenerator, jsonNode);
+            jsonGenerator.writeObject(operationInfo);
 
             operationAndDataChecks(handler, jsonGenerator, uriListObjectsWorkspace);
 
@@ -111,7 +115,7 @@ public class ProbativeValueReport extends ActionHandler {
                     handler.getContainerName() + ".json");
 
 
-        } catch (ContentAddressableStorageServerException |LogbookClientException| ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | BackupServiceException |
+        } catch (ContentAddressableStorageServerException | LogbookClientException | ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | BackupServiceException |
             ProcessingException e) {
 
             LOGGER.error(e);
@@ -121,22 +125,23 @@ public class ProbativeValueReport extends ActionHandler {
         return new ItemStatus(PROBATIVE_VALUE_REPORTS).setItemsStatus(PROBATIVE_VALUE_REPORTS, itemStatus);
     }
 
-    public void gatherOperationInfo(HandlerIO handler, WorkerParameters param,
-        JsonGenerator jsonGenerator, JsonNode jsonNode)
+    public ObjectNode gatherOperationInfo(HandlerIO handler, WorkerParameters param, JsonNode jsonNode)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException {
+
+        ObjectNode operation = JsonHandler.createObjectNode();
+
+        JsonNode request = JsonHandler.getFromFile(handler.getFileFromWorkspace("request"));
+        operation.set("request", request);
+
         LogbookOperation logbookOperation =
             new LogbookOperation(jsonNode.get("$results").get(0));
-        ObjectNode operation = JsonHandler.createObjectNode();
+
         operation.put("operationId", param.getContainerName());
-        operation.put("operationDate",logbookOperation.getString("_lastPersistedDate"));
-        operation.put("tenant",ParameterHelper.getTenantParameter());
+        operation.put("operationDate", logbookOperation.getString("_lastPersistedDate"));
+        operation.put("tenant", ParameterHelper.getTenantParameter());
 
-        JsonNode request = JsonHandler.getFromFile(handler.getFileFromWorkspace("request" ));
-        operation.set("request",request);
-
-        jsonGenerator.writeFieldName("OperationInfo");
-        jsonGenerator.writeObject(operation);
+        return operation;
     }
 
     public void operationAndDataChecks(HandlerIO handler, JsonGenerator jsonGenerator,
@@ -144,7 +149,7 @@ public class ProbativeValueReport extends ActionHandler {
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException {
 
-        jsonGenerator.writeFieldName("Versions Check Reports");
+        jsonGenerator.writeFieldName("ObjectsCheckReport");
 
         jsonGenerator.writeStartArray();
         for (URI uri : uriListObjectsWorkspace) {
@@ -155,18 +160,17 @@ public class ProbativeValueReport extends ActionHandler {
             File file = handler.getFileFromWorkspace("reports" + File.separator + uri.getPath());
 
             ProbativeParameter parameter = JsonHandler.getFromFile(file, ProbativeParameter.class);
-            // TODO iterate
-          for(ProbativeUsageParameter usage  :   parameter.getUsageParameters().values()){
 
-              binaryInfo(jsonGenerator, usage);
 
-              binaryCheck(jsonGenerator, usage);
+            for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()) {
 
-          }
+                binaryInfo(jsonGenerator, usage);
+
+                binaryCheck(jsonGenerator, usage);
+
+            }
 
             jsonGenerator.writeEndObject();
-
-
 
         }
         jsonGenerator.writeEndArray();
@@ -179,7 +183,7 @@ public class ProbativeValueReport extends ActionHandler {
         jsonGenerator.writeFieldName("BinaryId");
         jsonGenerator.writeString(parameter.getVersionsModel().getId());
 
-        jsonGenerator.writeFieldName("ObjectId");
+        jsonGenerator.writeFieldName("ObjectGroupId");
         jsonGenerator.writeString(parameter.getVersionsModel().getDataObjectGroupId());
 
         jsonGenerator.writeFieldName("MessageDigest");
@@ -189,7 +193,7 @@ public class ProbativeValueReport extends ActionHandler {
         jsonGenerator.writeFieldName("Algorithm");
         jsonGenerator.writeString(parameter.getVersionsModel().getAlgorithm());
 
-        jsonGenerator.writeFieldName("binaryOpi");
+        jsonGenerator.writeFieldName("BinaryCreationOpId");
         jsonGenerator.writeString(parameter.getVersionsModel().getOpi());
 
         jsonGenerator.writeFieldName("EvIdAppSession");

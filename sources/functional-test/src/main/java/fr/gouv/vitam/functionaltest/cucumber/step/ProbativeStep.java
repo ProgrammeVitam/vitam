@@ -30,9 +30,14 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
+import org.assertj.core.util.Lists;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ProbativeStep {
@@ -44,8 +49,8 @@ public class ProbativeStep {
     }
 
     private World world;
-    private List<String> usages;
-    private JsonNode query;
+
+
 
     /**
      * @return generic Model
@@ -68,15 +73,22 @@ public class ProbativeStep {
     /**
      * Tentative d'import d'un contrat si jamais il n'existe pas
      *
-     * @param type
+     * @param usages usageText
      * @throws IOException
      */
-    @Then("^Je lance un rélevé de valeur probante avec la requete suivante (.*)")
-    public void probativeValue(String query) throws IOException {
-//        JsonHandler.getFromString()
-   }
-    @And("^Les usages sont (.*)")
-    public void usages_ares(String type) throws IOException {
+    @Then("^Je lance un rélevé de valeur probante avec les usages suivants (.*)")
+    public void probativeValue(String usages) throws Exception {
+
+        ArrayList<String> usageList = Lists.newArrayList(usages.split(", "));
+
+        JsonNode query = JsonHandler.getFromString(world.getQuery());
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(query, usageList);
+
+        world.getAdminClient().exportProbativeValue(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            probativeValueRequest);
     }
+
 
 }
