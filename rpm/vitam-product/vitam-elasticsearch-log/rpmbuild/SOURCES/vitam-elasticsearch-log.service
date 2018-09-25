@@ -20,7 +20,7 @@ Group=vitam
 
 ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
 	-p ${PID_DIR}/elasticsearch.pid \
-	--quiet 
+	--quiet
 
 # Specifies the maximum number of bytes of memory that may be locked into RAM
 # Set to "infinity" if you use the 'bootstrap.memory_lock: true' option
@@ -65,5 +65,3 @@ SuccessExitStatus=143
 
 [Install]
 WantedBy=multi-user.target
-
-# Built for distribution-5.6.1 (distribution)
