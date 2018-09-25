@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.parameter;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -154,6 +155,22 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
     WorkerParameters setObjectName(String objectName);
 
     /**
+     * Get the object metadata parameter
+     *
+     * @return the object metadata value
+     */
+    JsonNode getObjectMetadata();
+
+    /**
+     * Set the object metadata value
+     *
+     * @param objectName the object metadata value
+     * @return the current instance of WorkerParameter
+     * @throws IllegalArgumentException if the objectName is null or empty
+     */
+    WorkerParameters setObjectMetadata(JsonNode objectName);
+
+    /**
      * Get the object name parameter
      *
      * @return the object name value
@@ -168,6 +185,22 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @throws IllegalArgumentException if the objectName is null or empty
      */
     WorkerParameters setObjectNameList(List<String> objectNameList);
+
+    /**
+     * Get the object metadata parameter
+     *
+     * @return the object name value
+     */
+    List<JsonNode> getObjectMetadataList();
+
+    /**
+     * Set the object metadata value
+     *
+     * @param objectMetadataList the object metadataList value
+     * @return the current instance of WorkerParameter
+     * @throws IllegalStateException if the metadataList is null or empty
+     */
+    WorkerParameters setObjectMetadataList(List<JsonNode> objectMetadataList);
 
     /**
      * Get the metadata request parameter

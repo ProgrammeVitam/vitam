@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.utils.VitamReaderSpliterator;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -64,10 +63,12 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -83,7 +84,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -179,9 +179,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams of type {@link WorkerParameters}
-     * @param step the execution step
-     * @param operationId the operation id
+     * @param workParams   of type {@link WorkerParameters}
+     * @param step         the execution step
+     * @param operationId  the operation id
      * @param pauseRecover prevent recover from pause action
      * @return the final step status
      */
@@ -319,7 +319,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         try (BufferedReader br = new BufferedReader(
                             new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
 
-                            distributeOnStream(workParams, step, NOLEVEL, br,
+                            distributeOnStream(workParams, step, br,
                                 useDistributorIndex, tenantId);
                         }
                     } finally {
@@ -387,32 +387,29 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 ChainedFileModel chainedFile;
                 try {
                     chainedFile =
-                            JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
+                        JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
                 } finally {
                     workspaceClient.consumeAnyEntityAndClose(response);
                 }
 
                 if (chainedFile != null) {
                     objectsList = Optional.ofNullable(chainedFile.getElements())
-                            .orElseGet(Collections::emptyList)
-                            .stream()
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
+                        .orElseGet(Collections::emptyList)
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                     // Iterate over Objects List
                     if (!objectsList.isEmpty()) {
                         if (currentFileName != null) {
-                            distributeOnList(workParams, step, currentFileName, objectsList, useDistributorIndex, tenantId);
+                            distributeOnList(workParams, step, currentFileName, objectsList, useDistributorIndex,
+                                tenantId);
                         } else {
                             distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                         }
                     }
 
                     if (!StringUtils.isBlank(chainedFile.getNextFile())) {
-                        // Terminal recursion
-                        // distributeChainedFiles(workParams.getContainerName(), chainedFile.getNextFile(),
-                        //        workParams, step, useDistributorIndex,
-                        //        tenantId);
 
                         recursion = true;
 
@@ -446,6 +443,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
         final String contextId = VitamThreadUtils.getVitamSession().getContextId();
         final String uniqueStepId = step.getId();
+
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
                 new ItemStatus(OBJECTS_LIST_EMPTY).increment(step.getDistribution().getStatusOnEmptyDistribution()));
@@ -455,7 +453,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         int offset = 0;
         int sizeList = objectsList.size();
         boolean updateElementToProcess = true;
-        DistributorIndex distributorIndex = null;
+        DistributorIndex distributorIndex;
+
         final List<String> remainingElementsFromRecover = new ArrayList<>();
         /*
          * initFromDistributorIndex true if start after stop
@@ -471,49 +470,46 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         if (initFromDistributorIndex) {
             try {
                 distributorIndex = processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
-                if (null != distributorIndex) {
-                    if (!distributorIndex.getStepId().equals(step.getId())) {
-                        throw new ProcessingException(
-                            "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
-                                distributorIndex.getStepId());
-                    }
-                    /*
-                     * Handle the next level if the current level is not equals to the distributorIndex level
-                     * This mean that the current level us already treated
-                     */
-                    if (!distributorIndex.getLevel().equals(level)) {
-                        return false;
-                    }
-                    /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
-                     */
-                    if (distributorIndex.isLevelFinished()) {
-                        step.setStepResponses(distributorIndex.getItemStatus());
-                        return true;
-                    } else {
-                        /*
-                         * Initialize from distributor index
-                         */
-                        offset = distributorIndex.getOffset();
-                        distributorIndex.getItemStatus().getItemsStatus()
-                            .remove(PauseOrCancelAction.ACTION_PAUSE.name());
-                        step.setStepResponses(distributorIndex.getItemStatus());
-                        /*
-                         * As elements to process are calculated before stop of the server,
-                         * do not recalculate them after restart
-                         */
-                        updateElementToProcess = false;
-                        if (null != distributorIndex.getRemainingElements()) {
-                            remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
-                        }
-                    }
-                } else {
+                if (null == distributorIndex) {
                     throw new ProcessingException("DistributorIndex not found for the operation" + operationId);
                 }
-            } catch (ProcessingException e) {
-                throw e;
+
+                if (!distributorIndex.getStepId().equals(step.getId())) {
+                    throw new ProcessingException(
+                        "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
+                            distributorIndex.getStepId());
+                }
+                /*
+                 * Handle the next level if the current level is not equals to the distributorIndex level
+                 * This mean that the current level us already treated
+                 */
+                if (!distributorIndex.getLevel().equals(level)) {
+                    return false;
+                }
+                /*
+                 * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                 */
+                if (distributorIndex.isLevelFinished()) {
+                    step.setStepResponses(distributorIndex.getItemStatus());
+                    return true;
+                }
+                /*
+                 * Initialize from distributor index
+                 */
+                offset = distributorIndex.getOffset();
+                distributorIndex.getItemStatus().getItemsStatus()
+                    .remove(PauseOrCancelAction.ACTION_PAUSE.name());
+                step.setStepResponses(distributorIndex.getItemStatus());
+                /*
+                 * As elements to process are calculated before stop of the server,
+                 * do not recalculate them after restart
+                 */
+                updateElementToProcess = false;
+                if (null != distributorIndex.getRemainingElements()) {
+                    remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
+                }
+
             } catch (Exception e) {
-                LOGGER.error("Can't get distibutor index from workspace", e);
                 throw new ProcessingException("Can't get distibutor index from workspace", e);
             }
         }
@@ -555,40 +551,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 subList.retainAll(remainingElementsFromRecover);
             }
 
-            int subOffset = 0;
-            int subListSize = subList.size();
-
-            while (subOffset < subListSize) {
-                int nextSubOffset = subListSize > subOffset + bulkSize ?
-                    subOffset + bulkSize : subListSize;
-
-                List<String> newSubList = subList.subList(subOffset, nextSubOffset);
-
-                workerParameters.setObjectNameList(newSubList);
-                final WorkerTask task = new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId);
-
-                currentWorkerTaskList.add(task);
-                completableFutureList.add(prepare(task, operationId, tenantId));
-
-                subOffset = nextSubOffset;
-            }
+            prepareCurrentWorkerTaskAndCompletableLists(workerParameters, step, tenantId, operationId, requestId,
+                contractId, contextId, bulkSize, subList, completableFutureList, currentWorkerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
-            CompletableFuture<ItemStatus> reduce = sequence
-                .thenApplyAsync((List<ItemStatus> is) -> is.stream().reduce(step.getStepResponses(),
-                    (identity, iterationItemStatus) -> {
-                        if (PauseOrCancelAction.ACTION_CANCEL.name().equals(iterationItemStatus.getItemId()) &&
-                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
-                            cancelled.add(iterationItemStatus);
-                        }
-                        if (PauseOrCancelAction.ACTION_PAUSE.name().equals(iterationItemStatus.getItemId()) &&
-                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
-                            paused.add(iterationItemStatus);
-                        }
-                        return identity.setItemsStatus(iterationItemStatus);
-                    }));
+
+            CompletableFuture<ItemStatus> reduce =
+                getItemStatusCompletableFuture(step, cancelled, paused, sequence);
+
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
@@ -606,43 +576,46 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                 if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                     // Do not update index as we have to restart from old saved index
-                    fatalOccurred = true;
-                } else {
-                    if (remainingElements.isEmpty()) {
-                        offset = nextOffset;
-                    }
-
-                    distributorIndex =
-                        new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
-
-                    // All elements of the current level are treated so finish it
-                    if (offset >= sizeList) {
-                        distributorIndex.setLevelFinished(true);
-                    }
-
-                    // update persisted DistributorIndex if not Fatal
-                    try {
-                        processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
-                        LOGGER
-                            .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
-                                " GlobalStatus " + itemStatus.getGlobalStatus());
-                    } catch (Exception e) {
-                        LOGGER.error("Error while persist DistributorIndex", e);
-                        throw new ProcessingException("Error while persist DistributorIndex", e);
-                    }
+                    checkCancelledOrPaused(cancelled, paused);
+                    return true;
+                }
+                if (remainingElements.isEmpty()) {
+                    offset = nextOffset;
                 }
 
-                if (cancelled.size() > 0) {
-                    throw new PauseCancelException(PauseOrCancelAction.ACTION_CANCEL);
+                distributorIndex =
+                    new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
+
+                // All elements of the current level are treated so finish it
+                if (offset >= sizeList) {
+                    distributorIndex.setLevelFinished(true);
                 }
-                if (paused.size() > 0) {
-                    throw new PauseCancelException(PauseOrCancelAction.ACTION_PAUSE);
-                }
+
+                // update persisted DistributorIndex if not Fatal
+                updatePersitedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                    "Error while persist DistributorIndex");
+
+                checkCancelledOrPaused(cancelled, paused);
+
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
+
+
         }
         return true;
+    }
+
+    private void updatePersitedDistributorIndexIfNotFatal(String operationId, int offset,
+        DistributorIndex distributorIndex, ItemStatus itemStatus, String message) throws ProcessingException {
+        try {
+            processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
+            LOGGER
+                .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
+                    " GlobalStatus " + itemStatus.getGlobalStatus());
+        } catch (Exception e) {
+            throw new ProcessingException(message, e);
+        }
     }
 
     @VisibleForTesting
@@ -653,15 +626,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Distribution on stream.
      *
-     * @param workerParameters
-     * @param step
-     * @param level
+     * @param workerParameters         workerParameters
+     * @param step                     step
      * @param bufferedReader
      * @param initFromDistributorIndex
      * @param tenantId
      * @return
      */
-    private boolean distributeOnStream(WorkerParameters workerParameters, Step step, String level,
+    private boolean distributeOnStream(WorkerParameters workerParameters, Step step,
         BufferedReader bufferedReader, boolean initFromDistributorIndex, Integer tenantId)
         throws ProcessingException {
 
@@ -678,10 +650,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         // initialization
         int offset = 0;
+
         boolean updateElementToProcess = true;
-        DistributorIndex distributorIndex = null;
+        DistributorIndex distributorIndex;
         final List<String> remainingElementsFromRecover = new ArrayList<>();
-        Spliterator<String> spliterator;
 
         /*
          * Check if the initialization is from the DistributorIndex :
@@ -696,96 +668,100 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          * if the current level is not equals to the level in the initFromDistributorIndex
          * Then return false to passe to the next step
          */
+
+
         if (initFromDistributorIndex) {
+
             try {
                 distributorIndex = processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
-                if (distributorIndex != null) {
-                    if (!distributorIndex.getStepId().equals(step.getId())) {
-                        throw new ProcessingException(
-                            "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
-                                distributorIndex.getStepId());
-                    }
-
-                    /*
-                     * Handle the next level if the current level is not equal to the distributorIndex level,
-                     * this means that the current level is already treated
-                     */
-                    if (!distributorIndex.getLevel().equals(level)) {
-                        return false;
-                    }
-
-                    /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
-                     */
-                    if (distributorIndex.isLevelFinished()) {
-                        step.setStepResponses(distributorIndex.getItemStatus());
-                        return true;
-                    } else {
-                        /*
-                         * Initialization from DistributorIndex
-                         */
-                        offset = distributorIndex.getOffset();
-                        spliterator = bufferedReader.lines().skip(offset).spliterator();
-                        distributorIndex.getItemStatus().getItemsStatus()
-                            .remove(PauseOrCancelAction.ACTION_PAUSE.name());
-                        step.setStepResponses(distributorIndex.getItemStatus());
-
-                        /*
-                         * As elements to process are calculated before stop of the server,
-                         * do not recalculate them after restart
-                         */
-                        updateElementToProcess = false;
-                        if (distributorIndex.getRemainingElements() != null &&
-                            !distributorIndex.getRemainingElements().isEmpty()) {
-                            remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
-                        }
-                    }
-                } else {
+                if (distributorIndex == null) {
                     throw new ProcessingException(DISTRIBUTOR_INDEX_NOT_FOUND_FOR_THE_OPERATION + operationId);
                 }
-            } catch (ProcessingException e) {
-                throw e;
+
+                if (!distributorIndex.getStepId().equals(step.getId())) {
+                    throw new ProcessingException(
+                        "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
+                            distributorIndex.getStepId());
+                }
+
+
+
+                /*
+                 * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                 */
+                if (distributorIndex.isLevelFinished()) {
+                    step.setStepResponses(distributorIndex.getItemStatus());
+                    return true;
+                }
+
+                /*
+                 * Initialization from DistributorIndex
+                 */
+                offset = distributorIndex.getOffset();
+
+                skipOffsetLines(bufferedReader, offset);
+
+                distributorIndex.getItemStatus().getItemsStatus()
+                    .remove(PauseOrCancelAction.ACTION_PAUSE.name());
+                step.setStepResponses(distributorIndex.getItemStatus());
+
+                /*
+                 * As elements to process are calculated before stop of the server,
+                 * do not recalculate them after restart
+                 */
+                updateElementToProcess = false;
+                if (distributorIndex.getRemainingElements() != null &&
+                    !distributorIndex.getRemainingElements().isEmpty()) {
+
+                    remainingElementsFromRecover.addAll(distributorIndex.getRemainingElements());
+                }
+
             } catch (VitamException e) {
-                LOGGER.error(AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_GET_DISTIBUTOR_INDEX_FROM_WORKSPACE, e);
                 throw new ProcessingException(
                     AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_GET_DISTIBUTOR_INDEX_FROM_WORKSPACE, e);
             }
-        } else {
-            spliterator = new VitamReaderSpliterator(bufferedReader);
         }
 
         final Set<ItemStatus> cancelled = new HashSet<>();
         final Set<ItemStatus> paused = new HashSet<>();
-        boolean fatalOccurred = false;
-        boolean finishedStream = false;
+
 
         int bulkSize = findBulkSize(step.getDistribution());
         int globalBatchSize = VitamConfiguration.getDistributeurBatchSize() * bulkSize;
-        while (!finishedStream && !fatalOccurred) {
+
+        PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(bufferedReader.lines().iterator());
+
+
+
+        while (linesPeekIterator.hasNext()) {
+
             int nextOffset = offset + globalBatchSize;
-            List<String> subList = new ArrayList<>();
+            List<JsonLineModel> distributionList = new ArrayList<>();
             List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
             List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
-            List<String> finalSubList = subList;
-            for (int i = offset; i < nextOffset; i++) {
-                boolean notEndStream = spliterator.tryAdvance(value -> {
-                    try {
-                        JsonLineModel jsonLineModel = JsonHandler.getFromString(value, JsonLineModel.class);
-                        if (jsonLineModel != null && jsonLineModel.getId() != null) {
-                            finalSubList.add(jsonLineModel.getId());
-                        }
-                    } catch (InvalidParseOperationException e) {
-                        LOGGER.error("Invalid Json", e);
-                        throw new RuntimeException(e);
-                    }
-                });
 
-                if (!notEndStream) {
-                    finishedStream = true;
+            for (int i = offset; i < nextOffset && linesPeekIterator.hasNext(); i++) {
+
+                JsonLineModel currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
+
+                distributionList.add(currentJsonLineModel);
+
+                JsonLineModel nextJsonLineModel = null;
+
+                if (linesPeekIterator.hasNext()) {
+                    nextJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.peek());
+                }
+
+                boolean isLevelCompatible =
+                    nextJsonLineModel != null &&
+                        currentJsonLineModel.getDistribGroup() != null &&
+                        nextJsonLineModel.getDistribGroup() != null &&
+                        !currentJsonLineModel.getDistribGroup().equals(nextJsonLineModel.getDistribGroup());
+                //consider Level
+                if (isLevelCompatible) {
                     break;
                 }
             }
-            LOGGER.debug(String.valueOf(spliterator.estimateSize()));
 
             /*
              * Update only if level is finished in the distributorIndex
@@ -794,7 +770,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              */
             if (updateElementToProcess) {
                 // update the number of elements to process before start
-                processDataAccess.updateStep(operationId, step.getId(), subList.size(), false, tenantId);
+                processDataAccess.updateStep(operationId, step.getId(), distributionList.size(), false, tenantId);
             }
 
             /*
@@ -805,106 +781,179 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * and we have to treat all elements of this batch
              */
             if (!remainingElementsFromRecover.isEmpty()) {
-                subList = new ArrayList<>(subList);
-                subList.retainAll(remainingElementsFromRecover);
+
+                ArrayList<JsonLineModel> retainedList = new ArrayList<>();
+                for (JsonLineModel model : distributionList) {
+                    if (remainingElementsFromRecover.contains(model.getId())) {
+                        retainedList.add(model);
+                    }
+                }
+                distributionList = retainedList;
             }
 
-            int subOffset = 0;
-            int subListSize = subList.size();
+            prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, operationId,
+                requestId,
+                contractId,
+                contextId, bulkSize, distributionList, completableFutureList, currentWorkerTaskList);
 
-            while (subOffset < subListSize) {
-                int nextSubOffset = subListSize > subOffset + bulkSize ?
-                    subOffset + bulkSize : subListSize;
+            CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
-                // split the list of items to be processed according to the capacity of the workers
-                List<String> newSubList = subList.subList(subOffset, nextSubOffset);
-
-                // prepare & instanciate the worker tasks
-                workerParameters.setObjectNameList(newSubList);
-                final WorkerTask workerTask =
-                    new WorkerTask(
-                        new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                        tenantId, requestId, contractId, contextId);
-
-                currentWorkerTaskList.add(workerTask);
-                completableFutureList.add(prepare(workerTask, operationId, tenantId));
-
-                subOffset = nextSubOffset;
-            }
-
-            CompletableFuture<List<ItemStatus>> sequense = sequence(completableFutureList);
-            CompletableFuture<ItemStatus> reduce = sequense
-                .thenApplyAsync((List<ItemStatus> is) -> is.stream()
-                    .reduce(step.getStepResponses(), (identity, iterationItemStatus) -> {
-                        // compute cancelled actions
-                        if (PauseOrCancelAction.ACTION_CANCEL.name().equals(iterationItemStatus.getItemId()) &&
-                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
-                            cancelled.add(iterationItemStatus);
-                        }
-                        // compute paused actions
-                        if (PauseOrCancelAction.ACTION_PAUSE.name().equals(iterationItemStatus.getItemId()) &&
-                            iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
-                            paused.add(iterationItemStatus);
-                        }
-                        return identity.setItemsStatus(iterationItemStatus);
-                    }));
+            CompletableFuture<ItemStatus> reduce = getItemStatusCompletableFuture(step, cancelled, paused, sequence);
 
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
-
-                /**
+                /*
                  * As pause can occurs on not started WorkerTask,
                  * so we have to get the corresponding elements in order to execute them after restart
                  */
                 List<String> remainingElements =
-                    currentWorkerTaskList.stream().filter(x -> !x.isCompleted()).map(e -> e.getObjectName())
+                    currentWorkerTaskList.stream().filter(x -> !x.isCompleted()).map(WorkerTask::getObjectName)
                         .collect(Collectors.toList());
 
                 if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                     // Do not update index as we have to restart from old saved index
-                    fatalOccurred = true;
-                } else {
-                    if (remainingElements.isEmpty()) {
-                        offset = nextOffset;
-                    }
+                    checkCancelledOrPaused(cancelled, paused);
+                    return true;
 
-                    // update && persist DistributorIndex if not Fatal
-                    distributorIndex =
-                        new DistributorIndex(level, offset, itemStatus, requestId, step.getId(), remainingElements);
-
-                    // All elements of the current level are treated so finish it
-                    if (finishedStream) {
-                        distributorIndex.setLevelFinished(true);
-                    }
-
-                    try {
-                        processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
-                        LOGGER
-                            .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
-                                " GlobalStatus " + itemStatus.getGlobalStatus());
-                    } catch (VitamException e) {
-                        LOGGER.error(AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX, e);
-                        throw new ProcessingException(
-                            AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX, e);
-                    }
                 }
 
-                if (cancelled.size() > 0) {
-                    throw new PauseCancelException(PauseOrCancelAction.ACTION_CANCEL);
+                if (remainingElements.isEmpty()) {
+                    offset = nextOffset;
                 }
-                if (paused.size() > 0) {
-                    throw new PauseCancelException(PauseOrCancelAction.ACTION_PAUSE);
+                // update && persist DistributorIndex if not Fatal
+                distributorIndex =
+                    new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
+                        remainingElements);
+                // All elements of the current level are treated so finish it
+                if (!linesPeekIterator.hasNext()) {
+                    distributorIndex.setLevelFinished(true);
                 }
+                updatePersitedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
+                    AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX);
+
+
+                checkCancelledOrPaused(cancelled, paused);
+
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+
+                throw new ProcessingException(e);
             }
         }
         return true;
     }
 
+    private void skipOffsetLines(BufferedReader bufferedReader, int offset) throws ProcessingException {
+        for (int i = 0; i < offset; i++) {
+            try {
+                bufferedReader.readLine();
+            } catch (IOException e) {
+                throw new ProcessingException(e);
+            }
+        }
+    }
+
+    private JsonLineModel readJsonLineModelFromBufferFromString(String value) throws ProcessingException {
+        try {
+            return JsonHandler.getFromString(value, JsonLineModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException("Invalid Model");
+        }
+    }
+
+    private void prepareCurrentWorkerTaskAndCompletableLists(WorkerParameters workerParameters, Step step,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId, int bulkSize,
+        List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
+        List<WorkerTask> currentWorkerTaskList) {
+        int subOffset = 0;
+        int subListSize = subList.size();
+
+        while (subOffset < subListSize) {
+            int nextSubOffset = subListSize > subOffset + bulkSize ?
+                subOffset + bulkSize : subListSize;
+
+            // split the list of items to be processed according to the capacity of the workers
+            List<String> newSubList = subList.subList(subOffset, nextSubOffset);
+
+            // prepare & instanciate the worker tasks
+            workerParameters.setObjectNameList(newSubList);
+
+            final WorkerTask workerTask =
+                new WorkerTask(
+                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
+                    tenantId, requestId, contractId, contextId);
+
+            currentWorkerTaskList.add(workerTask);
+            completableFutureList.add(prepare(workerTask, operationId, tenantId));
+
+            subOffset = nextSubOffset;
+        }
+    }
+
+    private void prepareCurrentWorkerTaskAndCompletableListsOnStream(WorkerParameters workerParameters, Step step,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId, int bulkSize,
+        List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
+        List<WorkerTask> currentWorkerTaskList) {
+        int distribOffSet = 0;
+        int distributionSize = distributionList.size();
+
+        while (distribOffSet < distributionSize) {
+            int nextDistributionOffset = distributionSize > distribOffSet + bulkSize ?
+                distribOffSet + bulkSize : distributionSize;
+
+            // split the list of items to be processed according to the capacity of the workers
+            List<JsonLineModel> newSubList = distributionList.subList(distribOffSet, nextDistributionOffset);
+
+            // prepare & instantiate the worker tasks
+            workerParameters
+                .setObjectNameList(newSubList.stream().map(JsonLineModel::getId).collect(Collectors.toList()));
+            workerParameters
+                .setObjectMetadataList(newSubList.stream().map(JsonLineModel::getParams).collect(Collectors.toList()));
+
+            final WorkerTask workerTask =
+                new WorkerTask(
+                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
+                    tenantId, requestId, contractId, contextId);
+
+            currentWorkerTaskList.add(workerTask);
+            completableFutureList.add(prepare(workerTask, operationId, tenantId));
+
+            distribOffSet = nextDistributionOffset;
+        }
+    }
+
+    private CompletableFuture<ItemStatus> getItemStatusCompletableFuture(Step step, Set<ItemStatus> cancelled,
+        Set<ItemStatus> paused, CompletableFuture<List<ItemStatus>> sequence) {
+
+        return sequence
+            .thenApplyAsync((List<ItemStatus> is) -> is.stream()
+                .reduce(step.getStepResponses(), (identity, iterationItemStatus) -> {
+                    // compute cancelled actions
+                    if (PauseOrCancelAction.ACTION_CANCEL.name().equals(iterationItemStatus.getItemId()) &&
+                        iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
+                        cancelled.add(iterationItemStatus);
+                    }
+                    // compute paused actions
+                    if (PauseOrCancelAction.ACTION_PAUSE.name().equals(iterationItemStatus.getItemId()) &&
+                        iterationItemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
+                        paused.add(iterationItemStatus);
+                    }
+                    return identity.setItemsStatus(iterationItemStatus);
+                }));
+
+    }
+
+    private void checkCancelledOrPaused(Set<ItemStatus> cancelled, Set<ItemStatus> paused) {
+        if (!cancelled.isEmpty()) {
+            throw new PauseCancelException(PauseOrCancelAction.ACTION_CANCEL);
+        }
+        if (!paused.isEmpty()) {
+            throw new PauseCancelException(PauseOrCancelAction.ACTION_PAUSE);
+        }
+    }
+
     /**
-     * @param task
+     * @param task        task
      * @param operationId
      * @param tenantId
      * @return

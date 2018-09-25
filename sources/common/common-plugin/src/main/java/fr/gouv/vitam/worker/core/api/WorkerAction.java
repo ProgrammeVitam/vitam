@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -71,9 +72,17 @@ public interface WorkerAction {
 
         try {
             List<ItemStatus> aggregateItemStatus = new ArrayList<>();
-            for (String objectId : workerParameters.getObjectNameList()) {
+
+            List<String> objectNameList = workerParameters.getObjectNameList();
+            List<JsonNode> objectMetadataList = workerParameters.getObjectMetadataList();
+
+            for (int i = 0; i < objectNameList.size(); i++) {
+
+                String objectId = objectNameList.get(i);
+                JsonNode metadata = objectMetadataList != null && !objectMetadataList.isEmpty() ? objectMetadataList.get(i) : null;
 
                 workerParameters.setObjectName(objectId);
+                workerParameters.setObjectMetadata(metadata);
                 handler.setCurrentObjectId(objectId);
 
                 ItemStatus itemStatus = execute(workerParameters, handler);

@@ -17,11 +17,13 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -41,6 +43,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -52,6 +55,7 @@ import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
@@ -74,10 +78,12 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -104,9 +110,6 @@ public class ProcessDistributorImplTest {
     private static final String FILE_WITH_GUIDS = "file_with_guids.jsonl";
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
-
-    private String DISTRIBUTOR_INDEX = "distributorIndex";
-    private String NOLEVEL = "_no_level";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -153,6 +156,11 @@ public class ProcessDistributorImplTest {
         processDistributor = new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
             workspaceClientFactory);
 
+        if (Thread.currentThread() instanceof VitamThreadFactory.VitamThread) {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT);
+            VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
+            VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+        }
 
     }
 
@@ -230,6 +238,7 @@ public class ProcessDistributorImplTest {
         return getStep("FakeStepId", "FakeStepName", distributionKind, distributorElement,
             ProcessBehavior.NOBLOCKING, null);
     }
+
     private ProcessStep getStep(DistributionKind distributionKind, String distributorElement, Integer bulkSize) {
         return getStep("FakeStepId", "FakeStepName", distributionKind, distributorElement,
             ProcessBehavior.NOBLOCKING, bulkSize);
@@ -257,9 +266,7 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeRequiredParametersThenOK() {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -311,9 +318,7 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeManifestThenOK() throws WorkerAlreadyExistsException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final ProcessDistributor processDistributor =
@@ -335,9 +340,7 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeManifestThenFATAL() throws WorkerAlreadyExistsException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId,
@@ -347,13 +350,12 @@ public class ProcessDistributorImplTest {
     }
 
 
+    //Exemple here
     @Test
     @RunWithCustomExecutor
     public void whenDistributeDistributionKindListWithLevelOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         int numberOfObjectIningestLevelStack = 170;
@@ -368,7 +370,9 @@ public class ProcessDistributorImplTest {
                 getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
+
         assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
+
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
@@ -382,9 +386,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeDistributionKindListWithLevelKO() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -422,9 +424,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeDistributionKindListWithLevelWARNING() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+        ;
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -455,14 +455,13 @@ public class ProcessDistributorImplTest {
         assertTrue(imap.get("ItemId").getStatusMeter().get(StatusCode.WARNING.getStatusLevel()) == 1);
     }
 
+
     @Test
     @RunWithCustomExecutor
     public void whenDistributeDistributionKindListWithLevelFATAL() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -486,9 +485,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeKindLargeFileOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_WITH_GUIDS);
@@ -510,27 +507,31 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindFullLargeFileOK() throws WorkerAlreadyExistsException,
+    public void whenDistributeKindFullLargeFileOK() throws
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
-        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
+
 
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
         Response response =
             Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, FILE_FULL_GUIDS)).thenReturn(response);
+
+
+        when(workspaceClient.getObject("FakeOperationId", FILE_FULL_GUIDS)).thenReturn(response);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS), operationId,
                 PauseRecover.NO_RECOVER);
 
-        assertNotNull(itemStatus);
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
-        Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
-        assertNotNull(imap);
-        assertFalse(imap.isEmpty());
+        assertThat(itemStatus).isNotNull();
+
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        Map<String, ItemStatus> item = itemStatus.getItemsStatus();
+
+        assertThat(item).isNotNull();
+
+        assertThat(item).isNotEmpty();
     }
 
     @Test
@@ -538,9 +539,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeKindFullLargeFileResumptionAfterPauseOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, ProcessingStorageWorkspaceException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
@@ -551,9 +550,11 @@ public class ProcessDistributorImplTest {
         Step step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS);
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
 
+        String NOLEVEL = "_no_level";
         DistributorIndex distributorIndex =
             new DistributorIndex(NOLEVEL, 7, new ItemStatus(), FAKE_REQUEST_ID, step.getId(), new ArrayList<>());
 
+        String DISTRIBUTOR_INDEX = "distributorIndex";
         when(processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId)).thenReturn(distributorIndex);
 
         ItemStatus itemStatus =
@@ -570,9 +571,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeKindLargeFileFATAL() throws
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File invalidJsonLFile = PropertiesUtils.getResourceFile(FILE_GUIDS_INVALID);
@@ -592,9 +591,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeKindLargeFileUNKNOWN() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_EMPTY_GUIDS);
@@ -617,9 +614,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeKindLargeOneChainedFileOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
@@ -643,9 +638,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeKindLargeListChainedFileOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_00_JSON);
@@ -681,9 +674,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeKindLargeChainedFileFATAL() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
@@ -709,9 +700,7 @@ public class ProcessDistributorImplTest {
         // Given
         String list_elements = "list_guids_with_7_elements.json";
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -769,9 +758,7 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributePauseOK() throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -834,9 +821,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributePauseAndWorkerTaskExceptionThenPauseOK() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         WorkerNotFoundClientException, WorkerServerClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File resourceFile = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -905,9 +890,7 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeCancelOK() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
-        VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
-        VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
+
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
