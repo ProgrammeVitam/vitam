@@ -14,7 +14,7 @@ L'IHM de recette est développée à des fins de test uniquement.
 Elle contient des interfaces utilisateurs permettant, par tenant, de :
 
   * Administrer les collections MongoDB (référentiels, journaux, objets...)
-  * Lancer des tests (performance, fonctionnels, requêtes DSL ) 
+  * Lancer des tests (performance, fonctionnels, requêtes DSL )
   * Sécuriser manuellement les journaux des opérations
 
 
@@ -46,20 +46,21 @@ Les pages accessibles sont réparties de la façon suivante :
 **Admin**
 
 	* Administration des collections
-        * Recherche et Modification d'un fichier	
+        * Recherche et Modification d'un fichier
         * Ajout et suppression d'un parent
-        * Test audit correctif 
+        * Test audit correctif
 
 **Tests**
 
 	* Tests de performance
 	* Tests fonctionnels
 	* Tests requêtes DSL
-        * Visualisation du pgraphe 
+  * Visualisation du graphe
+  * Test feature
 
 **Sécurisation**
 
-	* Sécurisation des journaux 
+	* Sécurisation des journaux
 
 
 Fil d'Ariane
@@ -89,7 +90,7 @@ Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu d
 
 .. image:: images/selection_tenant.png
 
-Une fois le tenant sélectionné, les boutons précédement grisés sont activés et l'intégralité de l'interface de recette est disponible.
+Une fois le tenant sélectionné, les boutons précédemment grisés sont activés et l'intégralité de l'interface de recette est disponible.
 
 Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
