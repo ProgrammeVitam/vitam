@@ -25,7 +25,7 @@ Pour le model SEDA, il est équivalent à l'**ArchiveUnit**, notamment pour les 
 Au plus, un seul _groupe_ d'_objets_ d'archives (**Objects**) est attaché à une _Unit_. Cela signifie que si une _Unit_ doit avoir plus d'un _groupe_ d'_objets_ d'archive attaché, vous devez spécifier des sous-Units à l'_Unit_ principale, chaque sous-Unit n'ayant qu'un _groupe_ d'_objets_ d'archives attaché. Un même _groupe_ d'_objets_ d'archives peut par contre être attaché à de multiples _Units_.
 
 Aucun effacement n'est autorisé, ni aucune mise à jour complète (seules les mises à jours partielles sont autorisées via la commande PUT).
-Les mises à jour ne sont authorisées que par _Unit_, il n'y a pas de mise à jour en masse.
+Les mises à jour ne sont autorisées que par _Unit_, il n'y a pas de mise à jour en masse.
 
 ### Structuration des métadonnées
 
