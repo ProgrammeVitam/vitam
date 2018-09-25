@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -445,6 +446,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
         int lineNumber = 1;
         File csvFileReader = convertInputStreamToFile(stream, CSV);
+        InputStream csvFileInputStream = null;
 
         try (FileReader reader = new FileReader(csvFileReader)) {
             final CSVParser parser =
@@ -498,12 +500,14 @@ public class AgenciesService implements VitamAutoCloseable {
                 throw new ReferentialException(e);
             }
 
-            agenciesToImport = AgenciesParser.readFromCsv(new FileInputStream(csvFileReader));
+            csvFileInputStream = new FileInputStream(csvFileReader);
+            agenciesToImport = AgenciesParser.readFromCsv(csvFileInputStream);
 
             if (errorsMap.size() > 0) {
                 throw new ReferentialException(INVALID_CSV_FILE);
             }
         } finally {
+        	IOUtils.closeQuietly(csvFileInputStream);
             if (csvFileReader != null) {
                 if (!csvFileReader.delete()) {
                     LOGGER.warn("Failed to delete file");
@@ -593,6 +597,7 @@ public class AgenciesService implements VitamAutoCloseable {
         manager.logStarted(AGENCIES_IMPORT_EVENT);
         InputStream reportStream;
         File file = null;
+        InputStream csvFileInputStream = null;
         try {
 
             file = convertInputStreamToFile(stream, CSV);
@@ -619,7 +624,8 @@ public class AgenciesService implements VitamAutoCloseable {
                 eip + ".json");
 
             // store source File
-            backupService.saveFile(new FileInputStream(file), eip, IMPORT_AGENCIES_BACKUP_CSV, DataCategory.REPORT,
+            csvFileInputStream = new FileInputStream(file);
+            backupService.saveFile(csvFileInputStream, eip, IMPORT_AGENCIES_BACKUP_CSV, DataCategory.REPORT,
                 eip + ".csv");
             // store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
@@ -660,6 +666,7 @@ public class AgenciesService implements VitamAutoCloseable {
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + e.getMessage(), null);
         } finally {
+        	IOUtils.closeQuietly(csvFileInputStream);
             if (file != null) {
                 if (!file.delete()) {
                     LOGGER.warn("Failed to delete file");
