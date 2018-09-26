@@ -129,7 +129,7 @@ public class WebApplicationResourceTest {
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
     private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
-    private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String OPTIONS = "{\"dslRequest\": {\"$query\": [{\"$eq\": {\"#id\": \"toto\"}}],\"$filter\": {},\"$projection\": {}},\"dataObjectVersionToExport\": { }}";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";

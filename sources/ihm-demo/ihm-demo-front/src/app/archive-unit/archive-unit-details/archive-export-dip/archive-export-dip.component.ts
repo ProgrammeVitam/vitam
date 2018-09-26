@@ -1,7 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { SelectItem, ConfirmationService } from 'primeng/primeng';
-
 import { ArchiveUnitService } from '../../archive-unit.service';
+import { ReferentialHelper } from '../../../referentials/referential.helper';
+import { plainToClass } from 'class-transformer';
+import { AccessContract } from '../../../referentials/details/access-contract/access-contract';
+import { ReferentialsService } from '../../../referentials/referentials.service';
+import { ErrorService } from '../../../common/error.service';
+import { AccessContractService } from '../../../common/access-contract.service';
 
 @Component({
   selector: 'vitam-archive-export-dip',
@@ -14,9 +18,22 @@ export class ArchiveExportDIPComponent implements OnInit {
   exportType = 'AU';
   display = false;
 
-  constructor(private archiveUnitService: ArchiveUnitService) { }
+  contract: AccessContract;
+  updatedFields: any = {};
+
+  constructor(private archiveUnitService: ArchiveUnitService, 
+    private searchReferentialsService: ReferentialsService,
+    private errorService: ErrorService,
+    private referentialHelper: ReferentialHelper,
+    private accessContractService: AccessContractService) { }
 
   ngOnInit() {
+    this.initCurrentContract(localStorage.getItem("accessContract"));
+    this.accessContractService.getUpdate().subscribe(
+      (contractId: string) => {
+        this.initCurrentContract(contractId);
+      }
+    );
   }
 
   getQuery() {
@@ -68,7 +85,13 @@ export class ArchiveExportDIPComponent implements OnInit {
         "$projection": {}
       };
     }
-    return query;
+    
+    return {
+      "dslRequest": query,
+      "dataObjectVersionToExport": {
+        "dataObjectVersions": this.updatedFields.DataObjectVersion
+      }
+    };
   }
 
   exportDIP() {
@@ -77,5 +100,28 @@ export class ArchiveExportDIPComponent implements OnInit {
           this.display = true;
         }
     );
+  }
+
+  initCurrentContract(accessContract: string) {
+    this.searchReferentialsService.getAccessContractById(accessContract).subscribe(
+      (value) => {
+        this.initData(value);
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      }
+    );
+  }
+
+  initData(value) {
+    this.contract = plainToClass(AccessContract, value.$results)[0];
+    if (this.contract.DataObjectVersion === undefined) {
+      this.contract.DataObjectVersion = [];
+    }
+
+    if(this.contract.EveryDataObjectVersion) {
+      this.updatedFields = ReferentialHelper.optionLists.DataObjectVersion;      
+    } else {
+      this.updatedFields = this.contract.DataObjectVersion;
+    }
   }
 }

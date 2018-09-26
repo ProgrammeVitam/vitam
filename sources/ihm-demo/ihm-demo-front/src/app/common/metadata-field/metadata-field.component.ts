@@ -1,7 +1,7 @@
-import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
-import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
-import {ReferentialHelper} from '../../referentials/referential.helper';
-import {SelectItem} from 'primeng/primeng';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
+import { ArchiveUnitHelper } from '../../archive-unit/archive-unit.helper';
+import { ReferentialHelper } from '../../referentials/referential.helper';
+import { SelectItem } from 'primeng/primeng';
 
 @Component({
   selector: 'vitam-metadata-field',
@@ -23,6 +23,8 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   @Input() canUpdate = true;
   @Input() disabled: boolean;
   @Input() updatedFields: {};
+  // Actually applied only for Referential Helper in case of multiselect
+  @Input() optionsFilter: string[] = [];
 
   initialValue: any;
   typeOfField: string;
@@ -62,6 +64,10 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
         }
         this.init();
       }
+    }
+
+    if(change.optionsFilter && this.updateMode && this.referentialHelper.useMultiSelect(this.originalTitle)) {
+      this.options = this.referentialHelper.getOptions(this.originalTitle, this.optionsFilter);
     }
   }
 

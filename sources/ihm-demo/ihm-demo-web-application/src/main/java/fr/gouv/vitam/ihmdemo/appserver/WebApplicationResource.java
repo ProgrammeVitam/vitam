@@ -3294,13 +3294,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/dipexport")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("dipexport:create")
-    public Response createDIPForExport(@Context HttpServletRequest request, String criteria) {
+    public Response createDIPForExport(@Context HttpServletRequest request, DipExportRequest criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
-            JsonNode queryDSL = JsonHandler.getFromString(criteria);
-            DipExportRequest dipExportRequest = new DipExportRequest(queryDSL);
             final RequestResponse<JsonNode> response = UserInterfaceTransactionManager.exportDIP(
-                dipExportRequest, UserInterfaceTransactionManager.getVitamContext(request));
+                    criteria, UserInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
