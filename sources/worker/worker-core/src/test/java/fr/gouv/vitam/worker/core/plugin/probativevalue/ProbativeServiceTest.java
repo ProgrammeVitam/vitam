@@ -226,7 +226,7 @@ public class ProbativeServiceTest {
 
         assertThat(parameter.getReports().size()).isEqualTo(1);
         assertThat(parameter.getReports().get(0).getStatus()).isEqualTo(EvidenceStatus.OK);
-        assertThat(parameter.getLogbookEvent().getLastPersistedDate()).isEqualTo("2018-07-05T06:15:17.106");
+        assertThat(parameter.getStorageLogbookEvent().getLastPersistedDate()).isEqualTo("2018-07-05T06:15:17.106");
     }
 
     @Test
