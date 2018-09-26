@@ -313,3 +313,98 @@ Elimination définitive des unités archivistiques (ELIMINATION_ACTION)
 
 .. image:: images/workflow_elimination_action.png
     :align: center
+
+
+Rapport élimination
+###################
+
+Le rapport d’élimination est un fichier JSON généré par la solution logicielle Vitam lorsqu’une opération d’élimination se termine. Cette section décrit la manière dont ce rapport est structuré.
+
+Exemple de JSON : rapport d'élimination
+=======================================
+
+.. code-block:: json
+  
+  {
+  "units": [
+    {
+      "id": "id_unit_1",
+      "originatingAgency": "sp1",
+      "opi": "opi1",
+      "status": "DELETED",
+      "objectGroupId": "id_got_1"
+    },
+    {
+      "id": "id_unit_2",
+      "originatingAgency": "sp2",
+      "opi": "opi2",
+      "status": "GLOBAL_STATUS_KEEP",
+      "objectGroupId": "id_got_2"
+    },
+    {
+      "id": "id_unit_3",
+      "originatingAgency": "sp3",
+      "opi": "opi3",
+      "status": "NON_DESTROYABLE_HAS_CHILD_UNITS",
+      "objectGroupId": "id_got_3"
+    },
+    {
+      "id": "id_unit_4",
+      "originatingAgency": "sp4",
+      "opi": "opi4",
+      "status": "GLOBAL_STATUS_KEEP",
+      "objectGroupId": "id_got_2"
+    },
+      {
+      "id": "id_unit_5",
+      "originatingAgency": "sp5",
+      "opi": "opi5",
+      "status": "DELETED",
+      "objectGroupId": "id_got_5"
+    },
+  ],
+  "objectGroups": [
+    {
+      "id": "id_got_1",
+      "originatingAgency": "sp1",
+      "opi": "opi1",
+      "objectIds": [
+        "id_got_1_object_1",
+        "id_got_1_object_2"
+      ],
+      "status": "DELETED"
+    },
+    {
+      "id": "id_got_5",
+      "originatingAgency": "sp5",
+      "opi": "opi5",
+      "status": "PARTIAL_DETACHMENT",
+      "deletedParentUnitIds": [
+        "id_unit_5"
+      ]
+    }
+  ]
+  }
+
+Détails du rapport
+==================
+
+Chaque section du rapport correspond au résultat de l’élimination 
+    "id": Identifiant de l’objet ou groupe d’objets ou unité archivistique
+    "originatingAgency" : service producteur
+    "opi" : identifiant de l'opération d'élimination 
+   
+   Les statuts possibles pour les unités archivistiques :
+   
+      - GLOBAL_STATUS_KEEP 
+           "objectGroupId": "id_got_2" : identifiant du groupe d'objet auxquel appartient l'AU éliminée
+     
+      - NOT_DESTROYABLE_HAS_CHILD_UNIT
+      - DELETED Les unités sans enfants ont pour statut d'élimination DELETED et sont supprimées 
+           "objectIds": [ "id_got_1_object_1", "id_got_1_object_2" ] : 
+  
+
+   Les statuts possibles pour les GOT : 
+
+      - DELETED 
+      - PARTIAL_DETACHMENT 
