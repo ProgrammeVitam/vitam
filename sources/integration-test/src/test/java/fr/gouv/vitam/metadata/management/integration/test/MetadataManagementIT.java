@@ -1001,7 +1001,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             JsonNode logbookNode = logbook.get("$results").get(0);
             JsonNode preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
             assertEquals(preparationEvent.get(3).get("outDetail").asText(),
                 "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
             assertEquals(preparationEvent.get(4).get("outDetail").asText(),
@@ -1024,7 +1024,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
             assertEquals(preparationEvent.get(3).get("outDetail").asText(),
                 "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
             assertEquals(preparationEvent.get(4).get("outDetail").asText(),
@@ -1048,7 +1048,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
             assertEquals(preparationEvent.get(3).get("outDetail").asText(),
                 "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
             assertEquals(preparationEvent.get(4).get("outDetail").asText(),
@@ -1071,7 +1071,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK");
+                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
             assertEquals(preparationEvent.get(3).get("outDetail").asText(),
                 "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
             assertEquals(preparationEvent.get(4).get("outDetail").asText(),
@@ -1108,9 +1108,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
             assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_LOCK.KO");
+                "CHECK_CONCURRENT_WORKFLOW_LOCK.KO");
             assertThat(preparationEvent.get(2).get("evDetData").asText())
-                .contains("Concurrent reclassification process(es) found");
+                .contains("Concurrent process(es) found");
 
 
             // 3. Start initial Reclassification en mode continue

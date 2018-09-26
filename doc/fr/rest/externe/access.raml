@@ -195,7 +195,29 @@ documentation:
           enum: [ "application/json" ]
       description: |
         Exécute une opération d'analyse d'élimination des unités archivistiques.
-      is: [AccessTraits.EliminationAnalysisResponseAsync]
+      is: [AccessTraits.EliminationResponseAsync]
+      responses:
+        200:
+          description: Success
+          body:
+            application/json:
+              description: Success response
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+  /action:
+    displayName: Opération d'élimination définitive des unités archivistiques éliminables.
+    description: |
+      Opération d'élimination définitive des unités archivistiques éliminables.
+    post:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/json" ]
+      description: |
+        Exécute une opération d'élimination définitive des unités archivistiques.
+      is: [AccessTraits.EliminationResponseAsync]
       responses:
         200:
           description: Success

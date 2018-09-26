@@ -89,7 +89,7 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
 
         try {
 
-            EliminationAnalysisResult eliminationAnalysisResult = getUnitEliminationAnalysisResult(param, handler);
+            EliminationAnalysisResult eliminationAnalysisResult = getUnitEliminationAnalysisResult(param);
 
             String unitId = param.getObjectName();
             indexUnit(unitId, eliminationAnalysisResult);
@@ -121,12 +121,14 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
         }
     }
 
-    private EliminationAnalysisResult getUnitEliminationAnalysisResult(WorkerParameters param, HandlerIO handler)
+    private EliminationAnalysisResult getUnitEliminationAnalysisResult(WorkerParameters params)
         throws EliminationException {
-
-        // FIXME : Should load unit from distribution (JSONL params not implemented yet)
-        return EliminationUtils.loadEntryMetadata(
-            handler, "unitMetadata", param.getObjectName(), EliminationAnalysisResult.class);
+        try {
+            return JsonHandler.getFromJsonNode(params.getObjectMetadata(), EliminationAnalysisResult.class);
+        } catch (Exception e) {
+            throw new EliminationException(StatusCode.FATAL, "Could not retrieve unit elimination analysis information",
+                e);
+        }
     }
 
     @Override

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
+package fr.gouv.vitam.worker.core.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.error.VitamError;
@@ -71,12 +71,12 @@ public class LightweightWorkflowLock {
     /**
      * Returns all concurrent non completed (running / paused) workflows.
      *
-     * @param workflowId the workflow Id to check
+     * @param workflowIds the workflow Ids to check
      * @param currentProcessId the current process id (filtred from result)
      * @return the list of concurrent workflows if any, or an empty list if no concurrent workflow is found.
      */
-    public List<ProcessDetail> listConcurrentReclassificationWorkflows(String workflowId, String currentProcessId)
-        throws ReclassificationException, VitamClientException {
+    public List<ProcessDetail> listConcurrentWorkflows(List<String> workflowIds, String currentProcessId)
+        throws VitamClientException {
 
         try (ProcessingManagementClient client = processingManagementClientFactory.getClient()) {
 
@@ -89,14 +89,13 @@ public class LightweightWorkflowLock {
                     .collect(Collectors.toList())
             );
             // Workflow id
-            query.setWorkflows(Collections.singletonList(workflowId));
+            query.setWorkflows(workflowIds);
 
             RequestResponse<ProcessDetail> processDetailRequestResponse = client.listOperationsDetails(query);
             if (!processDetailRequestResponse.isOk()) {
 
                 VitamError error = (VitamError) processDetailRequestResponse;
-                throw new ReclassificationException(StatusCode.FATAL,
-                    "An error occurred during reclassification process listing : " + error.getDescription());
+                throw new VitamClientException("Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
             }
 
             List<ProcessDetail> processDetails =

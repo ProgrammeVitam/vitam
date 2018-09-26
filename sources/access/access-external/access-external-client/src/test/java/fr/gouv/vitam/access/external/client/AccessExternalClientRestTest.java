@@ -296,6 +296,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         public Response startEliminationAnalysis(String queryDsl) {
             return expectedResponse.post();
         }
+
+        @POST
+        @Path("/elimination/action")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response startEliminationAction(String queryDsl) {
+            return expectedResponse.post();
+        }
     }
 
     @Test
@@ -864,6 +872,69 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
         assertThat(client
             .startEliminationAnalysis(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    /*
+     * Elimination action
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenResourceOKWhenStartEliminationActionThenReturnOK()
+        throws Exception {
+
+        RequestResponseOK responseOK = new RequestResponseOK();
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client.startEliminationAction(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            eliminationRequestBody).isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInternalServerError_whenStartEliminationAction_ThenRaiseAnExeption() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAction(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceNotFound_whenStartEliminationAction_ThenRaiseAnException()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAction(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequest_whenStartEliminationAction_ThenRaiseAnException()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsql));
+
+        assertThat(client
+            .startEliminationAction(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), eliminationRequestBody)
             .getHttpCode())
             .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }

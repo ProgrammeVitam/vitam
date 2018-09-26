@@ -392,6 +392,10 @@ public class VitamConfiguration {
      */
     private static long eliminationAnalysisThreshold = 100_000L;
     /**
+     * Threshold for elimination action
+     */
+    private static long eliminationActionThreshold = 10_000L;
+    /**
      * Default OriginatingAgency for DIP export with multiple originating agencies
      */
     private static final String DEFAULT_ORIGINATING_AGENCY_FOR_EXPORT = "Export VITAM";
@@ -806,6 +810,9 @@ public class VitamConfiguration {
         }
         if(null != parameters.getEliminationAnalysisThreshold()) {
             setEliminationAnalysisThreshold(parameters.getEliminationAnalysisThreshold());
+        }
+        if(null != parameters.getEliminationActionThreshold()) {
+            setEliminationActionThreshold(parameters.getEliminationActionThreshold());
         }
         if (null != parameters.getCacheControlDelay()) {
             setCacheControlDelay(parameters.getCacheControlDelay());
@@ -1866,6 +1873,14 @@ public class VitamConfiguration {
 
     public static void setEliminationAnalysisThreshold(long eliminationAnalysisThreshold) {
         VitamConfiguration.eliminationAnalysisThreshold = eliminationAnalysisThreshold;
+    }
+
+    public static long getEliminationActionThreshold() {
+        return eliminationActionThreshold;
+    }
+
+    public static void setEliminationActionThreshold(long eliminationActionThreshold) {
+        VitamConfiguration.eliminationActionThreshold = eliminationActionThreshold;
     }
 
     /**

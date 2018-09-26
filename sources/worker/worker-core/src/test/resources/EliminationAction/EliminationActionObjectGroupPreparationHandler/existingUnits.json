@@ -1,0 +1,19 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 1,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#id": "id_unit_21"
+    },
+    {
+      "#id": "id_unit_52"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

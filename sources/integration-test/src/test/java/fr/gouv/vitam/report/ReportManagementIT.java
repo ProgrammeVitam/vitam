@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -63,7 +65,9 @@ import org.junit.Test;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,8 +197,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         // Then
         assertThat(requestResponse.getStatus()).isEqualTo(200);
 
-        checkGeneratedReportEqualsExpectedJsonl("test.json",
-            "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
+        checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
     }
 
     @Test
@@ -225,8 +228,9 @@ public class ReportManagementIT extends VitamRuleRunner {
     private void checkGeneratedReportEqualsExpectedJsonl(String workspaceReportFile, String expectedJsonlResources)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
 
-        Response response = workspaceClient.getObject(PROCESS_ID, workspaceReportFile);
-        try (InputStream reportIS = response.readEntity(InputStream.class);
+
+        try (InputStream reportIS = new VitamAsyncInputStream(
+            workspaceClient.getObject(PROCESS_ID, workspaceReportFile));
             InputStream expectedIS = PropertiesUtils.getResourceAsStream(expectedJsonlResources)) {
 
 
@@ -239,7 +243,6 @@ public class ReportManagementIT extends VitamRuleRunner {
                 JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id));
             }
         }
-        response.close();
     }
 
     private Map<String, String> parseJsonLineReport(InputStream inputStream) {

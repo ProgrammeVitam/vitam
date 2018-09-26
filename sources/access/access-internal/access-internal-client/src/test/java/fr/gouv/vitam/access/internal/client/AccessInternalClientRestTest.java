@@ -340,8 +340,14 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-
-
+        @Override
+        @POST
+        @Path("/elimination/action")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response startEliminationActionWorkflow(EliminationRequestBody eliminationRequestBody) {
+            return expectedResponse.post();
+        }
     }
 
     @RunWithCustomExecutor
@@ -714,6 +720,72 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
         assertThat(client
             .startEliminationAnalysis(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    /*
+     * Elimination action
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenResourceOKWhenStartEliminationActionThenReturnOK()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        RequestResponseOK responseOK = new RequestResponseOK();
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client.startEliminationAction(eliminationRequestBody)
+            .isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenInternalServerError_whenStartEliminationAction_ThenRaiseAnExeption() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAction(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRessourceNotFound_whenStartEliminationAction_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAction(eliminationRequestBody)
+            .getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequest_whenStartEliminationAction_ThenRaiseAnException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2000-01-02", JsonHandler.getFromString(queryDsl));
+
+        assertThat(client
+            .startEliminationAction(eliminationRequestBody)
             .getHttpCode())
             .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }

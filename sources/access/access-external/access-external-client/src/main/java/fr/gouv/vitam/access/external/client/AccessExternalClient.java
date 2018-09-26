@@ -246,6 +246,17 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     * Performs an elimination action workflow .
+     *
+     * @param eliminationRequestBody Object Body DSL request for elimination and Date
+     * @return Json representation
+     * @throws VitamClientException VitamClientException
+     */
+    RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody)
+        throws VitamClientException;
+
+    /**
      * Get AccessLog file matching the given params
      * @param vitamContext the vitam context
      * @param params Could contains StartDate and EndDate information for file filter

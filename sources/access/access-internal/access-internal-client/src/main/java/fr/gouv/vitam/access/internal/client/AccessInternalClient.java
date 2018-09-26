@@ -351,4 +351,13 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody)
         throws AccessInternalClientServerException;
+
+    /**
+     * Performs an elimination action workflow.
+     *
+     * @param eliminationRequestBody Dsl request for elimination.
+     * @return Response given response
+     */
+    RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
+        throws AccessInternalClientServerException;
 }

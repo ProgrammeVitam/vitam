@@ -1052,17 +1052,40 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je lance une analyse d'élimination avec pour date d'expiration le (.*)$")
-    public void start_elimination_analysis(String expirationDate) throws Throwable {
+    @When("^je lance une analyse d'élimination avec pour date le (.*)$")
+    public void start_elimination_analysis(String analysisDate) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()),
-            new EliminationRequestBody(expirationDate, queryJSON));
+            new EliminationRequestBody(analysisDate, queryJSON));
 
         if (!requestResponse.isOk()) {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request startEliminationAnalysis return an error: " + vitamError.getCode());
+        }
+
+        final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+    }
+
+    /**
+     * elimination action
+     *
+     * @throws Throwable
+     */
+    @When("^je lance une élimination définitive avec pour date le (.*)$")
+    public void start_elimination_action(String deleteDate) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAction(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            new EliminationRequestBody(deleteDate, queryJSON));
+
+        if (!requestResponse.isOk()) {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request startEliminationAction return an error: " + vitamError.getCode());
         }
 
         final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);

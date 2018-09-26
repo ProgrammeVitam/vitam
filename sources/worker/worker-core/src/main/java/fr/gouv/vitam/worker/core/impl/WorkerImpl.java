@@ -26,14 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.base.Stopwatch;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,6 +47,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckConcurrentWorkflowLockHandler;
 import fr.gouv.vitam.worker.core.handler.CheckDataObjectPackageActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckHeaderActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
@@ -81,14 +75,24 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionCheckDistributionThresholdHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionFinalizationHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionObjectGroupPreparationHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionReportGenerationHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisCheckDistributionThresholdHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationUpdateDistributionHandler;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -202,8 +206,8 @@ public class WorkerImpl implements Worker {
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());
 
-        actions.put(ReclassificationPreparationCheckLockHandler.getId(),
-            new ReclassificationPreparationCheckLockHandler());
+        actions.put(CheckConcurrentWorkflowLockHandler.getId(),
+            new CheckConcurrentWorkflowLockHandler());
         actions.put(ReclassificationPreparationLoadRequestHandler.getId(),
             new ReclassificationPreparationLoadRequestHandler());
         actions.put(ReclassificationPreparationCheckGraphHandler.getId(),
@@ -216,6 +220,14 @@ public class WorkerImpl implements Worker {
             new EliminationAnalysisCheckDistributionThresholdHandler());
         actions.put(EliminationAnalysisPreparationHandler.getId(), new EliminationAnalysisPreparationHandler());
         actions.put(EliminationAnalysisFinalizationHandler.getId(), new EliminationAnalysisFinalizationHandler());
+
+        actions.put(EliminationActionCheckDistributionThresholdHandler.getId(),
+            new EliminationActionCheckDistributionThresholdHandler());
+        actions.put(EliminationActionUnitPreparationHandler.getId(), new EliminationActionUnitPreparationHandler());
+        actions.put(EliminationActionObjectGroupPreparationHandler.getId(),
+            new EliminationActionObjectGroupPreparationHandler());
+        actions.put(EliminationActionReportGenerationHandler.getId(), new EliminationActionReportGenerationHandler());
+        actions.put(EliminationActionFinalizationHandler.getId(), new EliminationActionFinalizationHandler());
     }
 
     @Override

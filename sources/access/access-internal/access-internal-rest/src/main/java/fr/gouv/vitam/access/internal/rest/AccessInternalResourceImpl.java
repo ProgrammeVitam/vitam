@@ -504,6 +504,25 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_JSON)
     public Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody) {
 
+        return startEliminationWorkflow(eliminationRequestBody, Contexts.ELIMINATION_ANALYSIS);
+    }
+
+    /**
+     * Starts a elimination action workflow.
+     */
+    @Override
+    @POST
+    @Path("/elimination/action")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startEliminationActionWorkflow(EliminationRequestBody eliminationRequestBody) {
+
+        return startEliminationWorkflow(eliminationRequestBody, Contexts.ELIMINATION_ACTION);
+    }
+
+    private Response startEliminationWorkflow(EliminationRequestBody eliminationRequestBody,
+        Contexts eliminationWorkflowContext) {
+
         Status status;
 
         try {
@@ -527,11 +546,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDReader.getGUID(operationId),
-                        Contexts.ELIMINATION_ANALYSIS.getEventType(),
+                        eliminationWorkflowContext.getEventType(),
                         GUIDReader.getGUID(operationId),
                         LogbookTypeProcess.ELIMINATION,
                         StatusCode.STARTED,
-                        VitamLogbookMessages.getLabelOp(Contexts.ELIMINATION_ANALYSIS.getEventType() + ".STARTED") +
+                        VitamLogbookMessages.getLabelOp(eliminationWorkflowContext.getEventType() + ".STARTED") +
                             " : " +
                             GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
@@ -543,19 +562,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.putObject(operationId, "request.json",
                     JsonHandler.writeToInpustream(eliminationRequestBodyWithAccessContractRestriction));
 
-                processingClient.initVitamProcess(Contexts.ELIMINATION_ANALYSIS.name(),
-                    new ProcessingEntry(operationId, Contexts.ELIMINATION_ANALYSIS.getEventType()));
+                processingClient.initVitamProcess(eliminationWorkflowContext.name(),
+                    new ProcessingEntry(operationId, eliminationWorkflowContext.getEventType()));
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.ELIMINATION_ANALYSIS.getEventType(),
-                        Contexts.ELIMINATION_ANALYSIS.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, eliminationWorkflowContext.getEventType(),
+                        eliminationWorkflowContext.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             }
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException e) {
-            LOGGER.error("Error while starting unit elimination analysis workflow", e);
+            LOGGER.error("An error occurred during " + eliminationWorkflowContext.getEventType() + " workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {

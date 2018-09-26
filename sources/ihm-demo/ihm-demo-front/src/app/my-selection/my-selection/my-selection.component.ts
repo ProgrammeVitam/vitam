@@ -11,10 +11,9 @@ import {Hits, VitamResponse} from '../../common/utils/response';
 import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
 import {MySelectionService} from '../my-selection.service';
 import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {DialogService} from '../../common/dialog/dialog.service';
 import {SelectItem} from 'primeng/api';
-import { Rule } from '../../referentials/details/rule/rule';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Panier', routerLink: 'basket'}
@@ -30,6 +29,7 @@ export class MySelectionComponent extends PageComponent {
   displayedItems: ArchiveUnitSelection[] = [];
   displaySelectedDelete = false;
   displayDeleteAll = false;
+  displayEliminationDateError = false;
   basketId: string;
 
   columns: ColumnDefinition[];
@@ -37,13 +37,12 @@ export class MySelectionComponent extends PageComponent {
   selectedOption: string;
   form: any = {};
   basketOptions: SelectItem[] = [
-    { label: 'Export DIP', value: 'EXPORT' },
-    { label: 'Audit de cohérence', value: 'AUDIT' },
-    { label: 'Élimination', value: 'ELIMINATION'},
-    { label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
-    { label: 'Vider le panier', value: 'DELETE' },
-    { label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE' },
-
+    {label: 'Export DIP', value: 'EXPORT'},
+    {label: 'Audit de cohérence', value: 'AUDIT'},
+    {label: 'Élimination', value: 'ELIMINATION'},
+    {label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
+    {label: 'Vider le panier', value: 'DELETE'},
+    {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'}
   ];
 
   frLocale = DateService.vitamFrLocale;
@@ -96,7 +95,10 @@ export class MySelectionComponent extends PageComponent {
 
   checkAll(): void {
     const newValue = !this.isAllChecked();
-    this.selectedArchiveUnits.map((x) => {x.selected = newValue; return x});
+    this.selectedArchiveUnits.map((x) => {
+      x.selected = newValue;
+      return x
+    });
   }
 
   inverseSelection(item: ArchiveUnitSelection): void {
@@ -268,14 +270,14 @@ export class MySelectionComponent extends PageComponent {
         }
         break;
       case 'PROBATIVE_VALUE':
-          if (isOK) {
-            title = 'Relevé de valeur probante en cours';
-            message = 'Le relevé de valeur probante des unités archivistiques du panier est en cours';
-          } else {
-            title = 'Erreur lors de l\'export du relevé de valeur probante';
-            message = 'Erreur lors du lancement de l\'export du relevé de valeur probante des unités archivistiques du panier';
-          }
-          break;
+        if (isOK) {
+          title = 'Relevé de valeur probante en cours';
+          message = 'Le relevé de valeur probante des unités archivistiques du panier est en cours';
+        } else {
+          title = 'Erreur lors de l\'export du relevé de valeur probante';
+          message = 'Erreur lors du lancement de l\'export du relevé de valeur probante des unités archivistiques du panier';
+        }
+        break;
       default:
         break;
     }
@@ -285,7 +287,7 @@ export class MySelectionComponent extends PageComponent {
 
   getQuery(archiveUnits: ArchiveUnitSelection[]) {
     const {ids, roots} = archiveUnits.reduce(
-      (finalIds: {ids: string[], roots: string[]}, currentArchiveUnit: ArchiveUnitSelection) => {
+      (finalIds: { ids: string[], roots: string[] }, currentArchiveUnit: ArchiveUnitSelection) => {
         if (currentArchiveUnit.haveChildren) {
           finalIds.roots.push(currentArchiveUnit.archiveUnitMetadata['#id']);
         }
@@ -328,7 +330,7 @@ export class MySelectionComponent extends PageComponent {
       const selection: ArchiveUnitSelection[] = this.displayedItems
         .filter(value => value.selected);
       if (selection.length === 0) {
-        this.dialogService.displayMessage("L'action n'a pas été lancée sur la sélection car aucune archive n'est sélectionnée", "Sélection vide");
+        this.dialogService.displayMessage('L\'action n\'a pas été lancée sur la sélection car aucune archive n\'est sélectionnée', 'Sélection vide');
         return;
       }
       query = this.getQuery(selection);
@@ -337,7 +339,7 @@ export class MySelectionComponent extends PageComponent {
       query = this.getQuery(this.selectedArchiveUnits);
     }
 
-    switch(this.selectedOption) {
+    switch (this.selectedOption) {
       case 'EXPORT':
         this.archiveUnitService.exportDIP(query).subscribe(
           () => {
@@ -364,15 +366,29 @@ export class MySelectionComponent extends PageComponent {
             threshold: this.form.eliminationThreshold,
             mode: this.form.eliminationMode
           };
-
-          this.archiveUnitService.eliminationAnalysis(eliminationInfo).subscribe(
-            () => {
-              this.displayActionEnded(this.selectedOption, true);
-            }, () => {
-              this.displayActionEnded(this.selectedOption, false);
+          if (this.form.eliminationMode === false) {
+            this.archiveUnitService.eliminationAnalysis(eliminationInfo).subscribe(
+              () => {
+                this.displayActionEnded(this.selectedOption, true);
+              }, () => {
+                this.displayActionEnded(this.selectedOption, false);
+              }
+            );
+            this.displayActionEnded(this.selectedOption, true);
+          } else {
+            if(this.form.eliminationDate > new Date()) {
+              this.displayEliminationDateError = true;
+              return;
             }
-          );
-          this.displayActionEnded(this.selectedOption, true);
+            this.archiveUnitService.eliminationAction(eliminationInfo).subscribe(
+              () => {
+                this.displayActionEnded(this.selectedOption, true);
+              }, () => {
+                this.displayActionEnded(this.selectedOption, false);
+              }
+            );
+            this.displayActionEnded(this.selectedOption, true);
+          }
         }
         break;
       case 'MASS_UPDATE':
@@ -393,14 +409,15 @@ export class MySelectionComponent extends PageComponent {
           );
         }
         break;
-      case 'PROBATIVE_VALUE':this.archiveUnitService.probativeValue(query).subscribe(
-        () => {
-          this.displayActionEnded(this.selectedOption, true);
-        }, () => {
-          this.displayActionEnded(this.selectedOption, false);
-        }
-      );
-      break;
+      case 'PROBATIVE_VALUE':
+        this.archiveUnitService.probativeValue(query).subscribe(
+          () => {
+            this.displayActionEnded(this.selectedOption, true);
+          }, () => {
+            this.displayActionEnded(this.selectedOption, false);
+          }
+        );
+        break;
       default:
         // TODO Display error ?
         console.log('No action selected');
@@ -408,10 +425,12 @@ export class MySelectionComponent extends PageComponent {
   }
 
   initForm() {
-    switch(this.selectedOption) {
-      case 'EXPORT': case 'AUDIT': case 'DELETE':      case 'PROBATIVE_VALUE':
-
-      return;
+    switch (this.selectedOption) {
+      case 'EXPORT':
+      case 'AUDIT':
+      case 'DELETE':
+      case 'PROBATIVE_VALUE':
+        return;
       case 'ELIMINATION':
         this.form.eliminationMode = false;
         this.form.eliminationDate = null;
@@ -425,12 +444,14 @@ export class MySelectionComponent extends PageComponent {
   }
 
   checkInputs(): boolean {
-    switch(this.selectedOption) {
-      case 'EXPORT': case 'AUDIT': case 'DELETE':      case 'PROBATIVE_VALUE':
-
-      return true;
+    switch (this.selectedOption) {
+      case 'EXPORT':
+      case 'AUDIT':
+      case 'DELETE':
+      case 'PROBATIVE_VALUE':
+        return true;
       case 'ELIMINATION':
-        return this.form.eliminationDate != null && this.form.eliminationMode !== true;
+        return this.form.eliminationDate != null;
       case 'MASS_UPDATE':
         return this.form.updateRules || this.form.updateMetadata;
       default:

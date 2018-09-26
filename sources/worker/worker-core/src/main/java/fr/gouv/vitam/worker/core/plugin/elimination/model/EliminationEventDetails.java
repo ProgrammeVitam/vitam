@@ -44,6 +44,12 @@ public class EliminationEventDetails {
     @JsonProperty("expirationDate")
     private String expirationDate;
 
+    @JsonProperty("nbDestroyableUnits")
+    private Integer nbDestroyableUnits;
+
+    @JsonProperty("nbNonDestroyableUnits")
+    private Integer nbNonDestroyableUnits;
+
     public EliminationEventDetails() {
         // Empty constructor for deserialization
     }
@@ -72,6 +78,24 @@ public class EliminationEventDetails {
 
     public EliminationEventDetails setWarning(String warning) {
         this.warning = warning;
+        return this;
+    }
+
+    public Integer getNbDestroyableUnits() {
+        return nbDestroyableUnits;
+    }
+
+    public EliminationEventDetails setNbDestroyableUnits(Integer nbDestroyableUnits) {
+        this.nbDestroyableUnits = nbDestroyableUnits;
+        return this;
+    }
+
+    public Integer getNbNonDestroyableUnits() {
+        return nbNonDestroyableUnits;
+    }
+
+    public EliminationEventDetails setNbNonDestroyableUnits(Integer nbNonDestroyableUnits) {
+        this.nbNonDestroyableUnits = nbNonDestroyableUnits;
         return this;
     }
 }

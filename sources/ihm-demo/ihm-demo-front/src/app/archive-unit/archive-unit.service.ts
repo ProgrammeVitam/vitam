@@ -20,6 +20,7 @@ export class ArchiveUnitService {
   PROBATIVE_VALUE = 'probativevalueexport';
   OBJECTS = 'objects';
   ELIMINATION_ANALYSIS = 'elimination/analysis';
+  ELIMINATION_ACTION = 'elimination/action';
 
   static setInputRequest(request) {
     this.inputRequest = request ;
@@ -73,6 +74,10 @@ export class ArchiveUnitService {
 
   eliminationAnalysis(body: any): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ELIMINATION_ANALYSIS}`, undefined, body);
+  }
+
+  eliminationAction(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ELIMINATION_ACTION}`, undefined, body);
   }
 
   massUpdate(body: any): Observable<VitamResponse> {

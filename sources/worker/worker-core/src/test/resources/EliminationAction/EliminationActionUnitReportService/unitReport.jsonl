@@ -1,0 +1,2 @@
+{ "id": "unit1", "distribGroup": null, "params": { "id": "unit1", "opi": "opi1", "originatingAgency": "sp1", "objectGroupId": "got1", "status":  "DELETED" } }
+{ "id": "unit2", "distribGroup": null, "params": { "id": "unit2", "opi": "opi2", "originatingAgency": "sp2", "objectGroupId": "got2", "status":  "GLOBAL_STATUS_KEEP" } }

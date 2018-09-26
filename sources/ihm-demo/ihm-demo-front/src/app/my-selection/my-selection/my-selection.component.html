@@ -140,3 +140,10 @@
         <button pButton icon="fa-close" (click)="displayDeleteAll=false" label="Non"></button>
     </p-footer>
 </p-dialog>
+
+<p-dialog header="Date d'élimination invalide" [(visible)]="displayEliminationDateError">
+    <p>La date d'élimination ne doit pas être postérieure à la date du jour</p>
+    <p-footer>
+        <button pButton icon="fa-close" (click)="displayEliminationDateError=false" label="OK"></button>
+    </p-footer>
+</p-dialog>

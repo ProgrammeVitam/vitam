@@ -452,4 +452,28 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+        ParametersChecker.checkParameter(MISSING_VITAM_CONTEXT, vitamContext);
+        ParametersChecker.checkParameter(MISSING_ELIMINATION_REQUEST, eliminationRequestBody);
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/elimination/action", headers,
+                eliminationRequestBody, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

@@ -798,4 +798,23 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
+        throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter("Missing elimination request", eliminationRequestBody);
+
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.POST, "/elimination/action", null, eliminationRequestBody,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

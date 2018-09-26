@@ -30,21 +30,14 @@ package fr.gouv.vitam.access.internal.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.server.application.resources.VitamResource;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 /**
  * Access Resource REST API
@@ -60,10 +53,6 @@ public interface AccessInternalResource extends VitamResource {
     Response getUnits(JsonNode dslQuery)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 
-    @GET
-    @Path("/unitsWithInheritedRules")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     Response selectUnitsWithInheritedRules(JsonNode queryDsl);
 
     /**
@@ -93,6 +82,14 @@ public interface AccessInternalResource extends VitamResource {
      * @return response
      */
     Response startEliminationAnalysisWorkflow(EliminationRequestBody eliminationRequestBody);
+
+    /**
+     * Starts elimination action workflow.
+     *
+     * @param eliminationRequestBody elimination DSL request
+     * @return response
+     */
+    Response startEliminationActionWorkflow(EliminationRequestBody eliminationRequestBody);
 
     /**
      * gets archive units by Id with Json query
@@ -157,7 +154,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param idObjectGroup
      * @return response
      */
-    Response getObjectStreamAsync(@Context HttpHeaders headers, String idObjectGroup, String idUnit);
+    Response getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, String idUnit);
 
     /**
      * gets accesslog file by id as an InputStream
@@ -176,7 +173,7 @@ public interface AccessInternalResource extends VitamResource {
     Response massUpdateUnits(JsonNode dslQuery);
 
     /**
-     * Mass update of archive units rules 
+     * Mass update of archive units rules
      *
      * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
      * @return the response
