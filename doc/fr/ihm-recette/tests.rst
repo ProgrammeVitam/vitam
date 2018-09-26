@@ -11,7 +11,7 @@ Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un S
 
 L'interface est accessible par le menu : Tests > Test de performance.
 
-Les tests ne sont pas segmentés par tenant. Ces derniers sont directement configurés dans les tests. Il n'est donc pas nécéssaire de sélectionner un tenant pour accéder au contenu de cette section. 
+Les tests ne sont pas segmentés par tenant. Ces derniers sont directement configurés dans les tests. Il n'est donc pas nécéssaire de sélectionner un tenant pour accéder au contenu de cette section.
 
 
 Champs disponibles
@@ -74,7 +74,7 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * OG_METADATA_INDEXATION
 * STP_UNIT_METADATA
 * UNIT_METADATA_INDEXATION
-* STP_OG_STORING	
+* STP_OG_STORING
 * COMMIT_LIFE_CYCLE_OBJECT_GROUP
 * OG_METADATA_STORAGE
 * STP_UNIT_STORING
@@ -200,7 +200,7 @@ Pour les collections suivantes, il est également possible de choisir l'action "
 * Contrat d'entrée
 * Contexte
 
-**Opération**: Pour la collection Opération, il est également possible de choisir les actions suivantes: 
+**Opération**: Pour la collection Opération, il est également possible de choisir les actions suivantes:
 
 * Action Suivante
 * Action Pause
@@ -234,25 +234,25 @@ Si la requête envoyée par l'administrateur ne respecte pas le formatage de la 
 
 .. image:: images/DSl_requete_Json_KO.png
 
-L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer". 
+L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer".
 
 
 Visualisation du graphe
 =======================
 
-- L'interface est accessible par le Menu: Tests > Visualisation du graphe. 
+L'interface est accessible par le Menu: Tests > Visualisation du graphe.
 
-Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP. 
+Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP.
 La première étape consiste donc à récupérer les information suivantes :
 
 - L'identifiant de l'opération
-- L'intitulé du contrat utilisé 
+- L'intitulé du contrat utilisé
 
-Note : la page correspondant à l'écran utilisé est expérimentale. 
+Note : la page correspondant à l'écran utilisé est expérimentale.
 
-Il faut ensuite rajouter les informations dans les champs prévus à cet effet : "Contrat" et "Identifiant d'opération" 
+Il faut ensuite rajouter les informations dans les champs prévus à cet effet : "Contrat" et "Identifiant d'opération"
 
-Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses : 
+Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses :
 
 * Sur la partie gauche, la représentation visuelle du graphe contenu dans le SIP
 * sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données reliées à l'unité archivistique s'affiche
@@ -261,4 +261,29 @@ Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser p
 .. image:: images/visualisation_graphe.png
 
 
+Test feature (Test tnr)
+=======================
 
+L'interface est accessible par le Menu: Tests > Test feature
+
+Cette interface permet d'exécuter des TNR sans devoir disposer d'un environnement local complet. Ces TNR seront exécutés sur l'environnement où se situe l'IHM recette.
+
+Cette fonctionnalité nécessite l'existence d'une branche git nommée "tnr_master" sur laquelle l'IHM recette va se brancher pour l'exécution.
+
+La page est composé de deux champs de texte :
+
+  * Celui du haut prend en entrée des TNR à exécuter
+  * Celui du bas est la sortie et affiche la réponse à l'exécution
+
+Cette page contient aussi 3 boutons :
+
+  * Mise à jour référentiel : récupère les commits de la branch tnr_master. La mise à jour est utile lorsqu'un nouveau jeu de donnée est envoyé sur tnr_master et que l'IHM-recette doit le récupérer
+  * Lancer le TNR :
+
+    * Si l'IHM recette utilise la branche "master", alors elle change pour aller sur la branch tnr_master et récupère son contenu. Puis, elle exécute le TNR écrit dans le premier champ de texte.
+    * Si l'IHM recette est déjà branchée sur tnr_master, alors elle exécute directement le TNR écrit dans le premier champ de texte
+    * Dans les deux cas le contenu de la réponse est effacé avant le lancement du TNR
+
+  * Effacer : supprime le contenu de la réponse
+
+.. image:: images/test_tnr.png
