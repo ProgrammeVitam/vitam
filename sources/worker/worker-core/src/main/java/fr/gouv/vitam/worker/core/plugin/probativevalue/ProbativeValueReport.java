@@ -83,9 +83,7 @@ public class ProbativeValueReport extends ActionHandler {
             JsonGenerator jsonGenerator = createJsonGenerator(fileOutputStream);
             LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         ) {
-            jsonGenerator.writeFieldName("ReportVersion");
 
-            jsonGenerator.writeNumber(1);
             List<URI> uriListObjectsWorkspace =
                 handler.getUriList(handler.getContainerName(), "reports");
 
@@ -96,8 +94,10 @@ public class ProbativeValueReport extends ActionHandler {
 
             jsonGenerator.writeStartObject();
 
-            ObjectNode operationInfo = gatherOperationInfo(handler, param, logBookJsonNode);
+            jsonGenerator.writeFieldName("ReportVersion");
 
+            jsonGenerator.writeNumber(1);
+            ObjectNode operationInfo = gatherOperationInfo(handler, param, logBookJsonNode);
 
             jsonGenerator.writeFieldName("OperationInfo");
 
@@ -160,15 +160,21 @@ public class ProbativeValueReport extends ActionHandler {
             File file = handler.getFileFromWorkspace("reports" + File.separator + uri.getPath());
 
             ProbativeParameter parameter = JsonHandler.getFromFile(file, ProbativeParameter.class);
+            jsonGenerator.writeFieldName("Usages");
 
+            jsonGenerator.writeStartArray();
 
             for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()) {
 
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("UsageName",usage.getUsage());
                 binaryInfo(jsonGenerator, usage);
 
                 binaryCheck(jsonGenerator, usage);
+                jsonGenerator.writeEndObject();
 
             }
+            jsonGenerator.writeEndArray();
 
             jsonGenerator.writeEndObject();
 

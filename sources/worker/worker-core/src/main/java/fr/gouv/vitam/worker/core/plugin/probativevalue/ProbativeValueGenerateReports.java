@@ -107,8 +107,7 @@ public class ProbativeValueGenerateReports extends ActionHandler {
 
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
-                LifeCycleTraceabilitySecureFileObject secureFileObject =
-                    null;
+                LifeCycleTraceabilitySecureFileObject secureFileObject;
                 try {
                     secureFileObject = EvidenceService.loadInformationFromFile(securedLines, MetadataType.OBJECTGROUP,
                         objectToAuditId);
