@@ -84,11 +84,11 @@
       </div>
       <div *ngFor=" let permission of modifiedContext.Permissions">
         <div class="ui-g-4" style="background-color: #F5F5F5; border-color: #FFFFFF; border-style: solid; border-width: 10px;">
-          <button pButton class="ui-button pull-right" (click)="removeTenant(permission['#tenant'])" [disabled]="!update" label="Supprimer" iconPos="roght">
+          <button pButton class="ui-button pull-right" (click)="removeTenant(permission.tenant)" [disabled]="!update" label="Supprimer" iconPos="roght">
           </button>
 
           <div class="ui-g-12">
-            <label class="label fieldLabel">Tenant {{permission['#tenant']}}</label>
+            <label class="label fieldLabel">Tenant {{permission['tenant']}}</label>
           </div>
 
           <div class="ui-g-12">

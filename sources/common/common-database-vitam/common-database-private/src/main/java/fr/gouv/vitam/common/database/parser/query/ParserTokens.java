@@ -318,7 +318,7 @@ public class ParserTokens extends BuilderToken {
         "DeactivationDate",
         "Permissions.AccessContracts",
         "Permissions.IngestContracts",
-        "Permissions._tenant",
+        "Permissions.tenant",
         "EnableControl",
         "SecurityProfile",
         "_v",
