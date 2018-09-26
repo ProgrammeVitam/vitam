@@ -10,3 +10,4 @@ AUDIT
    rapportaudit
    workflow_audit_file_consistency
    rapportauditconsistency
+   workflow_probative_value
