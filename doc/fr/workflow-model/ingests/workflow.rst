@@ -639,7 +639,7 @@ Etablissement de la liste des objets (OBJECTS_LIST_EMPTY)
 Alimentation du registre des fonds ACCESSION_REGISTRATION (AccessionRegisterActionHandler.java)
 -----------------------------------------------------------------------------------------------
 
-+ **Règle** : Enregistrement dans le registre des fonds des informations concernant la nouvelle entrée (nombre d'objets, volumétrie). Ces informations viennent s'ajouter aux informations existantes pour un même service producteur. Si le service producteur n'était pas déjà présent pas le registre des fonds, alors cette entrée est enregistrée et le service producteur est créé dans le registre des fonds.
++ **Règle** : Enregistrement dans le registre des fonds des informations concernant la nouvelle entrée (nombre d'objets, volumétrie). Ces informations viennent s'ajouter aux informations existantes pour un même service producteur. Si aucune information n'existait préalablement, alors un nouveau document est créé dans la base de données concernant ce producteur. Une fois cette action d'ajout ou de mise à jour effectuée, la solution logicielle Vitam calcule et enregistre une information agrégée de l'état des stock du service producteur concerné (dans la collection AccessionRegisterDetail).
 
 + **Type** : bloquant
 
