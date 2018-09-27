@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,8 +84,10 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,7 +115,7 @@ public class IngestContractImplTest {
     static final String COLLECTION_NAME = "IngestContract";
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
-    static final  String FORMAT_FILE = "file-format-light.json";
+    static final String FORMAT_FILE = "file-format-light.json";
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient client;
@@ -176,6 +180,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
     }
+
     @After
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -556,11 +561,11 @@ public class IngestContractImplTest {
         parserbName2.addCondition(QueryHelper.eq("Name", "bName2"));
         final JsonNode queryDslbName2 = parserbName2.getRequest().getFinalSelect();
         RequestResponseOK<IngestContractModel> responseFindbName2 = ingestContractService.findContracts(queryDslbName2);
-        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()){
+        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()) {
             assertThat(ingestContractModel.isMasterMandatory()).isTrue();
             assertThat(ingestContractModel.isEveryDataObjectVersion()).isFalse();
         }
-        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()){
+        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()) {
             assertThat(ingestContractModel.isFormatUnidentifiedAuthorized()).isFalse();
             assertThat(ingestContractModel.isEveryFormatType()).isTrue();
         }
@@ -580,7 +585,8 @@ public class IngestContractImplTest {
         // Test update for ingest contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive =
+            UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -645,21 +651,21 @@ public class IngestContractImplTest {
         final File fileFormat = PropertiesUtils.getResourceFile(FORMAT_FILE);
 
         final List<FileFormatModel> fileFormatModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileFormat, new TypeReference<List<FileFormatModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileFormat, new TypeReference<List<FileFormatModel>>() {
+            });
 
         ArrayNode allFormatNodeArray = JsonHandler.createArrayNode();
-        for(FileFormatModel format : fileFormatModelList){
+        for (FileFormatModel format : fileFormatModelList) {
             allFormatNodeArray.add(JsonHandler.toJsonNode(format));
         }
         dbImpl.insertDocuments(
-                allFormatNodeArray,
-                FunctionalAdminCollections.FORMATS).close();
+            allFormatNodeArray,
+            FunctionalAdminCollections.FORMATS).close();
         //Contract format OK
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ok.json");
         final List<IngestContractModel> ingestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            });
 
         RequestResponse response = ingestContractService.createContracts(ingestContractModelList);
 
@@ -678,8 +684,8 @@ public class IngestContractImplTest {
         //KO
         final File fileContractsKO = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ko.json");
         final List<IngestContractModel> ingestContractModelKOList =
-                JsonHandler.getFromFileAsTypeRefence(fileContractsKO, new TypeReference<List<IngestContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContractsKO, new TypeReference<List<IngestContractModel>>() {
+            });
 
         response = ingestContractService.createContracts(ingestContractModelKOList);
 
@@ -840,4 +846,52 @@ public class IngestContractImplTest {
         assertThat(updateCheckParentLinkStatus).isInstanceOf(VitamError.class);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_retrieve_vitam_error_when_everyformattype_is_false_and_blank_formattype() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final String documentName = "aName";
+        // Create document
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+
+        final List<IngestContractModel> ingestModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            });
+        final RequestResponse response = ingestContractService.createContracts(ingestModelList);
+        RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Name", documentName));
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        responseCast = ingestContractService.findContracts(queryDsl);
+        assertThat(responseCast.getResults()).isNotEmpty();
+        for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
+            assertThat(ActivationStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
+        }
+        final String identifier = responseCast.getResults().get(0).getIdentifier();
+        // When
+        // Test update for ingest contract With Empty List
+        final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setEveryFormatType = UpdateActionHelper.set(IngestContractModel.EVERY_FORMAT_TYPE, false);
+        final Update updateStatusActive = new Update();
+        updateStatusActive.setQuery(QueryHelper.eq("Identifier", identifier));
+        updateStatusActive.addActions(setEveryFormatType);
+        updateParserActive.parse(updateStatusActive.getFinalUpdate());
+        JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
+        // Then
+        RequestResponse<IngestContractModel> ingestContractModelRequestResponse =
+            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
+        assertThat(ingestContractModelRequestResponse.getHttpCode()).isEqualTo(400);
+        VitamError vitamError =
+            JsonHandler.getFromJsonNode(ingestContractModelRequestResponse.toJsonNode(), VitamError.class);
+        assertThat(vitamError.getCode()).isEqualTo("08");
+        assertThat(vitamError.getDescription()).isEqualTo("Ingest contract update error");
+
+
+    }
 }
