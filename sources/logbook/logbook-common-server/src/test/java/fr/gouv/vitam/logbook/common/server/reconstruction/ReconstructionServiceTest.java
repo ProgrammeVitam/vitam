@@ -314,12 +314,6 @@ public class ReconstructionServiceTest {
     private LogbookBackupModel getLogbokBackupModel(String id, Long offset) throws InvalidParseOperationException {
         LogbookBackupModel model = new LogbookBackupModel();
         model.setLogbookOperation(new Document("_id", id));
-        model.getAccessionRegisters()
-            .add(JsonHandler
-                .toJsonNode(new AccessionRegisterDetailModel()
-                    .setOpc("Identifier")
-                    .setOpi("OP_GROUP").setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
-                    .setOriginatingAgency("OriginatingAgency").addOperationsId(id)));
         model.setOffset(offset);
         return model;
     }

@@ -31,29 +31,27 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.FileNotFoundException;
-import java.time.LocalDateTime;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -61,15 +59,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
+import fr.gouv.vitam.functional.administration.common.*;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -96,29 +91,44 @@ public class ReferentialAccessionRegisterImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessionRegisterSummary.class, FileRules.class)),
-            "Vitam-Test",
-            AccessionRegisterSummary.class.getSimpleName(), AccessionRegisterDetail.class.getSimpleName(),
-            FileRules.class.getSimpleName());
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
+            "Vitam-DB", FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
         new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            AccessionRegisterSummary.class.getSimpleName().toLowerCase(),
-            AccessionRegisterDetail.class.getSimpleName().toLowerCase(),
-            FileRules.class.getSimpleName().toLowerCase());
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+
+    static final List<Integer> tenantList = Arrays.asList(TENANT_ID);
+    private static ElasticsearchAccessFunctionalAdmin esClient;
 
     static ReferentialAccessionRegisterImpl accessionRegisterImpl;
     static AccessionRegisterDetailModel register;
 
     @BeforeClass
+    @RunWithCustomExecutor
     public static void setUpBeforeClass() throws Exception {
+
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
+
+        Method initialize = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getClass().
+                getDeclaredMethod("initialize", ElasticsearchAccessFunctionalAdmin.class);
+        initialize.setAccessible(true);
+        initialize.invoke(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, esClient);
+
+        initialize = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getClass().
+                getDeclaredMethod("initialize", ElasticsearchAccessFunctionalAdmin.class);
+        initialize.setAccessible(true);
+        initialize.invoke(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, esClient);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
-            new ReferentialAccessionRegisterSummaryUtil());
+            mock(FunctionalBackupService.class), new ReconstructionServiceImpl(VitamRepositoryFactory.get()));
     }
 
     @AfterClass

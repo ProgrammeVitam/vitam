@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -246,6 +247,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
 
             ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
+            ArrayNode arrayInformation = JsonHandler.createArrayNode();
             boolean alreadyExecuted = false;
             boolean mayBeRestartAfterFatal = false;
             for (String currentOperation : allConcernedOperations) {
@@ -326,6 +328,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                             // We should not consider the step as already executed
                             mayBeRestartAfterFatal = true;
                         }
+                        // Add only created one, ignore conflict one
+                        arrayInformation.addPOJO(jsonNodeRegister);
                     }
                 }
             }
@@ -333,6 +337,11 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 // Only if all originating agency
                 itemStatus.increment(StatusCode.ALREADY_EXECUTED);
             } else {
+
+                if (arrayInformation.size() > 0) {
+                    evDetDataInformation.set(VOLUMETRY, arrayInformation);
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
+                }
                 itemStatus.increment(StatusCode.OK);
             }
         } catch (ProcessingException | AdminManagementClientServerException e) {
@@ -429,7 +438,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setOpi(ingestOperation)
             .setOperationType(LogbookTypeProcess.INGEST.name())
             .addEvent(registerValueEvent)
-            .addOperationsId(params.getContainerName());
+            .addOperationsId(params.getContainerName())
+                .setTenant(tenantId);
     }
 
     @Override

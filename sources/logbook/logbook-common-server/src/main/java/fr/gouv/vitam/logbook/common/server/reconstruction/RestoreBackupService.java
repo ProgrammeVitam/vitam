@@ -153,7 +153,6 @@ public class RestoreBackupService {
                 logbookBackupModel.setLogbookOperation(logbookOperationDocument);
                 logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
                 logbookBackupModel.setOffset(offset);
-                populateAccessionRegisterDetails(logbookBackupModel, logbookOperationDocument);
                 return logbookBackupModel;
             }
         } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
@@ -169,38 +168,6 @@ public class RestoreBackupService {
         }
 
         return null;
-    }
-
-    private void populateAccessionRegisterDetails(LogbookBackupModel logbookBackupModel,
-        final LogbookOperation logbookOperationDocument)
-        throws InvalidParseOperationException {
-        fr.gouv.vitam.common.model.logbook.LogbookOperation logbookOperation =
-            JsonHandler.getFromString(logbookOperationDocument.toJson(),
-                fr.gouv.vitam.common.model.logbook.LogbookOperation.class);
-        Optional<LogbookEventOperation> accessionRegisterValidEvent = logbookOperation.getEvents().stream()
-            .filter(event -> "INGEST".equals(event.getEvTypeProc()))
-            .filter(event -> "ACCESSION_REGISTRATION".equals(event.getEvType()))
-            .filter(event -> StatusCode.OK.name().equals(event.getOutcome()) ||
-                StatusCode.WARNING.name().equals(event.getOutcome()))
-            .filter(event -> event.getEvDetData() != null && event.getEvDetData().contains("Volumetry"))
-            .findFirst();
-
-        if (accessionRegisterValidEvent.isPresent()) {
-            JsonNode accessionRegisters =
-                JsonHandler.getFromString(accessionRegisterValidEvent.get().getEvDetData(), JsonNode.class);
-            if (accessionRegisters.get("Volumetry") != null && accessionRegisters.get("Volumetry").isArray()) {
-                ArrayNode volumetry = (ArrayNode) accessionRegisters.get("Volumetry");
-                for (JsonNode item : volumetry) {
-                    logbookBackupModel.getAccessionRegisters().add(item);
-                }
-            } else {
-                throw new InvalidParseOperationException("ERROR: Accession register detail invalid in operation event");
-            }
-        } else {
-            LOGGER.debug("[Reconstruction]: Accession register detail not found in operation");
-        }
-
-
     }
 
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -89,7 +90,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
             return dbrequest.execute(insertquery, version);
-        } catch (InvalidParseOperationException | BadRequestException | DatabaseException |
+        } catch (MongoBulkWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
             InvalidCreateOperationException | VitamDBException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);

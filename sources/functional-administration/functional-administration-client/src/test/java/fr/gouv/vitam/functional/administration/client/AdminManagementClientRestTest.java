@@ -313,22 +313,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        @GET
-        @Path("/raw/accession-register/detail")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response getAccessionRegisterDetailRaw(Map<String, String> fields) {
-            return expectedResponse.get();
-        }
-
-        @POST
-        @Path("/raw/accession-register/detail")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response createOrUpdateAccessionRegisterDetailRaw(JsonNode accessionRegisterDetail) {
-            return expectedResponse.post();
-        }
-
         @POST
         @Path("/ingestcontracts")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -711,39 +695,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             .setLastUpdate(DATE));
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void createAccessionRegisterRaw()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
-        client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
-                .setLastUpdate(DATE)));
-    }
-
-    @Test(expected = AdminManagementClientServerException.class)
-    @RunWithCustomExecutor
-    public void createAccessionRegisterRawError()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
-                .setLastUpdate(DATE)));
-    }
-
-    @Test(expected = ReferentialException.class)
-    @RunWithCustomExecutor
-    public void createAccessionRegisterRawUnknownError()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.createorUpdateAccessionRegisterRaw(
-            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE)
-                .setLastUpdate(DATE)));
-    }
-
     /**
      * Accession Register Detail
      **/
@@ -767,39 +718,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
-    }
-
-    /**
-     * Accession Register Detail raw
-     **/
-    @Test
-    public void getAccessionRegisterDetailRaw()
-        throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK)
-            .entity(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode())).build());
-        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
-        assertThat(response.isOk()).isTrue();
-        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public void getAccessionRegisterDetailRawError()
-        throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
-        assertThat(response.isOk()).isFalse();
-        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-
-    }
-
-    @Test
-    public void getAccessionRegisterDetailRawUnknownError()
-        throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST)
-            .entity(VitamCodeHelper.toVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR, "message")).build());
-        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
-        assertThat(response.isOk()).isFalse();
-        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     /**

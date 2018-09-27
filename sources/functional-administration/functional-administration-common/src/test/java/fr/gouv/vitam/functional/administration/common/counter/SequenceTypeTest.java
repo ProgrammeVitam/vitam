@@ -18,8 +18,6 @@ public class SequenceTypeTest {
 
         List<FunctionalAdminCollections> collectionsWithoutSequence =  Arrays.asList(
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
             FunctionalAdminCollections.VITAM_SEQUENCE);
 
         List<FunctionalAdminCollections> collectionsWithSequence =

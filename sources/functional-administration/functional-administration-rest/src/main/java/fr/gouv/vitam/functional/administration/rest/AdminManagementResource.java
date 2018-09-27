@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -75,7 +76,6 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
@@ -84,6 +84,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportI
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
@@ -594,7 +595,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, new ReferentialAccessionRegisterSummaryUtil())) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(Status.CREATED).build();
         } catch (final ReferentialException e) {
@@ -658,7 +659,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, AccessUnauthorizedException, InvalidCreateOperationException,
         ReferentialException {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, new ReferentialAccessionRegisterSummaryUtil())) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
 
             RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
             SanityChecker.checkJsonAll(select);
@@ -702,7 +703,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, new ReferentialAccessionRegisterSummaryUtil())) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
             SanityChecker.checkJsonAll(select);
             SanityChecker.checkParameter(documentId);
 
@@ -849,8 +850,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Path("accession-register/symbolic")
     @Produces(APPLICATION_JSON)
     public Response createAccessionRegisterSymbolic() {
-        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
-            new ReferentialAccessionRegisterSummaryUtil())) {
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(
+                mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
 
             MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
             ArrayNode accessionRegisterSymbolic = (ArrayNode) client.createAccessionRegisterSymbolic()
@@ -881,8 +882,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response getAccessionRegisterSymbolic(JsonNode queryDsl) {
-        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
-            new ReferentialAccessionRegisterSummaryUtil())) {
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(
+                VitamRepositoryFactory.get()))) {
             List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
             return Response.status(OK)
                 .entity(accessionRegisterSymbolic)

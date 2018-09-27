@@ -581,9 +581,9 @@ public class ProcessingIT extends VitamRuleRunner {
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
             // lets check the accession register
-            Select query = new Select();
-            query.setLimitFilter(0, 1);
-            RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq("OriginatingAgency", "producteur1"));
+            RequestResponse resp = functionalClient.getAccessionRegister(select.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
@@ -669,6 +669,8 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookClient.update(newLogbookOperationParameters);
 
             AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
+            GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
+            register.setId(guid.toString());
             register.setOpc("OP_GROUP");
             register.setOpi("OP_GROUP");
             register.setTenant(tenantId);

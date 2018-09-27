@@ -81,7 +81,17 @@ public enum SequenceType {
     /**
      * Formats sequence type
      */
-    FORMATS(FunctionalAdminCollections.FORMATS, "FORMATS");
+    FORMATS(FunctionalAdminCollections.FORMATS, "FORMATS"),
+
+    /**
+     * Accession Register Symbolic sequence type
+     */
+    ACCESSION_REGISTER_SYMBOLIC(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, "REGISTER_SYMBOLIC"),
+
+    /**
+     * Accession Register Detail sequence type
+     */
+    ACCESSION_REGISTER_DETAIL(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, "REGISTER_DETAIL");
 
     public static final String BACK_UP_SEQUENCE_PREFIX = "BACKUP_";
 

@@ -27,16 +27,15 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.regex;
 import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
+import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -156,6 +155,45 @@ public class FunctionalBackupService {
             } catch (VitamException | RuntimeException logbookErrorException) {
                 LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
             }
+            throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
+        }
+    }
+
+    public void saveDocument(FunctionalAdminCollections collection, Document document) throws FunctionalBackupServiceException {
+        try {
+            int initialTenant = ParameterHelper.getTenantParameter();
+            Integer storageTenant = document.getInteger("_tenant");
+
+            String fileName = String.format("%d_%s.%s",
+                    storageTenant, document.get("_id"), DEFAULT_EXTENSION);
+
+            InputStream is = null;
+
+            try {
+                // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
+                is = new ByteArrayInputStream( JSON.serialize(document).getBytes());
+                VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
+                switch (collection) {
+                    case ACCESSION_REGISTER_DETAIL:
+                        storeBackupFileInStorage(fileName, is, DataCategory.ACCESSION_REGISTER_DETAIL);
+                        break;
+                    case ACCESSION_REGISTER_SYMBOLIC:
+                        storeBackupFileInStorage(fileName, is, DataCategory.ACCESSION_REGISTER_SYMBOLIC);
+                        break;
+                        default:
+                            storeBackupFileInStorage(fileName, is, DataCategory.BACKUP);
+                }
+
+
+            } finally {
+                // Restore initial tenant before logbook update (success or ko)
+                VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
+                StreamUtils.closeSilently(is);
+            }
+
+        } catch (BackupServiceException e) {
+            throw new FunctionalBackupServiceException("Could not backup document " + document.get("_id"), e);
+        } catch (Exception e) {
             throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
         }
     }
@@ -325,15 +363,25 @@ public class FunctionalBackupService {
         String digestStr;
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
 
-            final DigestType digestType = VitamConfiguration.getDefaultDigestType();
-            final Digest digest = new Digest(digestType);
-            InputStream digestInputStream = digest.getDigestInputStream(fileInputStream);
-
-            // Save data to storage
-            backupService.backup(digestInputStream, DataCategory.BACKUP, fileName);
-
-            digestStr = digest.digestHex();
+            return storeBackupFileInStorage(fileName, fileInputStream, DataCategory.BACKUP);
         }
+    }
+
+    private String storeBackupFileInStorage(String fileName, InputStream is, DataCategory dataCategory)
+            throws BackupServiceException {
+
+        if (null == dataCategory) {
+            dataCategory = DataCategory.BACKUP;
+        }
+        String digestStr;
+        final DigestType digestType = VitamConfiguration.getDefaultDigestType();
+        final Digest digest = new Digest(digestType);
+        InputStream digestInputStream = digest.getDigestInputStream(is);
+
+        // Save data to storage
+        backupService.backup(digestInputStream, dataCategory, fileName);
+        digestStr = digest.digestHex();
+
         return digestStr;
     }
 }

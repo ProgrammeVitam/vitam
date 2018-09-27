@@ -45,13 +45,13 @@ public class ReferentialAccessionRegisterSummaryUtil {
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel();
         final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
         accessionRegister
-            .setId(id)
-            .setOriginatingAgency(originatingAgency)
-            .setTotalObjects(initialValue)
-            .setTotalObjectGroups(initialValue)
-            .setTotalUnits(initialValue)
-            .setObjectSize(initialValue)
-            .setCreationDate(LocalDateUtil.now().toString());
+                .setId(id)
+                .setOriginatingAgency(originatingAgency)
+                .setTotalObjects(initialValue)
+                .setTotalObjectGroups(initialValue)
+                .setTotalUnits(initialValue)
+                .setObjectSize(initialValue)
+                .setCreationDate(LocalDateUtil.now().toString());
         return accessionRegister;
     }
 
@@ -66,7 +66,7 @@ public class ReferentialAccessionRegisterSummaryUtil {
         List<Action> actions = createActions(registerDetail);
         Update update = new Update();
         update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
-            .getOriginatingAgency()));
+                .getOriginatingAgency()));
         update.addActions(actions.toArray(new IncAction[actions.size()]));
         return update;
     }
@@ -79,94 +79,36 @@ public class ReferentialAccessionRegisterSummaryUtil {
      * @throws InvalidCreateOperationException parsing query exception
      */
     public List<Action> createActions(AccessionRegisterDetailModel registerDetail)
-        throws InvalidCreateOperationException {
+            throws InvalidCreateOperationException {
         ArrayList<Action> actions = new ArrayList<>();
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectsGroups().getIngested()));
+                registerDetail.getTotalObjectsGroups().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectsGroups().getDeleted()));
+                registerDetail.getTotalObjectsGroups().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectsGroups().getRemained()));
+                registerDetail.getTotalObjectsGroups().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjects().getIngested()));
+                registerDetail.getTotalObjects().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjects().getDeleted()));
+                registerDetail.getTotalObjects().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjects().getRemained()));
+                registerDetail.getTotalObjects().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalUnits().getIngested()));
+                registerDetail.getTotalUnits().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalUnits().getDeleted()));
+                registerDetail.getTotalUnits().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalUnits().getRemained()));
+                registerDetail.getTotalUnits().getRemained()));
 
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getObjectSize().getIngested()));
+                registerDetail.getObjectSize().getIngested()));
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getObjectSize().getDeleted()));
+                registerDetail.getObjectSize().getDeleted()));
         actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getObjectSize().getRemained()));
-        return actions;
-    }
-
-
-    /**
-     * Generate update query on summary from register detail
-     *
-     * @param registerDetail AccessionRegisterDetail
-     * @return update query
-     * @throws InvalidCreateOperationException parsing query exception
-     */
-    public Update generateUpdateQuery(AccessionRegisterDetail registerDetail) throws InvalidCreateOperationException {
-        List<Action> actions = createActions(registerDetail);
-        Update update = new Update();
-        update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
-            .getOriginatingAgency()));
-        update.addActions(actions.toArray(new IncAction[actions.size()]));
-        return update;
-    }
-
-    /**
-     * Add action for summary from register detail
-     *
-     * @param registerDetail AccessionRegisterDetail
-     * @return query actions
-     * @throws InvalidCreateOperationException parsing query exception
-     */
-    public List<Action> createActions(AccessionRegisterDetail registerDetail)
-        throws InvalidCreateOperationException {
-        ArrayList<Action> actions = new ArrayList<>();
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectGroups().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectGroups().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectGroups().getRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjects().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjects().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjects().getRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalUnits().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalUnits().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalUnits().getRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectSize().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectSize().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectSize().getRemained()));
+                registerDetail.getObjectSize().getRemained()));
         return actions;
     }
 }

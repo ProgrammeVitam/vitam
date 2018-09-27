@@ -7,19 +7,6 @@
       "type": "date",
       "format": "strict_date_optional_time"
     },
-    "TotalObjects": {
-      "properties": {
-        "ingested": {
-          "type": "long"
-        },
-        "deleted": {
-          "type": "long"
-        },
-        "remained": {
-          "type": "long"
-        }
-      }
-    },
     "TotalObjectGroups": {
       "properties": {
         "ingested": {
@@ -34,6 +21,19 @@
       }
     },
     "TotalUnits": {
+      "properties": {
+        "ingested": {
+          "type": "long"
+        },
+        "deleted": {
+          "type": "long"
+        },
+        "remained": {
+          "type": "long"
+        }
+      }
+    },
+    "TotalObjects": {
       "properties": {
         "ingested": {
           "type": "long"
