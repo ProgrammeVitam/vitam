@@ -1,0 +1,46 @@
+{
+  "processId": "123456789",
+  "entries": [
+    {
+      "opi": "opi0",
+      "id": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "deletedParentUnitIds": [
+        "parent",
+        "parent2"
+      ]
+    },
+    {
+      "opi": "opi1",
+      "id": "id3",
+      "originatingAgency": "sp1",
+      "status": "PARTIAL_DESTROY",
+      "deletedParentUnitIds": [
+        "unitId21",
+        "unitId22"
+      ]
+    },
+    {
+      "opi": "opi2",
+      "id": "id1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "deletedParentUnitIds": [
+        "unitId31",
+        "unitId32"
+      ]
+    },
+    {
+      "opi": "opi3",
+      "id": "id4",
+      "originatingAgency": "sp2",
+      "status": "DELETED",
+      "deletedParentUnitIds": [
+        "unitId41",
+        "unitId42"
+      ]
+    }
+  ]
+}
+

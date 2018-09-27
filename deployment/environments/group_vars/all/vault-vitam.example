@@ -25,6 +25,9 @@ mongodb:
     logbook:
       user: logbook
       password: azerty2
+    report:
+      user: report
+      password: azerty5
     functionalAdmin:
       user: functional-admin
       password: azerty3
@@ -64,6 +67,7 @@ mongodb:
     offer:
       user: offer
       password: azerty5
+
 
 vitam_users:
   - vitam_aadmin:

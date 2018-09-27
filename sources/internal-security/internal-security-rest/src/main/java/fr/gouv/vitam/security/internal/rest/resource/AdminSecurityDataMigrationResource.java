@@ -62,7 +62,8 @@ public class AdminSecurityDataMigrationResource {
     /**
      * Constructor
      */
-    @VisibleForTesting public AdminSecurityDataMigrationResource(
+    @VisibleForTesting
+    public AdminSecurityDataMigrationResource(
         SecurityDataMigrationService securityDataMigrationService) {
         this.securityDataMigrationService = securityDataMigrationService;
     }

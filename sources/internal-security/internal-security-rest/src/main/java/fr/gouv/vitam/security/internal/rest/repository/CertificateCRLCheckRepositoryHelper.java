@@ -73,9 +73,8 @@ public class CertificateCRLCheckRepositoryHelper {
 
         if (certificateStatus.equals(CertificateStatus.REVOKED)) {
             fieldsToUpdateBson = combine(fieldsToUpdateBson,
-                set(CertificateBaseModel.REVOCATION_DATE_TAG, LocalDateUtil
-                    .getFormattedDateForMongo(LocalDateUtil.now())
-                )
+                set(CertificateBaseModel.REVOCATION_DATE_TAG,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             );
         }
         certificateCollection

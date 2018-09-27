@@ -1,20 +1,10 @@
 package fr.gouv.vitam.common;
 
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.rest.BatchReportMain;
+import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -55,6 +45,19 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.rules.ExternalResource;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+
 public class VitamServerRunner extends ExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerRunner.class);
 
@@ -81,6 +84,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_PROCESSING = 8097;
     public static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
     public static final int PORT_SERVICE_ACCESS_INTERNAL = 8092;
+    public static final int PORT_SERVICE_BATCH_REPORT = 8089;
 
 
     public static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
@@ -96,6 +100,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final String ADMIN_MANAGEMENT_CONF = "common/functional-administration.conf";
     public static final String ACCESS_INTERNAL_CONF = "common/access-internal.conf";
     public static final String INGEST_INTERNAL_CONF = "common/ingest-internal.conf";
+    public static final String BATCH_REPORT_CONF = "common/batch-report.conf";
+    public static final String BATCH_REPORT_CLIENT_PATH = "common/batch-report-client.conf";
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
@@ -112,6 +118,7 @@ public class VitamServerRunner extends ExternalResource {
     private static AdminManagementMain adminManagementMain;
     private static IngestInternalMain ingestInternalMain;
     private static AccessInternalMain accessInternalMain;
+    private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
 
     private static String randomWorkerDbFolder = null;
@@ -248,6 +255,13 @@ public class VitamServerRunner extends ExternalResource {
                 IngestInternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
+            // IngestInternalMain
+            if (servers.contains(BatchReportMain.class)) {
+                LOGGER.warn("========== BatchReportMain   ===========");
+                startBatchReportServer();
+                BatchReportClientFactory.changeMode(
+                    BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH));
+            }
 
             waitServerStartOrStop(true);
         } catch (IOException | VitamApplicationServerException | PluginException e) {
@@ -267,6 +281,25 @@ public class VitamServerRunner extends ExternalResource {
         ingestInternalMain = new IngestInternalMain(INGEST_INTERNAL_CONF);
         ingestInternalMain.start();
         SystemPropertyUtil.clear(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    private void startBatchReportServer() throws VitamApplicationServerException, IOException {
+        if (null != batchReportMain) {
+            return;
+        }
+        SystemPropertyUtil
+            .set(BatchReportMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_BATCH_REPORT));
+        final File batchConfig = PropertiesUtils.findFile(BATCH_REPORT_CONF);
+        final BatchReportConfiguration batchReportConfiguration =
+            PropertiesUtils.readYaml(batchConfig, BatchReportConfiguration.class);
+        List<MongoDbNode> mongoDbNodes = batchReportConfiguration.getMongoDbNodes();
+        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
+        batchReportConfiguration.setMongoDbNodes(mongoDbNodes);
+        PropertiesUtils.writeYaml(batchConfig, batchReportConfiguration);
+        batchReportMain = new BatchReportMain(batchConfig.getAbsolutePath());
+        batchReportMain.start();
+        BatchReportClientFactory.changeMode(new ClientConfigurationImpl("localhost", 8015));
+        SystemPropertyUtil.clear(BatchReportMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
     private void stopIngestInternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
@@ -717,6 +750,9 @@ public class VitamServerRunner extends ExternalResource {
         }
         if (null != ingestInternalMain) {
             waitServer(start, IngestInternalClientFactory.getInstance().getClient());
+        }
+        if (null != batchReportMain) {
+            waitServer(start, BatchReportClientFactory.getInstance().getClient());
         }
     }
 

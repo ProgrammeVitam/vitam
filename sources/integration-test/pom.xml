@@ -164,7 +164,17 @@
 			<artifactId>access-internal-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>batch-report-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>batch-report-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

@@ -117,6 +117,7 @@
         - masterdata
         - metadata
         - identity
+        - report
       no_log: true
       when: "mongo_cluster_name == 'mongo-data'"
       tags:
@@ -238,6 +239,7 @@
         - masterdata
         - metadata
         - identity
+        - report
       no_log: true
       when: "mongo_cluster_name == 'mongo-data'"
       tags:

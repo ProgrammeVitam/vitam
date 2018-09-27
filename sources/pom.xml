@@ -43,6 +43,7 @@
         <module>functional-tnr</module>
         <module>internal-security</module>
         <module>elastic-kibana-interceptor</module>
+        <module>batch-report</module>
     </modules>
 
 

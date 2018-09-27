@@ -84,6 +84,7 @@ hosts-access-external
 [zone-applicative:children]
 hosts-ingest-internal
 hosts-processing
+hosts-batch-report
 hosts-worker
 hosts-access-internal
 hosts-metadata
@@ -128,6 +129,8 @@ hosts-security-internal
 [hosts-storage-engine]
 # TODO: Put here servers where this service will be deployed : storage-engine
 
+[hosts-batch-report]
+# TODO: Put here servers where this service will be deployed : batch-report
 
 [hosts-worker]
 # TODO: Put here servers where this service will be deployed : worker

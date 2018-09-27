@@ -183,6 +183,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
         boolean chunkedMode, boolean cacheable) {
+
         initialisation(configuration, resourcePath);
         this.chunkedMode = chunkedMode;
         this.cacheable = cacheable;
