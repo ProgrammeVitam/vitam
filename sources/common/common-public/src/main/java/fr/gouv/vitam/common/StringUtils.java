@@ -86,6 +86,15 @@ public final class StringUtils {
     }
 
     /**
+     * Check external argument to avoid Path Traversal attack
+     * @param value to check
+     * @throws InvalidParseOperationException
+     */
+    public static String checkSanityString(String value) throws InvalidParseOperationException {
+        checkSanityString(new String[]{value});
+        return value;
+    }
+    /**
      * Check external argument
      * @param strings
      * @throws InvalidParseOperationException 
