@@ -251,6 +251,7 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
@@ -276,6 +277,7 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1.xml");
         }
@@ -312,7 +314,8 @@ public class DefaultOfferResourceTest {
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
                         with().header(GlobalDataRest.X_TENANT_ID, "1")
-                            .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, read)
+                                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1");
                     }
@@ -321,6 +324,7 @@ public class DefaultOfferResourceTest {
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         // assertNotNull(inChunk);
                         with().header(GlobalDataRest.X_TENANT_ID, "1")
+                            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, read)
                             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1");
@@ -397,12 +401,13 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             // try only with one chunk
             final byte[] bytes = new byte[1024];
-            in.read(bytes);
+            int read = in.read(bytes);
             try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                 assertNotNull(inChunk);
                 // TODO: review this when chunk really implemented in VITAM storage engine (theoretically bad request)
                 given().header(GlobalDataRest.X_TENANT_ID, "1")
                     .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
+                    .header(GlobalDataRest.VITAM_CONTENT_LENGTH, 0)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                     .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(201);
             }
@@ -417,6 +422,7 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             given().header(GlobalDataRest.X_TENANT_ID, "2")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(201);
         }
@@ -580,7 +586,8 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                    .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
 
@@ -661,6 +668,7 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
@@ -672,10 +680,12 @@ public class DefaultOfferResourceTest {
 
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_DIGEST, "fakeDigest")
             .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            //.header("Content-Length", "8766")
             .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(409);
 
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_DIGEST, digest.toString())
             .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            //.header("Content-Length", "8766")
             .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(200);
 
     }
@@ -734,6 +744,7 @@ public class DefaultOfferResourceTest {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + "/" + DataCategory.UNIT.name() + OBJECT_ID_URI, "id1");
         }
