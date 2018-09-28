@@ -206,6 +206,7 @@ Concernant les services producteurs, il faut différencier :
  
 La plupart des métadonnées descriptives peuvent être modifiées en cliquant sur le bouton "Modifier".
 
+.. note :: Une contrainte technique limite le nombre de caractère par champ à 32 000. Un contrôle est effectué lors de l'ingest et à l'update. Si, un des champ de l'unité archivistique exède cette limite, la mise à jour ne sera pas validée. 
 
 .. image:: images/au_modif.png
 
