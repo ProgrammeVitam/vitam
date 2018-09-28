@@ -35,7 +35,7 @@ Détail des champs
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"offset":**. Il s'agit de la valeur de l'offset.
+**"offset":** la valeur de l'offset.
 
   * Il s'agit d'un entier encodé 64 bits.
   * Champ peuplé par la solution logicielle Vitam.

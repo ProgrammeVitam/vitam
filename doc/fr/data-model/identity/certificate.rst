@@ -22,7 +22,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
         [...]
 
     kbE4KM08yV1dIRlJMWnpQRWZ4eXlxMm1TbVdsaUUvUzZUbzJVVEswamxobStpbThPa29mZmlLbXlodVpWS3
-    S0tRU5EIENFUlRJRklDQVRFLS0tLS0="
+    S0tRU5EIENFUlRJRklDQVRFLS0tLS0=",
+    "Status": "VALID"
  }
 
 Détail des champs du JSON stocké dans la collection
@@ -57,4 +58,9 @@ Détail des champs du JSON stocké dans la collection
 **"Certificate":** Certificat
 
   * Il s'agit d'une chaîne de caractères correspondant au binaire du certificat suivant la norme X509
+  * Cadinalité : 1-1
+
+**"Status":** Statut du certificat
+
+  * Peut être "VALID" si le certificat est valide, ou "REVOKED" si il est révoqué
   * Cadinalité : 1-1

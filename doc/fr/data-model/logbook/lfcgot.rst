@@ -11,68 +11,78 @@ Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les évé
 
 Chaque groupe d'objets possède une et une seule entrée dans la collection LogbookLifeCycleObjectGroup.
 
-Exemple de JSON stocké en base comprenant l'exhaustivité des champs
-===================================================================
+Extrait d'un JSON stocké en base comprenant l'exhaustivité des champs
+=====================================================================
 
 ::
 
   {
-    "_id": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-    "evId": "aedqaaaaacaam7mxaap44akyf7hurgaaaabq",
+    "_id": "aebaaaaaamhjsaaiabdgealgdn3eawiaaaca",
+    "evId": "aedqaaaaaohjsaaiabdgealgdn3ea7yaaaca",
     "evParentId": null,
-    "evType": "CHECK_CONSISTENCY",
-    "evDateTime": "2016-11-04T14:47:43.512",
-    "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
+    "evType": "LFC.LFC_CREATION",
+    "evDateTime": "2018-09-27T14:37:06.559",
+    "evIdProc": "aeeaaaaaaohcalzeabmrkalgdn3dpaaaaaaq",
     "evTypeProc": "INGEST",
-    "outcome": "STARTED",
-    "outDetail": "STARTED",
-    "outMessg": "Début de la vérification de la cohérence entre objets/groupes d’objets et ArchiveUnit.",
-    "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-    "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
+    "outcome": "OK",
+    "outDetail": "LFC.LFC_CREATION.OK",
+    "outMessg": "Succès de l'alimentation du journal du cycle de vie",
+    "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1050214408,\"SiteId\":1,\"GlobalPlatformId\":244908040}",
+    "obId": "aebaaaaaamhjsaaiabdgealgdn3eawiaaaca",
     "evDetData": null,
     "events": [
         {
-            "evId": "aedqaaaaacaam7mxaap44akyf7hurgaaaabq",
+            "evId": "aedqaaaaaohjsaaiabdgealgdn3ea7yaaacq",
             "evParentId": null,
-            "evType": "CHECK_CONSISTENCY",
-            "evDateTime": "2016-11-04T14:47:43.515",
-            "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
+            "evType": "LFC.CHECK_MANIFEST",
+            "evDateTime": "2018-09-27T14:37:06.559",
+            "evIdProc": "aeeaaaaaaohcalzeabmrkalgdn3dpaaaaaaq",
             "evTypeProc": "INGEST",
             "outcome": "OK",
-            "outDetail": "OK",
-            "outMessg": "Objet/groupe dobjet référencé par un ArchiveUnit.",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":773928267,\"SiteId\":1,\"GlobalPlatformId\":237057355}",
-            "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
+            "outDetail": "LFC.CHECK_MANIFEST.OK",
+            "outMessg": "Succès de la vérification de la cohérence du bordereau de transfert",
+            "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1050214408,\"SiteId\":1,\"GlobalPlatformId\":244908040}",
+            "obId": "aebaaaaaamhjsaaiabdgealgdn3eawiaaaca",
             "evDetData": null,
-	    "_lastPersistedDate": "2016-11-04T14:47:45.132",
+            "_lastPersistedDate": "2018-09-27T14:37:22.152"
         },
         {
-            "evId": "\"aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba\"",
-            "evParentId": null,
-            "evType": "CHECK_DIGEST",
-            "evDateTime": "2016-11-04T14:47:45.132",
-            "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
+            "evId": "aedqaaaaaohjsaaiabdgealgdn3ea7yaaada",
+            "evParentId": "aedqaaaaaohjsaaiabdgealgdn3ea7yaaacq",
+            "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+            "evDateTime": "2018-09-27T14:37:06.559",
+            "evIdProc": "aeeaaaaaaohcalzeabmrkalgdn3dpaaaaaaq",
             "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "STARTED",
-            "outMessg": "Début de la vérification de lempreinte.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-            "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-            "evDetData": "{\"MessageDigest\":\"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
-            5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
-            5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
-	    "_lastPersistedDate": "2016-11-04T14:47:45.132",
+            "outcome": "OK",
+            "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+            "outMessg": "Succès de la création du journal du cycle de vie",
+            "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1050214408,\"SiteId\":1,\"GlobalPlatformId\":244908040}",
+            "obId": "aebaaaaaamhjsaaiabdgealgdn3eawiaaaca",
+            "evDetData": null,
+            "_lastPersistedDate": "2018-09-27T14:37:22.152"
         },
         {
+            "evId": "aedqaaaaachjsaaiabdgealgdn3eddaaaaaq",
+            "evParentId": null,
+            "evType": "LFC.CHECK_CONSISTENCY",
+            "evDateTime": "2018-09-27T14:37:06.828",
+            "evIdProc": "aeeaaaaaaohcalzeabmrkalgdn3dpaaaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "LFC.CHECK_CONSISTENCY.OK",
+            "outMessg": "Succès de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques",
+            "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1050214408,\"SiteId\":1,\"GlobalPlatformId\":244908040}",
+            "obId": "aebaaaaaamhjsaaiabdgealgdn3eawiaaaca",
+            "evDetData": null,
+            "_lastPersistedDate": "2018-09-27T14:37:22.152"
+        },
 
-            [...]
+      [...]
 
-        }
-    ],
-    "_tenant": 0,
-    "_v": 0,
-    "_lastPersistedDate": "2016-11-04T14:47:45.132"
-    }
+      ],
+      "_tenant": 3,
+      "_v": 5,
+      "_lastPersistedDate": "2018-09-27T14:37:22.152"
 
 
 Détail des champs du JSON stocké en base
@@ -93,6 +103,7 @@ Détail des champs du JSON stocké en base
     * Ce champ existe pour les structures incluantes et incluses.
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     * Il identifie l'événement parent. Par exemple pour l'événement LFC.CHECK_MANIFEST.LFC_CREATION, ce champs fera référence au GUID de l'évènement LFC.CHECK_MANIFEST.
     * La valeur du champ est toujours "null" pour la structure incluante et les tâches principales
@@ -110,7 +121,7 @@ Détail des champs du JSON stocké en base
 
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
 
-    ``Exemple : "2016-08-17T08:26:04.227"``.
+      ``Exemple : "2016-08-17T08:26:04.227"``.
 
     * Ce champ est positionné par le client LogBook.
     * Cardinalité : 1-1
@@ -132,7 +143,7 @@ Détail des champs du JSON stocké en base
 
 **"outcome":** statut de l'événement.
 
-    * Il s'agit d'une chaîne de caractères devant correspondre une valeur de la liste suivante :
+    * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
 
     	- STARTED (Début de l'événement)
     	- OK (Succès de l'événement)
@@ -202,7 +213,7 @@ Détail des champs du JSON stocké en base
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1
-    * Ce champ existe pour les structures incluantes et incluses.
+    * Ce champ existe pour les structures incluantes et incluses. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
 **"_lastPersistedDate":** date technique de sauvegarde en base.
 

@@ -81,5 +81,5 @@ Type d'indexation dans ElasticSearch
 
 Les champs peuvent être indexés de deux façons différentes dans ElasticSearch :
 
-	* **Les champs analysés :** les informations contenues dans ces champs peuvent être retrouvés par une recherche full-text. Par exemple, les champs *Description*, *Name*.
-	* **Les champs non analysés :** les informations contenues dans ces champs peuvent être retrouvés par une recherche exacte uniquement. Par exemple, les champs *Identifier* ou *OriginatingAgency*.
+	* **Les champs analysés :** les informations contenues dans ces champs peuvent être retrouvées par une recherche full-text. Par exemple, les champs *Description*, *Name*.
+	* **Les champs non analysés :** les informations contenues dans ces champs peuvent être retrouvées par une recherche exacte uniquement. Par exemple, les champs *Identifier* ou *OriginatingAgency*.

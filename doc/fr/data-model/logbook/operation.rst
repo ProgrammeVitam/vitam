@@ -9,15 +9,16 @@ La collection LogbookOperation comporte toutes les informations de traitement li
 Ces opérations sont :
 
 - Audit
-- Export DIP
 - Données de bases
+- Elimination
 - Entrée
-- Mise à jour
-- Sauvegarde des écritures
+- Export DIP
+- Mise à jour des unités archivistiques
+- Mise à jour de format
 - Sécurisation
 - Vérification
-
-D'autres opérations types non implémentées sont à venir : élimination, préservation, reclassification...
+- Sauvegarde des écritures
+- Réorganisation d'arborescence
 
 
 Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 6.3.
@@ -120,7 +121,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"_id" (identifier):** Identifiant unique donné par le système lors de l'initialisation de l'opération
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * La valeur de ce champ peut être ré-utilisé dans les champ evIdProc et evIdReq pour pouvoir suivre une succession d'opération déclenchée par une première opération (comme la mise à jour du référentiel des règles de gestion pouvant déclencher une mise à jour des unités archivistiques).
+  * La valeur de ce champ peut être ré-utilisé dans les champ evIdProc, evIdReq, evId et obId pour pouvoir suivre une succession d'opération déclenchée par une première opération (comme la mise à jour du référentiel des règles de gestion pouvant déclencher une mise à jour des unités archivistiques).
   * Cet identifiant constitue la clé primaire de l'opération dans la collection.
   * Cardinalité : 1-1
   * Ce champ existe uniquement pour la structure incluante.
@@ -128,17 +129,17 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"evId" (event Identifier):** identifiant de l'événement
 
   * Il s'agit d'une chaîne de 36 caractères.
-  * Champs obligatoire peuplé par la solution logicielle Vitam.
+  * Champ obligatoire peuplé par la solution logicielle Vitam.
   * Il identifie l'opération de manière unique dans la collection.
   * Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
   * Cardinalité : 1-1
-  * Ce champ existe pour les structures incluantes et incluses
+  * Ce champ existe pour les structures incluantes et incluses.
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
 
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     * Il identifie l'événement parent. Par exemple pour le traitement CHECK_SEDA, il s'agit de l'identifiant de l'étape STP_INGEST_CONTROL_SIP.
-    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * Ce champ est toujours à "null" pour la structure incluante et les tâches principales.
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
 
@@ -166,7 +167,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer.
     * EvDateTimeReq : date de la demande de transfert inscrit dans le champ evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
-    * ArchivalAgreement : identifiant du contrat d'entrée utilisé. Reprend le champ "ArchivalAgreement" du message ArchiveTransfer
+    * ArchivalAgreement : identifiant du contrat d'entrée utilisé. Reprend le champ "ArchivalAgreement" du message ArchiveTransfer.
     * ArchiveProfile : identifiant du profil d'archivage utilisé. Reprend le champ "ArchiveProfile" du message ArchiveTransfer. Cardinalité 0-1.
     * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer.
     * AcquisitionInformation : modalités d'entrée des archives. Chaîne de caractères. Reprend le champ AcquisitionInformation du message ArchiveTransfer. Cardinalité 0-1.
@@ -179,7 +180,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"evIdProc" (event Identifier Process):** identifiant du processus.
 
   * Il s'agit d'une chaîne de 36 caractères.
-  * Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id". Dans le cas où une opération en déclenche d'autres, elles utilisent toutes le même evIdProc, qui permet alors de suivre une suite de processus.
+  * Lorsqu'il s'agit d'une opération indépendante d'autres opérations, tous les mêmes événements d'un document dans cette collection reprennent pour ce champ la valeur du champ "_id". Dans le cas où une opération en déclenche d'autres, les opérations déclenchées utilisent toutes le même evIdProc, qui permet alors de suivre une suite de processus.
   * Cardinalité : 1-1
   * Ce champ existe pour les structures incluantes et incluses.
 
@@ -229,7 +230,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * Cardinalité : 1-1
     * Ce champ existe uniquement pour la structure incluante.
 
-**"agIdPers"** : identifiant personae, issu du certificat personnae.
+**"agIdPers"** : identifiant personae, issu du certificat personae.
 
     * Il s'agit d'une chaîne de caractères.
     * Cardinalité : 1-1
@@ -258,12 +259,12 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
         * OriginatingAgency : identifiant du service producteur. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
         * TransferringAgency : identifiant du service de transfert. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
         * ArchivalAgency : identifiant du service d'archivage. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ ArchivalAgencyIdentifier du message ArchiveTransfer.
-        * submissionAgency : identifiant du service versant. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer. Ne contient aucune valeur actuellement
+        * SubmissionAgency : identifiant du service versant. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
 
     * Cardinalité : 1-1
     * Ce champ existe uniquement pour la structure incluante.
 
-**"rightsStatementIdentifier":** identifiant des données référentielles en vertu desquelles l'opération peut s'éxécuter
+**"rightsStatementIdentifier":** identifiant des données référentielles en vertu desquelles l'opération peut s'exécuter.
 
     * Pour une opération d'INGEST, il comprend les champs suivant en JSON :
 
@@ -282,6 +283,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     	* AccessContract : identifiant du contrat d'accès utilisé pour réaliser une mise à jour.
 
     * Cardinalité : 1-1
+    * Ce champ existe pour la structure incluante et certaines structures incluses
 
 **"obId" (object Identifier):** identifiant du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
@@ -366,7 +368,7 @@ Détail des champs du JSON stocké en base spécifiques à une opération de sé
 
 Ceci ne concerne aujourd'hui que les sécurisations des journaux d'opération et la sécurisation des journaux de cycle de vie.
 
-Exemple de données stockées par l'opération de sécurisation des journaux d'opération :
+Exemple de données stockées par l'opération de sécurisation des journaux d'opération pour le champ evDetData :
 
 ::
 
@@ -429,7 +431,7 @@ Dans le cas de l'événement final d'une opération de sécurisation du journal 
 
       * Cardinalité : 1-1
 
-**"MinusOneYeaLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un an.
+**"MinusOneYearLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un an.
 
       * Il s'agit de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
 
@@ -480,4 +482,10 @@ Dans le cas de l'événement final d'une opération de sécurisation du journal 
 
       * Il s'agit d'une chaîne de caractères.
       * Il s'agit du nom de l'algorithme de hachage utilisé pour réaliser le tampon d'horodatage.
+      * Cardinalité : 1-1
+
+**"MaxEntriesReached":** permet de savoir si l'ensemble de la sécurisation est terminée.
+
+      * Il s'agit d'un booléen "true" ou "false"
+      * Lorsqu'il y a un ensemble trop grand d'éléments à sécuriser, la solution logicielle Vitam divise le travail pour manipuler des ensembles de fichiers techniquement gérables. Par défaut le nombre maximum d'élément sécurisable dans un lot est de 100.000. Si ce nombre dépasse le seuil, alors la valeur de MaxEntriesReached est "true" et une deuxième sécurisation est lancée là où s'est arrêté la première, puis on regarde à nouveau si le seuil est atteint pour lancer un troisième lot, un quatrième, etc. Lorsque le nombre d'éléments sécurisés est inférieur au seuil, alors MaxEntriesReached est à false. 
       * Cardinalité : 1-1
