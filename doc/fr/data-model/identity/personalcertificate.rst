@@ -17,7 +17,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     "SerialNumber": 2,
     "IssuerDN": "O=VITAM, L=Paris, C=FR",
     "Certificate": "MIIFRjCCAy6gAwIBAgIBAjANBgkqhkiG9w0BAQsFADAtMQswCQYDV...iaA==",
-    "Hash": "6088f19bc7d328f301168c064d6fda93a6c4ced9d5c56810c4f70e21e77d841d"
+    "Hash": "6088f19bc7d328f301168c064d6fda93a6c4ced9d5c56810c4f70e21e77d841d",
+    "Status": "VALID"
  }
 
 Détail des champs du JSON stocké dans la collection
@@ -55,3 +56,8 @@ Détail des champs du JSON stocké dans la collection
   * le hash utilise l'algorithme SHA256
   * Il s'agit d'une chaîne de caractères
   * Cardinalité : 1-1
+
+**"Status":** Statut du certificat
+
+  * Peut être "VALID" si le certificat est valide, ou "REVOKED" si il est révoqué
+  * Cadinalité : 1-1

@@ -37,7 +37,7 @@ Ci-après, la portion d'un bordereau de transfert (manifest.xml) utilisée pour 
 Exemple de JSON stocké dans la collection Unit
 ==============================================
 
-Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/
+Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/
 
 
 .. code-block:: json
@@ -173,7 +173,7 @@ Cette transposition se fait comme suit :
     - ReuseRule (durée de réutilisation)
     - StorageRule (durée d'utilité courante)
 
-  * Cardinalité 0-1 ,pour chaque catégorie.
+  * Cardinalité 0-1, pour chaque catégorie.
 
 Chaque catégorie peut contenir :
 
@@ -183,7 +183,7 @@ Chaque catégorie peut contenir :
 
       + **"Rule"**: identifiant de la règle, qui correspond à une valeur du champ RuleId de la collection FileRules. (cardinalité 0-1)
       + **"StartDate"** : "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfer ou ajoutée *a posteriori* par une modification de l'unité archivistique. (cardinalité 0-1)
-      + **"EndDate**": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam. Celui ci consiste en l'ajout du délai correspondant à la règle dans la collection FileRules à la valeur du champ startDate (EndDate = StartDate + Durée) (cardinalité 0-1)
+      + **"EndDate**": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam. Celui-ci consiste en l'ajout du délai correspondant à la règle dans la collection FileRules à la valeur du champ startDate (EndDate = StartDate + Durée) (cardinalité 0-1)
 
     2. Des données spécifiques aux catégories :
 
@@ -195,16 +195,19 @@ Chaque catégorie peut contenir :
 
         + **"ClassificationLevel"** : niveau de classification, obligatoire et systématiquement renseigné (cardinalité 1-1)
         + **"ClassificationOwner"**: propriétaire de la classification, obligatoire et systématiquement renseigné (cardinalité 1-1)
-        + **"ClassificationAudience"** : permet de gérer les questions de "diffusion restreinte", "spécial France" et "Confidentiel Industrie", champ optionnel (cardinalité 0-1)
+        + **"ClassificationAudience"** : permet de gérer les mentions additionnelles de limitation du champ de diffusion (exemple : "spécial France"), champ optionnel (cardinalité 0-1)
         + **"ClassificationReassessingDate"** : date de réévaluation de la classification, optionnelle. (cardinalité 0-1)
         + **"NeedReassessingAuthorization"** : indique si une autorisation humaine est nécessaire pour réévaluer la classification, optionnel (cardinalité 0-1)
 
     3. Des paramètres de gestion d'héritage de règles, dans un objet nommé **"Inheritance"** (cardinalité 0-1). Cet objet peut avoir comme valeur :
 
       + **"PreventInheritance"** :
+
         * "true" ou "false", utilisé pour bloquer l'héritage de toutes les règles de gestion de la même catégorie
         * Cardinalité 1-1 à partir du moment où le champ Inheritance existe
+
       + **"PreventRulesId"** :
+
         * Tableau d'identifiants de règles de gestion qui ne doivent pas être héritées d'un parent
         * A l'entrée il s'agit de la valeur de la balise <RefNonRuleId> du SEDA
         * Cardinalité 1-1 à partir du moment où le champ Inheritance existe
@@ -284,6 +287,7 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
 
   * Il s'agit d'un tableau JSON.
   * Les titres sont organisés sous la forme de clef : valeur, la clef étant l'indicatif de la langue en xml:lang et la valeur le titre. Par exemple : "fr": "Ceci est un titre."
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title\_
 
 .. code-block:: json
 
@@ -292,7 +296,6 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
       "en": "EnglishMySIP"
   },
 
-  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Title et/ou au moins un champ Title_
 
 **"Description":** description de l'unité archivistique.
 
@@ -304,6 +307,7 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
 
   * Il s'agit d'un tableau JSON
   * Les titres sont organisés sous la forme de clef : valeur, la clef étant l'indicatif de la langue en xml:lang et la valeur la description. Par exemple : "fr": "Ceci est une description."
+  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description\_
 
 .. code-block:: json
 
@@ -312,13 +316,11 @@ Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles d
       "en": "another description"
   },
 
-  * Cardinalité : 0-1, le modèle d'une unité archivistique doit comporter au moins un champ Description et/ou au moins un champ Description_
-
 **"XXXXX":** des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau de transfert au niveau du Content de chaque unité archivistique.
 
   * Se reporter à la documentation descriptive du SEDA 2.1 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives.
 
-**ArchiveUnitProfile:** Profil d'archivage de l'unité archivistique utilisé lors de l'entrée.
+**ArchiveUnitProfile:** profil d'archivage de l'unité archivistique utilisé lors de l'entrée.
 
   * Correspond à l'identifiant du profil d'archivage associé à l'unité archivistique
   * Chaîne de caractères.
@@ -423,14 +425,14 @@ Le mapping est le suivant :
   * Ne peut être vide
   * Cardinalité : 1-1
 
-**"_sps":** services producteurs liés à l'unité archivistique suite à un rattachement et ayant des droits d'accès sur celle-ci.
+**"_sps":** services producteurs auxquels l'unité archivistique a été rattachée (au titre de leurs fonds symboliques)
 
   * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs référençant l'unité archivistique.
   * Il s'agit d'un tableau de chaînes de caractères.
   * Ne peut être vide. Il comprend au minimum le service versant déclaré dans le bordereau de transfert.
   * Cardinalité : 1-1
 
-**"_sp":** service producteur d'origine déclaré lors de la prise en charge de l'unité archivistique par la solution logicielle Vitam.
+**"_sp":** service producteur responsable de l'unité archivistique, qui appartient à son fond propre.
 
   * Il s'agit du service producteur inscrit dans le bordereau de transfert lié au transfert de l'unité archivistique et déclaré dans la balise <OriginatingAgencyIdentifier> du message ArchiveTransfer.
   * Il s'agit d'une chaîne de caractères.
@@ -488,6 +490,8 @@ Le mapping est le suivant :
 
   * Il s'agit d'un tableau de JSON.
   * Ces informations sont réunies dans le tableau sous la forme de clef/valeur, la clé étant la profondeur du parent (de type entier), la valeur étant elle même un tableau d'identifiant d'unité archivistique. Exemple d'une unité qui a un parent direct, lui même ayant deux parents.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
 
 .. code-block:: json
 
@@ -499,8 +503,6 @@ Le mapping est le suivant :
       "aeaqaaaaamhad455abcwsalep4lzf2iaaabq"
   ],
 
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
 
 **"_min":** profondeur minimum de l'unité archivistique par rapport à une racine.
 
@@ -534,12 +536,12 @@ Le mapping est le suivant :
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_elimination":** tableau contenant les résultats pour l'unité archivistique d'une opération d'analyse d'élimination 
-  
+**"_elimination":** tableau contenant les résultats pour l'unité archivistique d'une opération d'analyse d'élimination
+
 
   * Champ peuplé par la solution logicielle Vitam au moment d’une indexation lors d'une phase d'analyse d'élimination.
   * Cardinalité : 1-1
-  
+
   Ce bloc contient les clés suivantes :
 
 
@@ -549,41 +551,39 @@ Le mapping est le suivant :
      - Ne peut être vide
      - Cardinalité : 1-1
 
-  * "GlobalStatus": ce champ indique le statut de l'unité archivistique lors de son indexation 
+  * "GlobalStatus": ce champ indique le statut de l'unité archivistique lors de son indexation
 
-    - les valeurs ne peuvent être que DESTROY ou PARTIAL_DESTROY
+    - les valeurs ne peuvent être que DESTROY ou CONFLICT
     - Ne peut être vide.
-    - Cardinalité : 1-1 
+    - Cardinalité : 1-1
 
   * "DestroyableOriginatingAgencies" : Service(s) producteur(s) pour lesquel(s) l'unité archivistique est éliminable
 
     - Il s’agit d’une chaîne de caractères.
     - Cardinalité : 0-n
-  
+
   * "NonDestroyableOriginatingAgencies": Service(s) producteur(s) pour lesquel(s) l'unité archivistique n'est pas éliminable
 
     - Il s’agit d’une chaîne de caractères.
     - Cardinalité : 0-n
-  
-  * "ExtendedInfo" : tableau donnant des informations complémentaires dans les cas de PARTIAL_DESTROY
+
+  * "ExtendedInfo" : tableau donnant des informations complémentaires dans les cas de CONFLICT
 
     - Cardinalité : 0-n
-  
-  * "ExtendedInfoType": ce champ indique les situations impliquant un PARTIAL DESTROY
+
+  * "ExtendedInfoType": ce champ indique les situations impliquant un CONFLICT
 
     - Il s’agit d’une chaîne de caractères.
     - Cardinalité : 0-n
- 
+
       - les valeurs attendues dans ce tableau sont soit :
-  
-        - "KEEP_ACCESS_SP" l'unité archivistique n'est pas éliminable car l'accès est conservé pour un service producteur. Pour chaque cas de KEEP_ACCESS_SP l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
+
+        - "KEEP_ACCESS_SP" l'unité archivistique n'est pas éliminable car l'accès est conservé pour un service producteur autre que le service producteur principal. Pour chaque cas de KEEP_ACCESS_SP l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
 
           - "ParentUnitId": "guid",
           - "DestroyableOriginatingAgencies"
 
-        - "ACCESS_LINK_INCONSISTENCY" l'unité archivistique n'est pas éliminable car sa suppression occasionnerait une incohérence dans le fonds d'achives. Pour chaque cas de ACCESS_LINK_INCONSISTENCY l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
-     
+        - "ACCESS_LINK_INCONSISTENCY" l'unité archivistique n'est pas éliminable car sa suppression occasionnerait une incohérence dans le fonds d'archives. Pour chaque cas de ACCESS_LINK_INCONSISTENCY l'unité parente est obligatoirement spécifiée avec son GUID, ainsi que le service producteur concerné.
+
           - "ParentUnitId": "guid",
           - "DestroyableOriginatingAgencies":
-
-

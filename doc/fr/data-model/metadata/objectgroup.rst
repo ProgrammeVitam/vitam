@@ -12,7 +12,7 @@ Exemple de XML
 Ci-après, un extrait d'un bordereau de transfert (manifest.xml) utilisé pour compléter les champs du JSON correspondant à un groupe d'objets.
 
 ::
-  
+
   <DataObjectGroupId id="ID0009">
     <PhysicalDataObject id="ID109">
         <DataObjectVersion>PhysicalMaster</DataObjectVersion>
@@ -190,16 +190,14 @@ Détail des champs du JSON
 
 **"_profil":** catégorie de l'objet.
 
-  * Repris du nom de la balise présente dans le bloc Metadata du DataObjectPackage présent dans le bordereau de transfert au niveau du BinaryMaster.
-
-  Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
+  * Repris du nom de la balise présente dans le bloc Metadata du DataObjectPackage présent dans le bordereau de transfert au niveau du BinaryMaster.  Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
   Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
 
   * Cardinalité : 1-1
 
-**"FileInfo":** : informations sur le fichier constituant l'objet-données numérique de référence.
+**"FileInfo":** informations sur le fichier constituant l'objet-données numérique de référence.
 
-  * reprend le bloc FileInfo du BinaryMaster présent dans le bordereau de transfert.
+  * Reprend le bloc FileInfo du BinaryMaster présent dans le bordereau de transfert.
   * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminée (en application des règles de gestion).
   * Cardinalité : 1-1
 
@@ -216,7 +214,7 @@ Détail des champs du JSON
       - "DataObjectGroupId": identifiant du groupe d'objets, composé d'une chaîne de 36 caractères.
       - "DataObjectVersion": version de l'objet par rapport à son usage.
 
-      Par exemple, si on a *BinaryMaster* sur l'usage, on aura au moins un objet *BinaryMaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau de transfert.
+      Par exemple, si on a *BinaryMaster* sur l'usage, on aura au moins un objet *BinaryMaster_1*. Ces champs sont renseignés si possible avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau de transfert. Chaque ajout d'un objet du même usage incrémente de un le numéro de la version, même si le bordereau de transfert indique une information contraire. Par exemple si il existe un groupe d'objets avec deux objets : BinaryMaster_1 et BinaryMaster_2, lorsqu'un nouveau SIP ajoute un objet déclaré comme un "BinaryMaster_6" dans le bordereau de transfert, celui-ci sera enregistré comme "BinaryMaster_3".
 
       - "FormatIdentification": contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel PRONOM et les valeurs que porte le document est faite.
 
@@ -224,7 +222,7 @@ Détail des champs du JSON
         - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
         - "FormatId" : PUID du format de l'objet. Il est défini par la solution logicielle Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK) et correspondant à la valeur du champ PUID de la collection FileFormat.
 
-      - "FileInfo": Contient les informations sur le fichier.
+      - "FileInfo": contient les informations sur le fichier.
 
           - "Filename": nom de l'objet.
           - "CreatingApplicationName": nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
@@ -244,7 +242,8 @@ Détail des champs du JSON
          - "Thickness" : épaisseur de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Weight" : poids de l'objet. Ce champ contient 2 sous champs : "unit" (string) et "dValue" (double)
          - "Shape" : forme de l'objet. Ce champ contient est de type String
-      - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, de l'une extension du schéma SEDA du message  ArchiveTransfer. Cardinalité 0-1.
+
+      - "OtherMetadata": ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, d'une extension du schéma SEDA du message  ArchiveTransfer. Cardinalité 0-1.
 
 
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
@@ -296,13 +295,13 @@ Détail des champs du JSON
   * Ne peut être vide
   * Cardinalité : 1-1
 
-**"_sp":** service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
+**"_sp":** service producteur responsable du groupe d'objets, qui appartient à son fond propre. Il s'agit de la valeur de la balise OriginatingAgencyIdentifier dans le message ArchiveTransfer.
 
   * Il s'agit d'une chaîne de caractères.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_sps":** service producteur d'origine déclaré lors de la prise en charge du groupe d'objets par la solution logicielle Vitam.
+**"_sps":** services producteurs auxquels le groupe d'objets techniques a été rattaché (au titre de leurs fonds symboliques).
 
   * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objets.
   * Il s'agit d'un tableau de chaînes de caractères.
@@ -323,7 +322,7 @@ Détail des champs du JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_us":** Reprend l'union de tous les champs _us de toutes les unités archivistiques possédant le groupe d'objets.
+**"_us":** Reprend l'union de tous les champs _us de toutes les unités archivistiques possédant le groupe d'objets (parentalité).
 
   * Tableau de chaînes de 36 caractères.
   * Champ peuplé par la solution logicielle Vitam.

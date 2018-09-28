@@ -93,8 +93,8 @@ Détail des champs du JSON stocké en base
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
 
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
-    * Il identifie l'événement parent. Par exemple pour l'événement LFC.CHECK_MANIFEST.LFC_CREATION, ce champs fera référence au GUID de l'évènement LFC.CHECK_MANIFEST.
-    * La valeur est toujours null pour la structure incluante et les tâches principales.
+    * Il identifie l'événement parent. Par exemple pour l'événement LFC.CHECK_MANIFEST.LFC_CREATION, ce champ fera référence au GUID de l'évènement LFC.CHECK_MANIFEST.
+    * La valeur est toujours "null" pour la structure incluante et les tâches principales.
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
 
@@ -230,7 +230,7 @@ Champs présents dans les events
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 ======================================================================
 
-Exemple de données stockées :
+Exemple de données stockées dans le champ evDetData :
 
 ::
 
