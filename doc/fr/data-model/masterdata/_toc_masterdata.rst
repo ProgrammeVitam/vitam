@@ -9,6 +9,7 @@ Base MasterData
    accesscontract.rst
    accessionregisterdetail.rst
    accessionregistersummary.rst
+   accessionregistersymbolic.rst
    archiveunitprofile.rst
    agencies.rst
    context.rst

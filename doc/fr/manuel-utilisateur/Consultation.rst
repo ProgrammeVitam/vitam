@@ -70,11 +70,11 @@ Dans le cas contraire, un message d'erreur est affiché.
 .. image:: images/au_date_ko.png
 
 
-*Recherche par identifiant d'une Unité Archivistique* 
+*Recherche par identifiant d'une Unité Archivistique*
 
 La recherche par identifiant est spécifique. L'identifiant étant unique, il n'est pas possible d'effectuer une recherche croisée par identifiant et tout autre champ. L'identifiant est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification de la demande de transfert (ATR).
 
-Affiner la recherche 
+Affiner la recherche
 --------------------
 Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents filtres (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
 
@@ -104,7 +104,7 @@ L’utilisateur peut filtrer les résultats de recherche en sélectionnant un de
 
 **Unités archivistiques avec ou sans objets**
 
-Pour lancer cette opération, la ou les facet(s) concernée(s) doivent être cochée(s) et l’utilisateur doit cliquer sur « rechercher » dans le bloc « affiner la recherche ». Pour lancer une nouvelle facet, l’utilisateur peut « rafraichir » ses précédents résultats en cliquant sur « effacer », sélectionner une autre facet et lancer l’opération en cliquant sur « rechercher ». Au clic, sur une des occurrences de la facet, l’utilisateur visualise, dans le bloc de « résultats », la liste des unités archivistiques correspondant à sa demande. 
+Pour lancer cette opération, la ou les facet(s) concernée(s) doivent être cochée(s) et l’utilisateur doit cliquer sur « rechercher » dans le bloc « affiner la recherche ». Pour lancer une nouvelle facet, l’utilisateur peut « rafraichir » ses précédents résultats en cliquant sur « effacer », sélectionner une autre facet et lancer l’opération en cliquant sur « rechercher ». Au clic, sur une des occurrences de la facet, l’utilisateur visualise, dans le bloc de « résultats », la liste des unités archivistiques correspondant à sa demande.
 
 .. image:: images/Facetdetail.png
 
@@ -152,7 +152,7 @@ La page est divisée en plusieurs sections :
 """""""""""""""""""""""""""""""""""""
 Affichée par défaut, cette section permet de visualiser et naviguer dans l'arborescence montante et descendante de l'unité archivistique.
 
-L'unité archivistique que l'on consulte est signalée en gras et par un pictogramme de maison situé à gauche. Les niveaux supérieurs ou parents sont indiqués par des chevrons, les niveaux inférieurs ou enfants, par des plus. Un clic sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'unité archivistique sélectionnée. La racine est indiquée par une cible. 
+L'unité archivistique que l'on consulte est signalée en gras et par un pictogramme de maison situé à gauche. Les niveaux supérieurs ou parents sont indiqués par des chevrons, les niveaux inférieurs ou enfants, par des plus. Un clic sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'unité archivistique sélectionnée. La racine est indiquée par une cible.
 
 
 .. image:: images/au_arbo.png
@@ -180,9 +180,9 @@ Les résultats sont affichés avec les informations suivantes :
 .. image:: images/au_arbre_res.png
 
 
-La colonne "Sélectionné" permet de visualiser les unités archivistiques visibles dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionnées. 
+La colonne "Sélectionné" permet de visualiser les unités archivistiques visibles dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionnées.
 Un clic sur une ligne permet de sélectionner ou désélectionner l'unité archivistique correspondante.
-Un fois les choix effectués, un clic sur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement. L'arborescence affiche les unités sélectionnées. 
+Un fois les choix effectués, un clic sur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement. L'arborescence affiche les unités sélectionnées.
 
 Un pictogramme de croix, placé en haut à droite de la fenêtre permet de la refermer.
 
@@ -196,14 +196,14 @@ Affichée par défaut, cette section contient les principales métadonnées desc
 
 Concernant les services producteurs, il faut différencier :
 
- - Service producteur correspondant au service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert, qui sera dans la partie Description complémentaire. 
+ - Service producteur correspondant au service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert, qui sera dans la partie Description complémentaire.
  - Service producteur de l'entrée, correspondant à la valeur de l' <OriginatingAgencyIdentifier> déclaré dans le bordereau de transfert au niveau du bloc <ManagementData>
  - Services ayant des droits sur l'entrée, correspondant aux services producteurs de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées, depuis le bloc <ManagementData>
 
 
 .. image:: images/au_desc.png
 
- 
+
 La plupart des métadonnées descriptives peuvent être modifiées en cliquant sur le bouton "Modifier".
 
 .. note :: Une contrainte technique limite le nombre de caractère par champ à 32 000. Un contrôle est effectué lors de l'ingest et à l'update. Si, un des champ de l'unité archivistique exède cette limite, la mise à jour ne sera pas validée. 
@@ -213,13 +213,13 @@ La plupart des métadonnées descriptives peuvent être modifiées en cliquant s
 Chaque ligne devient alors éditable, excepté les champs identifiant, type, service producteur de l'entrée et services ayant des droits sur l'unité.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les sauvegarder et met à jour les métadonnées.
-Cette action est enregistrée dans le Journal du cycle de vie de l'unité archivistique ainsi que dans le journal des opérations. 
+Cette action est enregistrée dans le Journal du cycle de vie de l'unité archivistique ainsi que dans le journal des opérations.
 Les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détails sur l'événement située au niveau de l'étape de mise à jour des métadonnées de l'unité archivistique.
 
 
 **Description complémentaire**
 """"""""""""""""""""""""""""""
-Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content> du bordereau de transfert. 
+Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content> du bordereau de transfert.
 
 
 .. image:: images/au_desc_c.png
@@ -233,47 +233,47 @@ Un premier bloc concerne deux champs spécifiques : "Modifications soumises à v
 
 - Un premier champ "modifications soumises à validation" concerne le camp du SEDA NeedAuthorization dont la valeur peut être "oui" ou "non". Cette information doit indiquer au front office si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion sur une unité archivistique donnée.
 
-- Un deuxième champ "Profil d'unité archivistique" permet d'associer un profil d'unité archivistique (document type) existant dans le référentiel, à une unité archivistique. 
+- Un deuxième champ "Profil d'unité archivistique" permet d'associer un profil d'unité archivistique (document type) existant dans le référentiel, à une unité archivistique.
 
 .. image:: images/detail_need_authorization.png
 
-Les blocs suivants permettent de visualiser, d'ajouter, de modifier et de supprimer des catégories de règles et propriétés associés portées par l'unité archivistique. 
+Les blocs suivants permettent de visualiser, d'ajouter, de modifier et de supprimer des catégories de règles et propriétés associés portées par l'unité archivistique.
 
 
 **Champs valables pour les différentes catégories de règles**
 
 **Héritage des règles de gestion**
 
-  Pour chaque règle, il est possible de gérer l'héritage des règles. Deux possibilités sont autorisées par le SEDA, soit toutes les règles de la catégorie sont désactivées (cette action est effectuée en cliquant sur le bouton "Désactiver l'héritage", soit l'héritage d'un règle spécifique est activée ou désactivée en spécifiant la règle concernée (ex: ACC-00003). Dans le premier cas, l’information « Cette unité archivistique n’hérite d’aucune règle » indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique. Dans le second, l’information « Règle désactivée » précise l’identifiant des règles, provenant d’unités archivistisques parentes ne sont plus appliquées à partir de cette unité archivistique. 
+  Pour chaque règle, il est possible de gérer l'héritage des règles. Deux possibilités sont autorisées par le SEDA, soit toutes les règles de la catégorie sont désactivées (cette action est effectuée en cliquant sur le bouton "Désactiver l'héritage", soit l'héritage d'un règle spécifique est activée ou désactivée en spécifiant la règle concernée (ex: ACC-00003). Dans le premier cas, l’information « Cette unité archivistique n’hérite d’aucune règle » indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique. Dans le second, l’information « Règle désactivée » précise l’identifiant des règles, provenant d’unités archivistisques parentes ne sont plus appliquées à partir de cette unité archivistique.
 
 .. image:: images/prevent_rule.png
- 
+
 **Consultation et modification**
 
-   - En cliquant sur le pictogramme de "Détail" le chemin d'héritage et le service producteur est indiqué. 
+   - En cliquant sur le pictogramme de "Détail" le chemin d'héritage et le service producteur est indiqué.
    - Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles en cliquant sur le bouton "Ajouter une règle".
-   
+
 .. image:: images/detail_regle_de_gestion.png
-  
- 
-- **Délai de communicabilité** 
+
+
+- **Délai de communicabilité**
    - Identifiant : le code affecté à la règle appliquée à cette unité. Par exemple ACC-00010.
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
 
 - **Durée d'utilité administrative**
-   - Sort final : conserver ou détruire 
+   - Sort final : conserver ou détruire
    - Identifiant : le code affecté à la règle appliquée à cette unité. Par exemple APP-00005.
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
 
-- **Durée de classification** 
-   - Règle : identifiant de la règle 
+- **Durée de classification**
+   - Règle : identifiant de la règle
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
 
   .. admonition:: Les propriétés
 
@@ -283,28 +283,28 @@ Les blocs suivants permettent de visualiser, d'ajouter, de modifier et de suppri
    - Champ de diffusion : cette propriété restreint ou non l'accès à certains ressortissants (ex : spécial France, spécial Union Européènne)
    - Date de réevaluation : date à laquelle cette règle peut changer de statut
 
-- **Délai de diffusion** 
-   - Règle : identifiant de la règle 
+- **Délai de diffusion**
+   - Règle : identifiant de la règle
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
 
-- **Durée de réutilisation** 
-   - Règle : identifiant de la règle 
+- **Durée de réutilisation**
+   - Règle : identifiant de la règle
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
 
-- **Durée d'utilité courante** 
-   - Règle : identifiant de la règle 
+- **Durée d'utilité courante**
+   - Règle : identifiant de la règle
    - Date de début : date du début d'application de la règle
    - Date de fin : date de fin d'application de la règle
-   - Hérité : la règle est hérité ou non de son parent 
+   - Hérité : la règle est hérité ou non de son parent
    - Sort final : déclaration du sort final de l'unité archivistique : Accès restreint / Transférer / Copier
 
 **Validation des modifications**
 
-La suppression d'une règle s'effectue en cliquant sur la corbeille. 
+La suppression d'une règle s'effectue en cliquant sur la corbeille.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier les modifications. Un clic sur le bouton "Modifier" met à jour et sauvegarde les règles de gestion.
 
@@ -336,8 +336,8 @@ Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ens
 .. image:: images/au_got_detail.png
 
 
-Note: 
-En ce qui concerne les références à des objets physiques, seul l'usage sera affiché dans les colonnes du tableau. 
+Note:
+En ce qui concerne les références à des objets physiques, seul l'usage sera affiché dans les colonnes du tableau.
 
 Les codes des unités disponibles sont celles répertoriées par l'UNECE.
 
@@ -346,14 +346,14 @@ Les codes des unités disponibles sont celles répertoriées par l'UNECE.
 
 Il est possible de rattacher une Unité archivistique à un GOT existant dans le but de compléter un versement.
 
-Ces rattachements peuvent concerner le versement de nouveaux usages ou de nouvelles versions. 
+Ces rattachements peuvent concerner le versement de nouveaux usages ou de nouvelles versions.
 Le système permet d'importer plusieurs usages d'un même objet (BinaryMaster, Dissemination, TextContent...), il supporte également les différentes versions de cet objet. Les versions apparaissent sous la forme usage_1 / usage_2 / usage_3
-Ces différents usages ou versions sont visibles dans le bloc "groupe d'objets". 
+Ces différents usages ou versions sont visibles dans le bloc "groupe d'objets".
 
 Il est également possible d'effectuer un versement sans Binary ou physical master et de compléter par la suite en déclarant le GUID du GOT lors de l'ingest.
 Ces possibilités sont gérées et autorisées par le contrat d'entrée.
 
-Pour procéder à cette opération, il est nécesssaire d'avoir : 
+Pour procéder à cette opération, il est nécesssaire d'avoir :
 cette / ces  option(s) active(s) dans le contrat d'entrée et la balise <UpdateOperation><SystemId> intégrée dans le manifest (cf. Modèle de données)
 
 .. code-block:: xml
@@ -379,11 +379,11 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
 
-Pour télécharger le DIP, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations "Export DIP", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icône correspondant au rapport pour afficher le répertoire du DIP généré. 
+Pour télécharger le DIP, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations "Export DIP", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icône correspondant au rapport pour afficher le répertoire du DIP généré.
 
-Note: via le panier: il est possible d'exporter une sélection d'unités archivistiques, même si celles ci proviennent de services producteurs différents, en créant une sélection. En revanche, le service producteur qui sera affiché dans le DIP est "pré-configuré" vis à vis du serveur utilisé. 
+Note: via le panier: il est possible d'exporter une sélection d'unités archivistiques, même si celles ci proviennent de services producteurs différents, en créant une sélection. En revanche, le service producteur qui sera affiché dans le DIP est "pré-configuré" vis à vis du serveur utilisé.
 
-L'export du panier ou de la sélection se fait de la même façon que pour un export classique. Une pop-up informe du fait que la génération du DIP est en cours, et le fichier en question se retrouvera via le journal des opérations, et sera disponible au téléchargement. 
+L'export du panier ou de la sélection se fait de la même façon que pour un export classique. Une pop-up informe du fait que la génération du DIP est en cours, et le fichier en question se retrouvera via le journal des opérations, et sera disponible au téléchargement.
 
 
 Consultation des journaux du cycle de vie
@@ -475,7 +475,7 @@ Par défaut, les services agents ayant fait des entrées sont affichés sous le 
 
 Note: les services versants ne figurent pas dans cette liste.
 
-Pour effectuer une recherche précise, on utilise le champ "Identifiant" en utilisant l'identifiant exact recherché. 
+Pour effectuer une recherche précise, on utilise le champ "Identifiant" en utilisant l'identifiant exact recherché.
 Il est également possible de rechercher par Intitulé.
 NB : la recherche n'a alors pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots au singulier comme au pluriel.
 
@@ -512,13 +512,14 @@ Depuis la liste des résultats, l'utilisateur peut consulter le détail d'un ser
 Consultation du registre des fonds
 ----------------------------------
 
-Depuis le détail du service producteur, l'utilisateur peut consulter le registre des fonds de ce service en cliquant sur le bouton "Registre des Fonds" afin d'afficher le détail complet du fonds. 
+Depuis le détail du service producteur, l'utilisateur peut consulter le registre des fonds de ce service en cliquant sur le bouton "Registre des Fonds" afin d'afficher le détail complet du fonds.
 
-Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
+Deux blocs d'informations sont disponibles depuis le détail du registre des fonds.
 
-- Fonds propres: regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés, c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
+Fonds propres
+#############
 
-- Fonds Symboliques: listant toutes les opérations d'entrée effectuées pour ce service producteur
+Regroupent toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour les fonds propres d'un service producteur.
 
 
 .. image:: images/fonds_detail.png
@@ -550,15 +551,25 @@ Cette vue affiche, sous forme de tableau, les informations consolidées suivante
   - Supprimé : Volume total des objets supprimés de la solution logicielle Vitam
   - Restant : Volume total des objets restant dans la solution logicielle Vitam
 
-Sous cette partie, un tableau liste des entrées effectuées pour ce service producteur est affichée sous forme de tableau.
+Fonds Symboliques
+#################
 
+Listent une image figée du stock pour les trois derniers calculs des fonds symboliques pour ce service producteur.
+
+	- Nombre d'unités archivistiques, nombres de groupes d'objets techniques et nombres d'objets indiquent le nombre de ces éléments pour le fond symbolique de ce producteur
+	- Volumétrie des objets représente le volume total en octet
+	- La date de création est la date du calcul de ce fond symbolique
+
+Détail des opérations
+#####################
+
+Sous cette partie, un tableau liste des entrées effectuées pour ce service producteur est affichée sous forme de tableau.
 
 .. image:: images/fonds_detail.png
 
-
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Fond propre : une coche indique que l'entrée correspondant à un fond propre, une croix indique qu'elle correspond à un fond rattaché ou symbolique. 
+- Fond propre : une coche indique que l'entrée correspondant à un fond propre, une croix indique qu'elle correspond à un fond rattaché ou symbolique.
 - Identifiant de l'opération attribué par la solution logicielle Vitam (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
@@ -582,6 +593,8 @@ Pour chaque entrée, les informations suivantes sont affichées :
 
 - Type (standard, plan de classement, arbre de positionnement)
 - Statut de l'entrée (En stock et complète, En stock et mise à jour, Sortie du stock)
+
+Il est possible de cliquer sur chaque ligne du tableau pour obtenir un résumé de l'opération, indiquant par exemple pour une entrée le nombre d'éléments créés (unités archivistiques, groupes d'objets et objets techniques) et la volumétrie des objets.
 
 
 .. image:: images/fonds_operation.png
