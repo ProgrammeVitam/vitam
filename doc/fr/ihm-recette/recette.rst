@@ -4,18 +4,13 @@ Recette
 Principes généraux
 ==================
 
-Avertissement
--------------
-
-L'IHM de recette est développée à des fins de test uniquement.
-
-**Elle n'a aucunement vocation à être utilisée en production**
+.. warning :: **L'IHM de recette est développée à des fins de test uniquement. Elle n'a aucunement vocation à être utilisée en production**
 
 Elle contient des interfaces utilisateurs permettant, par tenant, de :
 
-  * Administrer les collections MongoDB (référentiels, journaux, objets...)
-  * Lancer des tests (performance, fonctionnels, requêtes DSL )
-  * Sécuriser manuellement les journaux des opérations
+  * Administrer les collections MongoDB (référentiels, journaux, objets...),
+  * Lancer des tests (performance, fonctionnels, requêtes DSL),
+  * Sécuriser manuellement les journaux des opérations.
 
 
 Accès
@@ -45,22 +40,24 @@ Les pages accessibles sont réparties de la façon suivante :
 
 **Admin**
 
-	* Administration des collections
-        * Recherche et Modification d'un fichier
-        * Ajout et suppression d'un parent
-        * Test audit correctif
+* Administration des collections
+* Recherche et Modification d'un fichier
+* Ajout et suppression d'un parent
+* Test audit correctif
+
 
 **Tests**
 
-	* Tests de performance
-	* Tests fonctionnels
-	* Tests requêtes DSL
-  * Visualisation du graphe
-  * Test feature
+* Tests de performance
+* Tests fonctionnels
+* Tests requêtes DSL
+* Visualisation du graphe
+* Test feature
+
 
 **Sécurisation**
 
-	* Sécurisation des journaux
+* Sécurisation des journaux
 
 
 Fil d'Ariane
@@ -95,4 +92,4 @@ Une fois le tenant sélectionné, les boutons précédemment grisés sont activ�
 Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
-**NB :** le référentiel des formats, des contextes et des ontologies externes sont liés à la plateforme et non à un tenant. L'option de suppression des référentiels des formats, des contextes applicatifs et des ontologies externes est toujours disponible, même si aucun tenant n'est sélectionné.
+**NB :** les référentiels des formats, des contextes et des ontologies externes sont liés à la plateforme et non à un tenant. L'option de suppression des référentiels des formats, des contextes applicatifs et des ontologies externes est toujours disponible, même si aucun tenant n'est sélectionné.

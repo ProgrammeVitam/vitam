@@ -66,7 +66,7 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * CHECK_CLASSIFICATION_LEVEL
 * UNITS_RULES_COMPUTE
 * STP_STORAGE_AVAILABILITY_CHECK
-* STP_STORAGE_AVAILABILITY_CHECK	STORAGE_AVAILABILITY_CHECK
+* STP_STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK
 * STORAGE_AVAILABILITY_CHECK
 * STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK
 * STP_OBJ_STORING
@@ -111,7 +111,7 @@ Page Tests Fonctionnels
 
 La page est divisée en deux parties :
 
-  * Testsfonctionnels
+  * Tests fonctionnels
   * Résultats des derniers tests
 
 .. image:: images/RECETTE_test_fonctionnels_ecran_principal.png
@@ -122,7 +122,7 @@ Bouton "Lancer les tests" : permet de rejouer les tests configurés. Ceci donner
 
 Bouton "Mise à jour référentiel" : permet de récupérer les derniers fichiers de configuration des tests depuis "Git" (gestionnaire de sources). Ainsi, si un utilisateur a ajouté des tests et que ceux-ci ont été intégrés à Git, le fait de cliquer sur ce bouton permet de les prendre en compte au prochain clic sur le bouton "Lancer les Tests".
 
-  Résultat des derniers tests
+Résultat des derniers tests
 
 Les résultats de tests sont affichés dans un tableau à deux colonnes :
 
@@ -186,26 +186,27 @@ Champs disponibles
 
 **Tenant** : champ obligatoire. Indique le tenant sur lequel la requête va être exécutée. Ce champ est renseigné automatiquement avec le numéro du tenant sélectionné par l’administrateur.
 
-**Contrat** : champ obligatoire. Liste permettant de sélectionner un contrat d'accès qui sera associé à la requête.
+**Contrat** : champ obligatoire. Liste permettant de sélectionner le contrat d'accès qui sera associé à la requête.
 
 **Collection** : champ obligatoire. Liste permettant de sélectionner la collection sur laquelle la requête va être exécutée.
 
-**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. Il est possible de sélectionner l'action "Rechercher" pour l'ensemble des collections.
+**Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. 
+ 
+ * Il est possible de sélectionner l'action "Rechercher" pour l'ensemble des collections.
 
-Pour les collections suivantes, il est également possible de choisir l'action "Mettre à jour" :
+ * Pour les collections suivantes, il est également possible de choisir l'action "Mettre à jour" :
 
-* Unit
-* Profil
-* Contrat d'accès
-* Contrat d'entrée
-* Contexte
+    * Unit
+    * Profil
+    * Contrat d'accès
+    * Contrat d'entrée
+    * Contexte
 
-**Opération**: Pour la collection Opération, il est également possible de choisir les actions suivantes:
-
-* Action Suivante
-* Action Pause
-* Action Reprendre
-* Action Stop
+ * Pour la collection Opération, il est également possible de choisir les actions suivantes :
+       - Action Suivante
+       - Action Pause
+       - Action Reprendre
+       - Action Stop
 
 **Identifiant** : champs optionnel. Permet de renseigner le GUID de l'objet ciblé dans la collection.
 
@@ -240,6 +241,8 @@ L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en
 Visualisation du graphe
 =======================
 
+.. note:: l'écran utilisé est expérimental.
+
 L'interface est accessible par le Menu: Tests > Visualisation du graphe.
 
 Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP.
@@ -248,14 +251,12 @@ La première étape consiste donc à récupérer les information suivantes :
 - L'identifiant de l'opération
 - L'intitulé du contrat utilisé
 
-Note : la page correspondant à l'écran utilisé est expérimentale.
-
 Il faut ensuite rajouter les informations dans les champs prévus à cet effet : "Contrat" et "Identifiant d'opération"
 
 Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses :
 
 * Sur la partie gauche, la représentation visuelle du graphe contenu dans le SIP
-* sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données reliées à l'unité archivistique s'affiche
+* Sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données liées à l'unité archivistique s'affiche
 
 
 .. image:: images/visualisation_graphe.png
@@ -265,6 +266,8 @@ Test feature (Test tnr)
 =======================
 
 L'interface est accessible par le Menu: Tests > Test feature
+
+.. note:: Cette fonctionnalité est utilisée uniquement par l'équipe Vitam pour écrire et tester les tnr.
 
 Cette interface permet d'exécuter des TNR sans devoir disposer d'un environnement local complet. Ces TNR seront exécutés sur l'environnement où se situe l'IHM recette.
 
