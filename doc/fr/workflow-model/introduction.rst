@@ -1,10 +1,8 @@
 Introduction
 ############
 
-Avertissement
-=============
-
-Cette documentation est un travail en cours. Elle est susceptible de changer dans les prochaines releases pour tenir compte des développements de la solution logicielle Vitam.
+.. warning::
+	Cette documentation reflète l'état actuel de la solution Vitam. Elle est susceptible de changer dans les prochaines releases pour tenir compte des développements de la solution logicielle Vitam.
 
 Objectif du document
 ====================
@@ -12,14 +10,14 @@ Objectif du document
 Ce document a pour objectif de présenter les différents processus employés par la solution logicielle Vitam.
 Il est destiné aux administrateurs aussi bien techniques que fonctionnels, aux archivistes souhaitant une connaissance plus avancée du logiciel ainsi qu'aux développeurs.
 
-Il explicite chaque processus (appelés également "workflow"), et pour chacun leurs tâches, traitements et actions.
+Il explicite chaque processus (appelé également "workflow"), et pour chacun leurs tâches, traitements et actions.
 
-Ce document comprend également du matériel additionnel pour faciliter la compréhension des processus comme des fiches récapitulatives et des schémas. Il explique également la manière dont est formée la structure des fichiers de workflow.
+Ce document comprend du matériel additionnel pour faciliter la compréhension des processus comme des fiches récapitulatives et des schémas. Il explique également la manière dont est formée la structure des fichiers de workflow.
 
 Description d'un processus
 ===========================
 
-Un workflow est un processus composé d’étapes (macro-workflow), elles-mêmes composées d’une liste de tâches et d'actions à exécuter de manière séquentielle, une seule fois ou répétées sur une liste d’éléments (micro-workflow).
+Un workflow est un processus composé d’étapes (macro-workflow), elles-mêmes composées d’une liste de tâches et d'actions à exécuter de manière séquentielle, unitairement ou de manière itérative sur une liste d’éléments (micro-workflow).
 
 Pour chacun de ces éléments, le document décrit :
 
@@ -34,7 +32,7 @@ Un "traitement" désigne ci-dessous une opération, une étape ou une tâche. Ch
 
   * Le système suspecte une anomalie lors du déroulement du traitement sans pouvoir le confirmer lui même et lève une alerte à destination de l'utilisateur afin que celui ci puisse valider qu'il s'agit du comportement souhaité.
 
-  Exemple : un SIP versé sans objets provoque une opération en warning car le fait de ne verser qu'une arborescence d'unité archivistiques sans aucun objet peut être suspecte (au sens métier).
+  Exemple : un SIP versé sans objets provoque une opération en warning car le fait de ne verser qu'une arborescence d'unités archivistiques sans aucun objet peut être suspecte (au sens métier).
 
   * Le système a effectué un traitement entraînant une modification de données initialement non prévue par l'utilisateur.
 
@@ -42,15 +40,12 @@ Un "traitement" désigne ci-dessous une opération, une étape ou une tâche. Ch
 
   * Le système a effectué un traitement dont seule une partie a entraîné une modification de données. L'autre partie de ce traitement s'est terminée en échec sans modification (KO).
 
-  Exemple : une modification de métadonnées en masse d'unité archivistique dont une partie de la modification est OK et une partie est KO : le statut de l'étape et de l'opération sera Warning.
+  Exemple : une modification de métadonnées en masse d'unités archivistiques dont une partie de la modification est OK et une partie est KO : le statut de l'étape et de l'opération sera Warning.
 
-- KO : le traitement s'est terminé en échec et le système n'a pas été modifié en dehors des éléments de traçabilités tels que les journaux et les logs. L'intégralité du traitement pourrait être rejoué sans provoquer l'insertion de doublons.
-- Fatal : le traitement s'est terminé en échec a cause d'un problème technique. L'état du système dépend de la nature du traitement en fatal et une intervention humaine est requise pour expertiser et solutionner la situation. Lorsque le statut FATAL survient à l’intérieur d’une étape (par exemple dans une des tâches ou un des actions de l’étape), c’est toute l’étape qui est mise en pause. Si cette étape est rejouée, les objets déjà traités avant le fatal ne sont pas traités à nouveau : le workflow reprend exactement là où il s’était arrêté et commence par rejouer l’action sur l’objet qui a provoqué l’erreur.
+- KO : le traitement s'est terminé en échec et le système n'a pas été modifié en dehors des éléments de traçabilités tels que les journaux et les logs. L'intégralité du traitement pourrait être rejouée sans provoquer l'insertion de doublons.
+- Fatal : le traitement s'est terminé en échec a cause d'un problème technique. L'état du système dépend de la nature du traitement en fatal et une intervention humaine est requise pour expertiser et résoudre la situation. Lorsque le statut FATAL survient à l’intérieur d’une étape (par exemple dans une des tâches ou une des actions de l’étape), c’est toute l’étape qui est mise en pause. Si cette étape est rejouée, les objets déjà traités avant le fatal ne sont pas traités à nouveau : le workflow reprend exactement là où il s’était arrêté et commence par rejouer l’action sur l’objet qui a provoqué l’erreur.
 
 Un workflow peut être terminé, en cours d'exécution ou être en pause. Un workflow en pause représente le processus arrêté à une étape donnée. Chaque étape peut être mise en pause : ce choix dépend du mode de versement (le mode pas à pas marque une pause à chaque étape), ou du statut (le statut FATAL met l'étape en pause). Les workflows en pause sont visibles dans l'IHM dans l'écran "Gestion des opérations".
-
-Lorsque le statut FATAL survient à l'intérieur d'une étape (par exemple dans une des tâches ou un des traitements de l'étape), c'est toute l'étape qui est mise en pause. Si cette étape est rejouée, les objets déjà traités avant le fatal ne sont pas traités à nouveau : le workflow reprend exactement là où il s'était arrêté et commence par rejouer l'action sur l'objet qui a provoqué l'erreur.
-
 
 Chaque action peut avoir les modèles d'exécutions suivants (toutes les étapes sont par défaut bloquantes) :
 
@@ -65,7 +60,7 @@ Chaque action peut avoir les modèles d'exécutions suivants (toutes les étapes
 Structure d'un fichier Properties du Worflow
 =============================================
 
-Les fichiers **Properties** (Par exemple *DefaultIngestWorkflow.json*) permettent de définir la structure du Workflow pour les étapes, tâches et actions réalisées dans le module d'Ingest Interne, en excluant les étapes et actions réalisées dans le module d'Ingest externe.
+Les fichiers **Properties** (par exemple *DefaultIngestWorkflow.json*) permettent de définir la structure du Workflow pour les étapes, tâches et traitements réalisées dans le module d'Ingest Interne, en excluant les étapes et traitements réalisées dans le module d'Ingest externe.
 
 Un Workflow est défini en JSON avec la structure suivante :
 
@@ -83,9 +78,9 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 - une liste d'étapes dont la structure est la suivante :
 
-    + ``workerGroupId`` : identifiant de famille de Workers,
+    + ``WorkerGroupId`` : identifiant de famille de Workers,
 
-    + ``stepName`` : nom de l'étape, servant de clé pour identifier l'étape,
+    + ``StepName`` : nom de l'étape, servant de clé pour identifier l'étape,
 
     + ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
 
@@ -104,20 +99,22 @@ Un Workflow est défini en JSON avec la structure suivante :
 
       - ``Type`` : le type des objets traités (ObjectGroup uniquement pour le moment).
 
-      - ``statusOnEmptyDistribution`` : permet dans le cas d'un traitement d'une liste vide, de surcharger le statut WARNING par un statut prédéfini.
+      - ``StatusOnEmptyDistribution`` : permet dans le cas d'un traitement d'une liste vide, de surcharger le statut WARNING par un statut prédéfini.
+
+      - ``BulkSize``: taille de la liste, valeur à spécifier ex: "bulkSize": 1000. La valeur par défault est de 16.
 
 
     + une liste d'Actions :
 
       - ``ActionKey`` : nom de l'action
 
-
       - ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
 
-        - BLOCKING : l'action est bloquante en cas d'erreur. Les actions suivantes (de la même étape) ne seront pas éxécutées.
+       		 - BLOCKING : l'action est bloquante en cas d'erreur. Les actions suivantes (de la même étape) ne seront pas éxécutées.
 
-        - NOBLOCKING : l'action peut continuer malgré les éventuels erreurs ou avertissements.
+       		 - NOBLOCKING : l'action peut continuer malgré les éventuels erreurs ou avertissements.
 
+      -  ``lifecycleLog``: action indiquant le calcul sur les LFC. Valeur du champ "DISABLED".
 
       - ``In`` : liste de paramètres d'entrées :
 
