@@ -122,6 +122,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String WRONG_FIELD_FORMAT = "STP_IMPORT_INGEST_CONTRACT.TO_BE_DEFINED.KO";
     private static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO";
     private static final String PROFILE_NOT_FOUND_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
+    private static final String FORMAT_NOT_FOUND = "STP_IMPORT_INGEST_CONTRACT.FORMAT_NOT_FOUND.KO";
 
     private static final String UPDATE_CONTRACT_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.CONTRACT_NOT_FOUND.KO";
     private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_INGEST_CONTRACT.NOT_IN_ENUM.KO";
@@ -383,7 +384,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
                 put(createCheckProfilesExistsInDatabaseValidator(), PROFILE_NOT_FOUND_IN_DATABASE);
-                put(createCheckFormatFileExistsInDatabaseValidator(), CONTRACT_UPDATE_EVENT);
+                put(createCheckFormatFileExistsInDatabaseValidator(), FORMAT_NOT_FOUND);
             }};
         }
 
