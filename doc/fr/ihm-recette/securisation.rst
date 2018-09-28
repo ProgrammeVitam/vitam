@@ -38,7 +38,7 @@ Un fichier .zip est créé et placé dans le l'offre de stockage de Vitam dans l
 
 Il contient les fichiers suivants :
 
-  * *operation.json* : liste des opérations sécurisées, la première étant l'opération "tracability"
+  * *operation.json* : liste des opérations sécurisées, la première étant l'opération "traceability"
   * *merkleTree.json* : contient une sérialisation JSON de l'arbre de merkle
   * *token.tsp* : horodatage de la combinaison de la racine de l'arbre de merkle, des empreintes des opérations de sécurisation antérieures (la dernière réalisée, celle du mois précédent et celle de l'année précédente)
   * *computing_information.txt* : reprend les différentes empreintes qui ont permis de réaliser l'horodatage
