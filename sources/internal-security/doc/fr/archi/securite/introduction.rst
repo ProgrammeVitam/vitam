@@ -6,7 +6,7 @@ collections Certificate et PersonalCertificate respectivement.
 Ils sont indexés en base via leur hash (SHA256 du certificat encodé au format DER).
 
 Le contrôle du certificat applicatif permet de vérifier si le certificat d'authentification TLS du SIA utilisé pour
-appeler Vitam est bien authorisé. Il permet également de récupérer l'identifiant du contexte associé.
+appeler Vitam est bien autorisé. Il permet également de récupérer l'identifiant du contexte associé.
 
 Le contrôle d'accès sur les certificats personnels sont fait uniquement si le endpoint externe cible requière une
 authentification forte. La liste des endpoints nécessitant une authentification personnelle ou non est défini dans
