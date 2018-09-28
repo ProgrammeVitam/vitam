@@ -195,9 +195,9 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         when(eliminationAnalysisService.analyzeElimination(any(), any(), any(), any(), any()))
             .thenReturn(
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),            // id_unit_1
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),               // id_unit_2
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),            // id_unit_3
+                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_1
+                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_2
+                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_3
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY)     // id_unit_4
             );
 

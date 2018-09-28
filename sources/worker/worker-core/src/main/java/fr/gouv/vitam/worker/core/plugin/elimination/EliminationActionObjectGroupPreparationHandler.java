@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -69,7 +70,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,10 +142,10 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 OutputStream objectGroupsToDeleteStream = new FileOutputStream(objectGroupsToDeleteFile);
                 OutputStream objectGroupsToDetachStream = new FileOutputStream(objectGroupsToDetachFile);
                 JsonLineWriter objectGroupsToDeleteWriter = new JsonLineWriter(objectGroupsToDeleteStream);
-                JsonLineWriter objectGroupsToDetachWriter = new JsonLineWriter(objectGroupsToDetachStream)) {
+                JsonLineWriter objectGroupsToDetachWriter = new JsonLineWriter(objectGroupsToDetachStream);
+                CloseableIterator<String> iterator =
+                    eliminationActionUnitReportService.exportDistinctObjectGroups(param.getContainerName())) {
 
-                Iterator<String> iterator =
-                    eliminationActionUnitReportService.exportDistinctObjectGroups(param.getContainerName());
                 BulkIterator<String> bulkIterator = new BulkIterator<>(iterator, objectGroupBulkSize);
 
                 while (bulkIterator.hasNext()) {
@@ -238,9 +238,8 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 objectGroupsToDetachWriter.addEntry(entry);
 
                 eliminationObjectGroupReportEntries
-                    .add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(), objectGroup.getOriginatingAgency(),
-                        objectGroup.getOpi(),
-                        removedParentUnits,
+                    .add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
+                        objectGroup.getOriginatingAgency(), objectGroup.getOpi(), removedParentUnits,
                         null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT));
             }
         }

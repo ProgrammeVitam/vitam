@@ -42,13 +42,10 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
-import fr.gouv.vitam.worker.core.utils.EnumValueCounter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.BufferedOutputStream;
@@ -123,11 +120,6 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
     private File generateEliminationReport(WorkerParameters param, HandlerIO handler) throws EliminationException {
         File report = handler.getNewLocalFile(REPORT_JSON);
 
-        EnumValueCounter<EliminationActionUnitStatus> unitStatusStats = new EnumValueCounter<>(
-            EliminationActionUnitStatus.class);
-        EnumValueCounter<EliminationActionObjectGroupStatus> objectGroupStatusStats =
-            new EnumValueCounter<>(EliminationActionObjectGroupStatus.class);
-
         try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(report));
             JsonGenerator jsonGenerator = JsonHandler.createJsonGenerator(outputStream)) {
 
@@ -142,8 +134,6 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
                 while (unitIterator.hasNext()) {
                     EliminationActionUnitReportEntry unitEliminationExport = unitIterator.next();
                     jsonGenerator.writeObject(unitEliminationExport);
-
-                    unitStatusStats.increment(unitEliminationExport.getStatus());
                 }
             }
 
@@ -158,8 +148,6 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
                 while (objectGroupIterator.hasNext()) {
                     EliminationActionObjectGroupReportEntry objectGroupEliminationExport = objectGroupIterator.next();
                     jsonGenerator.writeObject(objectGroupEliminationExport);
-
-                    objectGroupStatusStats.increment(objectGroupEliminationExport.getStatus());
                 }
             }
 

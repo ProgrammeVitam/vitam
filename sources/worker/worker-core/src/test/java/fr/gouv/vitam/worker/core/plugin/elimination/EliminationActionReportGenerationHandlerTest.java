@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.REQUEST_JSON;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -93,10 +92,6 @@ public class EliminationActionReportGenerationHandlerTest {
 
         doReturn(VitamThreadUtils.getVitamSession().getRequestId())
             .when(handler).getContainerName();
-
-        doReturn(PropertiesUtils
-            .getResourceAsStream("EliminationAction/EliminationActionUnitPreparationHandler/request.json"))
-            .when(handler).getInputStreamFromWorkspace(REQUEST_JSON);
     }
 
 
