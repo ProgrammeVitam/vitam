@@ -885,8 +885,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(
                 VitamRepositoryFactory.get()))) {
             List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
+            RequestResponseOK<AccessionRegisterSymbolic> entity = new RequestResponseOK<AccessionRegisterSymbolic>()
+                    .addAllResults(accessionRegisterSymbolic)
+                    .setQuery(queryDsl);
             return Response.status(OK)
-                .entity(accessionRegisterSymbolic)
+                .entity(entity)
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);

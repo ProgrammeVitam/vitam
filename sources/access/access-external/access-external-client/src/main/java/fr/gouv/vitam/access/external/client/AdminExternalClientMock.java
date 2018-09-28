@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -181,6 +182,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        throw new IllegalStateException("Do not use this; please");
     }
 
     @Override
@@ -447,13 +455,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream docTypes) {
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
-    
+
     @Override
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(VitamContext vitamContext, String id)
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
-    
+
     @Override
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(VitamContext vitamContext, JsonNode query)
         throws VitamClientException {

@@ -36,10 +36,12 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -754,6 +756,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param queryDsl search by dsl
      * @return a lis of accession register symbolic or a empty list if nothing is found
      */
-    RequestResponse<List<AccessionRegisterSymbolic>> getAccessionRegisterSymbolic(Integer tenant, JsonNode queryDsl)
+    RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant, JsonNode queryDsl)
         throws AdminManagementClientServerException;
 }

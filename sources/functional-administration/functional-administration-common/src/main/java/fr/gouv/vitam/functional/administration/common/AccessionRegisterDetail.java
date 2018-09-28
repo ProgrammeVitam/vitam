@@ -59,6 +59,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     public static final String STATUS = "Status";
     public static final String OPC = "Opc";
     public static final String OPI = "Opi";
+    public static final String ARCHIVAL_PROFILE = "ArchivalProfile";
     public static final String OPERATION_IDS = "OperationIds";
     public static final String EVENTS = "Events";
     public static final String TENANT = "_tenant";
@@ -143,6 +144,22 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     public AccessionRegisterDetail setLegalStatus(String legalStatus) {
         append(LEGAL_STATUS, legalStatus);
         return this;
+    }
+
+    /**
+     * @param ArchivalProfile to set
+     * @return AccessionRegisterDetail
+     */
+    public AccessionRegisterDetail setArchivalProfile(String ArchivalProfile) {
+        append(ARCHIVAL_PROFILE, ArchivalProfile);
+        return this;
+    }
+
+    /**
+     * @return String
+     */
+    public String getArchivalProfile() {
+        return getString(ARCHIVAL_PROFILE);
     }
 
     /**

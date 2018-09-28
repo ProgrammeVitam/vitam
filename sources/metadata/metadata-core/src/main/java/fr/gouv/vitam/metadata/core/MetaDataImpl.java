@@ -115,6 +115,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
+import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -354,9 +355,15 @@ public class MetaDataImpl implements MetaData {
         Terms objectGroupOriginatingAgencies = objectGroupAccessionRegisterInformation.get("originatingAgencies");
         Terms objectGroupOriginatingAgency = objectGroupAccessionRegisterInformation.get("originatingAgency");
 
-        Map<String, Long> objectGroupByOriginatingAgency = objectGroupOriginatingAgency.getBuckets().stream()
-            .collect(Collectors
-                .toMap(MultiBucketsAggregation.Bucket::getKeyAsString, MultiBucketsAggregation.Bucket::getDocCount));
+        Map<String, OriginatingAgencyBucketResult> objectGroupByOriginatingAgency =
+            objectGroupOriginatingAgency.getBuckets().stream()
+                .map(bucket -> OriginatingAgencyBucketResult
+                    .of(bucket.getKeyAsString(),
+                        bucket.getDocCount(),
+                        bucket.getAggregations().get("binaryObjectCount"),
+                        bucket.getAggregations().get("binaryObjectSize")
+                    ))
+                .collect(Collectors.toMap(e -> e.originatingAgency, e -> e));
 
         objectGroupOriginatingAgencies.getBuckets()
             .forEach(bucket ->
@@ -365,27 +372,32 @@ public class MetaDataImpl implements MetaData {
                     tenant,
                     accessionRegisterSymbolicByOriginatingAgency,
                     objectGroupByOriginatingAgency,
-                    bucket
+                    OriginatingAgencyBucketResult
+                        .of(bucket.getKeyAsString(),
+                            bucket.getDocCount(),
+                            bucket.getAggregations().get("binaryObjectCount"),
+                            bucket.getAggregations().get("binaryObjectSize")
+                        )
                 )
             );
     }
 
     private void updateAccessionsRegister(String creationDate, Integer tenant,
         Map<String, AccessionRegisterSymbolic> accessionRegisterSymbolicByOriginatingAgency,
-        Map<String, Long> objectGroupByOriginatingAgency, Terms.Bucket objectGroup) {
-        String originatingAgency = objectGroup.getKeyAsString();
-        long groupObjectsCount =
-            objectGroup.getDocCount() - objectGroupByOriginatingAgency.getOrDefault(originatingAgency, 0L);
-        Sum binaryObjectSizeAgg = objectGroup.getAggregations().get("binaryObjectSize");
-        ValueCount binaryObjectCountAgg = objectGroup.getAggregations().get("binaryObjectCount");
-        double binaryObjectSize = binaryObjectSizeAgg.getValue();
-        long objectSize = binaryObjectCountAgg.getValue();
+        Map<String, OriginatingAgencyBucketResult> objectGroupByOriginatingAgency,
+        OriginatingAgencyBucketResult objectGroup) {
+
+        OriginatingAgencyBucketResult originatingAgencyBucketResult = objectGroupByOriginatingAgency.getOrDefault(objectGroup.originatingAgency, OriginatingAgencyBucketResult.empty());
+
+        long groupObjectsCount = objectGroup.docCount - originatingAgencyBucketResult.docCount;
+        long objectCount = objectGroup.objectCount - originatingAgencyBucketResult.objectCount;
+        double binaryObjectSize = objectGroup.binaryObjectSize - originatingAgencyBucketResult.binaryObjectSize;
         AccessionRegisterSymbolic existingAccessionRegister =
-            accessionRegisterSymbolicByOriginatingAgency.get(originatingAgency);
+            accessionRegisterSymbolicByOriginatingAgency.get(objectGroup.originatingAgency);
 
         if (groupObjectsCount > 0 && existingAccessionRegister != null) {
             existingAccessionRegister.setObjectGroup(groupObjectsCount)
-                .setBinaryObject(objectSize)
+                .setBinaryObject(objectCount)
                 .setBinaryObjectSize(binaryObjectSize);
             return;
         }
@@ -398,14 +410,14 @@ public class MetaDataImpl implements MetaData {
         }
 
         if (groupObjectsCount > 0 && existingAccessionRegister == null) {
-            accessionRegisterSymbolicByOriginatingAgency.put(originatingAgency, new AccessionRegisterSymbolic()
+            accessionRegisterSymbolicByOriginatingAgency.put(objectGroup.originatingAgency, new AccessionRegisterSymbolic()
                 .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
                 .setCreationDate(creationDate)
                 .setTenant(tenant)
-                .setOriginatingAgency(originatingAgency)
+                .setOriginatingAgency(objectGroup.originatingAgency)
                 .setArchiveUnit(0L)
                 .setObjectGroup(groupObjectsCount)
-                .setBinaryObject(objectSize)
+                .setBinaryObject(objectCount)
                 .setBinaryObjectSize(binaryObjectSize));
             return;
         }
@@ -445,12 +457,15 @@ public class MetaDataImpl implements MetaData {
     }
 
     private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant) {
-        TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies");
-        ogs.field("_sps");
-        ogs.subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"));
-        ogs.subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
+        TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies")
+            .field("_sps")
+            .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
+            .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
 
-        TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency").field("_sp");
+        TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency")
+            .field("_sp")
+            .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
+            .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
 
         return OBJECTGROUP.getEsClient()
             .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", 0))

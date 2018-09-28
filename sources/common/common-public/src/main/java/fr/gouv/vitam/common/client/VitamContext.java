@@ -28,11 +28,15 @@ package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
+import static fr.gouv.vitam.common.GlobalDataRest.X_APPLICATION_ID;
+import static fr.gouv.vitam.common.GlobalDataRest.X_PERSONAL_CERTIFICATE;
+import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 
 /**
  * Defines commons client parameters for vitam external rest API
@@ -136,24 +140,23 @@ public final class VitamContext {
      *
      * @return header-name/value map of vitam context parameters
      */
-    public Map<String, List<Object>> getHeaders() {
-
-        Map<String, List<Object>> result = new HashMap<>();
+    public MultivaluedMap<String, Object> getHeaders() {
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
 
         if (this.tenantId != null) {
-            result.put(GlobalDataRest.X_TENANT_ID, Collections.singletonList(this.tenantId));
+            headers.add(X_TENANT_ID, this.tenantId);
         }
         if (this.accessContract != null) {
-            result.put(GlobalDataRest.X_ACCESS_CONTRAT_ID, Collections.singletonList(this.accessContract));
+            headers.add(X_ACCESS_CONTRAT_ID, this.accessContract);
         }
         if (this.applicationSessionId != null) {
-            result.put(GlobalDataRest.X_APPLICATION_ID, Collections.singletonList(this.applicationSessionId));
+            headers.add(X_APPLICATION_ID, this.applicationSessionId);
         }
         if (this.personalCertificate != null) {
-            result.put(GlobalDataRest.X_PERSONAL_CERTIFICATE, Collections.singletonList(this.personalCertificate));
+            headers.add(X_PERSONAL_CERTIFICATE, this.personalCertificate);
         }
 
-        return result;
+        return headers;
     }
 
     @Override

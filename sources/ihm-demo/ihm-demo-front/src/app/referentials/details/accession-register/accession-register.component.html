@@ -1,5 +1,5 @@
 <p-panel [header]="'Détail des fonds'">
-  <div class="ui-g"  *ngIf="register">
+  <div class="ui-g" *ngIf="register">
     <div class="ui-g-12 ui-md-6">
       <p-panel [header]="'Fonds propres'">
         <div class="ui-g">
@@ -20,7 +20,7 @@
       <p-panel [header]="'Fonds symboliques'">
         <div class="ui-g">
           <p-dataTable [value]="attachedRegisters" [emptyMessage]="'Aucun résultat'">
-            <p-column *ngFor="let col of registersCols" [field]="col.field" [header]="col.header">
+            <p-column *ngFor="let col of symbolicsRegistersCols" [field]="col.field" [header]="col.header">
             </p-column>
           </p-dataTable>
         </div>
@@ -28,8 +28,9 @@
     </div>
 
 
-    <div class="ui-g-3 ui-g-offset-9" >
-      <button  pButton type="button" (click)="goToSearchUnitPage()" label="Unités archivistiques associées" icon="fa-list-ul"></button>
+    <div class="ui-g-3 ui-g-offset-9">
+      <button pButton type="button" (click)="goToSearchUnitPage()" label="Unités archivistiques associées"
+              icon="fa-list-ul"></button>
     </div>
 
   </div>
@@ -37,47 +38,90 @@
     <div class="ui-g-12">
       <p-panel [header]="'Liste par opération'" [styleClass]="'overflow-wrap-content'">
         <div class="ui-g">
+          <div style="float: left; padding: 5px;" #infoSupp>
+            <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'"
+                    iconPos="right"
+                    (click)="clickOutside($event)" [label]="'Informations supplémentaires'"></button>
+          </div>
+
+          <div style="float: left" *ngIf="displayOptions" #infoList>
+            <p-listbox [options]="extraColsSelection" [(ngModel)]="extraSelectedCols"
+                       [style]="{'text-align': 'left', 'z-index': 5000, 'position': 'absolute', 'background-color': 'white', 'width': '250px'}"
+                       (onChange)="onRowSelect($event)"
+                       multiple="multiple" checkbox="checkbox"></p-listbox>
+          </div>
           <div class="ui-g-12">
-            <p-paginator *ngIf="hits" [rows]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)"
+            <p-paginator *ngIf="hits" [rows]="nbRows" [rowsPerPageOptions]="[50, 100, 150]"
+                         (onPageChange)="paginate($event)"
                          [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
-            <p-dataTable #dt [value]="displayedItems" [emptyMessage]="'Aucun résultat'">
-              <p-column field="Symbolic" header="Fonds propre">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  <i [ngClass]="getDetailIcon(detail)" aria-hidden="true"></i>
-                </ng-template>
-              </p-column>
-              <p-column field="#id" header="Identifiant"></p-column>
-              <p-column field="SubmissionAgency" header="Service versant"></p-column>
-              <p-column field="LastUpdate" header="Date d'entrée">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDate(detail)}}
-                </ng-template>
-              </p-column>
-              <p-column field="TotalUnits" header="Nb d'unités archivistiques">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDetailsMessage('TotalUnits', detail)}}
-                </ng-template>
-              </p-column>
-              <p-column field="TotalObjectGroups" header="Nb de groupes d'objets techniques">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDetailsMessage('TotalObjectGroups', detail)}}
-                </ng-template>
-              </p-column>
-              <p-column field="TotalObjects" header="Nb d'objets">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDetailsMessage('TotalObjects', detail)}}
-                </ng-template>
-              </p-column>
-              <p-column field="" header="Type">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDetailsType(detail)}}
-                </ng-template>
-              </p-column>
-              <p-column field="Status" header="Statut">
-                <ng-template let-detail="rowData" pTemplate="body">
-                  {{getDetailsStatus(detail)}}
-                </ng-template>
-              </p-column>
+            <p-dataTable #dt [value]="registerDetails" [emptyMessage]="'Aucun résultat'" (onRowClick)="onRowClick($event)" [rowHover]="true">
+                <p-column field="Symbolic" header="Fonds propre">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    <i class="fa fa-check-circle" aria-hidden="true"></i>
+                  </ng-template>
+                </p-column>
+                <p-column field="#id" header="Identifiant"></p-column>
+                <p-column field="SubmissionAgency" header="Service versant"></p-column>
+                <p-column field="LastUpdate" header="Date d'entrée">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDate(detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column field="TotalUnits" header="Nb d'unités archivistiques">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsMessage('TotalUnits', detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column field="TotalObjectGroups" header="Nb de groupes d'objets techniques">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsMessage('TotalObjectGroups', detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column field="TotalObjects" header="Nb d'objets">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsMessage('TotalObjects', detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column field="" header="Type">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsType(detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column field="Status" header="Statut">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsStatus(detail)}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('ArchivalProfile')" field="ArchivalProfile" header="ArchivalProfile">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{detail.ArchivalProfile || 'Inconnu'}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('LegalStatus')" field="LegalStatus" header="LegalStatus">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{detail.LegalStatus || 'Inconnu'}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('AcquisitionInformation')" field="AcquisitionInformation" header="AcquisitionInformation">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{detail.AcquisitionInformation || 'Inconnu'}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('SubmissionAgency')" field="SubmissionAgency" header="SubmissionAgency">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{detail.SubmissionAgency || 'Inconnu'}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('ArchivalAgreement')" field="ArchivalAgreement" header="ArchivalAgreement">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{detail.ArchivalAgreement || 'Inconnu'}}
+                  </ng-template>
+                </p-column>
+                <p-column *ngIf="showOptionalCol('objectSize')" field="objectSize" header="objectSize">
+                  <ng-template let-detail="rowData" pTemplate="body">
+                    {{getDetailsMessage('objectSize', detail)}}
+                  </ng-template>
+                </p-column>
             </p-dataTable>
           </div>
         </div>

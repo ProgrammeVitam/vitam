@@ -26,36 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -99,6 +69,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -125,11 +96,47 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
+import static fr.gouv.vitam.common.dsl.schema.DslSchema.SELECT_SINGLE;
+import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * Admin Management External Resource
@@ -171,7 +178,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/")
     @OPTIONS
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Unsecured()
     public Response listResourceEndpoints() {
 
@@ -295,8 +302,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     private Response asyncResponseResume(Exception ex, InputStream document) {
         LOGGER.error(ex);
         StreamUtils.closeSilently(document);
-        return Response.status(Status.INTERNAL_SERVER_ERROR)
-            .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, ex.getMessage(), null).toString())
+        return Response.status(INTERNAL_SERVER_ERROR)
+            .entity(getErrorStream(INTERNAL_SERVER_ERROR, ex.getMessage(), null).toString())
             .build();
     }
 
@@ -311,7 +318,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/formats")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "formats:create", description = "Importer un référentiel des formats", isAdminOnly = true)
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
@@ -355,7 +362,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/rules")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "rules:create", description = "Importer un référentiel des règles de gestion")
     public Response importRulesFile(@Context HttpHeaders headers,
         InputStream document) {
@@ -417,8 +424,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage(), null)).build();
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null)).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(INTERNAL_SERVER_ERROR, exc.getMessage(), null)).build();
         } catch (final AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.NOT_FOUND)
@@ -439,15 +446,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ingestcontracts")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
         ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {}));
+                new TypeReference<List<IngestContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -483,8 +491,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/accesscontracts")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "accesscontracts:create:json",
         description = "Importer des contrats d'accès dans le référentiel")
     public Response importAccessContracts(JsonNode contract) {
@@ -492,7 +500,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(contract.toString(),
-                new TypeReference<List<AccessContractModel>>() {}));
+                new TypeReference<List<AccessContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -528,8 +537,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/contexts")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "contexts:create:json",
         description = "Importer des contextes dans le référentiel", isAdminOnly = true)
     public Response importContexts(JsonNode select) {
@@ -537,7 +546,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {}));
+                new TypeReference<List<ContextModel>>() {
+                }));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -564,7 +574,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/profiles")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:create:binary", description = "Importer des profils dans le référentiel")
     public Response createProfiles(InputStream document) {
         try {
@@ -575,7 +585,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
+                        new TypeReference<List<ProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -621,8 +632,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/profiles")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
     public Response createProfiles(JsonNode select) {
 
@@ -631,7 +642,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {}));
+                    new TypeReference<List<ProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -656,7 +668,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/archiveunitprofiles")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "archiveunitprofiles:create:binary",
         description = "Importer un ou plusieurs document types dans le référentiel")
     public Response createArchiveUnitProfiles(InputStream document) {
@@ -668,7 +680,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -714,8 +727,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/archiveunitprofiles")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "archiveunitprofiles:create:json",
         description = "Ecrire un ou plusieurs document type dans le référentiel")
     public Response createArchiveUnitProfiles(JsonNode select) {
@@ -725,7 +738,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -751,7 +765,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/profiles/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:id:update:binaire", description = "Importer un fichier xsd ou rng dans un profil")
     public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
@@ -838,8 +852,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build();
         } catch (final AdminManagementClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
                 .build();
         }
     }
@@ -852,10 +866,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/formats")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "formats:read", description = "Lister le contenu du référentiel des formats")
-    public Response getFormats(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response getFormats(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -869,7 +883,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException | IOException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -891,10 +905,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/rules")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "rules:read", description = "Lister le contenu du référentiel des règles de gestion")
-    public Response getRules(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response getRules(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -907,7 +921,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException | IOException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -929,11 +943,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ingestcontracts")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:read",
         description = "Lister le contenu du référentiel des contrats d'entrée")
-    public Response findIngestContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findIngestContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -943,7 +957,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -965,10 +979,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/accesscontracts")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
-    public Response findAccessContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findAccessContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -978,7 +992,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1000,10 +1014,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/profiles")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
-    public Response findProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1013,7 +1027,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1035,11 +1049,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/archiveunitprofiles")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "archiveunitprofiles:read",
         description = "Lister le contenu du référentiel des document types")
-    public Response findArchiveUnitProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1049,7 +1063,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1071,10 +1085,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/contexts")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "contexts:read", description = "Lister le contenu du référentiel des contextes")
-    public Response findContexts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findContexts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1084,7 +1098,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1109,7 +1123,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/agencies")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "agencies:create", description = "Importer un référentiel des services producteurs")
     public Response importAgenciesFile(@Context HttpHeaders headers,
         InputStream document) {
@@ -1159,7 +1173,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/agencies/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
 
@@ -1198,10 +1212,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/agencies")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "agencies:read", description = "Lister le contenu du référentiel des services producteurs")
-    public Response findAgencies(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) throws IOException {
+    public Response findAgencies(@Dsl(value = SELECT_SINGLE) JsonNode select) throws IOException {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1210,7 +1224,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(Status.OK).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1232,12 +1246,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":read",
-        description = "Lister le contenu du référentiel des registres des fonds")
-    public Response getAccessionRegister(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
-
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":read", description = "Lister le contenu du référentiel des registres des fonds")
+    public Response getAccessionRegister(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -1250,7 +1262,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1269,6 +1281,30 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * Retrieve accession register symbolic
+     *
+     * @param select the select query to find document
+     * @return an accession register symbolic
+     */
+    @GET
+    @Path("accessionregisterssymbolic")
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "accessionregisterssymbolic:read", description = "Get accession register symbolic")
+    public Response getAccessionRegisterSymbolic(@Dsl(value = SELECT_SINGLE) JsonNode select) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                SanityChecker.checkJsonAll(select);
+                Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
+                RequestResponse result = client.getAccessionRegisterSymbolic(tenant, select);
+                return Response.status(result.getHttpCode()).entity(result).build();
+            } catch (Exception e) {
+                return VitamCodeHelper.toVitamError(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR, e.getMessage())
+                    .setHttpCode(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR.getStatus().getStatusCode())
+                    .toResponse();
+            }
+    }
+
+    /**
      * findFormatByID
      *
      * @param documentId the document id to find
@@ -1276,7 +1312,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/formats/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "formats:id:read", description = "Lire un format donné")
     public Response findFormatByID(@PathParam("id_document") String documentId) {
 
@@ -1292,7 +1328,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1314,7 +1350,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/rules/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "rules:id:read", description = "Lire une règle de gestion donnée")
     public Response findRuleByID(@PathParam("id_document") String documentId) {
 
@@ -1329,7 +1365,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1351,7 +1387,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ingestcontracts/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:id:read", description = "Lire un contrat d'entrée donné")
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
 
@@ -1368,7 +1404,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1390,7 +1426,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/accesscontracts/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:read", description = "Lire un contrat d'accès donné")
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
 
@@ -1407,7 +1443,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1429,7 +1465,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/profiles/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:id:read:json", description = "Lire un profil donné")
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
 
@@ -1446,7 +1482,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1468,7 +1504,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/archiveunitprofiles/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "archiveunitprofiles:id:read:json", description = "Lire un document type donné")
     public Response findArchiveUnitProfilesByID(@PathParam("id_document") String documentId) {
 
@@ -1486,7 +1522,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1508,7 +1544,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/contexts/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "contexts:id:read", description = "Lire un contexte donné")
     public Response findContextById(@PathParam("id_document") String documentId) {
 
@@ -1525,7 +1561,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -1550,8 +1586,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/contexts/{identifier:.+}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "contexts:id:update",
         description = "Effectuer une mise à jour sur un contexte", isAdminOnly = true)
     public Response updateContext(@PathParam("identifier") String identifier,
@@ -1592,8 +1628,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/profiles/{identifier:.+}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "profiles:id:update:json", description = "Effectuer une mise à jour sur un profil")
     public Response updateProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
@@ -1633,8 +1669,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/archiveunitprofiles/{identifier:.+}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "archiveunitprofiles:id:update:json",
         description = "Effectuer une mise à jour sur un document type")
     public Response updateArchiveUnitProfile(@PathParam("identifier") String identifier,
@@ -1675,8 +1711,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/accesscontracts/{identifier:.+}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'accès")
     public Response updateAccessContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
@@ -1717,8 +1753,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ingestcontracts/{identifier:.+}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:id:update",
         description = "Effectuer une mise à jour sur un contrat d'entrée")
     public Response updateIngestContract(@PathParam("identifier") String identifier,
@@ -1767,12 +1803,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @GET
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":id:" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL + ":read",
         description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
-        @Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+        @Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1792,7 +1828,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         }
     }
@@ -1805,10 +1841,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @POST
     @Path(AccessExtAPI.TRACEABILITY_API + "checks")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "traceabilitychecks:create", description = "Tester l'intégrité d'un journal sécurisé")
-    public Response checkOperationTraceability(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
+    public Response checkOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
@@ -1826,7 +1862,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setDescription(e.getMessage())).build();
         } catch (LogbookClientServerException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
                 .setState(CODE_VITAM)
@@ -1847,8 +1883,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @POST
     @Path(AccessExtAPI.AUDITS_API)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "audits:create", description = "Lancer un audit de l'existance des objets")
     public Response launchAudit(JsonNode options) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1875,8 +1911,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/securityprofiles")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "securityprofiles:create:json", isAdminOnly = true,
         description = "Importer des profiles de sécurité dans le référentiel")
     public Response importSecurityProfiles(JsonNode document) {
@@ -1885,7 +1921,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {}));
+                new TypeReference<List<SecurityProfileModel>>() {
+                }));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -1937,11 +1974,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/securityprofiles")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "securityprofiles:read",
         description = "Lister le contenu du référentiel des profiles de sécurité")
-    public Response findSecurityProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findSecurityProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1950,7 +1987,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1971,7 +2008,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/securityprofiles/{identifier}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "securityprofiles:id:read", description = "Lire un profile de sécurité donné")
     public Response findSecurityProfileByIdentifier(@PathParam("identifier") String identifier) {
 
@@ -1988,7 +2025,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -2013,8 +2050,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/securityprofiles/{identifier}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "securityprofiles:id:update", isAdminOnly = true,
         description = "Effectuer une mise à jour sur un profil de sécurité")
     public Response updateSecurityProfile(@PathParam("identifier") String identifier,
@@ -2101,8 +2138,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @GET
     @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:read", description = "Récupérer les informations sur une opération donnée")
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
@@ -2123,7 +2160,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:id:read:status", description = "Récupérer le code HTTP d'une opération donnée")
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
@@ -2151,7 +2188,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(Status.NO_CONTENT).build();
         } catch (VitamClientException | InternalServerException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -2166,7 +2203,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:id:read", description = "Récupérer le statut d'une opération donnée")
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
@@ -2193,7 +2230,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .build();
         } catch (InternalServerException e) {
             LOGGER.error("Could get operation detail: ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper
                     .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
@@ -2209,7 +2246,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper
                     .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
@@ -2227,8 +2264,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:id:update", description = "Changer le statut d'une opération donnée")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         ParametersChecker.checkParameter("ACTION Request must not be null",
@@ -2273,7 +2310,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("operations/{id}")
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:id:delete", description = "Annuler une opération donnée")
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
 
@@ -2315,7 +2352,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @GET
     @Path("/workflows")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "workflows:read", description = "Récupérer la liste des tâches des workflows")
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
@@ -2385,7 +2422,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .build();
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
+            return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorStream(
                     VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
                         e.getLocalizedMessage())))
@@ -2407,7 +2444,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * launch a traceability audit for the query
      *
@@ -2416,8 +2452,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/evidenceaudit")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
     public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode select) {
         ParametersChecker.checkParameter("mandatory parameter", select);
@@ -2442,10 +2478,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path(RECTIFICATION_AUDIT)
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "rectificationaudit:check", description = "rectification de données suite a un audit")
-    public Response rectificationAudit(String  operationId) {
+    public Response rectificationAudit(String operationId) {
         ParametersChecker.checkParameter("mandatory parameter", operationId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.rectificationAudit(operationId);
@@ -2469,8 +2505,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ontologies")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ontologies:create:json", description = "Importer les ontologies dans le référentiel")
     public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
         JsonNode ontologies) {
@@ -2480,7 +2516,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, JsonHandler.getFromStringAsTypeRefence(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {}));
+                    new TypeReference<List<OntologyModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -2504,10 +2541,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ontologies")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ontologies:read", description = "Lister le contenu du référentiel des ontologies")
-    public Response findOntologies(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+    public Response findOntologies(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -2517,7 +2554,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -2539,7 +2576,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/ontologies/{id_document:.+}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "ontologies:id:read:json", description = "Lire une ontologie")
     public Response findOntologiesByID(@PathParam("id_document") String documentId) {
 
@@ -2556,7 +2593,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
+                final Status status = INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
@@ -2570,7 +2607,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Pause the processes specified by ProcessPause info
      *
@@ -2579,8 +2615,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/forcepause")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "forcepause:check", description = "Force la pause sur un type d'operation et/ou sur un tenant")
     public Response forcePause(ProcessPause info) {
 
@@ -2598,7 +2634,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Remove the pause for the processes specified by ProcessPause info
      *
@@ -2607,8 +2642,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      */
     @Path("/removeforcepause")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = "removeforcepause:check", description = "Retire la pause sur un type d'operation et/ou sur un tenant")
     public Response removeForcePause(ProcessPause info) {
 

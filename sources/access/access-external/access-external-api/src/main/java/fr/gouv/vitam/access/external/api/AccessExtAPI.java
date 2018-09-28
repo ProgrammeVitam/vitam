@@ -27,17 +27,21 @@
 package fr.gouv.vitam.access.external.api;
 
 /**
- * AccessExtAPI containing different AccessExt uri 
- * 
+ * AccessExtAPI containing different AccessExt uri
+ *
  */
 public class AccessExtAPI {
 
     private AccessExtAPI() {}
-    
+
     /**
      * Accession register base uri
      */
     public static final String ACCESSION_REGISTERS = "accessionregisters";
+    /**
+     * Accession register base uri
+     */
+    public static final String ACCESSION_REGISTERS_SYMBOLIC = "accessionregisterssymbolic";
     /**
      * Accession register uri
      */
@@ -45,7 +49,7 @@ public class AccessExtAPI {
     /**
      * Accession register update uri
      */
-    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accessionregisters";    
+    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accessionregisters";
     /**
      * Accession register details uri
      */
@@ -95,7 +99,7 @@ public class AccessExtAPI {
      * Profiles update uri
      */
     public static final String PROFILES_API_UPDATE = "profiles";
-    
+
     /**
      * Contexts base uri
      */
@@ -108,7 +112,7 @@ public class AccessExtAPI {
      * Contexts update
      */
     public static final String CONTEXTS_API_UPDATE = "contexts";
-    
+
     /**
      * Formats base uri
      */
@@ -117,7 +121,7 @@ public class AccessExtAPI {
      * Formats check uri
      */
     public static final String FORMATSCHECK = "formatsfilecheck";
-    
+
     /**
      * Rules uri
      */
@@ -126,7 +130,7 @@ public class AccessExtAPI {
      * Rules check uri
      */
     public static final String RULESCHECK = "rulesfilecheck";
-    
+
     /**
      * Traceability base uri
      */
@@ -139,7 +143,7 @@ public class AccessExtAPI {
      * Traceability check uri
      */
     public static final String TRACEABILITYCHECKS = TRACEABILITY + "checks";
-    
+
     /**
      * Audits base uri
      */
@@ -173,7 +177,7 @@ public class AccessExtAPI {
      * DIP uri
      */
     public static final String DIP_API = "/" + DIP;
-    
+
     /**
      * Security profiles uri
      */
@@ -223,5 +227,4 @@ public class AccessExtAPI {
      * Export probative value uri
      */
     public static final String EXPORT_PROBATIVE_VALUE = "/probativevalueexport";
-
 }

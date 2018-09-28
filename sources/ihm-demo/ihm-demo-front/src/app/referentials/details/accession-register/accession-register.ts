@@ -29,17 +29,30 @@ export class AccessionRegisterDetail {
   '#id' : string;
  '#tenant' : number;
   ArchivalAgreement : string;
+  AcquisitionInformation: string;
+  LegalStatus: string;
+  ArchivalProfile: string;
   EndDate : string;
   LastUpdate ; string;
   ObjectSize : Register;
   OperationIds : string[];
+  Events : AccessionRegisterEvent[];
   OriginatingAgency : string;
   StartDate : string ;
   Status : string;
   SubmissionAgency : string;
-  Symbolic : string;
   TotalObjectGroups : Register;
   TotalObjects : Register;
   TotalUnits : Register;
   objectSize : Register;
+}
+
+export class AccessionRegisterEvent {
+  CreationDate: string;
+  Gots: number;
+  ObjSize: number;
+  Objects: number;
+  OpType: "INGEST" | "ELIMINATION";
+  Opc: string;
+  Units: number;
 }

@@ -19,7 +19,9 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
 
 /**
  * Rest client implementation for Access External
@@ -55,11 +57,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
-            response = performRequest(HttpMethod.GET, "/units", headers,
+            response = performRequest(HttpMethod.GET, "/units", vitamContext.getHeaders(),
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -80,13 +79,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
 
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
 
         try {
-            response = performRequest(HttpMethod.GET, UNITS + unitId, headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId, vitamContext.getHeaders(),
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -105,14 +101,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
         throws VitamClientException {
         Response response = null;
-
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
 
         try {
-            response = performRequest(HttpMethod.PUT, UNITS + unitId, headers, updateQuery,
+            response = performRequest(HttpMethod.PUT, UNITS + unitId, vitamContext.getHeaders(), updateQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -134,12 +126,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
-
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", vitamContext.getHeaders(),
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -162,14 +151,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         int version)
         throws VitamClientException {
 
-
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
 
-        Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        Response response;
+        MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
 
@@ -192,9 +179,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
         try {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers, select,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, vitamContext.getHeaders(), select,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
         } catch (IllegalStateException e) {
@@ -214,10 +199,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
 
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, vitamContext.getHeaders(),
                 select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
@@ -239,11 +222,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response =
-                performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
+                performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, vitamContext.getHeaders(),
                     select, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);
@@ -265,11 +246,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, idObject);
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
-                headers,
+                vitamContext.getHeaders(),
                 select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -289,11 +268,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
-            response = performRequest(HttpMethod.POST, AccessExtAPI.DIP_API, headers,
+            response = performRequest(HttpMethod.POST, AccessExtAPI.DIP_API, vitamContext.getHeaders(),
                 dipExportRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
@@ -313,12 +289,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         ParametersChecker.checkParameter(BLANK_DIP_ID, dipId);
 
-        Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        Response response;
 
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.DIP_API + "/" + dipId + "/dip", headers,
+            response = performRequest(HttpMethod.GET, AccessExtAPI.DIP_API + "/" + dipId + "/dip", vitamContext.getHeaders(),
                 null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
@@ -340,12 +314,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         ParametersChecker.checkParameter(MISSING_VITAM_CONTEXT, vitamContext);
         ParametersChecker.checkParameter(MISSING_RECLASSIFICATION_REQUEST, reclassificationRequest);
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/reclassification", headers,
+            response = performRequest(HttpMethod.POST, "/reclassification", vitamContext.getHeaders(),
                 reclassificationRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
@@ -363,11 +334,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
         throws VitamClientException {
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
 
         try {
-            response = performRequest(HttpMethod.POST, UNITS, headers, updateQuery,
+            response = performRequest(HttpMethod.POST, UNITS, vitamContext.getHeaders(), updateQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
@@ -386,11 +355,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
-            response = performRequest(HttpMethod.GET, "/objects", headers,
+            response = performRequest(HttpMethod.GET, "/objects", vitamContext.getHeaders(),
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -411,11 +377,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
         try {
-            response = performRequest(HttpMethod.GET, "/unitsWithInheritedRules", headers,
+            response = performRequest(HttpMethod.GET, "/unitsWithInheritedRules", vitamContext.getHeaders(),
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -433,13 +396,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public Response getAccessLog(VitamContext vitamContext, JsonNode params)
         throws VitamClientException {
-        Response response = null;
-
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        Response response;
 
         try {
-            response = performRequest(HttpMethod.GET, "/storageaccesslog", headers,
+            response = performRequest(HttpMethod.GET, "/storageaccesslog", vitamContext.getHeaders(),
                 params, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
             return response;
         } catch (VitamClientInternalException e) {
@@ -453,12 +413,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         EliminationRequestBody eliminationRequestBody) throws VitamClientException {
         ParametersChecker.checkParameter(MISSING_VITAM_CONTEXT, vitamContext);
         ParametersChecker.checkParameter(MISSING_ELIMINATION_REQUEST, eliminationRequestBody);
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/elimination/analysis", headers,
+            response = performRequest(HttpMethod.POST, "/elimination/analysis", vitamContext.getHeaders(),
                 eliminationRequestBody, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {

@@ -69,13 +69,7 @@ import org.junit.rules.TemporaryFolder;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -88,6 +82,7 @@ import static fr.gouv.vitam.functional.administration.common.server.AccessionReg
 import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.TENANT;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static java.util.Locale.US;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
@@ -296,7 +291,7 @@ public class MongoDbAccessMetadataImplTest {
             "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -330,7 +325,7 @@ public class MongoDbAccessMetadataImplTest {
             "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier1\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -359,7 +354,7 @@ public class MongoDbAccessMetadataImplTest {
         assertThat(first).map(a -> a.getString(ORIGINATING_AGENCY)).hasValue("Identifier0");
         assertThat(first).map(a -> a.getDouble(BINARY_OBJECTS_SIZE)).hasValue(88209.0);
         assertThat(first).map(a -> a.getLong(ARCHIVE_UNIT)).hasValue(2L);
-        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(2L);
+        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(3L);
         assertThat(first).map(a -> a.getLong(BINARY_OBJECT)).hasValue(2L);
         assertThat(first).map(a -> a.getString(CREATION_DATE)).isNotEmpty();
     }
@@ -377,7 +372,7 @@ public class MongoDbAccessMetadataImplTest {
                 numberOfOriginatingAgencies, numberOfOriginatingAgency)
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -419,9 +414,9 @@ public class MongoDbAccessMetadataImplTest {
         long objectGroupCountThis = 1;
 
         SearchResponse objectGroupResponse = searchResult(
-            String.format(
-                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
-                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis)
+            String.format(US,
+                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier1\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]}}}",
+                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -447,7 +442,7 @@ public class MongoDbAccessMetadataImplTest {
 
         // Then
         assertThat(first).map(a -> a.getDouble(BINARY_OBJECTS_SIZE)).hasValue(binarySize);
-        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(binaryCount);
+        assertThat(first).map(a -> a.getLong(OBJECT_GROUP)).hasValue(3L);
         assertThat(first).map(a -> a.getLong(BINARY_OBJECT)).hasValue(objectGroupCountAll - objectGroupCountThis);
     }
 
@@ -466,9 +461,9 @@ public class MongoDbAccessMetadataImplTest {
         long objectGroupCountThis = 1;
 
         SearchResponse objectGroupResponse = searchResult(
-            String.format(
-                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
-                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis)
+            String.format(US,
+                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%.2f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%.2f}}]}}}",
+                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -507,7 +502,7 @@ public class MongoDbAccessMetadataImplTest {
             "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))

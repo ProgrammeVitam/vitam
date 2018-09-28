@@ -43,6 +43,7 @@ import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -250,7 +251,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept)
         throws VitamClientInternalException {
         try {
@@ -273,7 +274,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept)
         throws VitamClientInternalException {
         if (body == null) {
@@ -301,7 +302,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
         throws VitamClientInternalException {
         if (body == null) {
@@ -522,7 +523,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
-    final Builder buildRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+    private Builder buildRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept,
         boolean chunkedMode) {
         return buildRequest(httpMethod, getServiceUrl(), path, headers, accept, chunkedMode);
@@ -539,7 +540,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
-    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedHashMap<String, Object> headers,
+    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
         MediaType accept, boolean chunkedMode) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
         final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);

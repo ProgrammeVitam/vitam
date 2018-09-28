@@ -60,7 +60,7 @@ export class AgenciesComponent extends PageComponent {
     this.searchReferentialsService.getAgenciesById(this.id).subscribe(
       (value) => {
         this.agency = plainToClass(Agency, value.$results)[0];
-        this.searchReferentialsService.getFundRegisterById(this.agency.Identifier).subscribe((value) => {
+        this.searchReferentialsService.getFundRegisterById(this.agency.Identifier, 1).subscribe((value) => {
             if (value.$hits.total == 1) {
               this.hasUnit = true;
             }
