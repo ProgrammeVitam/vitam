@@ -26,7 +26,7 @@ public class StorageClientUtilTest {
     @Test public void should_get_storage_info() throws Exception {
 
         String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"SedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
 
 
         String storageResults =
@@ -52,7 +52,7 @@ public class StorageClientUtilTest {
     @Test public void should_create_security_alert_when_one_offer_is_altered() throws Exception {
 
         String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"SedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
 
 
         String storageResults =
@@ -81,7 +81,7 @@ public class StorageClientUtilTest {
     @Test public void should_create_security_alert_when_one_file_in_offer_is_deleted() throws Exception {
 
         String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"SedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
 
 
         String storageResults =
