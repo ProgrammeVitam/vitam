@@ -10,7 +10,7 @@ export class ComputeRulesUtilsService {
 
   constructor(public archiveUnitHelper: ArchiveUnitHelper) { }
 
-  computeEffectiveRules(management: any, inheritedRules: ManagementModel, archiveUnitProfile: string) {
+  computeEffectiveRules(management: any, preventRulesId: ManagementModel, archiveUnitProfile: string) {
     const computedManagmentInfo: ManagementModel = {
       NeedAuthorization: management.NeedAuthorization,
       ArchiveUnitProfile: archiveUnitProfile
@@ -18,7 +18,7 @@ export class ComputeRulesUtilsService {
     const unitProperties: any = {};
 
     for (const category of this.archiveUnitHelper.rulesCategories) {
-      const inheritedCategory = inheritedRules[category.rule];
+      const inheritedCategory = preventRulesId[category.rule];
       const managementCategory = management[category.rule];
 
       if (inheritedCategory && (inheritedCategory.Properties.length > 0 || inheritedCategory.Rules.length > 0)) {

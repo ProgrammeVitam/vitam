@@ -133,6 +133,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
+    private static final String DISTRIBUTIONREPORT_SUFFIX = "_report_error.json";
     private static final String FOLDERNAME = "ATR/";
     private static final String PROCESS_CONTEXT_FILE = "processContext.json";
     private static final String EXTERNAL_PROCESS_CONTEXT_FILE = "ingest-internal/processContext.json";
@@ -683,6 +684,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             DataCategory documentType = DataCategory.getByCollectionName(type);
             if (documentType == DataCategory.MANIFEST || documentType == DataCategory.REPORT) {
                 objectId += XML;
+            } else if (documentType == DataCategory.DISTRIBUTIONREPORTS) {
+                objectId += DISTRIBUTIONREPORT_SUFFIX;
             } else if (documentType == DataCategory.RULES) {
                 // #2940 Ugly hack for use the same point of API for all report
                 objectId += JSON;

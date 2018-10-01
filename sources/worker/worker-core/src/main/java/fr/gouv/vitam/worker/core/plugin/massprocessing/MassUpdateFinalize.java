@@ -94,7 +94,7 @@ public class MassUpdateFinalize extends ActionHandler {
     private static final String STRATEGY_ID = "default";
     private static final String RESULTS = "$results";
     private static final String REPORT = "report";
-    private static final String FILE_NAME_FORMAT = "%s_%s_%s_%s.json";
+    private static final String FILE_NAME_FORMAT = "%s_%s_%s.json";
 
     private StorageClientFactory storageClientFactory;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -146,14 +146,14 @@ public class MassUpdateFinalize extends ActionHandler {
                 DataCategory.DISTRIBUTIONREPORTS.getFolder());
 
             String successReportName =
-                String.format(FILE_NAME_FORMAT, param.getProcessId(), handler.getWorkerId(), REPORT, "success");
+                String.format(FILE_NAME_FORMAT, param.getRequestId(), REPORT, "success");
             final File distribReports = handler.getNewLocalFile(successReportName);
             constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.TRUE),
                 containerName, distribReports, successReportName);
 
             String errorReportName =
-                String.format(FILE_NAME_FORMAT, param.getProcessId(), handler.getWorkerId(), REPORT, "error");
-            final File distribReportsKO = handler.getNewLocalFile(successReportName);
+                String.format(FILE_NAME_FORMAT, param.getRequestId(), REPORT, "error");
+            final File distribReportsKO = handler.getNewLocalFile(errorReportName);
             constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.FALSE),
                 containerName, distribReportsKO, errorReportName);
 

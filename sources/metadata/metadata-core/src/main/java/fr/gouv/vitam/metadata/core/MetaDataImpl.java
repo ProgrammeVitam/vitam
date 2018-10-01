@@ -82,12 +82,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -718,11 +713,11 @@ public class MetaDataImpl implements MetaData {
                     result.put("#status", "OK");
                     return result;
                 } else {
-                    return objectNodeResultForUpdateKo(unit);
+                    return objectNodeResultForUpdateError(unit, "KO");
                 }
             } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
                 LOGGER.error(e);
-                return objectNodeResultForUpdateKo(unit);
+                return objectNodeResultForUpdateError(unit, "KO");
             }
 
         }).collect(Collectors.toList());
@@ -751,11 +746,14 @@ public class MetaDataImpl implements MetaData {
                     result.put("#status", "OK");
                     return result;
                 } else {
-                    return objectNodeResultForUpdateKo(unitId);
+                    return objectNodeResultForUpdateError(unitId, "KO");
                 }
+            } catch (SchemaValidationException e) {
+                LOGGER.warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
+                return objectNodeResultForUpdateError(unitId, "WARNING");
             } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
                 LOGGER.error(e);
-                return objectNodeResultForUpdateKo(unitId);
+                return objectNodeResultForUpdateError(unitId, "KO");
             }
 
         }).collect(Collectors.toList());
@@ -765,12 +763,11 @@ public class MetaDataImpl implements MetaData {
                 .setTotal(collect.size());
     }
 
-    private ObjectNode objectNodeResultForUpdateKo(String unitId) {
+    private ObjectNode objectNodeResultForUpdateError(String unitId, String status) {
         final ObjectNode diffNode = JsonHandler.createObjectNode();
         diffNode.put("#id", unitId);
         diffNode.putNull("#diff");
-        diffNode.put("#status", "KO");
-
+        diffNode.put("#status", status);
         return diffNode;
     }
 
@@ -830,7 +827,7 @@ public class MetaDataImpl implements MetaData {
 
     private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId)
             throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-            MetaDataDocumentSizeException, VitamDBException {
+            MetaDataDocumentSizeException, VitamDBException, SchemaValidationException {
         Result result;
         ArrayNode arrayNodeResponse;
         if (updateActions.isNull()) {
@@ -852,16 +849,13 @@ public class MetaDataImpl implements MetaData {
                     VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
-        } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
-            LOGGER.error(e);
-            throw e;
         } catch (final BadRequestException e) {
             throw new MetaDataExecutionException(e);
         }
         List res = toArrayList(arrayNodeResponse);
         Long total = result != null ? result.getTotal() : res.size();
         return new RequestResponseOK<JsonNode>(queryCopy)
-                .addAllResults(toArrayList(arrayNodeResponse))
+                .addAllResults(res)
                 .setTotal(total)
                 .setHttpCode(Response.Status.OK.getStatusCode());
     }

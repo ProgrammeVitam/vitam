@@ -55,7 +55,12 @@ public enum IngestCollection {
     /**
      * Ugly hack for homogeneity download agencies imported
      */
-    REFERENTIAL_AGENCIES_CSV("referential_agencies_csv");
+    REFERENTIAL_AGENCIES_CSV("referential_agencies_csv"),
+
+    /**
+     * Ugly hack hack for homogeneity download batch update reports
+     */
+    DISTRIBUTIONREPORTS("distributionreports");
 
 
     /**

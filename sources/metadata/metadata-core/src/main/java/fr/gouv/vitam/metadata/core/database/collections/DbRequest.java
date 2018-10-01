@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
@@ -181,7 +182,7 @@ public class DbRequest {
      * @return the result
      */
     public Result execRuleRequest(final String unitId, final RuleActions ruleActions)
-            throws InvalidParseOperationException, MetaDataExecutionException {
+            throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
         
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
@@ -231,8 +232,7 @@ public class DbRequest {
                             updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
                     SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
                     if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new MetaDataExecutionException(
-                                "Unable to validate updated Unit " + status.getValidationMessage());
+                        throw new SchemaValidationException("Unable to validate updated Unit " + status.getValidationMessage());
                     }
                     if (externalSchema != null && externalSchema.size() > 0) {
                         validateOtherExternalSchema(updatedJsonDocument, externalSchema);
@@ -1011,7 +1011,11 @@ public class DbRequest {
                             "Unable to validate updated Unit " + status.getValidationMessage());
                     }
                     if (externalSchema != null && externalSchema.size() > 0) {
-                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
+                        try {
+                            validateOtherExternalSchema(updatedJsonDocument, externalSchema);
+                        } catch (SchemaValidationException e) {
+                            throw new MetaDataExecutionException(e);
+                        }
                     }
                 }
 
@@ -1068,7 +1072,7 @@ public class DbRequest {
 
 
     private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
         try {
             SchemaValidationUtils validatorSecond =
                 new SchemaValidationUtils(
@@ -1080,7 +1084,7 @@ public class DbRequest {
             SchemaValidationStatus secondstatus =
                 validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
             if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
-                throw new MetaDataExecutionException(
+                throw new SchemaValidationException(
                     "Unable to validate updated Unit " + secondstatus.getValidationMessage());
             }
         } catch (FileNotFoundException | ProcessingException e) {

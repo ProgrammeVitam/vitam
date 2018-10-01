@@ -129,10 +129,12 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private static final String EXTENSION = "json";
     private static final String REPORT = "report";
     private static final String SUCCESS = "success";
+    private static final String WARNING = "warning";
     private static final String ERRORS = "errors";
     private static final String ID = "#id";
     private static final String STATUS = "#status";
     private static final String DIFF = "#diff";
+    private static final String CAUSE = "Cause";
     private static final String SEPARTOR = ",";
 
     /**
@@ -208,7 +210,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient()) {
 
-            // get initial query string
+            // FIXME: Use in/out in order to transfer json from a step to another ?
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
             JsonNode actionNode = handler.getJsonFromWorkspace("actions.json");
 
@@ -228,9 +230,12 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             actionNode = checkAndCompleteRuleWithEndDateForUpdateAndAdd(actionNode);
 
             // call update BULK service
+            // TODO: Remonter un vrai KO dans la requestResponse si l'opération totale est refusée pour incohérance
+            // TODO: Traiter les cas KO de chaque sous tâche (unitaire Unit)
             RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(multiQuery.getFinalUpdate(), actionNode);
 
             List<DistributionReportModel> reportModelOK = new ArrayList<>();
+            List<DistributionReportModel> reportModelWARN = new ArrayList<>();
             List<DistributionReportModel> reportModelKO = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
                 RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -240,8 +245,9 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                     DistributionStatus status = DistributionStatus.valueOf(result.get(STATUS).asText());
                     String diff = result.get(DIFF).asText();
                     // TODO : if diff empty => update alerady executed => do not update LFC (and set status warning ??)
+                    // FIXME: This test should be done before update, else there is an _v increment even if there is no update of metadata
 
-                    if (status.equals(DistributionStatus.OK) || status.equals(DistributionStatus.WARNING)) {
+                    if (!"null".equals(diff) && (status.equals(DistributionStatus.OK) || status.equals(DistributionStatus.WARNING))) {
                         // write LFC
                         try {
                             writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
@@ -281,7 +287,11 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                     }
 
                     // prepare report part
-                    if (itemStatus.getGlobalStatus().equals(StatusCode.OK) ||
+                    if ("null".equals(diff) && status.equals(DistributionStatus.WARNING)) {
+                        itemStatus.increment(StatusCode.WARNING);
+                        reportModelWARN
+                            .add(new DistributionReportModel(unitId, DistributionStatus.WARNING));
+                    } else if (itemStatus.getGlobalStatus().equals(StatusCode.OK) ||
                         itemStatus.getGlobalStatus().equals(StatusCode.WARNING)) {
                         reportModelOK
                             .add(new DistributionReportModel(unitId, DistributionStatus.OK));
@@ -290,7 +300,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                             .add(new DistributionReportModel(unitId, DistributionStatus.KO));
                     }
 
-                    // populate itemStatuses 
+                    // populate itemStatuses
                     itemStatuses.add(new ItemStatus(MASS_UPDATE_UNITS_RULES).setItemsStatus(MASS_UPDATE_UNITS_RULES, itemStatus));
                 });
             } else {
@@ -303,8 +313,12 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelOK, distribReportsName,
                     SUCCESS);
             }
+            if (CollectionUtils.isNotEmpty(reportModelWARN)) {
+                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelWARN, distribReportsName,
+                    WARNING);
+            }
             if (CollectionUtils.isNotEmpty(reportModelKO)) {
-                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelOK, distribReportsName,
+                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelKO, distribReportsName,
                     ERRORS);
             }
         } catch (InvalidParseOperationException | MetaDataNotFoundException | MetaDataDocumentSizeException |
@@ -345,6 +359,13 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private Map<String, RuleCategoryAction> computeRuleForCategory(Map.Entry<String, RuleCategoryAction> entry) {
         String categoryName = entry.getKey();
         RuleCategoryAction category = entry.getValue();
+
+        if (category.getRules() == null) {
+            Map<String, RuleCategoryAction> elementMap = new HashMap<>();
+            elementMap.put(categoryName, category);
+            return elementMap;
+        }
+
         for (RuleAction rule: category.getRules()) {
             if (rule.getEndDate() != null) {
                 throw new IllegalStateException("Rule for update have a defined EndDate");
@@ -490,15 +511,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      *
      * @param handler
      * @param processId
-     * @param reportModelOK
+     * @param reportModel
      * @param containerName
      * @param reportType
      * @throws ProcessingException
      */
     private void storeFileToWorkspace(HandlerIO handler, final String processId,
-        List<DistributionReportModel> reportModelOK, String containerName, String reportType)
+        List<DistributionReportModel> reportModel, String containerName, String reportType)
         throws ProcessingException {
-        if (reportModelOK.isEmpty()) {
+        if (reportModel.isEmpty()) {
             return;
         }
         String reportFileName =
@@ -507,8 +528,8 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 EXTENSION);
         final File reportFile = handler.getNewLocalFile(reportFileName);
         try (BufferedWriter bufferedOutput = new BufferedWriter(new FileWriter(reportFile))) {
-            bufferedOutput.write(getJsonLineForItem(reportModelOK.get(0)));
-            reportModelOK.stream().skip(1).forEach(l -> {
+            bufferedOutput.write(getJsonLineForItem(reportModel.get(0)));
+            reportModel.stream().skip(1).forEach(l -> {
                 try {
                     bufferedOutput.write(SEPARTOR + getJsonLineForItem(l));
                 } catch (IOException e) {

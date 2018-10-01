@@ -1305,6 +1305,37 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         return buildErrorResponse(vitamCode);
     }
 
+    /**
+     * Get a report
+     * @param headers http header
+     * @param objectId the id of the object
+     * @return the stream
+     * @throws IOException throws an IO Exception
+     */
+    @Path("/distributionreports/{id_report}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public Response getDistributionReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
+        throws IOException {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(objectId, DataCategory.DISTRIBUTIONREPORTS, strategyId, vitamCode, null),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
     // TODO P1: requester have to come from vitam headers (X-Requester), but
     // does not exist actually, so use
     // getRemoteAdr from HttpServletRequest passed as parameter (requester)

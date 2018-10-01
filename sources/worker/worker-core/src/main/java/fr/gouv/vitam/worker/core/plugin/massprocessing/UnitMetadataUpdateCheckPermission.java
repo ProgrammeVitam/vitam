@@ -27,11 +27,11 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.model.DataType;
 import fr.gouv.vitam.common.database.parser.query.helper.CheckSpecifiedFieldHelper;
 import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -128,8 +128,9 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
         final boolean shouldCheckManagement = Boolean.valueOf((String) handler.getInput(CHECK_MANAGEMENT_RANK));
         final boolean shouldCheckGraph = Boolean.valueOf((String) handler.getInput(CHECK_GRAPH_RANK));
         final boolean shouldCheckMDD = Boolean.valueOf((String) handler.getInput(CHECK_MDD_RANK));
-        JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
 
+        // FIXME: Use in/out in order to transfer json from a step to another ?
+        JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
         JsonNode queryActions = handler.getJsonFromWorkspace("actions.json");
 
         try {
@@ -150,8 +151,14 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                                 LOGGER.error(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
                                 throw new ProcessingException(ACCESS_CONTRACT_NOT_FOUND_EXCEPTION);
                             } else if (!contract.getWritingPermission()) {
-                                throw new UpdatePermissionException(
-                                    VitamCode.UPDATE_UNIT_PERMISSION.name());
+                                itemStatus.increment(StatusCode.KO);
+                                itemStatus.setMessage(VitamCode.UPDATE_UNIT_PERMISSION.name());
+                                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                                errorInfo.put("Error: ", VitamCode.UPDATE_UNIT_PERMISSION.name());
+                                errorInfo.put("Message: ", VitamCode.UPDATE_UNIT_PERMISSION.getMessage());
+                                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorInfo));
+                                return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
+                                    .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
                             }
 
                             // Check management data
@@ -159,10 +166,14 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
                                 if ((!JsonHandler.isNullOrEmpty(queryActions)|| CheckSpecifiedFieldHelper
                                     .containsSpecifiedField(initialQuery, DataType.MANAGEMENT)) &&
                                     BooleanUtils.isTrue(contract.getWritingRestrictedDesc())) {
-                                    LOGGER
-                                        .error(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_MANAGEMENT_UNAUTHORIZED.name());
-                                    throw new UpdatePermissionException(
-                                        VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
+                                    itemStatus.increment(StatusCode.KO);
+                                    itemStatus.setMessage(VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
+                                    ObjectNode errorInfo = JsonHandler.createObjectNode();
+                                    errorInfo.put("Error: ", VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
+                                    errorInfo.put("Message: ", VitamCode.UPDATE_UNIT_DESC_PERMISSION.getMessage());
+                                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorInfo));
+                                    return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
+                                        .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
                                 }
                             }
                         } else {
@@ -202,7 +213,6 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
         return new ItemStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION)
             .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
     }
-
 
     /**
      * Check mandatory parameter

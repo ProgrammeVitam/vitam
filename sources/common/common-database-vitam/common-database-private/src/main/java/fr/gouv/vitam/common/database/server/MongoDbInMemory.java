@@ -74,6 +74,9 @@ public class MongoDbInMemory {
     private static final String END_DATE_KEY = "EndDate";
     private static final String MANAGEMENT_KEY = "_mgt";
     private static final String FINAL_ACTION_KEY = "FinalAction";
+    private static final String INHERITANCE = "Inheritance";
+    private static final String PREVENT_INHERITANCE = "PreventInheritance";
+    private static final String PREVENT_RULES_ID = "PreventRulesId";
 
     private final JsonNode originalDocument;
 
@@ -210,6 +213,33 @@ public class MongoDbInMemory {
                 initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
             }
 
+            boolean updatedInheritance = false;
+            ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
+
+            if (inheritance == null) {
+                inheritance = JsonHandler.createObjectNode();
+            }
+
+            // add preventInheritance
+            Boolean preventInheritance = ruleCategoryAction.getPreventInheritance();
+            if (preventInheritance != null) {
+                updatedInheritance = true;
+                inheritance.put(PREVENT_INHERITANCE, preventInheritance);
+            }
+
+            // add preventRulesId
+            Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
+            if (preventRuleIds != null && preventRuleIds.size() > 0) {
+                JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
+                updatedInheritance = true;
+                ArrayNode newPreventRulesId = getComputedPreventedRulesAfterAddition(initialPreventRules, preventRuleIds);
+                inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
+            }
+
+            if (updatedInheritance) {
+                initialRuleCategory.set(INHERITANCE, inheritance);
+            }
+
             // add rules
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
@@ -274,6 +304,20 @@ public class MongoDbInMemory {
             RuleCategoryAction ruleCategoryAction = entry.getValue();
             ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
+            ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
+            if (inheritance == null) {
+                inheritance = JsonHandler.createObjectNode();
+            }
+
+            // add preventRulesId
+            Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
+            if (preventRuleIds != null && preventRuleIds.size() > 0) {
+                JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
+                ArrayNode newPreventRulesId = getComputedPreventedRulesAfterDeletion(initialPreventRules, preventRuleIds);
+                inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
+                initialRuleCategory.set(INHERITANCE, inheritance);
+            }
+
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
                 List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(rule -> rule.getRule()).collect(Collectors.toList());
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
@@ -293,6 +337,41 @@ public class MongoDbInMemory {
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
         return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+    }
+
+    private ArrayNode getComputedPreventedRulesAfterAddition(JsonNode initialPreventRules, Set<String> preventRuleIdsToAdd) {
+        if (initialPreventRules != null && initialPreventRules.isArray()) {
+            ArrayNode initialArray = (ArrayNode) initialPreventRules;
+            for (JsonNode initialElement: initialArray) {
+                preventRuleIdsToAdd.add(initialElement.asText());
+            }
+        }
+
+        ArrayNode result;
+        try {
+            result = (ArrayNode) JsonHandler.toJsonNode(preventRuleIdsToAdd);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException("cannot transform preventRulesId as ArrayNode", e);
+        }
+
+        return result;
+    }
+
+    private ArrayNode getComputedPreventedRulesAfterDeletion(JsonNode initialPreventRules, Set<String> preventRuleIdsToRemove) {
+        if (initialPreventRules != null && initialPreventRules.isArray()) {
+            ArrayNode initialArray = (ArrayNode) initialPreventRules;
+            Iterator<JsonNode> initialIterator = initialArray.elements();
+
+            while(initialIterator.hasNext()) {
+                JsonNode initialItem = initialIterator.next();
+                if (preventRuleIdsToRemove.contains(initialItem.asText())) {
+                    initialIterator.remove();
+                }
+            }
+
+            return initialArray;
+        }
+        return JsonHandler.createArrayNode();
     }
 
     private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction) {

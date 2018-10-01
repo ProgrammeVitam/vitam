@@ -55,11 +55,33 @@
 
         <!-- Rules part -->
         <p-accordionTab header="Mise à jour des règles de gestion">
-            <div class="ui-g-12">
+            <div class="ui-g-12" *ngIf="internalSavedRules">
                 <ng-template ngFor let-category [ngForOf]="rulesCategories">
                     <p-fieldset [legend]="category.label" class="ui-g-12" [toggleable]="true" [collapsed]="true">
-
                         <div class="ui-g-12 ui-g-nopad">
+                             <div class="ui-g-12">
+                                 <label class="ui-g-3">Modification de l'héritage de ces règles</label>
+
+                                 <p-toggleButton class="ui-g-4" onLabel="Bloquer l'héritage" offLabel="Hériter des parents"
+                                                 [(ngModel)]="internalSavedRules[category.rule].PreventInheritance">
+                                 </p-toggleButton>
+                             </div>
+                             <div class="ui-g-12">
+                                 <div class="ui-g-6">
+                                     <label class="ui-g-5">Bloquer l'héritage des règles suivante:</label>
+                                     <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].PreventRuleIds"></p-chips>
+                                 </div>
+                                 <div class="ui-g-6">
+                                     <label class="ui-g-5">Annuler le blocage des règles suivantes: </label>
+                                     <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].AllowRuleIds"></p-chips>
+                                 </div>
+                                 <div class="ui-g-12">
+                                     <div class="ui-g-nopad ui-g-12">
+                                         <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+                                     </div>
+                                 </div>
+                             </div>
+
                             <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.ADD, category.rule)" label="Ajouter une règle"
                                     icon="fa-plus" iconPos="left"></button>
                             <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.UPDATE, category.rule)" label="Modifier une règle"

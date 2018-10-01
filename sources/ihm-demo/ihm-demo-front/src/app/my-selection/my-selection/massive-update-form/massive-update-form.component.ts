@@ -110,6 +110,20 @@ export class MassiveUpdateFormComponent implements OnInit {
         nbUpdates++;
       }
 
+      // Check for Inheritance properties in category
+      if (ruleCategory.PreventInheritance != null) {
+        additions[categoryKey] = { PreventInheritance: ruleCategory.PreventInheritance };
+        nbUpdates++;
+      }
+      if (ruleCategory.PreventRuleIds != null && ruleCategory.PreventRuleIds.length > 0) {
+        additions[categoryKey] = { PreventRulesId: ruleCategory.PreventRuleIds };
+        nbUpdates++;
+      }
+      if (ruleCategory.AllowRuleIds != null && ruleCategory.AllowRuleIds.length > 0) {
+        deletions[categoryKey] = { PreventRulesId: ruleCategory.AllowRuleIds };
+        nbUpdates++;
+      }
+
       // Check for rules in category
       if (ruleCategory.Rules.length > 0) {
         for (let rule of ruleCategory.Rules) {

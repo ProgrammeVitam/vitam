@@ -97,10 +97,9 @@ public final class MetadataJsonResponseUtils {
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
-     * @throws InvalidParseOperationException thrown when json query is not valid
      */
     public static ArrayNode populateJSONObjectResponse(Result result,
-        Map<String, List<String>> diff) throws InvalidParseOperationException {
+        Map<String, List<String>> diff) {
         ArrayNode arrayJsonListResponse = JsonHandler.createArrayNode();
         if (result != null && result.getNbResult() > 0) {
             arrayJsonListResponse = getJsonDiff(diff);

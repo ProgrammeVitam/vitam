@@ -192,7 +192,8 @@
                 }
               ]
             }
-          }
+          },
+          "anyOf": [ {"required":["FinalAction"]}]
         },
         "ArchiveUnit": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ArchiveUnit",
@@ -305,7 +306,7 @@
                 }
               ]
             }
-          },            
+          },
 			"anyOf": [ {"required":["ClassificationLevel", "ClassificationOwner"]}]
         },
         "DisseminationRule": {
@@ -552,7 +553,8 @@
                 }
               ]
             }
-          }
+          },
+          "anyOf": [ {"required":["FinalAction"]}]
         },
         "UpdateOperation": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation",
