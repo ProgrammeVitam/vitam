@@ -27,6 +27,14 @@
     name: "vitam-{{ vitam_component }}"
     state: started
 
+- name: Ensure storage accesslog backup systemd timer is enabled
+  systemd:
+    name: "vitam-storage-accesslog-backup.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  when: ( primary_site | lower == "true" )
+
 - name: Ensure storage backup systemd timer is enabled
   systemd:
     name: "vitam-storage-log-backup.timer"
