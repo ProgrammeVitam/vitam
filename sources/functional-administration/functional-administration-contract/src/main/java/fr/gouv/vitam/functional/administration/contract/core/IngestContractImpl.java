@@ -146,7 +146,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     /**
      * Constructor
      *
-     * @param dbConfiguration     the Database configuration
+     * @param dbConfiguration the Database configuration
      * @param vitamCounterService the vitam counter service
      */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
@@ -157,9 +157,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     /**
      * Constructor
      *
-     * @param dbConfiguration         the Database configuration
-     * @param vitamCounterService     the vitam counter service
-     * @param metaDataClient          the metadata client
+     * @param dbConfiguration the Database configuration
+     * @param vitamCounterService the vitam counter service
+     * @param metaDataClient the metadata client
      * @param functionalBackupService
      */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
@@ -225,7 +225,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 //when everyformattype is false, formattype must not be empty
                 if (!acm.isEveryFormatType() && (acm.getFormatType() == null || acm.getFormatType().isEmpty())) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            EVERYFORMAT_LIST_EMPTY, StatusCode.KO).setMessage(CONTRACTS_IMPORT_EVENT));
+                        EVERYFORMAT_LIST_EMPTY, StatusCode.KO).setMessage(CONTRACTS_IMPORT_EVENT));
                     continue;
                 }
 
@@ -373,7 +373,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
         public IngestContractManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient,
-                                     GUID eip) {
+            GUID eip) {
             this.logbookClient = logbookClient;
             this.metaDataClient = metaDataClient;
             this.eip = eip;
@@ -469,7 +469,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             evDetDataKey = "Mandatory Fields";
                             break;
                         case WRONG_FIELD_FORMAT:
-                        case UPDATE_WRONG_FILEFORMAT :
+                        case UPDATE_WRONG_FILEFORMAT:
                             evDetDataKey = "Incorrect Field and value";
                             break;
                         case DUPLICATE_IN_DATABASE:
@@ -734,14 +734,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 final int tenant = ParameterHelper.getTenantParameter();
 
                 final Bson clause =
-                        in(FileFormat.PUID, contract.getFormatType());
+                    in(FileFormat.PUID, contract.getFormatType());
 
                 final long count = FunctionalAdminCollections.FORMATS.getCollection().count(clause);
 
                 if (count != contract.getFormatType().size()) {
                     rejection =
-                            GenericRejectionCause
-                                    .rejectFormatFileTypeNotFoundInDatabase(contractName);
+                        GenericRejectionCause
+                            .rejectFormatFileTypeNotFoundInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
@@ -797,6 +797,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), INGEST_CONTRACT_NOT_FOUND + identifier,
                     StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
+
+
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
@@ -861,43 +863,28 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             StatusCode.KO).setMessage(UPDATE_PROFILE_NOT_FOUND));
                 }
             }
+            final JsonNode fileFormatTypeNode = queryDsl.findValue(IngestContractModel.FORMAT_TYPE);
+            Set<String> fileFormatTypes =
+                getFromJsonNodeOrFromIngestContractModel(ingestContractModel, fileFormatTypeNode);
+            checkFormatsNotEmptyWhenEveryFormatTypeIsFalse(queryDsl, fileFormatTypes, fileFormatTypeNode, error);
 
-            //validate formattype not empty if everyformattype is false
-            final JsonNode everyFileformatFlagNode = queryDsl.findValue(IngestContractModel.EVERY_FORMAT_TYPE);
-            final JsonNode fileformatTypeNode = queryDsl.findValue(IngestContractModel.FORMAT_TYPE);
-            Set<String> fileformatTypes = null;
-
-            final boolean everyFileformatIsFalse = everyFileformatFlagNode != null && !everyFileformatFlagNode.asBoolean();
-
-            if(fileformatTypeNode != null && fileformatTypeNode.isArray()){
-                fileformatTypes =
-                        JsonHandler.getFromString(fileformatTypeNode.toString(), Set.class, String.class);
-            }
-
-            if(everyFileformatIsFalse && (fileformatTypeNode == null || fileformatTypes.isEmpty())){
-                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), EVERYFORMAT_LIST_EMPTY,
-                        StatusCode.KO).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
-            }
-
-            if (fileformatTypes != null) {
+            if (fileFormatTypes != null) {
 
                 final IngestContractValidator validator =
-                        manager.createCheckFormatFileExistsInDatabaseValidator();
+                    manager.createCheckFormatFileExistsInDatabaseValidator();
                 final Optional<GenericRejectionCause> result =
-                        validator.validate(new IngestContractModel().setFormatType(fileformatTypes),
-                                identifier);
-                if (result.isPresent()) {
-                    // there is a validation error on this contract
-                    /* contract is valid, add it to the list to persist */
-                    error.addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
-                                    StatusCode.KO).setMessage(UPDATE_WRONG_FILEFORMAT));
-                }
+                    validator.validate(new IngestContractModel().setFormatType(fileFormatTypes),
+                        identifier);
+                // there is a validation error on this contract
+                /* contract is valid, add it to the list to persist */
+                result.ifPresent(genericRejectionCause -> error.addToErrors(
+                    getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), genericRejectionCause.getReason(),
+                        StatusCode.KO).setMessage(UPDATE_WRONG_FILEFORMAT)));
             }
 
             if (error.getErrors() != null && error.getErrors().size() > 0) {
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getDescription()).collect(Collectors.joining(","));
+                    error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT, error.getErrors().get(0).getMessage());
 
                 return error;
@@ -939,6 +926,34 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         manager.logUpdateSuccess(ingestContractModel.getId(), identifier, updateDiffs.get(ingestContractModel.getId()));
         return response;
+    }
+
+    private Set<String> getFromJsonNodeOrFromIngestContractModel(IngestContractModel ingestContractModel,
+        JsonNode fileFormatTypeNode)throws InvalidParseOperationException {
+
+        if (fileFormatTypeNode != null && fileFormatTypeNode.isArray()) {
+            return JsonHandler.getFromString(fileFormatTypeNode.toString(), Set.class, String.class);
+        } else if (ingestContractModel.getFormatType() != null) {
+            return ingestContractModel.getFormatType();
+        }
+
+        return null;
+    }
+
+    private void checkFormatsNotEmptyWhenEveryFormatTypeIsFalse(JsonNode queryDsl, Set<String> fileFormatTypes,
+        JsonNode fileFormatTypeNode, VitamError error) {
+        final JsonNode everyFileformatFlagNode = queryDsl.findValue(IngestContractModel.EVERY_FORMAT_TYPE);
+
+        if (everyFileformatFlagNode != null || fileFormatTypeNode != null) {
+            final boolean everyFileFormat = everyFileformatFlagNode != null && everyFileformatFlagNode.asBoolean();
+            boolean formatsEmpty = fileFormatTypes == null || fileFormatTypes.isEmpty();
+            final boolean canBeUpdate = !formatsEmpty || everyFileFormat;
+            if (!canBeUpdate) {
+                error.addToErrors(
+                    getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), EVERYFORMAT_LIST_EMPTY,
+                        StatusCode.KO).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+            }
+        }
     }
 
     private static VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
