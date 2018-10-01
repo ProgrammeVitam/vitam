@@ -105,6 +105,11 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
+                    if (checkObjectNumberStatus.shallStop(true)) {
+                        resetItemStatusMeter(itemStatus);
+                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    }
+
                     ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
