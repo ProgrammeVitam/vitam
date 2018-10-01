@@ -274,6 +274,9 @@ public class MetadataMigrationIT {
             JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
                 expectedDataSetFile)));
 
+        expectedUnitDataSet = expectedUnitDataSet.replaceAll("\"_implementationVersion\": null", "\"_implementationVersion\": "
+                + this.getClass().getPackage().getImplementationVersion());
+
         JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }

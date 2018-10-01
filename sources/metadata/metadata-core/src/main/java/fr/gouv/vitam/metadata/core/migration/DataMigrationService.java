@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -191,6 +192,8 @@ public class DataMigrationService {
 
         buildParentGraph(unit);
         updateUnitSedaModel(unit);
+        unit.put("_sedaVersion", VitamConstants.SEDA_CURRENT_VERSION);
+        unit.put("_implementationVersion", this.getClass().getPackage().getImplementationVersion());
     }
 
     private void buildParentGraph(Unit unit) throws
