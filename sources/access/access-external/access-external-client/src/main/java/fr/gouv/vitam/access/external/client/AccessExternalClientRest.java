@@ -458,12 +458,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         EliminationRequestBody eliminationRequestBody) throws VitamClientException {
         ParametersChecker.checkParameter(MISSING_VITAM_CONTEXT, vitamContext);
         ParametersChecker.checkParameter(MISSING_ELIMINATION_REQUEST, eliminationRequestBody);
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/elimination/action", headers,
+            response = performRequest(HttpMethod.POST, "/elimination/action", vitamContext.getHeaders(),
                 eliminationRequestBody, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {

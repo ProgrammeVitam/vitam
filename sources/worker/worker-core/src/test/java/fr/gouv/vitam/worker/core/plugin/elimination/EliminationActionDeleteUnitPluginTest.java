@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -33,7 +34,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteUnitPlugin.MAX_ENTRIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -105,7 +105,7 @@ public class EliminationActionDeleteUnitPluginTest {
         /* id_unit_3 not found */
         JsonNode units = buildUnits(Arrays.asList(1, 2, 4, 5));
         /* id_unit_1 has too many children */
-        JsonNode childUnitsForUnit1 = buildChildUnitsResponse("id_unit_1", MAX_ENTRIES);
+        JsonNode childUnitsForUnit1 = buildChildUnitsResponse("id_unit_1", VitamConfiguration.getBatchSize());
         /* id_unit_4 has a single child. Other units do not have any children */
         JsonNode childUnitsForUnit4 = buildChildUnitsResponse("id_unit_4", 1);
         when(metaDataClient.selectUnits(any())).thenReturn(units, childUnitsForUnit1, childUnitsForUnit4);

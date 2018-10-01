@@ -376,7 +376,8 @@ export class MySelectionComponent extends PageComponent {
             );
             this.displayActionEnded(this.selectedOption, true);
           } else {
-            if(this.form.eliminationDate > new Date()) {
+            let isEliminationDateAfterToday = this.form.eliminationDate.getTime() > new Date().getTime();
+            if(isEliminationDateAfterToday) {
               this.displayEliminationDateError = true;
               return;
             }

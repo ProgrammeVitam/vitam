@@ -335,8 +335,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("Missing dslRequest request", eliminationRequestBody.getDslRequest());
             ParametersChecker.checkDateParam("Bad formatted date", eliminationRequestBody.getDate());
 
-            EliminationQuerySchemaValidator validator =
-                new EliminationQuerySchemaValidator();
+            BatchProcessingQuerySchemaValidator validator =
+                new BatchProcessingQuerySchemaValidator();
             validator.validate(eliminationRequestBody.getDslRequest());
 
         } catch (IllegalArgumentException | IOException | ValidationException e) {

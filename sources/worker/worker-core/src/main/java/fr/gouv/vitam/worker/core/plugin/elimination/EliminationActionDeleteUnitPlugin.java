@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -59,7 +60,6 @@ import org.apache.commons.collections4.SetUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,7 +78,6 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         VitamLoggerFactory.getInstance(EliminationActionDeleteUnitPlugin.class);
 
     private static final String ELIMINATION_ACTION_DELETE_UNIT = "ELIMINATION_ACTION_DELETE_UNIT";
-    static final int MAX_ENTRIES = 1000;
 
     private final EliminationActionDeleteService eliminationActionDeleteService;
     private final MetaDataClientFactory metaDataClientFactory;
@@ -218,47 +217,59 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            Set<String> unitsToLoad = unitIds;
-            Set<String> foundUnitIds = new HashSet<>();
+            Set<String> unitsToFetch = new HashSet<>(unitIds);
+            Set<String> result = new HashSet<>();
 
-            while (!unitsToLoad.isEmpty()) {
+            while (!unitsToFetch.isEmpty()) {
 
-                SelectMultiQuery selectAllUnitsUp = new SelectMultiQuery();
-                selectAllUnitsUp
-                    .addQueries(QueryHelper.in(VitamFieldsHelper.unitups(), unitsToLoad.toArray(new String[0])));
-                selectAllUnitsUp.setLimitFilter(0, MAX_ENTRIES);
-                selectAllUnitsUp.addUsedProjection(VitamFieldsHelper.unitups());
-                JsonNode response = metaDataClient.selectUnits(selectAllUnitsUp.getFinalSelect());
+                RequestResponseOK<JsonNode> responseOK = selectChildUnits(metaDataClient, unitsToFetch);
 
-                RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(response);
+                Set<String> unitsWithChildren = parseUnitsWithChildren(responseOK.getResults(), unitsToFetch);
 
-                for (JsonNode childUnit : responseOK.getResults()) {
-                    JsonNode unitUpsNode = childUnit.get(VitamFieldsHelper.unitups());
-                    if (unitUpsNode != null && unitUpsNode.size() > 0) {
+                result.addAll(unitsWithChildren);
+                unitsToFetch.removeAll(unitsWithChildren);
 
-                        Iterator<JsonNode> iterator = unitUpsNode.elements();
-                        while (iterator.hasNext()) {
-                            String unitId = iterator.next().asText();
-                            if (unitsToLoad.contains(unitId)) {
-                                foundUnitIds.add(unitId);
-                            }
-                        }
-                    }
-                }
-
-                if (responseOK.getHits().getTotal() < MAX_ENTRIES) {
-                    // No more entries
+                if (noMoreResults(responseOK)) {
                     break;
                 }
-
-                unitsToLoad = SetUtils.difference(unitsToLoad, foundUnitIds);
             }
 
-            return foundUnitIds;
+            return result;
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException | VitamDBException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not check child units", e);
         }
+    }
+
+    private RequestResponseOK<JsonNode> selectChildUnits(MetaDataClient metaDataClient, Set<String> unitsToFetch)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException, MetaDataClientServerException, VitamDBException {
+        SelectMultiQuery selectAllUnitsUp = new SelectMultiQuery();
+        selectAllUnitsUp.addQueries(QueryHelper.in(VitamFieldsHelper.unitups(), unitsToFetch.toArray(new String[0])));
+        selectAllUnitsUp.setLimitFilter(0, VitamConfiguration.getBatchSize());
+        selectAllUnitsUp.addUsedProjection(VitamFieldsHelper.unitups());
+        JsonNode response = metaDataClient.selectUnits(selectAllUnitsUp.getFinalSelect());
+        return RequestResponseOK.getFromJsonNode(response);
+    }
+
+    private Set<String> parseUnitsWithChildren(List<JsonNode> results, Set<String> unitsToFetch) {
+        Set<String> foundUnitIds = new HashSet<>();
+
+        for (JsonNode childUnit : results) {
+            childUnit.get(VitamFieldsHelper.unitups()).elements()
+                .forEachRemaining(jsonNode -> {
+                    String unitId = jsonNode.asText();
+                    if (unitsToFetch.contains(unitId)) {
+                        foundUnitIds.add(unitId);
+                    }
+                });
+        }
+
+        return foundUnitIds;
+    }
+
+    private boolean noMoreResults(RequestResponseOK<JsonNode> responseOK) {
+        return responseOK.getHits().getTotal() < VitamConfiguration.getBatchSize();
     }
 
     @Override

@@ -76,13 +76,7 @@ public class EliminationActionObjectGroupReportService {
         throws EliminationException {
 
         List<JsonNode> metadataEntries = entries.stream()
-            .map(entry -> {
-                try {
-                    return JsonHandler.toJsonNode(entry);
-                } catch (InvalidParseOperationException e) {
-                    throw new RuntimeException("Could not serialize entries", e);
-                }
-            }).collect(Collectors.toList());
+            .map(EliminationActionObjectGroupReportService::pojoToJson).collect(Collectors.toList());
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             ReportBody reportBody = new ReportBody();
@@ -92,6 +86,14 @@ public class EliminationActionObjectGroupReportService {
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not append unit entries into report", e);
+        }
+    }
+
+    private static JsonNode pojoToJson(EliminationActionObjectGroupReportEntry entry) {
+        try {
+            return JsonHandler.toJsonNode(entry);
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException("Could not serialize entries", e);
         }
     }
 

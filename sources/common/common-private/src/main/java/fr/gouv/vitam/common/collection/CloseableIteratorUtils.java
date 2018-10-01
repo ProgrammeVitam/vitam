@@ -29,12 +29,18 @@ package fr.gouv.vitam.common.collection;
 import java.util.Iterator;
 import java.util.function.Function;
 
+/**
+ * Helper class for CloseableIterators
+ */
 public final class CloseableIteratorUtils {
 
     private CloseableIteratorUtils() {
     }
 
-    public static <R, T> CloseableIterator<R> map(
+    /**
+     * Maps a CloseableIterator from un input type T to an output type R using a mapper function.
+     */
+    public static <T, R> CloseableIterator<R> map(
         CloseableIterator<T> closeableIterator,
         Function<? super T, ? extends R> mapper) {
 
@@ -56,6 +62,10 @@ public final class CloseableIteratorUtils {
         };
     }
 
+    /**
+     * Converts an Iterator to a CloseableIterator.
+     * The close methods does nothing.
+     */
     public static <E> CloseableIterator<E> toCloseableIterator(Iterator<E> iterator) {
         return new CloseableIterator<E>() {
             @Override

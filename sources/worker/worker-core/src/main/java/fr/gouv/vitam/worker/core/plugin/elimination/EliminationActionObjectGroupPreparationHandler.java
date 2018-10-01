@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -73,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -205,18 +205,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
-                List<String> objectsToDelete = new ArrayList<>();
-                if (objectGroup.getQualifiers() != null) {
-                    for (QualifiersModel qualifier : objectGroup.getQualifiers()) {
-                        if (qualifier.getVersions() != null) {
-                            for (VersionsModel version : qualifier.getVersions()) {
-                                if (version.getPhysicalId() == null) {
-                                    objectsToDelete.add(version.getId());
-                                }
-                            }
-                        }
-                    }
-                }
+                List<String> objectsToDelete = getBinaryObjectIds(objectGroup);
 
                 JsonLineModel entry =
                     new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(objectsToDelete));
@@ -246,6 +235,15 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
         eliminationActionObjectGroupReportService.appendEntries(processId, eliminationObjectGroupReportEntries);
 
+    }
+
+    private List<String> getBinaryObjectIds(ObjectGroupResponse objectGroup) {
+
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+            .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
+            .filter(version -> version.getPhysicalId() == null)
+            .map(VersionsModel::getId)
+            .collect(Collectors.toList());
     }
 
     private Map<String, ObjectGroupResponse> loadObjectGroups(Set<String> objectGroupIds)

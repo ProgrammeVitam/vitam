@@ -627,7 +627,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest) throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest)
+        throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, dipExportRequest.getDslRequest());
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
@@ -647,7 +648,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_DSL, id);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         try {
-            return performRequest(HttpMethod.GET, DIPEXPORT + id + "/dip", null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return performRequest(HttpMethod.GET, DIPEXPORT + id + "/dip", null,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -788,9 +790,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response =
-                performRequest(HttpMethod.POST, "/elimination/analysis", null, eliminationRequestBody,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, "/elimination/analysis", null, eliminationRequestBody,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -807,9 +808,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response =
-                performRequest(HttpMethod.POST, "/elimination/action", null, eliminationRequestBody,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, "/elimination/action", null, eliminationRequestBody,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
