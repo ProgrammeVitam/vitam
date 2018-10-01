@@ -90,21 +90,22 @@ Exemple de JSON : rapport d'audit KO
 Partie "Master"
 ===============
 
-La partie "master", c'est à dire le bloc à la racine du rapport (sans indentation) est composé des champs suivants :
+La partie "master", c'est à dire le bloc à la racine du rapport (sans indentation) est composée des champs suivants :
 
-- "tenant": le tenant sur lequel l'opération d'audit a été lancée
-- "auditOperationId": l'identifiant de l'opération d'audit
-- "auditType": l'élément sur lequel l'audit a été lancé. Celui ci peut être par "tenant", ou par "originatingagency"
-- "objectId": l'identifiant de l'élément (tenant ou service producteur)
-- "DateTime": la date du rapport
-- "Status": la statut final du rapport, OK (l'audit n'a pas détecté d'anomalie), Warning (l'audit a détecté quelque chose de singulier qui n'a pas été considéré comme une anomalie), KO (l'audit a détecté une anomalie)
-- "outMessage": le message final de l'audit, repris du journal des opérations
-- "LastEvent": la clé correspondant au type d'audit. Par exemple pour l'audit de l'existence des fichiers il s'agit de "AUDIT_FILE_EXISTING"
-
-Mais aussi :
-- "source": la liste des opérations auditées
-- "auditKO": la liste des anomalies détectées qui ont provoqué le KO de l'audit
-- "auditWarning": la liste des éléments singuliers détectés qui ont provoqué un warning de l'audit
+- "tenant": tenant sur lequel l'opération d'audit a été lancée
+- "auditOperationId": identifiant de l'opération d'audit généré par la solution logicielle Vitam.
+- "auditType": élément sur lequel l'audit a été lancé. Celui ci peut être par "tenant", ou par "originatingagency"
+- "objectId": identifiant de l'élément (tenant ou service producteur)
+- "DateTime": date du rapport
+- "Status": statut final du rapport : 
+    * OK (l'audit n'a pas détecté d'anomalie)
+    * Warning (l'audit a détecté quelque chose de singulier qui n'a pas été considéré comme une anomalie)
+    * KO (l'audit a détecté une anomalie)
+- "outMessage": message final de l'audit, repris du journal des opérations
+- "LastEvent": clé correspondant au type d'audit. Par exemple pour l'audit de l'existence et de l'intégrité des fichiers il s'agit de "AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT"
+- "source": liste des opérations auditées
+- "auditKO": liste des anomalies détectées qui ont provoqué le KO de l'audit
+- "auditWarning": liste des éléments singuliers détectés qui ont provoqué un warning de l'audit
 
 Liste des opérations auditées ("source")
 ========================================

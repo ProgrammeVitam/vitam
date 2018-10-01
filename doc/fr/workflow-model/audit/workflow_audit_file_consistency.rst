@@ -1,4 +1,4 @@
-Workflow de l'audit de cohérence des fichiers
+Workflow d'audit de cohérence des fichiers
 #############################################
 
 Introduction
@@ -6,17 +6,17 @@ Introduction
 
 Cette section décrit le processus (workflow) d'audit de cohérence des fichiers mis en place dans la solution logicielle Vitam.
 
-Celui-ci est défini dans le fichier "EvidenceAuditWorkflow.json” (situé ici : sources/processing/processing-management/src/main/resources/workflows).
+Celui-ci est défini dans le fichier *"EvidenceAuditWorkflow.json”* (situé ici : sources/processing/processing-management/src/main/resources/workflows).
 
 Processus d'audit de cohérence des fichiers (vision métier)
 ===========================================================
 
-Le processus d'audit de cohérence permet de vérifier la cohérence entre les signatures calculées pour chaque objet, en comparant celle présente dans le journal sécurisé, avec celle présente dans la base de donnée, et celle de l'offre de stockage.
+Le processus d'audit de cohérence permet de vérifier la cohérence entre les signatures calculées pour chaque élément audité, en comparant celle présente dans le journal sécurisé, avec celle présente dans la base de donnée, et celle d'offre de stockage.
 
-L'audit s'applique au niveau des unités archivistiques, des objets, et des groupes d'objets. 
+L'audit s'applique au niveau des unités archivistiques, des objets et des groupes d'objets. 
 
 
-Processus de préparation de l'audit (STP_EVIDENCE_AUDIT_PREPARE)
+Processus de préparation d'audit (STP_EVIDENCE_AUDIT_PREPARE)
 ================================================================
 
 Création de la liste à auditer EVIDENCE_AUDIT_LIST_OBJECT (EvidenceAuditPrepare.java)
@@ -96,20 +96,24 @@ Création du rapport pour chaque unité archivistique ou objet ou groupe d'objet
 	- WARNING : Avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objets (EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.WARNING=Avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objets)
 
 
-Processus de finalisation de l'audit et généretion du rapport final (STP_EVIDENCE_AUDIT_FINALIZE)
+Processus de finalisation d'audit et généretion du rapport final (STP_EVIDENCE_AUDIT_FINALIZE)
 =================================================================================================
 
 
 
-Création du rapport de l'audit de cohérence EVIDENCE_AUDIT_FINALIZE (EvidenceAuditFinalize.java)
+Création du rapport d'audit de cohérence EVIDENCE_AUDIT_FINALIZE (EvidenceAuditFinalize.java)
 ------------------------------------------------------------------------------------------------
 
-* **Règle** : Tâche consistant à créer le rapport permettant de comparer les signatures extraites des fichiers sécurisés avec les données de la base de données et de l'offre de stockage. 
+* **Règle** : Tâche consistant à créer le rapport permettant de comparer les signatures extraites des fichiers sécurisés avec les données de la base de données et d'offre de stockage. 
 * **Type** : bloquant
 * **Statuts** :
-	- OK : La création du rapport d'audit de cohérence est un succès (EVIDENCE_AUDIT_FINALIZE.OK=Succès de la création du rapport de l'audit de cohérence)
-	- KO : La création du rapport d'audit de cohérence est un échec (EVIDENCE_AUDIT_FINALIZE.KO=Echec de la création du rapport de l'audit de cohérence)
+	- OK : La création du rapport d'audit de cohérence est un succès (EVIDENCE_AUDIT_FINALIZE.OK=Succès de la création du rapport d'audit de cohérence)
+	- KO : La création du rapport d'audit de cohérence est un échec (EVIDENCE_AUDIT_FINALIZE.KO=Echec de la création du rapport d'audit de cohérence)
 	- FATAL : une erreur fatale est survenue lors de la création du rapport d'audit de cohérence) (EVIDENCE_AUDIT_FINALIZE.FATAL=Erreur fatale lors de la création du rapport d'audit de cohérence)
+
+
+Structure du workflow d'audit de cohérence des fichiers
+==========================================================
 
 .. figure:: images/workflow_audit_file_consistency.png
 	:align: center
