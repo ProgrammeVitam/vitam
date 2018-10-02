@@ -1,0 +1,29 @@
+{
+  "OperationId": "opi",
+  "GlobalStatus": "KEEP",
+  "DestroyableOriginatingAgencies": [
+    "sp2",
+    "sp1"
+  ],
+  "NonDestroyableOriginatingAgencies": [
+    "sp3"
+  ],
+  "ExtendedInfo": [
+    {
+      "ExtendedInfoType": "KEEP_ACCESS_SP"
+    },
+    {
+      "ExtendedInfoType": "ACCESS_LINK_INCONSISTENCY",
+      "ExtendedInfoDetails": {
+        "ParentUnitId": "parentUnitId",
+        "DestroyableOriginatingAgencies": [
+          "sp2",
+          "sp1"
+        ],
+        "NonDestroyableOriginatingAgencies": [
+          "sp3"
+        ]
+      }
+    }
+  ]
+}

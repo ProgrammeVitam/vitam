@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
-public class EliminationExtendedInfoAccessLinkInconsistencyDetails extends EliminationExtendedInfoDetailBase {
+public class EliminationExtendedInfoAccessLinkInconsistencyDetails {
 
     @JsonProperty("ParentUnitId")
     private String parentUnitId;

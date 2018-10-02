@@ -3,7 +3,9 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoType;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import org.junit.After;
@@ -221,7 +223,8 @@ public class EliminationAnalysisServiceTest {
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
-        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.DESTROY);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
@@ -247,7 +250,8 @@ public class EliminationAnalysisServiceTest {
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
-        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.KEEP);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
     }
@@ -302,7 +306,8 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.KEEP_ACCESS_SP);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
+            .isInstanceOf(EliminationExtendedInfoKeepAccessSp.class);
     }
 
     @Test
@@ -310,11 +315,15 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Parent unit2 brings 2 SP : non destroyable SP1 & destroyable SP2
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "R2", "2010-01-01", "2020-01-01"),
-            new InheritedRuleResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "R3", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "R2", "2010-01-01",
+                "2020-01-01"),
+            new InheritedRuleResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "R3", "2010-01-01",
+                "2015-01-01"));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
-            new InheritedPropertyResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "FinalAction",
+                "Destroy"),
+            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "FinalAction",
+                "Destroy"));
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
@@ -329,13 +338,16 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.ACCESS_LINK_INCONSISTENCY);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
+            .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
         EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistencyDetails =
-            (EliminationExtendedInfoAccessLinkInconsistencyDetails) eliminationAnalysisResult.getExtendedInfo().get(0).getDetails();
+            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult.getExtendedInfo().get(0))
+                .getDetails();
 
         assertThat(accessLinkInconsistencyDetails.getParentUnitId()).isEqualTo("unit2");
         assertThat(accessLinkInconsistencyDetails.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
-        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
+        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp1");
     }
 
     @Test
@@ -348,13 +360,16 @@ public class EliminationAnalysisServiceTest {
         //  - Access link inconsistency via parent unit : SP1 non destroyable & SP2 destroyable
 
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit5", "sp1", paths("unit1", "unit2", "unit5"), "R1", "2010-01-01", "2015-01-01"),
-            new InheritedRuleResponseModel("unit4", "sp2", paths("unit1", "unit2", "unit4"), "R2", "2010-01-01", "2015-01-01"),
+            new InheritedRuleResponseModel("unit5", "sp1", paths("unit1", "unit2", "unit5"), "R1", "2010-01-01",
+                "2015-01-01"),
+            new InheritedRuleResponseModel("unit4", "sp2", paths("unit1", "unit2", "unit4"), "R2", "2010-01-01",
+                "2015-01-01"),
             new InheritedRuleResponseModel("unit7", "sp1", paths("unit7"), "R3", "2010-01-01", "2015-01-01"));
 
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit3"), "FinalAction", "Destroy"),
+            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit3"), "FinalAction",
+                "Destroy"),
             new InheritedPropertyResponseModel("unit6", "sp3", paths("unit6"), "FinalAction", "Keep"));
 
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
@@ -367,18 +382,23 @@ public class EliminationAnalysisServiceTest {
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
-        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp3");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(2);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0).getType()).isEqualTo(EliminationExtendedInfoType.KEEP_ACCESS_SP);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(1).getType()).isEqualTo(EliminationExtendedInfoType.ACCESS_LINK_INCONSISTENCY);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
+            .isInstanceOf(EliminationExtendedInfoKeepAccessSp.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(1))
+            .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
 
         EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistencyDetails =
-            (EliminationExtendedInfoAccessLinkInconsistencyDetails) eliminationAnalysisResult.getExtendedInfo().get(1).getDetails();
+            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult.getExtendedInfo().get(1))
+                .getDetails();
         assertThat(accessLinkInconsistencyDetails.getParentUnitId()).isEqualTo("unit2");
         assertThat(accessLinkInconsistencyDetails.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
-        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
+        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp1");
     }
 
     private List<List<String>> paths(String... ids) {

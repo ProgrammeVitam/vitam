@@ -26,5 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
-public abstract class EliminationExtendedInfoDetailBase {
+public class EliminationExtendedInfoKeepAccessSp extends EliminationExtendedInfo {
+
+    public EliminationExtendedInfoKeepAccessSp() {
+        // Empty constructor for deserialization
+    }
 }

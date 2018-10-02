@@ -26,17 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "ExtendedInfoType")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = EliminationExtendedInfoKeepAccessSp.class, name = "KEEP_ACCESS_SP"),
-    @JsonSubTypes.Type(value = EliminationExtendedInfoAccessLinkInconsistency.class, name = "ACCESS_LINK_INCONSISTENCY")})
-public abstract class EliminationExtendedInfo {
+public class EliminationExtendedInfoAccessLinkInconsistency extends EliminationExtendedInfo {
 
-    public EliminationExtendedInfo() {
+    @JsonProperty("ExtendedInfoDetails")
+    private EliminationExtendedInfoAccessLinkInconsistencyDetails details;
+
+    public EliminationExtendedInfoAccessLinkInconsistency() {
         // Empty constructor for deserialization
+    }
+
+    public EliminationExtendedInfoAccessLinkInconsistency(
+        EliminationExtendedInfoAccessLinkInconsistencyDetails details) {
+        this.details = details;
+    }
+
+    public EliminationExtendedInfoAccessLinkInconsistencyDetails getDetails() {
+        return details;
+    }
+
+    public void setDetails(
+        EliminationExtendedInfoAccessLinkInconsistencyDetails details) {
+        this.details = details;
     }
 }
