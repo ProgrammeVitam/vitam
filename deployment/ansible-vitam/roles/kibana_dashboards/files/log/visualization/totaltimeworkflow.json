@@ -1,0 +1,10 @@
+{
+"title": "totalTimeWorkflow",
+"visState": "{\"title\":\"totalTimeWorkflow\",\"type\":\"metric\",\"params\":{\"addTooltip\":true,\"addLegend\":false,\"type\":\"metric\",\"metric\":{\"percentageMode\":false,\"useRanges\":false,\"colorSchema\":\"Green to Red\",\"metricColorMode\":\"None\",\"colorsRange\":[{\"from\":0,\"to\":10000}],\"labels\":{\"show\":true},\"invertColors\":false,\"style\":{\"bgFill\":\"#000\",\"bgColor\":false,\"labelColor\":false,\"subText\":\"\",\"fontSize\":60}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"time\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"type.keyword\",\"size\":5,\"order\":\"asc\",\"orderBy\":\"_key\",\"otherBucket\":false,\"otherBucketLabel\":\"Other\",\"missingBucket\":false,\"missingBucketLabel\":\"Missing\",\"exclude\":\"treatment\"}}]}",
+"uiStateJSON": "{}",
+"description": "",
+"version": 1,
+"kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[]}"
+}
+}
