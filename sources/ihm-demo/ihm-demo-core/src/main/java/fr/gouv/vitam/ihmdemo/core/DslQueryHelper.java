@@ -827,17 +827,32 @@ public final class DslQueryHelper {
         return update.getFinalUpdateById();
     }
 
-    public static JsonNode createMassiveUpdateDSLQuery(JsonNode modifiedFields)
+    public static ObjectNode createMassiveUpdateDSLBaseQuery(JsonNode modifiedFields) {
+
+        JsonNode query = modifiedFields.get("query");
+        JsonNode threshold = modifiedFields.get("threshold");
+
+        ObjectNode fullQuery = JsonHandler.createObjectNode();
+        fullQuery.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
+        fullQuery.set(BuilderToken.GLOBAL.QUERY.exactToken(), query.get(BuilderToken.GLOBAL.QUERY.exactToken()));
+        if (threshold != null && threshold.longValue() != 0L) {
+            fullQuery.set(BuilderToken.GLOBAL.THRESOLD.exactToken(), threshold);
+        }
+
+        return fullQuery;
+    }
+
+    public static UpdateMultiQuery getFullMetadataActionQuery(JsonNode metadataModifications, ObjectNode fullQuery)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
 
-        JsonNode query = modifiedFields.get("query");
-        JsonNode threshold = modifiedFields.get("threashold");
-        JsonNode metadataModifications = modifiedFields.get("metadataUpdates");
+        if (metadataModifications == null) {
+            return null;
+        }
 
         // Handle pattern Updates on metadata
         JsonNode metadataPatterns = metadataModifications.get("patterns");
-        for (final JsonNode modifiedField: metadataPatterns) {
+        for (final JsonNode modifiedField : metadataPatterns) {
             String fieldName = modifiedField.get("FieldName").textValue();
             String patternControll = modifiedField.get("FieldValue").textValue();
             String patternUpdate = modifiedField.get("FieldPattern").textValue();
@@ -854,7 +869,7 @@ public final class DslQueryHelper {
 
         // Handle other Updates on metadata:
         JsonNode metadataUpdates = metadataModifications.get("updates");
-        for (final JsonNode modifiedField: metadataUpdates) {
+        for (final JsonNode modifiedField : metadataUpdates) {
             String fieldName = modifiedField.get("FieldName").textValue();
             JsonNode fieldValue = modifiedField.get("FieldValue");
             if (fieldName == null) {
@@ -869,7 +884,7 @@ public final class DslQueryHelper {
 
         // Handle Deletions on metadata
         JsonNode metadataDeletions = metadataModifications.get("deletions");
-        for (final JsonNode deletedField: metadataDeletions) {
+        for (final JsonNode deletedField : metadataDeletions) {
             String fieldName = deletedField.get("FieldName").textValue();
             if (fieldName == null) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
@@ -881,15 +896,7 @@ public final class DslQueryHelper {
             update.addActions(new SetAction(action));
         }
 
-        ObjectNode fullQuery = JsonHandler.createObjectNode();
-        fullQuery.set(BuilderToken.GLOBAL.ROOTS.exactToken(), JsonHandler.createArrayNode());
-        fullQuery.set(BuilderToken.GLOBAL.QUERY.exactToken(), query.get(BuilderToken.GLOBAL.QUERY.exactToken()));
-        if (threshold != null && threshold.longValue() != 0L) {
-            fullQuery.set(BuilderToken.GLOBAL.THRESOLD.exactToken(), threshold);
-        }
-        fullQuery.set(BuilderToken.GLOBAL.ACTION.exactToken(), update.getFinalUpdate().get(BuilderToken.GLOBAL.ACTION.exactToken()));
-
-        return fullQuery;
+        return update;
     }
 
     private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)

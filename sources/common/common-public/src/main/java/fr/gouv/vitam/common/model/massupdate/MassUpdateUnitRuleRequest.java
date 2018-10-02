@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,49 +23,33 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema.validator;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.DslSchema;
-import fr.gouv.vitam.common.dsl.schema.ValidationException;
-import fr.gouv.vitam.common.dsl.schema.Validator;
-import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
-/**
- * EliminationQuerySchemaValidator
  */
-public class EliminationQuerySchemaValidator implements DslValidator {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EliminationQuerySchemaValidator.class);
-    private final Schema schema;
+package fr.gouv.vitam.common.model.massupdate;
 
-    /**
-     * Constructor
-     *
-     * @throws IOException thrown when the schema file is not found or invalid
-     */
-    public EliminationQuerySchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
-        LOGGER.debug("Loading schema {} from {}", DslSchema.ELIMINATION_QUERY.name(),
-            DslSchema.ELIMINATION_QUERY.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.ELIMINATION_QUERY.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
-        }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+
+public class MassUpdateUnitRuleRequest {
+
+    @JsonProperty("dslRequest")
+    private JsonNode dslRequest;
+
+    @JsonProperty("ruleActions")
+    private RuleActions ruleActions;
+
+    public JsonNode getDslRequest() {
+        return dslRequest;
     }
 
-    @Override
-    public void validate(JsonNode dsl) throws ValidationException {
-        Validator.validate(schema, "DSL", dsl);
+    public void setDslRequest(JsonNode dslRequest) {
+        this.dslRequest = dslRequest;
     }
 
+    public RuleActions getRuleActions() {
+        return ruleActions;
+    }
 
+    public void setRuleActions(RuleActions ruleActions) {
+        this.ruleActions = ruleActions;
+    }
 }

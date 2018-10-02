@@ -37,7 +37,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 
 import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
-import fr.gouv.vitam.common.dsl.schema.validator.EliminationQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.GetByIdSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
@@ -76,7 +76,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.selectSingleSchemaValidator = new SelectSingleSchemaValidator();
         this.getByIdSchemaValidator = new GetByIdSchemaValidator();
         this.updateByIdSchemaValidator = new UpdateByIdSchemaValidator();
-        this.eliminationQuerySchemaValidator = new EliminationQuerySchemaValidator();
+        this.eliminationQuerySchemaValidator = new BatchProcessingQuerySchemaValidator();
         this.updateQueryReclassificationSchemaValidator = new ReclassificationQuerySchemaValidator();
         this.massUpdateSchemaValidator = new UpdateMultipleSchemaValidator();
     }

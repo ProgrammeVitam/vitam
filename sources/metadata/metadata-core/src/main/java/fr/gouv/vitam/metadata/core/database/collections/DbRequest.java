@@ -29,8 +29,32 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static com.mongodb.client.model.Accumulators.addToSet;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+
+import java.io.FileNotFoundException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
@@ -70,7 +94,6 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -90,35 +113,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.metadata.core.graph.GraphLoader;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Accumulators.addToSet;
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
 
 /**
  * DB Request using MongoDB only
@@ -177,6 +171,108 @@ public class DbRequest {
         this(new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
         this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
+    }
+
+    /**
+     * Execute rule action on unit
+     * 
+     * @param unitId the unitId
+     * @param ruleActions the list of ruleAction (by category)
+     * @return the result
+     */
+    public Result execRuleRequest(final String unitId, final RuleActions ruleActions)
+            throws InvalidParseOperationException, MetaDataExecutionException {
+        
+        final Integer tenantId = ParameterHelper.getTenantParameter();
+
+        Result<MetadataDocument<?>> last = new ResultDefault(FILTERARGS.UNITS, Collections.singletonList(unitId));
+        MongoCollection<MetadataDocument<?>> collection = MetadataCollections.UNIT.getCollection();
+        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
+
+        final List<MetadataDocument<?>> listDocuments = new ArrayList<>();
+        final FindIterable<MetadataDocument<?>> searchResults = collection.find(roots);
+        final Iterator<MetadataDocument<?>> it = searchResults.iterator();
+        while (it.hasNext()) {
+            listDocuments.add(it.next());
+        }
+
+        last.clear();
+        SchemaValidationUtils validator;
+        try {
+            validator = new SchemaValidationUtils();
+        } catch (FileNotFoundException | ProcessingException e) {
+            LOGGER.debug("Unable to initialize Json Validator");
+            throw new MetaDataExecutionException(e);
+        }
+
+        for (final MetadataDocument<?> document : listDocuments) {
+            final String documentId = document.getId();
+            final Integer documentVersion = document.getVersion();
+
+            UpdateResult result = null;
+            int tries = 0;
+            boolean modified = false;
+            MetadataDocument<?> documentFinal = null;
+
+            while (result == null && tries < 3) {
+                final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("DEBUG update {} to udate to {}", jsonDocument,
+                            JsonHandler.prettyPrint(ruleActions));
+                }
+                final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
+                final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions);
+                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+                if (documentId.equals(document.get(MetadataDocument.ID))) {
+                    modified = true;
+                    documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
+
+                    JsonNode externalSchema =
+                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                    SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
+                    if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                        throw new MetaDataExecutionException(
+                                "Unable to validate updated Unit " + status.getValidationMessage());
+                    }
+                    if (externalSchema != null && externalSchema.size() > 0) {
+                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
+                        documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                    }
+                    
+                    // Make Update
+                    final Bson condition =
+                            and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
+                    updatedJsonDocument.remove(VitamDocument.SCORE);
+                    LOGGER.debug("DEBUG update {}", updatedJsonDocument);
+                    result = collection.replaceOne(condition, documentFinal);
+                    if (result.getModifiedCount() != 1) {
+                        result = null;
+                    }
+                    tries++;
+                } else {
+                    break;
+                }
+            }
+
+            if (modified && result == null) {
+                throw new MetaDataExecutionException("Can not modify Document");
+            }
+            if (modified) {
+                last.addId(documentId, (float) 1);
+
+                try {
+                    indexFieldsUpdated(last, tenantId);
+                } catch (final Exception e) {
+                    throw new MetaDataExecutionException("Update concern", e);
+                }
+            }
+        }
+        last.setTotal(last.getNbResult());
+        if (GlobalDatasDb.PRINT_REQUEST) {
+            LOGGER.debug("Results: {}", last);
+        }
+        
+        return last;
     }
 
     /**

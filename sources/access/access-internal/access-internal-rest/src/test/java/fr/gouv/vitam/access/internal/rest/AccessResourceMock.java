@@ -44,6 +44,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
@@ -197,6 +198,15 @@ public class AccessResourceMock implements AccessInternalResource {
     @Path("/units")
     public Response massUpdateUnits(JsonNode dslQuery) {
         return Response.status(200).entity("{\"units\" = \"OK_MockUnits\"}").build();
+    }
+
+    /**
+     * Mass update of archive units rules
+     * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
+     * @return the response
+     */
+    @Override public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+        return null;
     }
 
     /**

@@ -137,7 +137,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * field of VitamResponseError
      */
-    public static final String IHM_RECETTE = "IHM_RECETTE";
+    private static final String IHM_RECETTE = "IHM_RECETTE";
     private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
@@ -167,7 +167,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_PUT = "PUT";
     private static final String HTTP_DELETE = "DELETE";
-    public static final String DEFAULT = "default";
+    private static final String DEFAULT = "default";
+    private static final String RULE_ACTIONS = "ruleActions";
 
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
     private List<String> secureMode;
@@ -915,12 +916,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                         break;
                                     case HTTP_PUT:
-                                        if (StringUtils.isBlank(objectID)) {
-                                            result = client.massUpdateUnits(getVitamContext(request), criteria);
-                                        } else {
+                                        if (StringUtils.isNotBlank(objectID)) {
                                             result = client
                                                 .updateUnitbyId(getVitamContext(request),
                                                     criteria, objectID);
+                                        } else if(criteria.get(RULE_ACTIONS) != null){
+                                            result = client.massUpdateUnitsRules(getVitamContext(request), criteria);
+                                        }else{
+                                            result = client.massUpdateUnits(getVitamContext(request), criteria);
                                         }
                                         break;
                                     default:

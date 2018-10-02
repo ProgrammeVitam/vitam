@@ -30,6 +30,7 @@ package fr.gouv.vitam.access.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -88,6 +90,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
     private static final String UNITS = "units/";
+    private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
     private static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
         "[Consistency ERROR] : An internal data consistency error has been detected !";
@@ -233,15 +236,55 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+    /**
+     * Mass update of archive units rules.
+     * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
+     * @return a response containing a json node object including queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
+     */
+    @Override public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
+        throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
+        AccessUnauthorizedException {
+        ParametersChecker.checkParameter(BLANK_DSL, massUpdateUnitRuleRequest);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, UNITS_RULES, null, massUpdateUnitRuleRequest,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                try {
+                    return RequestResponse.parseVitamError(response);
+                } catch (final InvalidParseOperationException e) {
+                    LOGGER.info("Cant parse error as vitamError, throw a new exception");
+                }
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            }
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
-
         VitamThreadUtils.getVitamSession().checkValidRequestId();
-
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();

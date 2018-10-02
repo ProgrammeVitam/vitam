@@ -87,6 +87,8 @@ import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -155,6 +157,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String RESULTS = "$results";
 
     private static final String UNITS_URI = "/units";
+    private static final String UNITS_RULES_URI = "/units/rules";
 
     /**
      * Access contract
@@ -945,7 +948,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
 
             boolean updateManagement = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
-            Contexts context = updateManagement ? Contexts.MASS_UPDATE_UNIT : Contexts.MASS_UPDATE_UNIT_DESC;
+            Contexts context =  updateManagement ? Contexts.MASS_UPDATE_UNIT_RULE : Contexts.MASS_UPDATE_UNIT_DESC;
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -956,11 +959,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDReader.getGUID(operationId),
-                        context.getEventType(),
+                        Contexts.MASS_UPDATE_UNIT_DESC.getEventType(),
                         GUIDReader.getGUID(operationId),
                         LogbookTypeProcess.MASS_UPDATE,
                         StatusCode.STARTED,
-                        VitamLogbookMessages.getCodeOp(context.getEventType(), StatusCode.STARTED),
+                        VitamLogbookMessages.getCodeOp(Contexts.MASS_UPDATE_UNIT_DESC.getEventType(), StatusCode.STARTED),
                         GUIDReader.getGUID(operationId));
 
                 // Add access contract rights
@@ -974,10 +977,86 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.createContainer(operationId);
                 workspaceClient
                     .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
-                processingClient.initVitamProcess(context.name(), operationId, context.getEventType());
+                workspaceClient
+                    .putObject(operationId, "actions.json", JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+                processingClient.initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), operationId, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
 
                 RequestResponse<JsonNode> requestResponse =
-                    processingClient.executeOperationProcess(operationId, context.getEventType(), context.name(),
+                        processingClient.executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.getEventType(), Contexts.MASS_UPDATE_UNIT_DESC.name(),
+                                ProcessAction.RESUME.getValue());
+                return requestResponse.toResponse();
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
+                    LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
+                LOGGER.error("An error occured while mass updating archive units", e);
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+        } catch (InvalidParseOperationException | BadRequestException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+
+        } catch (VitamException e) {
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
+    }
+
+    @Override
+    @POST
+    @Path(UNITS_RULES_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+        JsonNode queryDsl = massUpdateUnitRuleRequest.getDslRequest();
+        RuleActions ruleActions = massUpdateUnitRuleRequest.getRuleActions();
+        
+        // TODO : refactor with unitMassUpdate
+        LOGGER.debug("Start mass updating archive units with Dsl query {}", queryDsl);
+        Status status;
+        try {
+            // Check sanity of json
+            SanityChecker.checkJsonAll(queryDsl);
+
+            // Check the writing rights
+            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
+                status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
+            }
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                // Init logbook operation
+                final LogbookOperationParameters initParameters =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                                GUIDReader.getGUID(operationId),
+                            Contexts.MASS_UPDATE_UNIT_RULE.getEventType(),
+                                GUIDReader.getGUID(operationId),
+                                LogbookTypeProcess.MASS_UPDATE,
+                                StatusCode.STARTED,
+                                VitamLogbookMessages.getCodeOp(Contexts.MASS_UPDATE_UNIT_RULE.getEventType(), StatusCode.STARTED),
+                                GUIDReader.getGUID(operationId));
+
+                // Add access contract rights
+                ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+                rightsStatementIdentifier
+                        .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+                initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                        rightsStatementIdentifier.toString());
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient
+                        .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                workspaceClient
+                        .putObject(operationId, "actions.json", JsonHandler.writeToInpustream(ruleActions));
+                processingClient.initVitamProcess(Contexts.MASS_UPDATE_UNIT_RULE.name(), operationId, Contexts.MASS_UPDATE_UNIT_RULE.getEventType());
+
+                RequestResponse<JsonNode> requestResponse =
+                    processingClient.executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.getEventType(), Contexts.MASS_UPDATE_UNIT_RULE.name(),
                         ProcessAction.RESUME.getValue());
                 return requestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
@@ -989,10 +1068,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-
-        } catch (VitamException e) {
-            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }

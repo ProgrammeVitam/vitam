@@ -30,6 +30,7 @@ package fr.gouv.vitam.access.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
@@ -92,6 +94,22 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
 
+    }
+
+    /**
+     * Mass update of archive units rules.
+     * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
+     * @return a response containing a json node object including queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
+     */
+    @Override public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
+        throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
+        AccessUnauthorizedException {
+        return null;
     }
 
     @Override

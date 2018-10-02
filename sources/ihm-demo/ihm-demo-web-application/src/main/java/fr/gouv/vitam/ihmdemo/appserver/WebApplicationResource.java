@@ -27,6 +27,63 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -40,7 +97,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.*;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -58,10 +114,21 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
-import fr.gouv.vitam.common.model.administration.*;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -89,31 +156,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.InvalidParameterException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 /**
  * Web Application Resource class
@@ -859,19 +901,39 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
 
             // get Update model for Metadata
-            final JsonNode metadataQuery = DslQueryHelper.createMassiveUpdateDSLQuery(modifiedFields);
+            final ObjectNode baseQuery = DslQueryHelper.createMassiveUpdateDSLBaseQuery(modifiedFields);
+            final JsonNode rulesQuery = modifiedFields.get("rulesUpdates");
 
-            ObjectNode massUpdateInputs = JsonHandler.createObjectNode();
-            massUpdateInputs.set("dslQuery", metadataQuery);
-            massUpdateInputs.set("ruleActions", modifiedFields.get("rulesUpdates"));
+            RequestResponse<JsonNode> metadataUpdateResponse = null;
+            RequestResponse<JsonNode> rulesUpdateResponse = null;
 
-            // TODO: When OK for Lilas/Hassen, update 'metadataQuery' to 'massUpdateInputs'
-            // TODO: When OK for Lilas/Hassen, update massUpdateInputs 'JsonNode' to 'POJO'
+            UpdateMultiQuery metadataUpdate = DslQueryHelper.getFullMetadataActionQuery(modifiedFields.get("metadataUpdates"), baseQuery);
+            ObjectNode metadataQuery = baseQuery.deepCopy();
 
-            final RequestResponse<JsonNode> updateResponse =
+            if (metadataUpdate != null) {
+                metadataQuery.set(BuilderToken.GLOBAL.ACTION.exactToken(), metadataUpdate.getFinalUpdate().get(BuilderToken.GLOBAL.ACTION.exactToken()));
+                metadataUpdateResponse =
                     UserInterfaceTransactionManager.massiveUnitsUpdate(metadataQuery,
-                            UserInterfaceTransactionManager.getVitamContext(request));
-            return updateResponse.toResponse();
+                        UserInterfaceTransactionManager.getVitamContext(request));
+            }
+
+            if (rulesQuery != null) {
+                baseQuery.remove("$action");
+
+                ObjectNode fullRuleQuery = JsonHandler.createObjectNode();
+                fullRuleQuery.set("dslRequest", baseQuery);
+                fullRuleQuery.set("ruleActions", rulesQuery);
+
+                rulesUpdateResponse =
+                    UserInterfaceTransactionManager.massiveRulesUpdate(fullRuleQuery,
+                        UserInterfaceTransactionManager.getVitamContext(request));
+            }
+
+            // FIXME: What should be returned ? metadataUpdateResponse + rulesUpdateResponse ?
+            return metadataUpdateResponse == null ?
+                rulesUpdateResponse == null ?
+                    Response.status(Status.BAD_REQUEST).build() : rulesUpdateResponse.toResponse() :
+                metadataUpdateResponse.toResponse();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();

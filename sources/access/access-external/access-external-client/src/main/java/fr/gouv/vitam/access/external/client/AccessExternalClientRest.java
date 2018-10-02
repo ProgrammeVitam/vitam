@@ -15,6 +15,7 @@ import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -31,6 +32,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
 
     private static final String UNITS = "/units/";
+    private static final String UNITS_RULES = "/units/rules";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
     private static final String BLANK_OBJECT_GROUP_ID = "object identifier should be filled";
@@ -337,6 +339,27 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.POST, UNITS, vitamContext.getHeaders(), updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode updateRulesQuery)
+        throws VitamClientException {
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.POST, UNITS_RULES, headers, updateRulesQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {

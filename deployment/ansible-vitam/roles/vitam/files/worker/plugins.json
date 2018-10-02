@@ -165,6 +165,9 @@
   "MASS_UPDATE_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize"
   },
+  "MASS_UPDATE_UNITS_RULES": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsRulesProcess"
+  },
   "PROBATIVE_VALUE_LIST_OBJECT": {
     "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValuePrepare"
   },

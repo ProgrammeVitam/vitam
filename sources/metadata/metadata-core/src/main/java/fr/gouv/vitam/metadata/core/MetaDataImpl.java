@@ -98,6 +98,7 @@ import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
@@ -731,6 +732,39 @@ public class MetaDataImpl implements MetaData {
             .setTotal(collect.size());
     }
 
+    @Override
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery)
+            throws InvalidParseOperationException {
+        Set<String> unitIds;
+        final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        updateRequest.parse(updateQuery.get("query"));
+        final RequestMultiple request = updateRequest.getRequest();
+        unitIds = request.getRoots();
+
+        List<JsonNode> collect = unitIds.stream().map(unitId -> {
+            try {
+                RequestResponse<JsonNode> jsonNodeRequestResponse = updateUnitRulesbyId(updateQuery.get("actions"), unitId);
+                List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
+
+                if (results != null && results.size() > 0) {
+                    ObjectNode result = (ObjectNode) results.get(0);
+                    result.put("#status", "OK");
+                    return result;
+                } else {
+                    return objectNodeResultForUpdateKo(unitId);
+                }
+            } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
+                LOGGER.error(e);
+                return objectNodeResultForUpdateKo(unitId);
+            }
+
+        }).collect(Collectors.toList());
+
+        return new RequestResponseOK<JsonNode>(updateQuery)
+                .addAllResults(collect)
+                .setTotal(collect.size());
+    }
+
     private ObjectNode objectNodeResultForUpdateKo(String unitId) {
         final ObjectNode diffNode = JsonHandler.createObjectNode();
         diffNode.put("#id", unitId);
@@ -778,7 +812,7 @@ public class MetaDataImpl implements MetaData {
             diffs.put(unitId,
                 VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
         } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
@@ -792,6 +826,44 @@ public class MetaDataImpl implements MetaData {
             .addAllResults(toArrayList(arrayNodeResponse))
             .setTotal(total)
             .setHttpCode(Response.Status.OK.getStatusCode());
+    }
+
+    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId)
+            throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
+            MetaDataDocumentSizeException, VitamDBException {
+        Result result;
+        ArrayNode arrayNodeResponse;
+        if (updateActions.isNull()) {
+            throw new InvalidParseOperationException(REQUEST_IS_NULL);
+        }
+        JsonNode queryCopy = updateActions.deepCopy();
+
+        try {
+            RuleActions ruleActions = JsonHandler.getFromJsonNode(updateActions, RuleActions.class);
+            final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+
+            // Execute DSL request
+            result = DbRequestFactoryImpl.getInstance().create().execRuleRequest(unitId, ruleActions);
+
+            final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+
+            final Map<String, List<String>> diffs = new HashMap<>();
+            diffs.put(unitId,
+                    VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
+
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
+        } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final BadRequestException e) {
+            throw new MetaDataExecutionException(e);
+        }
+        List res = toArrayList(arrayNodeResponse);
+        Long total = result != null ? result.getTotal() : res.size();
+        return new RequestResponseOK<JsonNode>(queryCopy)
+                .addAllResults(toArrayList(arrayNodeResponse))
+                .setTotal(total)
+                .setHttpCode(Response.Status.OK.getStatusCode());
     }
 
     private RequestResponse getUnitById(String id)

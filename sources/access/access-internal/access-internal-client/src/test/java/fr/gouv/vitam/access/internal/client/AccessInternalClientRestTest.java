@@ -27,7 +27,6 @@
 package fr.gouv.vitam.access.internal.client;
 
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
@@ -55,7 +54,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -65,6 +63,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -293,6 +292,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response massUpdateUnits(JsonNode queryDsl) {
             return expectedResponse.put();
+        }
+
+        /**
+         * Mass update of archive units rules
+         * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
+         * @return the response
+         */
+        @Override public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+            return null;
         }
 
         // Functionalities related to TRACEABILITY operation

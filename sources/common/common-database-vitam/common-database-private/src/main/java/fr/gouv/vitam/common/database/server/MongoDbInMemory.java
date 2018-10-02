@@ -34,8 +34,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -56,6 +58,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.QueryPattern;
+import fr.gouv.vitam.common.model.massupdate.RuleAction;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 
 /**
  * Tools to update a Mongo document (as json) with a dsl query.
@@ -63,6 +68,13 @@ import fr.gouv.vitam.common.model.QueryPattern;
 public class MongoDbInMemory {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbInMemory.class);
+
+    private static final String RULES_KEY = "Rules";
+    private static final String RULE_KEY = "Rule";
+    private static final String START_DATE_KEY = "StartDate";
+    private static final String END_DATE_KEY = "EndDate";
+    private static final String MANAGEMENT_KEY = "_mgt";
+    private static final String FINAL_ACTION_KEY = "FinalAction";
 
     private final JsonNode originalDocument;
 
@@ -158,6 +170,148 @@ public class MongoDbInMemory {
             }
         }
         return updatedDocument;
+    }
+
+    /**
+     * Update the originalDocument with the given ruleActions
+     * @param ruleActions The given ruleActions containing the updates
+     * @return the updated document
+     * @throws InvalidParseOperationException
+     */
+    public JsonNode getUpdateJsonForRule(RuleActions ruleActions) throws InvalidParseOperationException {
+        if(ruleActions != null) {
+            final ObjectNode initialMgt = (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
+
+            // deal with adds
+            applyAddRuleAction(ruleActions.getAdd(), initialMgt);
+            // deal with update
+            applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt);
+            // deal with delete
+            applyDeleteRuleAction(ruleActions.getDelete(), initialMgt);
+
+            JsonHandler.setNodeInPath((ObjectNode) updatedDocument, MANAGEMENT_KEY, initialMgt, true);
+        }
+        
+        return updatedDocument;
+    }
+    
+    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
+        if(ruleActions == null || ruleActions.isEmpty())
+            return;
+        
+        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
+            String category = entry.getKey();
+            RuleCategoryAction ruleCategoryAction = entry.getValue();
+
+            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+
+            // set final action if any
+            String finalAction = ruleCategoryAction.getFinalAction();
+            if (finalAction != null) {
+                initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
+            }
+
+            // add rules
+            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                ruleCategoryAction.getRules().forEach(ruleAction -> {
+                    if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
+                        JsonNode newRule = getJsonNodeFromRuleAction(ruleAction);
+                        initialRules.add(newRule);
+                    }
+                });
+                initialRuleCategory.set(RULES_KEY, initialRules);
+            }
+
+            // set category
+            initialMgt.set(category, initialRuleCategory);
+        });
+    }
+
+    private boolean hasRuleDefined(final String ruleId, final ArrayNode rules) {
+        Iterator<JsonNode> nodes = rules.iterator();
+        while (nodes.hasNext()) {
+            if (ruleId.equals(nodes.next().get("Rule").textValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
+        if(ruleActions == null || ruleActions.isEmpty())
+            return;
+
+        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
+            String category = entry.getKey();
+            RuleCategoryAction ruleCategoryAction = entry.getValue();
+            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+
+            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+                Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
+                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                Iterator<JsonNode> it = initialRules.iterator();
+                while (it.hasNext()) {
+                    ObjectNode node = (ObjectNode) it.next();
+                    String actualRule = node.get(RULE_KEY).asText();
+                    if (rulesToUpdate.keySet().contains(actualRule)) {
+                        updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule));
+                    }
+                }
+                initialRuleCategory.set(RULES_KEY, initialRules);
+            }
+
+            // set category
+            initialMgt.set(category, initialRuleCategory);
+        });
+    }
+    
+    private void applyDeleteRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
+        if(ruleActions == null || ruleActions.isEmpty())
+            return;
+
+        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
+            String category = entry.getKey();
+            RuleCategoryAction ruleCategoryAction = entry.getValue();
+            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+
+            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+                List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(rule -> rule.getRule()).collect(Collectors.toList());
+                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                ArrayNode filteredRules = JsonHandler.createArrayNode();
+                initialRules.forEach(node -> {
+                    if (!rulesToDelete.contains(node.get(RULE_KEY).asText())) {
+                        filteredRules.add(node);
+                    }
+                });
+                initialRuleCategory.set(RULES_KEY, filteredRules);
+            }
+
+            // set category
+            initialMgt.set(category, initialRuleCategory);
+        });
+    }
+
+    private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
+        return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+    }
+    
+    private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction) {
+        ObjectNode newRule = JsonHandler.createObjectNode();
+        newRule.put(RULE_KEY, ruleAction.getRule());
+        newRule.put(START_DATE_KEY, ruleAction.getStartDate());
+        newRule.put(END_DATE_KEY, ruleAction.getEndDate());
+        return newRule;
+    }
+    
+    private void updateJsonNodeUsingRuleAction(ObjectNode node, RuleAction ruleAction) {
+        if (ruleAction.getRule() != null) {
+            node.put(RULE_KEY, ruleAction.getRule());
+        }
+        if (ruleAction.getStartDate() != null) {
+            node.put(START_DATE_KEY, ruleAction.getStartDate());
+            node.put(END_DATE_KEY, ruleAction.getEndDate());
+        }
     }
 
     /**

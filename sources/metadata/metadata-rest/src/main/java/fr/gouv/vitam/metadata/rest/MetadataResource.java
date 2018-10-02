@@ -292,6 +292,40 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Update unit rules with json request
+     * @param updateQuery the update request in JsonNode format including query and rules' actions
+     * @return Response
+     */
+    @Path("units/updaterulesbulk")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response updateUnitsRulesBulk(JsonNode updateQuery) {
+        Status status;
+        RequestResponse<JsonNode> result;
+        try {
+            result = metaData.updateUnitsRules(updateQuery);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(INGEST)
+                            .setState(CODE_VITAM)
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(e.getMessage()))
+                    .build();
+        }
+        RequestResponseOK responseOK = new RequestResponseOK(updateQuery);
+        responseOK.setHits(1, 0, 1)
+                .setHttpCode(Status.OK.getStatusCode());
+
+        return Response.status(Status.OK)
+                .entity(result)
+                .build();
+    }
+
+    /**
      * Select unit with json request
      *
      * @param request the request in JsonNode format
