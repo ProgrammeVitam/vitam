@@ -193,7 +193,12 @@ public class DataMigrationService {
         buildParentGraph(unit);
         updateUnitSedaModel(unit);
         unit.put("_sedaVersion", VitamConstants.SEDA_CURRENT_VERSION);
-        unit.put("_implementationVersion", this.getClass().getPackage().getImplementationVersion());
+        String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
+        if(vitamImplVersion != null) {
+            unit.put("_implementationVersion", vitamImplVersion);
+        } else {
+            unit.put("_implementationVersion", "");
+        }
     }
 
     private void buildParentGraph(Unit unit) throws

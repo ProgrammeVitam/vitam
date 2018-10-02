@@ -2587,5 +2587,27 @@
         "Collections": [
             "SecurityProfile"
         ]
+    },
+    {
+        "Identifier": "_sedaVersion",
+        "ApiField": "#sedaVersion",
+        "Description": "Mapping : unit-es-mapping.json",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "_sedaVersion",
+        "Collections": [
+            "Unit"
+        ]
+    },
+    {
+        "Identifier": "_implementationVersion",
+        "ApiField": "#implementationVersion",
+        "Description": "Mapping : unit-es-mapping.json",
+        "Type": "KEYWORD",
+        "Origin": "INTERNAL",
+        "ShortName": "_implementationVersion",
+        "Collections": [
+            "Unit"
+        ]
     }
 ]

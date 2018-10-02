@@ -88,6 +88,10 @@ public class FakeMetadataVarNameAdapter extends VarNameAdapter {
                         return VitamDocument.VERSION;
                     case SCORE:
                         return VitamDocument.SCORE;
+                    case SEDAVERSION:
+                        return VitamDocument.SEDAVERSION;
+                    case IMPLEMENTATIONVERSION:
+                        return VitamDocument.IMPLEMENTATIONVERSION;
                     case ALL:
                     default:
                         break;
