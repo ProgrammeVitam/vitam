@@ -76,6 +76,10 @@ public class SingleVarNameAdapter extends VarNameAdapter {
                         return VitamDocument.ID;
                     case VERSION:
                         return VitamDocument.VERSION;
+                    case SEDAVERSION:
+                        return VitamDocument.SEDAVERSION;
+                    case IMPLEMENTATIONVERSION:
+                        return VitamDocument.IMPLEMENTATIONVERSION;
                     default:
                         break;
                 }

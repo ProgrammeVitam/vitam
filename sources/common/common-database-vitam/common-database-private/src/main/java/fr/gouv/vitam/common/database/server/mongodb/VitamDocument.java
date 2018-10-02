@@ -72,6 +72,14 @@ public abstract class VitamDocument<E> extends Document {
      * Score
      */
     public static final String SCORE = "_score";
+    /**
+     * Current Seda Version
+     */
+    public static final String SEDAVERSION = "_sedaVersion";
+    /**
+     * Current Vitam Version
+     */
+    public static final String IMPLEMENTATIONVERSION = "_implementationVersion";
 
     /**
      * Filter ES out

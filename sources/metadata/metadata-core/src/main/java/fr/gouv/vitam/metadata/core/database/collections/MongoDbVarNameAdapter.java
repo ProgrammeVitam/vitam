@@ -152,6 +152,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.PARENT_ORIGINATING_AGENCIES;
                     case HISTORY:
                         return Unit.HISTORY + extension;
+                    case SEDAVERSION:
+                        return VitamDocument.SEDAVERSION;
+                    case IMPLEMENTATIONVERSION:
+                        return VitamDocument.IMPLEMENTATIONVERSION;
                     case ALL:
                     default:
                         break;

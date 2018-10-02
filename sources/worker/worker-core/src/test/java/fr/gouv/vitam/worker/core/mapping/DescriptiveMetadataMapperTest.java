@@ -133,7 +133,7 @@ public class DescriptiveMetadataMapperTest {
 
         // Then
         assertThat(descriptiveMetadataModel.getSedaVersion()).isEqualTo(VitamConstants.SEDA_CURRENT_VERSION);
-        assertThat(descriptiveMetadataModel.getImplementationVersion()).isNull();
+        assertThat(descriptiveMetadataModel.getImplementationVersion()).isEqualTo("");
     }
 
 }

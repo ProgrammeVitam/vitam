@@ -66,6 +66,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.HISTORY;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SEDAVERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.IMPLEMENTATIONVERSION;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -331,6 +333,18 @@ public class VitamFieldsHelper {
      */
     public static final String history() {
         return HISTORY.exactToken();
+    }
+    /**
+     * @return #version
+     */
+    public static final String sedaVersion() {
+        return SEDAVERSION.exactToken();
+    }
+    /**
+     * @return #version
+     */
+    public static final String implementationVersion() {
+        return IMPLEMENTATIONVERSION.exactToken();
     }
 
 

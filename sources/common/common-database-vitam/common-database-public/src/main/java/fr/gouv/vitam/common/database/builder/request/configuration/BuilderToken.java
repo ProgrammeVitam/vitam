@@ -730,7 +730,15 @@ public abstract class BuilderToken {
         /**
          * history field
          */
-        HISTORY("history"),;
+        HISTORY("history"),
+        /**
+         * Current Seda Version
+         */
+        SEDAVERSION("sedaVersion"),
+        /**
+         * Current Vitam Version
+         */
+        IMPLEMENTATIONVERSION("implementationVersion");
 
         private final String exactToken;
 

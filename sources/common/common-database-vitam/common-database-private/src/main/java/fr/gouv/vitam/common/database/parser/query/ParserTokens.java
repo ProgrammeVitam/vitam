@@ -515,7 +515,9 @@ public class ParserTokens extends BuilderToken {
             "_history.data._mgt.ClassificationRule.ClassificationAudience",
             "_history.data._mgt.ClassificationRule.ClassificationReassessingDate",
             "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
-            "_history.data._v"));
+            "_history.data._v",
+            "_implementationVersion",
+            "_sedaVersion"));
 
     private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
         AdminManagementOntologiesClientFactory.getInstance();
@@ -720,7 +722,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Parent unit history
          */
-        HISTORY("history"),;
+        HISTORY("history"),
+        /**
+         * Seda Version
+         */
+        SEDAVERSION("sedaVersion"),
+        /**
+         * Vitam Implementation Version
+         */
+        IMPLEMENTATIONVERSION("implementationVersion");
 
 
         private static final String NOT_FOUND = "Not found";
@@ -854,6 +864,10 @@ public class ParserTokens extends BuilderToken {
                         return GRAPH_LAST_PERISTED_DATE;
                     case "_history":
                         return HISTORY;
+                    case "_sedaVersion":
+                        return SEDAVERSION;
+                    case "_implementationVersion":
+                        return IMPLEMENTATIONVERSION;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
