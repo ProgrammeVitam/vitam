@@ -508,7 +508,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public boolean flushUnits() throws MetaDataClientServerException {
+    public boolean refreshUnits() throws MetaDataClientServerException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, "/units", null, APPLICATION_JSON_TYPE);
@@ -521,7 +521,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public boolean flushObjectGroups() throws MetaDataClientServerException {
+    public boolean refreshObjectGroups() throws MetaDataClientServerException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, "/objectgroups", null, APPLICATION_JSON_TYPE);

@@ -275,7 +275,7 @@ public interface MetaData {
      * @throws IllegalArgumentException if tenant is wrong
      * @throws VitamThreadAccessException if tenant is wrong
      */
-    void flushUnit() throws IllegalArgumentException, VitamThreadAccessException;
+    void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException;
 
     /**
      * Flush ObjectGroup Index
@@ -283,7 +283,7 @@ public interface MetaData {
      * @throws IllegalArgumentException if tenant is wrong
      * @throws VitamThreadAccessException if tenant is wrong
      */
-    void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
+    void refreshObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
 
     /**
      * Reindex one or more collections

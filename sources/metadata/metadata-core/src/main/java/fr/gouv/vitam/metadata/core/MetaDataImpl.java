@@ -921,13 +921,13 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException {
+    public void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         mongoDbAccess.getEsClient().refreshIndex(UNIT, tenantId);
     }
 
     @Override
-    public void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
+    public void refreshObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
     }

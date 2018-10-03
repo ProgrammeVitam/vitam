@@ -423,7 +423,7 @@ public class ProcessingIT extends VitamRuleRunner {
                         (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                     .getFinalInsert());
 
-            metaDataClient.flushUnits();
+            metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
@@ -537,7 +537,7 @@ public class ProcessingIT extends VitamRuleRunner {
                         (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                     .getFinalInsert());
 
-            metaDataClient.flushUnits();
+            metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
@@ -2914,7 +2914,7 @@ public class ProcessingIT extends VitamRuleRunner {
                         (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                     .getFinalInsert());
 
-            metaDataClient.flushUnits();
+            metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =

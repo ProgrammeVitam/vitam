@@ -212,16 +212,16 @@ public interface MetaDataClient extends BasicClient {
         MetaDataClientServerException;
 
     /**
-     * @return True if the Units index is flushed
+     * @return True if the Units index is refreshed
      * @throws MetaDataClientServerException
      */
-    boolean flushUnits() throws MetaDataClientServerException;
+    boolean refreshUnits() throws MetaDataClientServerException;
 
     /**
-     * @return True if the ObjectGroups index is flushed
+     * @return True if the ObjectGroups index is refreshed
      * @throws MetaDataClientServerException
      */
-    boolean flushObjectGroups() throws MetaDataClientServerException;
+    boolean refreshObjectGroups() throws MetaDataClientServerException;
 
     /**
      * Reindex a collection with parameters
