@@ -152,5 +152,17 @@
 	"ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
 		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
 		"propertiesFile": "elimination_analysis_unit_indexation.properties"
+	},
+	"ELIMINATION_ACTION_DELETE_UNIT":{
+		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteUnitPlugin",
+		"propertiesFile": "elimination_action_delete_unit.properties"
+	},
+	"ELIMINATION_ACTION_DELETE_OBJECT_GROUP":{
+		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteObjectGroupPlugin",
+		"propertiesFile": "elimination_action_delete_object_group.properties"
+	},
+	"ELIMINATION_ACTION_DETACH_OBJECT_GROUP":{
+		"className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDetachObjectGroupPlugin",
+		"propertiesFile": "elimination_action_detach_object_group.properties"
 	}
 }

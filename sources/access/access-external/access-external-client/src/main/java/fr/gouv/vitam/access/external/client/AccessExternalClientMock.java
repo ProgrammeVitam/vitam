@@ -135,4 +135,10 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         EliminationRequestBody eliminationRequestBody) throws VitamClientException {
         throw new UnsupportedOperationException("Will not be implemented");
     }
+
+    @Override
+    public RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+        throw new UnsupportedOperationException("Will not be implemented");
+    }
 }

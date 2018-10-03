@@ -15,8 +15,14 @@
       "actions": [
         {
           "action": {
-            "actionKey": "RECLASSIFICATION_PREPARATION_CHECK_LOCK",
-            "behavior": "BLOCKING"
+            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "workflowIds",
+                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION"
+              }
+            ]
           }
         },
         {

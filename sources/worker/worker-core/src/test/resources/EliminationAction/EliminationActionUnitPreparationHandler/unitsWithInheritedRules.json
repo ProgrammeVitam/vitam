@@ -1,0 +1,144 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 4,
+    "size": 4
+  },
+  "$results": [
+    {
+      "#id": "id_unit_1",
+      "#object": "id_got_1",
+      "#originating_agency": "sp_1",
+      "#opi": "opi1",
+      "#max": 2,
+      "InheritedRules": {
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    },
+    {
+      "#id": "id_unit_2",
+      "#object": "id_got_2",
+      "#originating_agency": "sp_2",
+      "#opi": "opi2",
+      "#max": 2,
+      "InheritedRules": {
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    },
+    {
+      "#id": "id_unit_3",
+      "#originating_agency": "sp_3",
+      "#opi": "opi3",
+      "#max": 1,
+      "InheritedRules": {
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    },
+    {
+      "#id": "id_unit_4",
+      "#object": "id_got_4",
+      "#originating_agency": "sp_4",
+      "#opi": "opi4",
+      "#max": 1,
+      "InheritedRules": {
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

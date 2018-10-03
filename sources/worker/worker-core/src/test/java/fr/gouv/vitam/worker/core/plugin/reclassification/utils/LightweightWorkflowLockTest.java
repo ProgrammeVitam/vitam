@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -8,6 +9,7 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
+import fr.gouv.vitam.worker.core.utils.LightweightWorkflowLock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,6 +19,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +46,7 @@ public class LightweightWorkflowLockTest {
     }
 
     @Test
-    public void listConcurrentReclassificationWorkflows_ResponseOK() throws Exception {
+    public void listConcurrentWorkflows_ResponseOK() throws Exception {
 
         // Given
         String workflowId = "workflow";
@@ -73,7 +76,7 @@ public class LightweightWorkflowLockTest {
 
         // When
         List<ProcessDetail> processDetails =
-            lightweightWorkflowLock.listConcurrentReclassificationWorkflows(workflowId, currentProcessId);
+            lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList(workflowId), currentProcessId);
 
         // Then
         ArgumentCaptor<ProcessQuery> processQueryArgumentCaptor = ArgumentCaptor.forClass(ProcessQuery.class);
@@ -83,7 +86,7 @@ public class LightweightWorkflowLockTest {
     }
 
     @Test
-    public void listConcurrentReclassificationWorkflows_VitamError() throws Exception {
+    public void listConcurrentWorkflows_VitamError() throws Exception {
 
         // Given
         doReturn(new VitamError("KO"))
@@ -93,8 +96,7 @@ public class LightweightWorkflowLockTest {
             new LightweightWorkflowLock(processingManagementClientFactory);
 
         // When / Then
-        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentReclassificationWorkflows("any", "any"))
-            .isInstanceOf(ReclassificationException.class)
-            .matches(e -> ((ReclassificationException) e).getStatusCode().equals(StatusCode.FATAL));
+        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
+            .isInstanceOf(VitamClientException.class);
     }
 }

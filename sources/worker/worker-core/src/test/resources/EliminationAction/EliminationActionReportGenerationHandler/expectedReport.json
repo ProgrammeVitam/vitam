@@ -1,0 +1,53 @@
+{
+  "units": [
+    {
+      "id": "id_unit_1",
+      "originatingAgency": "sp1",
+      "opi": "opi1",
+      "status": "DELETED",
+      "objectGroupId": "id_got_1"
+    },
+    {
+      "id": "id_unit_2",
+      "originatingAgency": "sp2",
+      "opi": "opi2",
+      "status": "DELETED",
+      "objectGroupId": "id_got_2"
+    },
+    {
+      "id": "id_unit_3",
+      "originatingAgency": "sp3",
+      "opi": "opi3",
+      "status": "NON_DESTROYABLE_HAS_CHILD_UNITS",
+      "objectGroupId": "id_got_3"
+    },
+    {
+      "id": "id_unit_4",
+      "originatingAgency": "sp4",
+      "opi": "opi4",
+      "status": "GLOBAL_STATUS_KEEP",
+      "objectGroupId": "id_got_2"
+    }
+  ],
+  "objectGroups": [
+    {
+      "id": "id_got_1",
+      "originatingAgency": "sp1",
+      "opi": "opi1",
+      "objectIds": [
+        "id_got_1_object_1",
+        "id_got_1_object_2"
+      ],
+      "status": "DELETED"
+    },
+    {
+      "id": "id_got_2",
+      "originatingAgency": "sp2",
+      "opi": "opi2",
+      "status": "PARTIAL_DETACHMENT",
+      "deletedParentUnitIds": [
+        "id_unit_2"
+      ]
+    }
+  ]
+}

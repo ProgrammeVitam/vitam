@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -161,9 +160,6 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
                         JsonLineModel entry = new JsonLineModel(unitId, null,
                             JsonHandler.toJsonNode(eliminationAnalysisResult));
                         unitWriter.addEntry(entry);
-
-                        // FIXME : Should load unit from distribution (JSONL params not implemented yet)
-                        EliminationUtils.storeEntryMetadata(handler, "unitMetadata", entry);
                     }
                 }
             }

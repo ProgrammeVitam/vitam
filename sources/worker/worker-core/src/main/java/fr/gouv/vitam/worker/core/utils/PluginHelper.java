@@ -36,11 +36,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleUnitParameters;
 
 /**
@@ -54,6 +59,11 @@ public class PluginHelper {
         TEventDetails eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
+        setEvDetData(itemStatus, eventDetails);
+        return new ItemStatus(action).setItemsStatus(action, itemStatus);
+    }
+
+    private static <TEventDetails> void setEvDetData(ItemStatus itemStatus, TEventDetails eventDetails) {
         if (eventDetails != null) {
             try {
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails)));
@@ -61,7 +71,19 @@ public class PluginHelper {
                 LOGGER.error("Could not serialize event details" + eventDetails);
             }
         }
-        return new ItemStatus(action).setItemsStatus(action, itemStatus);
+    }
+
+    public static List<ItemStatus> buildBulkItemStatus(WorkerParameters param, String action, StatusCode statusCode) {
+        List<ItemStatus> itemStatuses = new ArrayList<>();
+
+        for (int i = 0; i < param.getObjectNameList().size(); i++) {
+            final ItemStatus itemStatus = new ItemStatus(action);
+            itemStatus.increment(statusCode);
+            ItemStatus itemsStatus = new ItemStatus(action)
+                .setItemsStatus(action, itemStatus);
+            itemStatuses.add(itemsStatus);
+        }
+        return itemStatuses;
     }
 
     public static <TEventDetails> LogbookLifeCycleUnitParameters createParameters(GUID eventIdentifierProcess,
@@ -76,6 +98,28 @@ public class PluginHelper {
             VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
             VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
 
+        if (eventDetails != null) {
+            try {
+                parameters.putParameterValue(LogbookParameterName.eventDetailData,
+                    (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails))));
+            } catch (InvalidParseOperationException e1) {
+                LOGGER.error("Could not serialize event details" + eventDetails);
+            }
+        }
+        return parameters;
+    }
+
+    public static <TEventDetails> LogbookLifeCycleObjectGroupParameters createObjectGroupLfcParameters(
+        GUID eventIdentifierProcess,
+        StatusCode logbookOutcome, GUID objectIdentifier, String action, TEventDetails eventDetails,
+        LogbookTypeProcess logbookTypeProcess) {
+        final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        LogbookLifeCycleObjectGroupParameters parameters = newLogbookLifeCycleObjectGroupParameters(updateGuid,
+            VitamLogbookMessages.getEventTypeLfc(action),
+            eventIdentifierProcess,
+            logbookTypeProcess, logbookOutcome,
+            VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
+            VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
         if (eventDetails != null) {
             try {
                 parameters.putParameterValue(LogbookParameterName.eventDetailData,

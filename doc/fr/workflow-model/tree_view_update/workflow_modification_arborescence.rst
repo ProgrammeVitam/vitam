@@ -26,7 +26,7 @@ La fin du processus peut prendre plusieurs statuts:
 	+ FATAL: Erreur technique lors de l''étape de préparation de la modification d'arborescence des unités archivistiques (STP_RECLASSIFICATION_PREPARATION.FATAL)
 
 
-Vérification des processus concurrents ( RECLASSIFICATION_PREPARATION_CHECK_LOCK ) 
+Vérification des processus concurrents ( CHECK_CONCURRENT_WORKFLOW_LOCK )
 ----------------------------------------------------------------------------------
 
 Le but est de vérifier s'il n'y a pas d'autre processus de modification d'arborescence en cours.Si tel est le cas, le processus n'est pas lancé afin d'éviter les cycles rattachements/detachements concernant plusieurs unités archivistiques.
@@ -35,11 +35,11 @@ La fin du processus peut prendre plusieurs statuts :
 
 * **Statuts** :
 
-  + OK : il n'y a pas d'autre processus de reclassement en cours,la modification d'arborescence peut s'effectuer. (RECLASSIFICATION_PREPARATION_CHECK_LOCK.OK=Succès de la vérification des processus concurrents)
+  + OK : il n'y a pas d'autre processus de reclassement en cours,la modification d'arborescence peut s'effectuer. (CHECK_CONCURRENT_WORKFLOW_LOCK.OK=Succès de la vérification des processus concurrents)
 
-  + KO : le reclassement ne peut pas s'effectuer car un autre processus de modification d'arborescence est en cours (RECLASSIFICATION_PREPARATION_CHECK_LOCK.KO=Échec lors de la vérification des processus concurrents)
+  + KO : le reclassement ne peut pas s'effectuer car un autre processus de modification d'arborescence est en cours (CHECK_CONCURRENT_WORKFLOW_LOCK.KO=Échec lors de la vérification des processus concurrents)
 
-  + FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (RECLASSIFICATION_PREPARATION_CHECK_LOCK.FATAL=Erreur fatale lors de la vérification des processus concurrents)
+  + FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK.FATAL=Erreur fatale lors de la vérification des processus concurrents)
 
 
 

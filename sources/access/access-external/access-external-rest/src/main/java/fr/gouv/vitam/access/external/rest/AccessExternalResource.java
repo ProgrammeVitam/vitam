@@ -318,6 +318,52 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * Performs an elimination action workflow.
+     *
+     * @param eliminationRequestBody object that contain dsl request and a given date.
+     * @return Response
+     */
+    @POST
+    @Path("/elimination/action")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "elimination:action", description = "Elimination définitive d'unités archivistiques")
+    public Response startEliminationAction(EliminationRequestBody eliminationRequestBody) {
+
+        try {
+
+            ParametersChecker.checkParameter("Missing dslRequest request", eliminationRequestBody.getDslRequest());
+            ParametersChecker.checkDateParam("Bad formatted date", eliminationRequestBody.getDate());
+
+            BatchProcessingQuerySchemaValidator validator =
+                new BatchProcessingQuerySchemaValidator();
+            validator.validate(eliminationRequestBody.getDslRequest());
+
+        } catch (IllegalArgumentException | IOException | ValidationException e) {
+            LOGGER.warn("Could not validate request", e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+        }
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = client.startEliminationAction(eliminationRequestBody);
+            if (response.isOk()) {
+                return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
+            } else {
+                return response.toResponse();
+            }
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Precondition Failed Exception ", e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error("Technical Exception ", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
      * get units list by query
      *
      * @param id operationId correponding to the current dip
@@ -788,7 +834,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup, String unitId) {
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup,
+        String unitId) {
 
         try {
             if (!multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||

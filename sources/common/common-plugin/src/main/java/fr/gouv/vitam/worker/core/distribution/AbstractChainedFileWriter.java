@@ -59,16 +59,24 @@ public abstract class AbstractChainedFileWriter implements AutoCloseable {
 
         currentChainedFile.getElements().add(id);
         if (currentChainedFile.getElements().size() == batchSize) {
-
-            chainedFileCount++;
-            String nextFileName = filename + "." + chainedFileCount;
-            currentChainedFile.setNextFile(nextFileName);
-
-            storeToWorkspace();
-
-            currentFileName = nextFileName;
-            currentChainedFile = new ChainedFileModel();
+            split();
         }
+    }
+
+    public void split() throws InvalidParseOperationException, IOException {
+
+        if (currentChainedFile.getElements().isEmpty()) {
+            return;
+        }
+
+        chainedFileCount++;
+        String nextFileName = filename + "." + chainedFileCount;
+        currentChainedFile.setNextFile(nextFileName);
+
+        storeToWorkspace();
+
+        currentFileName = nextFileName;
+        currentChainedFile = new ChainedFileModel();
     }
 
     private void storeToWorkspace() throws InvalidParseOperationException, IOException {

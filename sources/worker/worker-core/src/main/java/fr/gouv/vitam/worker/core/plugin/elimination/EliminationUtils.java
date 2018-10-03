@@ -39,6 +39,7 @@ import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
@@ -94,36 +95,6 @@ public final class EliminationUtils {
 
         } catch (InvalidParseOperationException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not parse unit information", e);
-        }
-    }
-
-    /**
-     * @deprecated Should load unit from distribution (JSONL params not implemented yet)
-     */
-    public static void storeEntryMetadata(HandlerIO handler, String dir, JsonLineModel entry)
-        throws EliminationException {
-
-        // FIXME : Should load unit from distribution (JSONL params not implemented yet)
-        try (InputStream metadata = JsonHandler.writeToInpustream(entry.getParams())) {
-            handler.transferInputStreamToWorkspace(dir + "/" + entry.getId() + ".json", metadata, null, false);
-        } catch (InvalidParseOperationException | IOException | ProcessingException e) {
-            throw new EliminationException(StatusCode.FATAL,
-                "Could not persist distribution metadata for id " + entry.getId(), e);
-        }
-    }
-
-    /**
-     * @deprecated Should load unit from distribution (JSONL params not implemented yet)
-     */
-    public static <T> T loadEntryMetadata(HandlerIO handler, String dir, String id, Class<T> clazz)
-        throws EliminationException {
-
-        // FIXME : Should load unit from distribution (JSONL params not implemented yet)
-        try (InputStream is = handler.getInputStreamFromWorkspace(dir + "/" + id + ".json")) {
-            return JsonHandler.getFromInputStream(is, clazz);
-        } catch (Exception e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not retrieve unit elimination analysis information",
-                e);
         }
     }
 

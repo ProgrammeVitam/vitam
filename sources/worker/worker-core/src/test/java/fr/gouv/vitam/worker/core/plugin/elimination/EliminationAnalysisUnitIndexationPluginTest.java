@@ -68,20 +68,18 @@ public class EliminationAnalysisUnitIndexationPluginTest {
 
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
-        this.parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
-            .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
-            .setObjectName("unit1")
-            .setCurrentStep("StepName");
-
         EliminationAnalysisResult eliminationAnalysisResult = new EliminationAnalysisResult(
             "opId", EliminationGlobalStatus.DESTROY,
             new HashSet<>(Collections.singletonList("sp1")),
             Collections.emptySet(),
             Collections.emptyList());
 
-        doReturn(JsonHandler.writeToInpustream(eliminationAnalysisResult))
-            .when(handlerIO).getInputStreamFromWorkspace("unitMetadata/unit1.json");
+        this.parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+            .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
+            .setObjectName("unit1")
+            .setObjectMetadata(JsonHandler.toJsonNode(eliminationAnalysisResult))
+            .setCurrentStep("StepName");
     }
 
     @Test

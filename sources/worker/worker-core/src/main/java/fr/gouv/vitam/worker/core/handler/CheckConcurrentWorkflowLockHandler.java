@@ -24,48 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.handler;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
-import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
-import fr.gouv.vitam.worker.core.plugin.reclassification.utils.LightweightWorkflowLock;
+import fr.gouv.vitam.worker.core.utils.LightweightWorkflowLock;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * Reclassification lock check handler.
+ * Elimination lock check handler.
  */
-public class ReclassificationPreparationCheckLockHandler extends ActionHandler {
+public class CheckConcurrentWorkflowLockHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckLockHandler.class);
+        VitamLoggerFactory.getInstance(CheckConcurrentWorkflowLockHandler.class);
 
-    private static final String RECLASSIFICATION_PREPARATION_CHECK_LOCK = "RECLASSIFICATION_PREPARATION_CHECK_LOCK";
-
-    static final String CONCURRENT_RECLASSIFICATION_PROCESS = "Concurrent reclassification process(es) found";
-
+    private static final String CHECK_CONCURRENT_WORKFLOW_LOCK = "CHECK_CONCURRENT_WORKFLOW_LOCK";
+    private static final int WORKFLOW_IDS_RANK = 0;
+    static final String CONCURRENT_PROCESSES_FOUND = "Concurrent process(es) found";
     private final LightweightWorkflowLock lightweightWorkflowLock;
 
     /**
      * Default constructor
      */
-    public ReclassificationPreparationCheckLockHandler() {
+    public CheckConcurrentWorkflowLockHandler() {
         this(new LightweightWorkflowLock());
     }
 
@@ -73,7 +71,7 @@ public class ReclassificationPreparationCheckLockHandler extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    ReclassificationPreparationCheckLockHandler(LightweightWorkflowLock lightweightWorkflowLock) {
+    CheckConcurrentWorkflowLockHandler(LightweightWorkflowLock lightweightWorkflowLock) {
         this.lightweightWorkflowLock = lightweightWorkflowLock;
     }
 
@@ -83,39 +81,34 @@ public class ReclassificationPreparationCheckLockHandler extends ActionHandler {
 
         try {
 
-            // Ensure no concurrent reclassification workflows are active.
-            checkConcurrentReclassificationWorkflows(param.getContainerName());
+            String workflowIdsStr = (String) handler.getInput(WORKFLOW_IDS_RANK);
+            List<String> workflowIds = Arrays.stream(workflowIdsStr.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
 
-        } catch (ReclassificationException e) {
-            LOGGER.error("Reclassification lock check failed with status [" + e.getStatusCode() + "]", e);
-            return buildItemStatus(RECLASSIFICATION_PREPARATION_CHECK_LOCK, e.getStatusCode(), e.getEventDetails());
-        }
+            List<ProcessDetail> concurrentWorkflows = lightweightWorkflowLock
+                .listConcurrentWorkflows(workflowIds, param.getContainerName());
 
-        LOGGER.info("Reclassification lock check succeeded");
-        return buildItemStatus(RECLASSIFICATION_PREPARATION_CHECK_LOCK, StatusCode.OK, null);
-    }
+            if (!concurrentWorkflows.isEmpty()) {
 
-    private void checkConcurrentReclassificationWorkflows(String processId) throws ReclassificationException {
+                LOGGER.error("Concurrent process(es) found " +
+                    concurrentWorkflows.stream().map(
+                        i -> i.getProcessType() + " " + i.getOperationId() + "(" + i.getGlobalState() + "/" +
+                            i.getStepStatus() + ")")
+                        .collect(Collectors.joining(", ", "[", "]")));
 
-        try {
-
-            List<ProcessDetail> concurrentReclassificationWorkflows = lightweightWorkflowLock
-                .listConcurrentReclassificationWorkflows(Contexts.RECLASSIFICATION.getEventType(), processId);
-
-            if (!concurrentReclassificationWorkflows.isEmpty()) {
-                throw new ReclassificationException(
-                    StatusCode.KO,
-                    new ReclassificationEventDetails().setError(CONCURRENT_RECLASSIFICATION_PROCESS),
-                    "Concurrent reclassification process(es) found " +
-                        concurrentReclassificationWorkflows.stream().map(
-                            i -> i.getOperationId() + "(" + i.getGlobalState() + "/" + i.getStepStatus() + ")")
-                            .collect(Collectors.joining(", ", "[", "]")));
+                ObjectNode eventDetails = JsonHandler.createObjectNode();
+                eventDetails.put("error", CONCURRENT_PROCESSES_FOUND);
+                return buildItemStatus(CHECK_CONCURRENT_WORKFLOW_LOCK, StatusCode.KO, eventDetails);
             }
 
         } catch (VitamClientException e) {
-            throw new ReclassificationException(StatusCode.FATAL,
-                "An error occurred during reclassification process listing", e);
+            LOGGER.error("Concurrent workflow lock check failed", e);
+            return buildItemStatus(CHECK_CONCURRENT_WORKFLOW_LOCK, StatusCode.FATAL, null);
         }
+
+        LOGGER.info("Concurrent workflow lock check succeeded");
+        return buildItemStatus(CHECK_CONCURRENT_WORKFLOW_LOCK, StatusCode.OK, null);
     }
 
     @Override
@@ -124,6 +117,6 @@ public class ReclassificationPreparationCheckLockHandler extends ActionHandler {
     }
 
     public static String getId() {
-        return RECLASSIFICATION_PREPARATION_CHECK_LOCK;
+        return CHECK_CONCURRENT_WORKFLOW_LOCK;
     }
 }

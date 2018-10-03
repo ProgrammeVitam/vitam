@@ -187,6 +187,37 @@ public class AccessInternalResourceTest {
 
     }
 
+    /*
+     * Elimination action
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void testStartEliminationActionWorkflow_ShouldStartWorkflow() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2011-01-23", select.getFinalSelect());
+
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any(), any());
+
+        // When
+        accessInternalResource.startEliminationActionWorkflow(eliminationRequestBody);
+
+        // Then
+        checkLogbookStarted(Contexts.ELIMINATION_ACTION);
+        checkWorkflowCreated(Contexts.ELIMINATION_ACTION);
+        checkSaveFileToWorkspace("request.json");
+
+    }
+
     private void checkLogbookStarted(Contexts event)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor = forClass(LogbookOperationParameters.class);

@@ -1,0 +1,7 @@
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$in": { "#id": [ "id_unit_1", "id_unit_2", "id_unit_3", "id_unit_4" ] } } ]
+  },
+  "date": "2050-01-01"
+}

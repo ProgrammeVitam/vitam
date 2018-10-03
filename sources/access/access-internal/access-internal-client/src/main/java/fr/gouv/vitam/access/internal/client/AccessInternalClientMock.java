@@ -262,4 +262,9 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throw new IllegalStateException("Stop using mocks in production");
     }
 
+    @Override
+    public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
+        throws AccessInternalClientServerException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

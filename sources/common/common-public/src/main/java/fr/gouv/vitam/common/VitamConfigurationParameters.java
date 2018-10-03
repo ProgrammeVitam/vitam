@@ -130,6 +130,11 @@ public class VitamConfigurationParameters {
      * Max entries allowed for elimination analysis
      */
     private Long eliminationAnalysisThreshold;
+
+    /**
+     * Max entries allowed for elimination action
+     */
+    private Long eliminationActionThreshold;
     
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)
@@ -1114,6 +1119,14 @@ public class VitamConfigurationParameters {
 
     public void setEliminationAnalysisThreshold(Long eliminationAnalysisThreshold) {
         this.eliminationAnalysisThreshold = eliminationAnalysisThreshold;
+    }
+
+    public Long getEliminationActionThreshold() {
+        return eliminationActionThreshold;
+    }
+
+    public void setEliminationActionThreshold(Long eliminationActionThreshold) {
+        this.eliminationActionThreshold = eliminationActionThreshold;
     }
 
     /**

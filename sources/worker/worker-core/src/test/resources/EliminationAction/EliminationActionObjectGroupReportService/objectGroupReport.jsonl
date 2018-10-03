@@ -1,0 +1,2 @@
+{ "id": "got1", "distribGroup": null, "params": { "id": "got1", "opi": "opi1", "originatingAgency": "sp1", "objectIds": [ "o1", "o2" ], "status":  "DELETED" } }
+{ "id": "got2", "distribGroup": null, "params": { "id": "got2", "opi": "opi2", "originatingAgency": "sp2", "deletedParentUnitIds": [ "unit3" ], "status":  "PARTIAL_DETACHMENT" } }

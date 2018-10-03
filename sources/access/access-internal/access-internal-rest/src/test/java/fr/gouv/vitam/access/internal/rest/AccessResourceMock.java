@@ -124,6 +124,15 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
+    @Override
+    @POST
+    @Path("/elimination/action")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startEliminationActionWorkflow(EliminationRequestBody eliminationRequestBody) {
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
     /**
      * get unit list by unit id
      */

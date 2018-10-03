@@ -1,0 +1,306 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 4,
+    "size": 4
+  },
+  "$results": [
+    {
+      "FileInfo": {
+        "LastModified": "2017-02-21T12:00:46.000+01:00"
+      },
+      "#id": "id_got_1",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "id_got_1",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatId": "x-fmt/111",
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain"
+              },
+              "FileInfo": {
+                "LastModified": "2017-02-21T12:00:46.000+01:00"
+              },
+              "Size": 102400,
+              "Uri": "Content/ID3343.txt",
+              "MessageDigest": "acec1ee2c175cbf7c52ee1a247760150d99794507d98135de1984d26d59c8d7e2014a8f64ffadb73f68913d45020d67b53e6fe8350de3e39419450bdc4f9dbc3",
+              "Algorithm": "SHA-512",
+              "#id": "id_got_1_object_1",
+              "#opi": "opi1",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            },
+            {
+              "DataObjectGroupId": "id_got_1",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatId": "x-fmt/111",
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain"
+              },
+              "FileInfo": {
+                "LastModified": "2017-02-21T12:00:46.000+01:00"
+              },
+              "Size": 102400,
+              "Uri": "Content/ID3343.txt",
+              "MessageDigest": "acec1ee2c175cbf7c52ee1a247760150d99794507d98135de1984d26d59c8d7e2014a8f64ffadb73f68913d45020d67b53e6fe8350de3e39419450bdc4f9dbc3",
+              "Algorithm": "SHA-512",
+              "#id": "id_got_1_object_2",
+              "#opi": "opi1",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "id_unit_1"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahe5s47aali4alft5vojfiaabea"
+      ],
+      "#operations": [
+        "opi1"
+      ],
+      "#opi": "opi1",
+      "#originating_agency": "sp_1",
+      "#originating_agencies": [
+        "sp_1"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-02-21T12:00:46.000+01:00"
+      },
+      "#id": "id_got_2",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "id_got_2",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatId": "x-fmt/111",
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain"
+              },
+              "FileInfo": {
+                "LastModified": "2017-02-21T12:00:46.000+01:00"
+              },
+              "Size": 102400,
+              "Uri": "Content/ID3587.txt",
+              "MessageDigest": "e89184f81dbea83cb75a262dba2e9de54876734d8577d27c9ee2e98f68ae2946a910939ca9b789a3089a4aa7df7934538d5279a6074e84f20bd5476eb944c02b",
+              "Algorithm": "SHA-512",
+              "#id": "id_got_2_object_1",
+              "#opi": "opi2",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "id_unit_20",
+        "id_unit_21"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahe5s47aali4alft5vojfiaabea"
+      ],
+      "#operations": [
+        "opi2"
+      ],
+      "#opi": "opi2",
+      "#originating_agency": "sp_2",
+      "#originating_agencies": [
+        "sp_2"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-02-21T12:00:46.000+01:00"
+      },
+      "#id": "id_got_3",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "id_got_3",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatId": "x-fmt/111",
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain"
+              },
+              "FileInfo": {
+                "LastModified": "2017-02-21T12:00:46.000+01:00"
+              },
+              "Size": 102400,
+              "Uri": "Content/ID3587.txt",
+              "MessageDigest": "e89184f81dbea83cb75a262dba2e9de54876734d8577d27c9ee2e98f68ae2946a910939ca9b789a3089a4aa7df7934538d5279a6074e84f20bd5476eb944c02b",
+              "Algorithm": "SHA-512",
+              "#id": "id_got_3_object_1",
+              "#opi": "opi3",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "id_unit_3"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahe5s47aali4alft5vojfiaabea"
+      ],
+      "#operations": [
+        "opi3"
+      ],
+      "#opi": "opi3",
+      "#originating_agency": "sp_3",
+      "#originating_agencies": [
+        "sp_3"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-02-21T12:00:46.000+01:00"
+      },
+      "#id": "id_got_5",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "id_got_5",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatId": "x-fmt/111",
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain"
+              },
+              "FileInfo": {
+                "LastModified": "2017-02-21T12:00:46.000+01:00"
+              },
+              "Size": 102400,
+              "Uri": "Content/ID3587.txt",
+              "MessageDigest": "e89184f81dbea83cb75a262dba2e9de54876734d8577d27c9ee2e98f68ae2946a910939ca9b789a3089a4aa7df7934538d5279a6074e84f20bd5476eb944c02b",
+              "Algorithm": "SHA-512",
+              "#id": "id_got_5_object_1",
+              "#opi": "opi5",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "id_unit_50",
+        "id_unit_51",
+        "id_unit_52"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahe5s47aali4alft5vojfiaabea"
+      ],
+      "#operations": [
+        "opi5"
+      ],
+      "#opi": "opi5",
+      "#originating_agency": "sp_5",
+      "#originating_agencies": [
+        "sp_5"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

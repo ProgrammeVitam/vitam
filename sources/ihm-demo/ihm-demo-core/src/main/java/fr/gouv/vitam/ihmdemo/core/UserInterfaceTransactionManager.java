@@ -153,6 +153,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * Start elimination action
+     *
+     * @param parameters input for elimination workflow
+     * @param context    Vitamcontext
+     * @return result    HTTP response
+     * @throws VitamClientException
+     */
+    public static RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.startEliminationAction(context, parameters);
+        }
+    }
+
+    /**
      * Massive AU update
      *
      * @param parameters search criteria as DSL query
