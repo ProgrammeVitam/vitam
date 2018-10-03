@@ -94,7 +94,7 @@ public class MongoRule extends ExternalResource {
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
 
         // Ensure index unique
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Opc", 1).append("_tenant", 1),
+        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
                 new IndexOptions().unique(true));
 
         mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));

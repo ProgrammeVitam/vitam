@@ -51,11 +51,13 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.migration.r7tor8.AccessionRegisterMigrationRepository;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -86,11 +88,12 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(MetadataMigrationIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class
-            ));
+            new VitamServerRunner(MetadataMigrationIT.class, mongoRule.getMongoDatabase().getName(),
+                    elasticsearchRule.getClusterName(),
+                    Sets.newHashSet(
+                            MetadataMain.class,
+                            AdminManagementMain.class
+                    ));
 
     private static final int PORT_ADMIN_METADATA = 28098;
     private static final int PORT_SERVICE_METADATA = 8098;
@@ -122,8 +125,8 @@ public class MetadataMigrationIT extends VitamRuleRunner {
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
         Retrofit retrofit =
-            new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
-                .addConverterFactory(JacksonConverterFactory.create()).build();
+                new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
+                        .addConverterFactory(JacksonConverterFactory.create()).build();
         metadataAdminMigrationService = retrofit.create(MetadataAdminMigrationService.class);
 
         unitCollection = MetadataCollections.UNIT.getCollection();
@@ -135,24 +138,32 @@ public class MetadataMigrationIT extends VitamRuleRunner {
         runAfter();
     }
 
+
     @Test
     public void startDataMigration_failedAuthn() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration("BAD TOKEN").execute();
+                response = metadataAdminMigrationService.startDataMigration("BAD TOKEN").execute();
         assertThat(response.isSuccessful()).isFalse();
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            responseMigrationInProgress = metadataAdminMigrationService.checkDataMigrationInProgress().execute();
+                responseMigrationInProgress = metadataAdminMigrationService.checkDataMigrationInProgress().execute();
         assertThat(responseMigrationInProgress.code())
-            .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void test_migration_purge_indexes() throws Exception {
+
+        AccessionRegisterMigrationRepository accessionRegisterMigrationRepository = new AccessionRegisterMigrationRepository();
+        accessionRegisterMigrationRepository.migrateIndexes();
     }
 
     @Test
     public void startDataMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -162,7 +173,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
     public void startDataMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -175,7 +186,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
             Thread.sleep(1000);
 
             Response<MetadataMigrationAdminResource.ResponseMessage> responseMigrationInProgress =
-                metadataAdminMigrationService.checkDataMigrationInProgress().execute();
+                    metadataAdminMigrationService.checkDataMigrationInProgress().execute();
             if (responseMigrationInProgress.code() == javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode())
                 return;
         }
@@ -192,7 +203,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
         // When
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -201,12 +212,12 @@ public class MetadataMigrationIT extends VitamRuleRunner {
         assertDataSetEqualsExpectedFile(unitCollection, expectedUnitDataSetFile);
 
         String expectedOGDataSetFile =
-            "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
+                "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
         assertDataSetEqualsExpectedFile(ogCollection, expectedOGDataSetFile);
     }
 
     private void importUnitDataSetFile(String dataSetFile)
-        throws FileNotFoundException, InvalidParseOperationException {
+            throws FileNotFoundException, InvalidParseOperationException {
 
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
@@ -216,7 +227,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
     }
 
     private void importObjectGroupDataSetFile(String dataSetFile)
-        throws FileNotFoundException, InvalidParseOperationException {
+            throws FileNotFoundException, InvalidParseOperationException {
 
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
@@ -226,24 +237,24 @@ public class MetadataMigrationIT extends VitamRuleRunner {
     }
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
-        throws InvalidParseOperationException, FileNotFoundException {
+            throws InvalidParseOperationException, FileNotFoundException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection);
 
         String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
         String expectedUnitDataSet =
-            JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                expectedDataSetFile)));
+                JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                        expectedDataSetFile)));
 
         JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find()
-            .sort(orderBy(ascending(MetadataDocument.ID)));
+                .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
             ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
@@ -260,14 +271,14 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
     private String getBasicAuthnToken() {
         return "Basic " + Base64.getEncoder()
-            .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
+                .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
     }
 
     public interface MetadataAdminMigrationService {
 
         @POST("/metadata/v1/migration")
         Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-            @Header("Authorization") String basicAuthnToken);
+                @Header("Authorization") String basicAuthnToken);
 
         @GET("/metadata/v1/migration/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();

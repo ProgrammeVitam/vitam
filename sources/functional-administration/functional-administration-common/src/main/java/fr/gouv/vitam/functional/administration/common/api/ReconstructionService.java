@@ -30,6 +30,10 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.bson.Document;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Reconstrution of Vitam Collections interface.<br>
@@ -65,4 +69,7 @@ public interface ReconstructionService {
 
     void computeAccessionRegisterSummary(String originatingAgency, Integer tenant);
 
+    Document prepareAccessionRegisterSummary(Document aggregation);
+
+    List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
 }
