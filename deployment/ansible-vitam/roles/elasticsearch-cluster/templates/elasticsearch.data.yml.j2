@@ -21,6 +21,7 @@ cluster.name: {{ composant.cluster_name }}
 # Use a descriptive name for the node:
 #
 node.name: {{ inventory_hostname }}
+# TODO: Better handling of this as we have to modify wich nodes are requested by VITAM
 node.master: {{ is_master|default('true') }}
 node.data: {{ is_data|default('true') }}
 #
@@ -41,7 +42,7 @@ path.logs: {{ elasticsearch_log_dir }}
 # ----------------------------------- Memory -----------------------------------
 #
 # Lock the memory on startup:
-#
+# = Disable swapping
 bootstrap.memory_lock: true
 #
 # Make sure that the `ES_HEAP_SIZE` environment variable is set to about half the memory
@@ -79,7 +80,7 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-d
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #
-discovery.zen.minimum_master_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor') |int }}
+discovery.zen.minimum_master_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor')| int }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
@@ -89,7 +90,7 @@ discovery.zen.minimum_master_nodes: {{ ((groups['hosts-elasticsearch-data']|leng
 # Block initial recovery after a full cluster restart until N nodes are started:
 #
 gateway.expected_nodes: {{ (groups['hosts-elasticsearch-data'] | length) }}
-gateway.recover_after_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor') |int }}
+gateway.recover_after_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)+1)| round (0, 'floor')| int }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-gateway.html>
@@ -103,13 +104,8 @@ gateway.recover_after_nodes: {{ ((groups['hosts-elasticsearch-data']|length / 2)
 # Require explicit names when deleting indices:
 #
 action.destructive_requires_name: true
-#{% if groups['hosts-elasticsearch-data']|length == 1 %}
-#index.number_of_replicas: 0
-#{% else %}
-#index.number_of_replicas: 2
-#{% endif %}#
 
-
+# For Vitam multiquery
 indices.query.bool.max_clause_count: 10000
 
 {% if composant.index_buffer_size_ratio is defined %}
@@ -121,7 +117,7 @@ indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composan
 # thread_pool configuration
 thread_pool:
     index:
-        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int  }}
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int }}
         queue_size: 5000
     get:
         size: {{ (ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int }}

@@ -21,6 +21,7 @@ cluster.name: {{ composant.cluster_name }}
 # Use a descriptive name for the node:
 #
 node.name: {{ inventory_hostname }}
+# TODO: Better handling of this as we have to modify wich nodes are requested by logstash / kibana
 node.master: {{ is_master|default('true') }}
 node.data: {{ is_data|default('true') }}
 #
@@ -41,7 +42,7 @@ path.logs: {{ elasticsearch_log_dir }}
 # ----------------------------------- Memory -----------------------------------
 #
 # Lock the memory on startup:
-#
+# = Disable swapping
 bootstrap.memory_lock: true
 #
 # Make sure that the `ES_HEAP_SIZE` environment variable is set to about half the memory
@@ -103,5 +104,3 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-l
 # Require explicit names when deleting indices:
 #
 action.destructive_requires_name: true
-
-indices.query.bool.max_clause_count: 10000
