@@ -495,6 +495,9 @@ public class ProfileServiceImpl implements ProfileService {
                     validateUpdateAction(profileModel, error, field, value, manager);
                 }
             }
+
+            ((ObjectNode) fieldName).remove(ProfileModel.CREATION_DATE);
+            ((ObjectNode) fieldName).put(ProfileModel.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {

@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -88,6 +89,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.bson.conversions.Bson;
+import org.jclouds.json.Json;
 
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -826,6 +828,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         }
                     }
                 }
+
+                ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
