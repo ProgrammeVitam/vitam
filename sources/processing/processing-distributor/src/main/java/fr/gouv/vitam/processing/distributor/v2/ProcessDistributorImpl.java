@@ -643,12 +643,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
         final String contextId = VitamThreadUtils.getVitamSession().getContextId();
 
-        if (bufferedReader == null) {
-            step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
-                new ItemStatus(OBJECTS_LIST_EMPTY).increment(step.getDistribution().getStatusOnEmptyDistribution()));
-            return false;
-        }
-
         // initialization
         int offset = 0;
 
@@ -732,7 +726,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(bufferedReader.lines().iterator());
 
-
+        boolean isEmptyDistribution = !initFromDistributorIndex && !linesPeekIterator.hasNext();
+        if (isEmptyDistribution) {
+            step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
+                new ItemStatus(OBJECTS_LIST_EMPTY).increment(step.getDistribution().getStatusOnEmptyDistribution()));
+            return false;
+        }
 
         while (linesPeekIterator.hasNext()) {
 
