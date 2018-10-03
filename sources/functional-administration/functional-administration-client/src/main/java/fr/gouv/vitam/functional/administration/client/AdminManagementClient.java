@@ -204,11 +204,10 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param register AccessionRegisterDetail
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
-     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException when
      */
     RequestResponse<AccessionRegisterDetailModel> createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
-        throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
+        throws AccessionRegisterException, AdminManagementClientServerException;
 
     /**
      * Get the accession register summary matching the given query

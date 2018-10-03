@@ -1,8 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -14,21 +12,25 @@ import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionRepo
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
-public class EliminationActionFinalizationHandlerTest {
+public class EliminationActionAccessionRegisterPreparationHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -37,7 +39,7 @@ public class EliminationActionFinalizationHandlerTest {
     private EliminationActionReportService eliminationActionReportService;
 
     @InjectMocks
-    private EliminationActionFinalizationHandler instance;
+    private EliminationActionAccessionRegisterPreparationHandler instance;
 
     @Mock
     private HandlerIO handler;
@@ -50,10 +52,12 @@ public class EliminationActionFinalizationHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
+        doAnswer(args -> tempFolder.newFile(args.getArgumentAt(0, String.class))).when(handler).getNewLocalFile(any());
+
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
-            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+            .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
             .setCurrentStep("StepName");
 
@@ -63,14 +67,13 @@ public class EliminationActionFinalizationHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testExecute_OK() throws Exception {
+    public void testExecuteSuccess() throws Exception {
 
         // Given / When
-        ItemStatus itemStatus = instance.execute(params, handler);
+        instance.execute(params, handler);
 
         // Then
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         verify(eliminationActionReportService)
-            .cleanupReport(any());
+            .exportAccessionRegisters(VitamThreadUtils.getVitamSession().getRequestId());
     }
 }

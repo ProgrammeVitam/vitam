@@ -355,7 +355,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Can not parse register", e);
             itemStatus.increment(StatusCode.KO);
-        } catch (AccessionRegisterException | DatabaseConflictException e) {
+        } catch (AccessionRegisterException e) {
             LOGGER.error("Can not create func register", e);
             itemStatus.increment(StatusCode.KO);
         } catch (MetaDataClientServerException e) {

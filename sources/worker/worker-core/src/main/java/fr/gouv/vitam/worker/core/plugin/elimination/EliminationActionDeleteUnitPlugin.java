@@ -54,8 +54,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
 import org.apache.commons.collections4.SetUtils;
 
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
 
     private final EliminationActionDeleteService eliminationActionDeleteService;
     private final MetaDataClientFactory metaDataClientFactory;
-    private final EliminationActionUnitReportService eliminationActionUnitReportService;
+    private final EliminationActionReportService eliminationActionReportService;
 
     /**
      * Default constructor
@@ -90,7 +90,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         this(
             new EliminationActionDeleteService(),
             MetaDataClientFactory.getInstance(),
-            new EliminationActionUnitReportService());
+            new EliminationActionReportService());
     }
 
     /***
@@ -100,10 +100,10 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
     EliminationActionDeleteUnitPlugin(
         EliminationActionDeleteService eliminationActionDeleteService,
         MetaDataClientFactory metaDataClientFactory,
-        EliminationActionUnitReportService eliminationActionUnitReportService) {
+        EliminationActionReportService eliminationActionReportService) {
         this.eliminationActionDeleteService = eliminationActionDeleteService;
         this.metaDataClientFactory = metaDataClientFactory;
-        this.eliminationActionUnitReportService = eliminationActionUnitReportService;
+        this.eliminationActionReportService = eliminationActionReportService;
     }
 
     @Override
@@ -172,7 +172,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
                 unitId, originatingAgency, initialOperation, objectGroupId, eliminationActionUnitStatus));
         }
 
-        eliminationActionUnitReportService.appendEntries(processId, eliminationUnitReportEntries);
+        eliminationActionReportService.appendUnitEntries(processId, eliminationUnitReportEntries);
 
         try {
             eliminationActionDeleteService.deleteUnits(unitsToDelete);

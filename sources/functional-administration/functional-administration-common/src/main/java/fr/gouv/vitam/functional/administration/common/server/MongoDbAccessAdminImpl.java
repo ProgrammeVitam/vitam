@@ -92,8 +92,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             return dbrequest.execute(insertquery, version);
         } catch (MongoBulkWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
             InvalidCreateOperationException | VitamDBException e) {
-            LOGGER.error("Insert Documents Exception", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Insert Documents Exception", e);
         }
     }
 

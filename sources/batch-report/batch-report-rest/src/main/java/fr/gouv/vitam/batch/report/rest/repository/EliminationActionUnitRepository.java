@@ -29,8 +29,11 @@ package fr.gouv.vitam.batch.report.rest.repository;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Sorts;
+import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
@@ -38,12 +41,14 @@ import org.bson.Document;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
 
 /**
  * ReportRepository
@@ -86,7 +91,10 @@ public class EliminationActionUnitRepository extends EliminationCommonRepository
                     new Document("params.objectGroupId", "$_metadata.objectGroupId")
                     )
                 ))
-        ).iterator();
+        )
+            // Aggregation query requires more than 100MB to proceed.
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {
@@ -102,16 +110,43 @@ public class EliminationActionUnitRepository extends EliminationCommonRepository
      */
     public MongoCursor<String> distinctObjectGroupOfDeletedUnits(String processId, int tenantId) {
         DistinctIterable<String> distinctObjectGroup =
-            unitReportCollection.distinct(METADATA_OBJECT_GROUP_ID, and(eq(EliminationActionUnitModel.PROCESS_ID, processId),
-                eq("_metadata.status", "DELETED"), eq(EliminationActionUnitModel.TENANT, tenantId)), String.class);
+            unitReportCollection
+                .distinct(METADATA_OBJECT_GROUP_ID, and(eq(EliminationActionUnitModel.PROCESS_ID, processId),
+                    eq("_metadata.status", "DELETED"), eq(EliminationActionUnitModel.TENANT, tenantId)), String.class);
         return distinctObjectGroup.iterator();
     }
 
     /**
-     * TODO JBP
+     * Compute Own AccessionRegisterDetails
      */
-    public Optional<EliminationActionUnitModel> computeRegisterDetails(String processId) {
-        //TODO : JBP
-        return Optional.empty();
+    public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
+        return unitReportCollection.aggregate(
+            Arrays.asList(
+                // Filter
+                Aggregates.match(and(
+                    eq(EliminationActionObjectGroupModel.PROCESS_ID, processId),
+                    eq(EliminationActionObjectGroupModel.TENANT, tenantId),
+                    eq("_metadata.status", "DELETED")
+                )),
+                // Group By
+                Aggregates.group("$_metadata." + OPI,
+                    Accumulators.first(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
+                    Accumulators.sum(TOTAL_UNITS, 1)
+                ),
+                // Projection
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document(OPI, "$_id"),
+                    new Document(ORIGINATING_AGENCY, 1),
+                    new Document(TOTAL_UNITS, 1)
+                    )
+                ),
+                // Sort
+                Aggregates.sort(Sorts.descending("opi"))
+            )
+        )
+            // Aggregation query requires more than 100MB to proceed.
+            .allowDiskUse(true)
+            .iterator();
     }
 }

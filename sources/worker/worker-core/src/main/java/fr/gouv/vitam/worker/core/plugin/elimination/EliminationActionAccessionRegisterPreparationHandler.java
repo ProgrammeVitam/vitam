@@ -41,31 +41,33 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
- * Elimination action finalization handler.
+ * Elimination action accession register preparation handler.
  */
-public class EliminationActionFinalizationHandler extends ActionHandler {
+public class EliminationActionAccessionRegisterPreparationHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionFinalizationHandler.class);
+        VitamLoggerFactory.getInstance(EliminationActionAccessionRegisterPreparationHandler.class);
 
-    private static final String ELIMINATION_ACTION_FINALIZATION = "ELIMINATION_ACTION_FINALIZATION";
+    private static final String ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION =
+        "ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION";
+
 
     private final EliminationActionReportService eliminationActionReportService;
 
     /**
      * Default constructor
      */
-    public EliminationActionFinalizationHandler() {
-        this(new EliminationActionReportService());
+    public EliminationActionAccessionRegisterPreparationHandler() {
+        this(
+            new EliminationActionReportService());
     }
 
     /***
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionFinalizationHandler(
+    EliminationActionAccessionRegisterPreparationHandler(
         EliminationActionReportService eliminationActionReportService) {
         this.eliminationActionReportService = eliminationActionReportService;
     }
@@ -76,16 +78,26 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
 
         try {
 
-            eliminationActionReportService.cleanupReport(param.getContainerName());
+            exportAccessionRegister(param.getContainerName());
 
-            LOGGER.info("Elimination action finalization succeeded");
-            return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, StatusCode.OK, null);
+            LOGGER.info("Elimination action accession register preparation succeeded");
+            return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, StatusCode.OK, null);
 
         } catch (EliminationException e) {
             LOGGER.error(
-                String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
-            return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, e.getStatusCode(), e.getEventDetails());
+                String
+                    .format("Elimination action accession register preparation failed with status [%s]",
+                        e.getStatusCode()),
+                e);
+            return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, e.getStatusCode(),
+                e.getEventDetails());
         }
+    }
+
+    private void exportAccessionRegister(String processId) throws EliminationException {
+
+        eliminationActionReportService.exportAccessionRegisters(processId);
+
     }
 
     @Override
@@ -94,6 +106,6 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
     }
 
     public static String getId() {
-        return ELIMINATION_ACTION_FINALIZATION;
+        return ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION;
     }
 }

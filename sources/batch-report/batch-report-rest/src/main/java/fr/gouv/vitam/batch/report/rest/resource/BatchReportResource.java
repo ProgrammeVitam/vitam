@@ -155,8 +155,32 @@ public class BatchReportResource extends ApplicationStatusResource {
             ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportDistinctObjectGroupOfDeletedUnits(
+            batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(
                 processId, reportExportRequest.getFilename(), tenantId);
+            return Response.status(Response.Status.OK).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            throw new BadRequestException(e);
+        }
+    }
+
+    @Path("/elimination_action/accession_register_export/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportEliminationActionAccessionRegister(@PathParam("processId") String processId, JsonNode body)
+        throws ContentAddressableStorageServerException, IOException {
+
+        try {
+
+            ParametersChecker.checkParameter("processId should be filed",
+                processId);
+
+            ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+            batchReportServiceImpl.exportEliminationActionAccessionRegister(
+                processId, reportExportRequest.getFilename(), tenantId);
+
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             throw new BadRequestException(e);

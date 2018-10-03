@@ -27,8 +27,8 @@
 package fr.gouv.vitam.batch.report.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -48,15 +48,15 @@ import javax.ws.rs.core.Response;
  */
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 
-
-
     private static final String APPEND = "append";
     private static final String CLEANUP = "cleanup";
-    public static final String EXPORT_UNIT = "elimination_action_unit/unit_export/";
-    public static final String EXPORT_OBJECTGROUP = "elimination_action_objectgroup/objectgroup_export/";
-    public static final String EXPORT_DISTINCT_OBJECTGROUP = "elimination_action_unit/objectgroup_export/";
-
-
+    private static final String EXPORT_ELIMINATION_ACTION_UNIT = "elimination_action_unit/unit_export/";
+    private static final String EXPORT_ELIMINATION_ACTION_OBJECTGROUP =
+        "elimination_action_objectgroup/objectgroup_export/";
+    private static final String EXPORT_ELIMINATION_ACTION_UNIT_DISTINCT_OBJECTGROUPS =
+        "elimination_action_unit/objectgroup_export/";
+    private static final String EXPORT_ELIMINATION_ACTION_ACCESSION_REGISTER =
+        "elimination_action/accession_register_export/";
 
     /**
      * Constructor using given scheme (http)
@@ -70,98 +70,86 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     @Override
     public RequestResponse<JsonNode> generateEliminationActionUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
-        Response response = null;
-        try {
-            ParametersChecker.checkParameter("processId and reportExportRequest should be filled",
-                processId, reportExportRequest);
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            response =
-                performRequest(HttpMethod.POST, EXPORT_UNIT + processId, headers,
-                    reportExportRequest,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
+            reportExportRequest);
+
+        return httpPost(EXPORT_ELIMINATION_ACTION_UNIT + processId, reportExportRequest);
     }
 
     @Override
     public RequestResponse<JsonNode> generateEliminationActionObjectGroupReport(String processId,
         ReportExportRequest reportExportRequest)
         throws VitamClientInternalException {
-        Response response = null;
-        try {
-            ParametersChecker.checkParameter("processId and should be filled", processId,
-                reportExportRequest);
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            response =
-                performRequest(HttpMethod.POST, EXPORT_OBJECTGROUP + processId, headers,
-                    reportExportRequest,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
+            reportExportRequest);
+
+        return httpPost(EXPORT_ELIMINATION_ACTION_OBJECTGROUP + processId, reportExportRequest);
     }
 
     @Override
     public RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
-        String status,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
-        Response response = null;
-        try {
-            ParametersChecker.checkParameter("status should be filled", status);
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            response =
-                performRequest(HttpMethod.POST, EXPORT_DISTINCT_OBJECTGROUP + processId, headers,
-                    reportExportRequest,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
+            reportExportRequest);
+
+        return httpPost(EXPORT_ELIMINATION_ACTION_UNIT_DISTINCT_OBJECTGROUPS + processId, reportExportRequest);
     }
 
     @Override
     public RequestResponse<JsonNode> appendReportEntries(ReportBody reportBody)
         throws VitamClientInternalException {
-        Response response = null;
-        try {
-            ParametersChecker.checkParameter("Body should be filled", reportBody);
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        ParametersChecker.checkParameter("Body should be filled", reportBody);
 
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            response =
-                performRequest(HttpMethod.POST, APPEND, headers, reportBody,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        return httpPost(APPEND, reportBody);
+    }
+
+    @Override
+    public RequestResponse<JsonNode> generateEliminationActionAccessionRegisterReport(String processId,
+        ReportExportRequest reportExportRequest) throws VitamClientInternalException {
+
+        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
+            reportExportRequest);
+
+        return httpPost(EXPORT_ELIMINATION_ACTION_ACCESSION_REGISTER + processId, reportExportRequest);
     }
 
     @Override
     public RequestResponse<JsonNode> cleanupReport(String processId, ReportType reportType)
         throws VitamClientInternalException {
+
+        ParametersChecker.checkParameter("processId and reportType should be filled", processId, reportType);
+
+        return httpDelete(CLEANUP + "/" + reportType + "/" + processId);
+    }
+
+    private RequestResponse<JsonNode> httpPost(String path, Object body)
+        throws VitamClientInternalException {
+        return httpRequest(HttpMethod.POST, path, body);
+    }
+
+    private RequestResponse<JsonNode> httpDelete(String path)
+        throws VitamClientInternalException {
+        return httpRequest(HttpMethod.DELETE, path, null);
+    }
+
+    private RequestResponse<JsonNode> httpRequest(String httpMethod, String path, Object body)
+        throws VitamClientInternalException {
+
         Response response = null;
         try {
-            ParametersChecker.checkParameter("ReportType should be filled", reportType);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            response = performRequest(HttpMethod.DELETE, CLEANUP + "/" + reportType + "/" + processId, headers,
-                MediaType.APPLICATION_JSON_TYPE);
+            if (body == null) {
+                response = performRequest(httpMethod, path, headers, MediaType.APPLICATION_JSON_TYPE);
+            } else {
+                response = performRequest(httpMethod, path, headers, body,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            }
             return RequestResponse.parseFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);

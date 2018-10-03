@@ -64,7 +64,7 @@ public class VersionsModel {
     private MetadataModel metadata;
 
     @JsonProperty("Size")
-    private int size;
+    private long size;
 
     @JsonProperty("Uri")
     private String uri;
@@ -184,11 +184,11 @@ public class VersionsModel {
         this.metadata = metadata;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 

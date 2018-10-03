@@ -53,8 +53,8 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitS
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
 import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -67,7 +67,6 @@ import java.util.Iterator;
 
 import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
 
 /**
  * Elimination action unit preparation handler.
@@ -88,7 +87,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final EliminationAnalysisService eliminationAnalysisService;
-    private final EliminationActionUnitReportService eliminationActionUnitReportService;
+    private final EliminationActionReportService eliminationActionReportService;
 
     /**
      * Default constructor
@@ -97,7 +96,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
         this(
             MetaDataClientFactory.getInstance(),
             new EliminationAnalysisService(),
-            new EliminationActionUnitReportService());
+            new EliminationActionReportService());
     }
 
     /***
@@ -107,10 +106,10 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
     EliminationActionUnitPreparationHandler(
         MetaDataClientFactory metaDataClientFactory,
         EliminationAnalysisService eliminationAnalysisService,
-        EliminationActionUnitReportService eliminationActionUnitReportService) {
+        EliminationActionReportService eliminationActionReportService) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.eliminationAnalysisService = eliminationAnalysisService;
-        this.eliminationActionUnitReportService = eliminationActionUnitReportService;
+        this.eliminationActionReportService = eliminationActionReportService;
     }
 
     @Override
@@ -172,7 +171,8 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
                         case DESTROY:
 
-                            unitsToDeleteWriter.addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), null));
+                            unitsToDeleteWriter
+                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), null));
                             nbDestroyableUnits++;
                             break;
 
@@ -225,7 +225,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
     private BufferedConsumer<EliminationActionUnitReportEntry> createReportAppender(String processId) {
         return new BufferedConsumer<>(UNIT_REPORT_BUFFER_SIZE, entries -> {
             try {
-                eliminationActionUnitReportService.appendEntries(processId, entries);
+                eliminationActionReportService.appendUnitEntries(processId, entries);
             } catch (EliminationException e) {
                 throw new RuntimeException(e);
             }

@@ -14,3 +14,4 @@ db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metada
 // Create indexes EliminationActionObjectGroup
 db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1 } )
 db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )

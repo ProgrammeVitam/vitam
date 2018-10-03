@@ -16,10 +16,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportService;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportExportEntry;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;
@@ -59,10 +58,7 @@ public class EliminationActionReportGenerationHandlerTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private EliminationActionUnitReportService eliminationActionUnitReportService;
-
-    @Mock
-    private EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService;
+    private EliminationActionReportService eliminationActionReportService;
 
     @Mock
     private BackupService backupService;
@@ -94,7 +90,6 @@ public class EliminationActionReportGenerationHandlerTest {
             .when(handler).getContainerName();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testExecute_OK() throws Exception {
@@ -108,17 +103,17 @@ public class EliminationActionReportGenerationHandlerTest {
                 EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS),
             new EliminationActionUnitReportEntry("id_unit_4", "sp4", "opi4", "id_got_2",
                 EliminationActionUnitStatus.GLOBAL_STATUS_KEEP)).iterator()))
-            .when(eliminationActionUnitReportService).exportUnits(any());
+            .when(eliminationActionReportService).exportUnits(any());
 
         doReturn(CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new EliminationActionObjectGroupReportEntry("id_got_1", "sp1", "opi1", null,
+            new EliminationActionObjectGroupReportExportEntry("id_got_1", "sp1", "opi1", null,
                 new HashSet<>(Arrays.asList("id_got_1_object_1", "id_got_1_object_2")),
                 EliminationActionObjectGroupStatus.DELETED),
-            new EliminationActionObjectGroupReportEntry("id_got_2",
+            new EliminationActionObjectGroupReportExportEntry("id_got_2",
                 "sp2", "opi2", new HashSet<>(singletonList("id_unit_2")), null,
                 EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT))
             .iterator()))
-            .when(eliminationActionObjectGroupReportService).exportObjectGroups(any());
+            .when(eliminationActionReportService).exportObjectGroups(any());
 
         AtomicReference<String> reportReference = new AtomicReference<>();
         doAnswer((args) -> {

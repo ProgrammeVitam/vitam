@@ -36,11 +36,8 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
@@ -48,7 +45,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDate;
 
 public final class EliminationUtils {

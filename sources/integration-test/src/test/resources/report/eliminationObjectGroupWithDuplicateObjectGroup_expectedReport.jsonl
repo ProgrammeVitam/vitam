@@ -1,0 +1,8 @@
+{"id":"unitId4","params":{"id":"unitId4","status":"DELETED","opi":"opi0","originatingAgency":"sp1","objectGroupId":"id4"}}
+{"id":"unitId3","params":{"id":"unitId3","status":"DELETED","opi":"opi3","originatingAgency":"sp2","objectGroupId":"id3"}}
+{"id":"unitId2","params":{"id":"unitId2","status":"DELETED","opi":"opi0","originatingAgency":"sp1","objectGroupId":"id2"}}
+{"id":"unitId1","params":{"id":"unitId1","status":"DELETED","opi":"opi1","originatingAgency":"sp1","objectGroupId":"id1"}}
+{"id":"unitId8","params":{"id":"unitId8","status":"DELETED","opi":"opi3","originatingAgency":"sp2","objectGroupId":"id8"}}
+{"id":"unitId7","params":{"id":"unitId7","status":"PARTIAL_DESTROY","opi":"opi5","originatingAgency":"sp2","objectGroupId":"id7"}}
+{"id":"unitId6","params":{"id":"unitId6","status":"PARTIAL_DESTROY","opi":"opi3","originatingAgency":"sp2","objectGroupId":"id6"}}
+{"id":"unitId5","params":{"id":"unitId5","status":"DELETED","opi":"opi0","originatingAgency":"sp1","objectGroupId":"id5"}}

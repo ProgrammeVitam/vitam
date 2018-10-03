@@ -25,9 +25,11 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  * accept its terms.
  *******************************************************************************/
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -37,6 +39,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,9 +53,11 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.*;
 import static fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionObjectGroupRepositoryTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
@@ -93,7 +98,7 @@ public class EliminationActionObjectGroupRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"opi\":\"opi0\",\"id\":\"id2\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"deletedParentUnitIds\":[\"parent\",\"parent2\"]}");
+            "{\"opi\":\"opi0\",\"id\":\"id2\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"objectIds\":[\"parent\",\"parent2\"],\"objectVersions\":[{\"opi\":\"opi0\",\"size\":3},{\"opi\":\"opi0add\",\"size\":6}]}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
     }
 
@@ -113,10 +118,40 @@ public class EliminationActionObjectGroupRepositoryTest {
         while (iterator.hasNext()) {
             documents.add(iterator.next());
         }
-        Assertions.assertThat(documents.size()).isEqualTo(3);
+        Assertions.assertThat(documents.size()).isEqualTo(5);
     }
 
-    private List<EliminationActionObjectGroupModel> getDocuments(String filename) throws InvalidParseOperationException {
+    @Test
+    public void compute_own_accession_register_ok()
+        throws InvalidParseOperationException {
+        // Given
+        List<EliminationActionObjectGroupModel> eliminationUnitModels =
+            getDocuments("/eliminationObjectGroupWithDuplicateObjectGroup.json");
+        // When
+        repository.bulkAppendReport(eliminationUnitModels);
+
+        EliminationActionObjectGroupModel first = eliminationUnitModels.iterator().next();
+        // When
+        MongoCursor<Document> iterator = repository.computeOwnAccessionRegisterDetails(first.getProcessId(), TENANT_ID);
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            documents.add(iterator.next());
+        }
+
+        // Then
+        Assertions.assertThat(documents.size()).isEqualTo(3);
+
+        Assertions.assertThat(documents)
+            .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
+            .containsSequence(
+                tuple("sp2", 3, 2, "opi3", 1),
+                tuple("sp1", 7, 2, "opi2", 1),
+                tuple("sp1", 14, 4, "opi0", 2)
+            );
+    }
+
+    private List<EliminationActionObjectGroupModel> getDocuments(String filename)
+        throws InvalidParseOperationException {
         InputStream stream = getClass().getResourceAsStream(filename);
         ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
         return reportBody.getEntries().stream()

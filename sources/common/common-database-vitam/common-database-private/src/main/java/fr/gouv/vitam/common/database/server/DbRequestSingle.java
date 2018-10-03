@@ -259,7 +259,6 @@ public class DbRequestSingle {
         try {
             collection.insertMany(vitamDocumentList);
         } catch (final MongoException e) {
-            LOGGER.warn(e);
             throw new DatabaseException(e);
         }
         insertToElasticsearch(vitamDocumentList);

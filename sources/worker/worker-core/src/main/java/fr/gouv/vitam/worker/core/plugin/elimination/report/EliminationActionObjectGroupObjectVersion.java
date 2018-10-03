@@ -24,10 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.elimination.model;
+package fr.gouv.vitam.worker.core.plugin.elimination.report;
 
-public enum EliminationActionObjectGroupStatus {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    DELETED,
-    PARTIAL_DETACHMENT
+public class EliminationActionObjectGroupObjectVersion {
+
+    @JsonProperty("opi")
+    private String opi;
+
+    @JsonProperty("size")
+    private Long size;
+
+    public EliminationActionObjectGroupObjectVersion() {
+        // Empty constructor for deserialization
+    }
+
+    public EliminationActionObjectGroupObjectVersion(String opi, Long size) {
+        this.opi = opi;
+        this.size = size;
+    }
+
+    public String getOpi() {
+        return opi;
+    }
+
+    public void setOpi(String opi) {
+        this.opi = opi;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
 }

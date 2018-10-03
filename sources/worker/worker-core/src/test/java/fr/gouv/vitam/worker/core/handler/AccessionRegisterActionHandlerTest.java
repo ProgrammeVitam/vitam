@@ -39,11 +39,15 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -159,7 +163,8 @@ public class AccessionRegisterActionHandlerTest {
             new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
 
-        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
+        RequestResponse<AccessionRegisterDetailModel> res =
+            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
             .thenReturn(res);
 
@@ -219,7 +224,7 @@ public class AccessionRegisterActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testResponseKOConflictRegister() throws Exception {
+    public void testResponseConflictAlreadyExecutedAccesionRegister() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
@@ -235,8 +240,15 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
+        VitamError ve =
+            new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState("code_vitam")
+                .setMessage(Response.Status.CONFLICT.getReasonPhrase())
+                .setDescription("Document already exists in database");
+
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
-            .thenThrow(new DatabaseConflictException("DatabaseConflictException"));
+            .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -259,7 +271,7 @@ public class AccessionRegisterActionHandlerTest {
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
 
         // Then
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.ALREADY_EXECUTED, response.getGlobalStatus());
 
     }
 

@@ -118,75 +118,63 @@ public class TransferThread implements Callable<ThreadResponseData> {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
-            if (isRewritableObject(request, connection)) {
+            checkRewritableObject(request, connection);
 
-                // ugly way to get digest from stream
-                // TODO: How to do the cleaner ?
-                // TODO: remove this, check is offer size (#1851) !
-                StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
-                    request.getGuid(), request.getDigestAlgorithm(), request.getDataStream());
-                putObjectRequest.setSize(this.size);
-                StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
-                LOGGER.debug(putObjectRequest.toString());
-                if (Thread.currentThread().isInterrupted()) {
-                    throw new InterruptedException();
-                }
-                // Check digest against offer
-                StorageCheckRequest storageCheckRequest =
-                    new StorageCheckRequest(request.getTenantId(), request.getType(),
-                        request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()), globalDigest.digestHex());
-                if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
-                    LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
-                        HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
-                    throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content "
-                        + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
-                }
-                response = new ThreadResponseData(
-                    new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(),
-                        putObjectResult.getGuid(),
-                        putObjectResult.getDistantObjectId(), globalDigest.digestHex(),
-                        putObjectResult.getObjectSize()),
-                    Response.Status.CREATED, request.getGuid());
-            } else {
-                // TODO: if already exist then cancel and replace. Need rollback
-                // feature (which need remove feature)
-                // TODO with US #1997
-                response = new ThreadResponseData(null, Response.Status.FORBIDDEN, request.getGuid());
+            // ugly way to get digest from stream
+            // TODO: How to do the cleaner ?
+            // TODO: remove this, check is offer size (#1851) !
+            StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
+                request.getGuid(), request.getDigestAlgorithm(), request.getDataStream());
+            putObjectRequest.setSize(this.size);
+            StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
+            LOGGER.debug(putObjectRequest.toString());
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
             }
+            // Check digest against offer
+            StorageCheckRequest storageCheckRequest =
+                new StorageCheckRequest(request.getTenantId(), request.getType(),
+                    request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()), globalDigest.digestHex());
+            if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
+                LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
+                    HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
+                throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content "
+                    + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
+            }
+            response = new ThreadResponseData(
+                new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(),
+                    putObjectResult.getGuid(),
+                    putObjectResult.getDistantObjectId(), globalDigest.digestHex(),
+                    putObjectResult.getObjectSize()),
+                Response.Status.CREATED, request.getGuid());
         }
         return response;
     }
 
-    private boolean isRewritableObject(StoragePutRequest request, Connection connection)
+    private void checkRewritableObject(StoragePutRequest request, Connection connection)
         throws StorageDriverException, StorageAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
-        switch (DataCategory.getByFolder(request.getType())) {
-            case UNIT:
-            case OBJECTGROUP:
-            case BACKUP_OPERATION:
-                return true;
-            default:
-                break;
+
+        DataCategory dataCategory = DataCategory.getByFolder(request.getType());
+
+        if(dataCategory.canUpdate()) {
+            return;
         }
+
         if (connection.objectExistsInOffer(req)) {
-            switch (DataCategory.getByFolder(request.getType())) {
-                // TODO: Distinguish between life cycle logbook and operation
-                // logbook
+            switch (dataCategory) {
                 case LOGBOOK:
                 case OBJECT:
                 case MANIFEST:
                 case REPORT:
                 case PROFILE:
                 case BACKUP:
-                    LOGGER.error(VitamCodeHelper
-                        .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                     throw new StorageAlreadyExistsException(VitamCodeHelper
                         .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                 default:
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
-        return true;
     }
 }

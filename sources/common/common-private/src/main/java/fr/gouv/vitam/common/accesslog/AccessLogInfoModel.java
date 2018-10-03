@@ -1,7 +1,5 @@
 package fr.gouv.vitam.common.accesslog;
 
-import com.google.common.base.Strings;
-
 import java.util.Objects;
 
 public class AccessLogInfoModel {
@@ -15,7 +13,7 @@ public class AccessLogInfoModel {
     private String archiveId;
     private String qualifier;
     private Integer version;
-    private Integer size;
+    private Long size;
 
     public Boolean getMustLog() {
         return mustLog;
@@ -89,15 +87,16 @@ public class AccessLogInfoModel {
         this.version = version;
     }
 
-    public Integer getSize() {
+    public Long getSize() {
         return size;
     }
 
-    public void setSize(Integer size) {
+    public void setSize(Long size) {
         this.size = size;
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
         if (super.equals(o)) {
             return true;
         }

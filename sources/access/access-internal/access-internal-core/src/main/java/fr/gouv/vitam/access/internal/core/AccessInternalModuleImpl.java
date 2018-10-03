@@ -415,7 +415,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         String mimetype = null;
         String filename = null;
         String objectId = null;
-        Integer size = null;
+        Long size = null;
         if (finalversionsResponse != null) {
             if (finalversionsResponse.getFormatIdentification() != null &&
                 !finalversionsResponse.getFormatIdentification().getMimeType().isEmpty()) {
