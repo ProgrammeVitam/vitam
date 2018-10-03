@@ -1452,7 +1452,14 @@
             }
           }
         }
+      },
+      "_sedaVersion": {
+        "type": "keyword"
+      },
+      "_implementationVersion": {
+        "type": "keyword"
       }
+
     }
   }
 }

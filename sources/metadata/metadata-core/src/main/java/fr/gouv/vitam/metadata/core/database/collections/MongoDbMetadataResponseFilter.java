@@ -162,6 +162,12 @@ public class MongoDbMetadataResponseFilter {
                 case ELIMINATION:
                     replace(document, Unit.ELIMINATION, PROJECTIONARGS.ELIMINATION.exactToken());
                     break;
+                case SEDAVERSION:
+                    replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
+                    break;
+                case IMPLEMENTATIONVERSION:
+                    replace(document, MetadataDocument.IMPLEMENTATIONVERSION, VitamFieldsHelper.implementationVersion());
+                    break;
                 case DUA:
                 case ALL:
                 default:

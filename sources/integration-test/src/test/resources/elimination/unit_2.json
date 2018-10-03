@@ -6,8 +6,8 @@
   "OriginatingAgencyArchiveUnitIdentifier": [
     "AR."
   ],
-  "SedaVersion": "2.1",
-  "ImplementationVersion": "1.7.0-SNAPSHOT",
+  "_sedaVersion": "2.1",
+  "_implementationVersion": "1.7.0-SNAPSHOT",
   "_storage": {
     "_nbc": 2,
     "offerIds": [

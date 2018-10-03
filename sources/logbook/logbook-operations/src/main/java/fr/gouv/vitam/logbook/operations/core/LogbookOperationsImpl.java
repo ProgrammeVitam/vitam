@@ -153,6 +153,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 case LAST_PERSISTED_DATE:
                     replace(document, LogbookDocument.LAST_PERSISTED_DATE, VitamFieldsHelper.lastPersistedDate());
                     break;
+                case SEDAVERSION:
+                    replace(document, VitamDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
+                    break;
+                case IMPLEMENTATIONVERSION:
+                    replace(document, VitamDocument.IMPLEMENTATIONVERSION, VitamFieldsHelper.implementationVersion());
+                    break;
                 default:
                     break;
 
