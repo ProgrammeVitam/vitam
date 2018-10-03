@@ -32,7 +32,9 @@ import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfo;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoType;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -79,15 +81,14 @@ public class EliminationAnalysisService {
             // KEEP_ACCESS_SP
             if (shouldKeepAccessToOriginatingAgency(sp, destroyableOriginatingAgencies,
                 nonDestroyableOriginatingAgencies)) {
-                extendedInfo.add(new EliminationExtendedInfo(EliminationExtendedInfoType.KEEP_ACCESS_SP, null));
+                extendedInfo.add(new EliminationExtendedInfoKeepAccessSp());
             }
 
             // ACCESS_LINK_INCONSISTENCY
             List<EliminationExtendedInfoAccessLinkInconsistencyDetails> accessLinkInconsistencies =
                 analyzeAccessLinkInconsistencies(rules, properties, expirationDate);
             for (EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistency : accessLinkInconsistencies) {
-                extendedInfo.add(new EliminationExtendedInfo(EliminationExtendedInfoType.ACCESS_LINK_INCONSISTENCY,
-                    accessLinkInconsistency));
+                extendedInfo.add(new EliminationExtendedInfoAccessLinkInconsistency(accessLinkInconsistency));
             }
         }
 
