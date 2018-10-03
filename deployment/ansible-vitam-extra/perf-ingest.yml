@@ -5,6 +5,6 @@
     - test-perf-ingest
   vars:
     ingest_number: 5
-    sip_name: SIP-1000-102400.zip
+    sip_name: SIP_10000_100.zip
     parallel: "false"
     delay: 5000
