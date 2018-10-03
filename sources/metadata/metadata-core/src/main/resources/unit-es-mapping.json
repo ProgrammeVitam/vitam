@@ -1351,6 +1351,12 @@
       },
       "_unitType": {
         "type": "keyword"
+      },
+      "_sedaVersion": {
+        "type": "keyword"
+      },
+      "_implementationVersion": {
+        "type": "keyword"
       }
     }
   }

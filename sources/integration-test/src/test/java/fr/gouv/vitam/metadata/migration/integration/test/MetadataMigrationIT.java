@@ -52,7 +52,10 @@ import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.OkHttpClient;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.assertj.core.util.Files;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -68,10 +71,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -265,7 +265,7 @@ public class MetadataMigrationIT {
     }
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
-        throws InvalidParseOperationException, FileNotFoundException {
+            throws InvalidParseOperationException, IOException, XmlPullParserException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection);
 
@@ -273,6 +273,14 @@ public class MetadataMigrationIT {
         String expectedUnitDataSet =
             JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
                 expectedDataSetFile)));
+
+        if(updatedUnitDataSet.indexOf("\"_implementationVersion\":\"\"") == -1) {
+            MavenXpp3Reader reader = new MavenXpp3Reader();
+            Model model = reader.read(new FileReader("pom.xml"));
+            expectedUnitDataSet = expectedUnitDataSet.replaceAll("implVersionValue", model.getParent().getVersion());
+        } else {
+            expectedUnitDataSet = expectedUnitDataSet.replaceAll("implVersionValue", "" );
+        }
 
         JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));

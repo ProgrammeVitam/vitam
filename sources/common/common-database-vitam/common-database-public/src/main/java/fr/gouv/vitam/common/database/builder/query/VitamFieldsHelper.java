@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -64,6 +64,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SEDAVERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.IMPLEMENTATIONVERSION;
 
 
 
@@ -97,13 +99,13 @@ public class VitamFieldsHelper {
     public static final String nbobjects() {
         return NBOBJECTS.exactToken();
     }
-    
+
     /**
      * @return #nbc
      */
     public static final String nbc() {
         return NBCHILD.exactToken();
-    }    
+    }
 
     /**
      * @return #all
@@ -317,11 +319,24 @@ public class VitamFieldsHelper {
     public static final String lastPersistedDate() {
         return LAST_PERSISTED_DATE.exactToken();
     }
-    
+
     /**
      * @return #opi
      */
     public static final String initialOperation() {
         return INITIAL_OPERATION.exactToken();
+    }
+
+    /**
+     * @return #version
+     */
+    public static final String sedaVersion() {
+        return SEDAVERSION.exactToken();
+    }
+    /**
+     * @return #version
+     */
+    public static final String implementationVersion() {
+        return IMPLEMENTATIONVERSION.exactToken();
     }
 }

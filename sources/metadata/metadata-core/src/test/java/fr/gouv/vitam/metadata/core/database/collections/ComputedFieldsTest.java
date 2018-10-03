@@ -60,7 +60,7 @@ public class ComputedFieldsTest {
             Unit.CLASSIFICATIONEND, MetadataDocument.QUALIFIERS, MetadataDocument.NBCHILD, MetadataDocument.TYPE,
             MetadataDocument.UP, MetadataDocument.OG, MetadataDocument.OPS, MetadataDocument.OPI,
             MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID, VitamDocument.VERSION, VitamDocument.TENANT_ID,
-            VitamDocument.SCORE);
+            VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION);
 
     private static List<String> expectedGotComputedFields =
         Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
@@ -73,7 +73,7 @@ public class ComputedFieldsTest {
             ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
             MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
             MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
-            VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE);
+            VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION);
 
     @Test
     public void testUnitComputedFields() throws Exception {

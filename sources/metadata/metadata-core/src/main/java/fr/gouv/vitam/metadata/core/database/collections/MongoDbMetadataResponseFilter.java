@@ -156,6 +156,12 @@ public class MongoDbMetadataResponseFilter {
                 case PARENT_ORIGINATING_AGENCIES:
                     remove(document, Unit.PARENT_ORIGINATING_AGENCIES);
                     break;
+                case SEDAVERSION:
+                    replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
+                    break;
+                case IMPLEMENTATIONVERSION:
+                    replace(document, MetadataDocument.IMPLEMENTATIONVERSION, VitamFieldsHelper.implementationVersion());
+                    break;
                 case DUA:
                 case ALL:
                 default:

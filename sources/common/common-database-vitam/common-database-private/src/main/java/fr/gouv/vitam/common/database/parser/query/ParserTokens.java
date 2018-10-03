@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
  * Main language definition
  */
 public class ParserTokens extends BuilderToken {
-    
+
     /**
      * Default prefix for internal variable
      */
@@ -503,11 +503,13 @@ public class ParserTokens extends BuilderToken {
         "_id",
         "_tenant",
         "_v",
-        "_score"));
+        "_score",
+            "_sedaVersion",
+            "_implementationVersion"));
 
     private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY = AdminManagementOntologiesClientFactory.getInstance();
     private static ConcurrentMap<String, Boolean> analyzedOntologyCache = new ConcurrentHashMap<>();
-    
+
     static {
         new OntologiesLoader();
     }
@@ -543,7 +545,7 @@ public class ParserTokens extends BuilderToken {
 
     /**
      * get isAnalyzed flag from cached ontology (reload cache if necessary)
-     * 
+     *
      * @param key
      * @return
      */
@@ -552,7 +554,7 @@ public class ParserTokens extends BuilderToken {
             // force cache reload
             loadOntologies();
         }
-        
+
         return analyzedOntologyCache.get(key);
     }
 
@@ -698,7 +700,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Originating agency
          */
-        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies");
+        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies"),
+        /**
+         * Seda Version
+         */
+        SEDAVERSION("sedaVersion"),
+        /**
+         * Vitam Implementation Version
+         */
+        IMPLEMENTATIONVERSION("implementationVersion");
 
 
         private static final String NOT_FOUND = "Not found";
@@ -828,6 +838,10 @@ public class ParserTokens extends BuilderToken {
                         return GRAPH;
                     case "_glpd":
                         return GRAPH_LAST_PERISTED_DATE;
+                    case "_sedaVersion":
+                        return SEDAVERSION;
+                    case "_implementationVersion":
+                        return IMPLEMENTATIONVERSION;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
@@ -859,7 +873,7 @@ public class ParserTokens extends BuilderToken {
             if (name == null || name.isEmpty()) {
                 return false;
             }
-            
+
             try {
                 Boolean isFieldAnalyzed = getAnalyzedFlagFromCachedOntologies(getKeyFromPathName(name));
                 if (isFieldAnalyzed != null) {
@@ -1166,10 +1180,10 @@ public class ParserTokens extends BuilderToken {
     }
 
     private static class OntologiesLoader implements Runnable {
-        
+
         // TODO : change period
         private Integer period = VitamConfiguration.getExpireCacheEntriesDelay(); // default 5min
-        
+
         public OntologiesLoader() {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
         }

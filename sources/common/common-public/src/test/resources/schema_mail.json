@@ -8,8 +8,8 @@
       "description": "autorise tous les champs techniques"
     },
     "^DataObjectReference$": {},
-    "^ImplementationVersion$": {},
-    "^SedaVersion$": {}
+    "^_implementationVersion$": {},
+    "^_sedaVersion$": {}
   },
   "anyOf": [
     {

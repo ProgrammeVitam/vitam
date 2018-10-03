@@ -151,7 +151,12 @@ public class DescriptiveMetadataMapper {
         }
 
         descriptiveMetadataModel.setSedaVersion(VitamConstants.SEDA_CURRENT_VERSION);
-        descriptiveMetadataModel.setImplementationVersion(this.getClass().getPackage().getImplementationVersion());
+        String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
+        if(vitamImplVersion != null) {
+            descriptiveMetadataModel.setImplementationVersion(vitamImplVersion);
+        } else {
+            descriptiveMetadataModel.setImplementationVersion("");
+        }
 
         return descriptiveMetadataModel;
     }
