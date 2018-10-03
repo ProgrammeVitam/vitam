@@ -203,11 +203,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         step.setStepResponses(new ItemStatus(step.getStepName()));
 
-        // Explicitly flush ElasticSearch indexes for the current tenant
+        // Explicitly refreshes ElasticSearch indexes for the current tenant
+        // (Everything written is now searchable)
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             try {
-                metadataClient.flushUnits();
-                metadataClient.flushObjectGroups();
+                metadataClient.refreshUnits();
+                metadataClient.refreshObjectGroups();
             } catch (MetaDataClientServerException e) {
                 step.getStepResponses().increment(StatusCode.FATAL);
                 LOGGER.error("Illegal Argument Exception", e);

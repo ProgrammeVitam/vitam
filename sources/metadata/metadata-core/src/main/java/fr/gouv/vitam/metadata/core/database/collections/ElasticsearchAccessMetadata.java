@@ -48,8 +48,8 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushResponse;
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
+import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -154,9 +154,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("refreshIndex: " + allIndexes);
         }
-        FlushResponse response =
-            client.admin().indices().flush(new FlushRequest(allIndexes).force(true)).actionGet();
-        LOGGER.debug("Flush request executed with {} successfull shards", response.getSuccessfulShards());
+        RefreshResponse response =
+            client.admin().indices().refresh(new RefreshRequest(allIndexes)).actionGet();
+        LOGGER.debug("Refresh request executed with {} successfull shards", response.getSuccessfulShards());
     }
 
     /**

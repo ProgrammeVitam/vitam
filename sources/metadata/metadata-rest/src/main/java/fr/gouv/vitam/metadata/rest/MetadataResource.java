@@ -403,16 +403,16 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Flush Unit index
+     * Refresh Unit index
      *
      * @return Response
      */
     @Path("units")
     @PUT
     @Produces(APPLICATION_JSON)
-    public Response flushUnit() {
+    public Response refreshUnit() {
         try {
-            metaData.flushUnit();
+            metaData.refreshUnit();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
             response.setHttpCode(OK.getStatusCode());
@@ -508,16 +508,16 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Flush ObjectGroup index
+     * Refresh ObjectGroup index
      *
      * @return Response
      */
     @Path("objectgroups")
     @PUT
     @Produces(APPLICATION_JSON)
-    public Response flushObjectGroup() {
+    public Response refreshObjectGroup() {
         try {
-            metaData.flushObjectGroup();
+            metaData.refreshObjectGroup();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
             response.setHttpCode(OK.getStatusCode());
