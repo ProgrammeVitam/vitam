@@ -216,6 +216,14 @@ export class ReferentialsService {
     return this.resourceService.post('admin/accession-register/symbolic', headers, searchForm);
   }
 
+  getAccessionRegisterSymbolicByDate(id: string, startDate: Date, endDate: Date): Observable<VitamResponse> {
+    const headers = new HttpHeaders()
+      .set('X-Limit', '900')
+      .set('X-Offset', '0');
+    const searchForm = {OriginatingAgency: id, orderby: {field: 'CreationDate', sortType: 'DESC'}, startDate, endDate};
+    return this.resourceService.post('admin/accession-register/symbolic', headers, searchForm);
+  }
+
   getFundRegisterDetailById(id: string, limit: number, offset: number): Observable<VitamResponse> {
     const headers = new HttpHeaders()
       .set('X-Limit', `${limit}`)

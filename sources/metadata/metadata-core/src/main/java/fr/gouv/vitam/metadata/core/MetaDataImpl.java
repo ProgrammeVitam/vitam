@@ -469,7 +469,7 @@ public class MetaDataImpl implements MetaData {
             .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
 
         return OBJECTGROUP.getEsClient()
-            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", 0))
+            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", tenant))
             .getAggregations();
     }
 

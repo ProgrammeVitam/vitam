@@ -27,37 +27,17 @@
 
 package fr.gouv.vitam.ihmdemo.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
 import fr.gouv.vitam.common.database.builder.facet.FiltersFacet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.*;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.SetregexAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
@@ -65,11 +45,24 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestFacetItem;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+import static java.time.ZoneOffset.UTC;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
  * Helper class to create DSL queries
@@ -103,8 +96,10 @@ public final class DslQueryHelper {
     private static final String ONTOLOGY_NAME = "OntologyName";
     private static final String ONTOLOGY_ID = "OntologyID";
     private static final String ORIGINATING_AGENCY_TAG = "#originating_agency";
-    private static final String ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.DestroyableOriginatingAgencies";
-    private static final String ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG = "#elimination.NonDestroyableOriginatingAgencies";
+    private static final String ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG =
+        "#elimination.DestroyableOriginatingAgencies";
+    private static final String ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG =
+        "#elimination.NonDestroyableOriginatingAgencies";
     private static final String ELIMINATION_GLOBAL_STATUS_TAG = "#elimination.GlobalStatus";
     private static final String ELIMINATION_EXTENDED_INFO_TYPE_TAG = "#elimination.ExtendedInfo.ExtendedInfoType";
 
@@ -922,6 +917,24 @@ public final class DslQueryHelper {
 
     }
 
+    public static JsonNode createSearchQueryAccessionRegister(Map<String, Object> options)
+        throws InvalidCreateOperationException {
+        String startDate = (String) options.get("startDate");
+        String endDate = (String) options.get("endDate");
+        String originatingAgency = (String) options.get("OriginatingAgency");
+
+        Date from = Date.from(LocalDateTime.parse(startDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
+        Date to = Date.from(LocalDateTime.parse(endDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
+        RangeQuery range = QueryHelper.range("CreationDate", from, true, to, true);
+
+        CompareQuery eqOriginatingAgency = eq("OriginatingAgency", originatingAgency);
+
+        Select select = new Select();
+        select.setQuery(and().add(eqOriginatingAgency, range));
+
+        return select.getFinalSelect();
+    }
+
     /**
      * Create a JsonNode similar to a composed Select/Update DSL query<br/>
      * Input: {parentId: 'id', childId: 'id', action: 'ADD'} (action can be DELETE)<br/>
@@ -965,7 +978,7 @@ public final class DslQueryHelper {
         ArrayNode actionIds = JsonHandler.createArrayNode();
 
         String actionType;
-        switch((String) optionsMap.get("action")) {
+        switch ((String) optionsMap.get("action")) {
             case "ADD":
                 actionType = "$add";
                 break;

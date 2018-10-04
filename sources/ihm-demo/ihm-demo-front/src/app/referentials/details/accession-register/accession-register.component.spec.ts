@@ -155,7 +155,7 @@ describe('AccessionRegisterComponent', () => {
   it('should call pageOnInit on start up', () => {
     // Given
     let callDetail = false;
-    component.getDetail = () => callDetail = true;
+    component.getSymbolic = () => callDetail = true;
 
     let callUpdate = false;
     component.updateBreadcrumb = () => callUpdate = true;

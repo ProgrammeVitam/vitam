@@ -13,6 +13,7 @@ import {PageComponent} from '../../../common/page/page-component';
 import {AccessionRegister, AccessionRegisterDetail, RegisterData} from './accession-register';
 import {ErrorService} from '../../../common/error.service';
 import {Hits} from '../../../common/utils/response';
+import {AccessionRegisterSymbolic} from '../accession-register-symbolic/accession-register-symbolic';
 
 
 const PROCESS_TRADUCTION = {
@@ -35,33 +36,32 @@ export class AccessionRegisterComponent extends PageComponent {
   register: AccessionRegister;
   registerDetails: AccessionRegisterDetail[];
   mainRegisters: RegisterData[];
-  attachedRegisters: RegisterData[];
+  attachedRegisters: AccessionRegisterSymbolic[];
   registerDetailType = {};
+  symbolicsRegistersCols = [
+    {field: 'ArchiveUnit', header: 'Nombre d\'unités archivistiques'},
+    {field: 'ObjectGroup', header: 'Nombre de groupes d\'objets techniques'},
+    {field: 'BinaryObject', header: 'Nombre d\'objets'},
+    {field: 'BinaryObjectSize', header: 'Volumétrie des objets'},
+    {field: 'CreationDate', header: 'Date de création'}
+  ];
   registersCols = [
     {field: 'TotalUnits', header: 'Nombre d\'unités archivistiques'},
     {field: 'TotalObjectGroups', header: 'Nombre de groupes d\'objets techniques'},
     {field: 'TotalObjects', header: 'Nombre d\'objets'},
     {field: 'ObjectSize', header: 'Volumétrie des objets'}
   ];
-  symbolicsRegistersCols = [
-    {field: 'TotalUnits', header: 'Nombre d\'unités archivistiques'},
-    {field: 'TotalObjectGroups', header: 'Nombre de groupes d\'objets techniques'},
-    {field: 'TotalObjects', header: 'Nombre d\'objets'},
-    {field: 'ObjectSize', header: 'Volumétrie des objets'},
-    {field: 'CreationDate', header: 'Date de création'}
-  ];
   @ViewChild('infoSupp') infoSuppElem;
   @ViewChild('infoList') infoListElem;
   displayOptions = false;
   id: string;
   extraColsSelection = [
-    {value: 'ArchivalProfile', label: 'Profile Archivistique'},
-    {value: 'LegalStatus', label: 'Status Légal'},
+    {value: 'ArchivalProfile', label: 'Profil d\'archivage'},
+    {value: 'LegalStatus', label: 'Statut juridique'},
     {value: 'AcquisitionInformation', label: 'Information d\'aquisition'},
-    {value: 'SubmissionAgency', label: 'Submission Agency'},
-    {value: 'objectSize', label: 'Taille'},
-    {value: 'ArchivalAgreement', label: 'Archival Agreement'}
-
+    {value: 'SubmissionAgency', label: 'Service versant'},
+    {value: 'objectSize', label: 'Volumétrie'},
+    {value: 'ArchivalAgreement', label: 'Contrat d\'entrée'}
   ];
   extraSelectedCols = [];
 
@@ -75,7 +75,7 @@ export class AccessionRegisterComponent extends PageComponent {
   pageOnInit() {
     this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
-      this.getDetail();
+      this.getSymbolic();
       this.updateBreadcrumb(params['type']);
       this.paginate({first: 0, rows: this.nbRows})
     });
@@ -113,15 +113,10 @@ export class AccessionRegisterComponent extends PageComponent {
     this.setBreadcrumb(this.newBreadcrumb);
   }
 
-  getDetail() {
-    this.searchReferentialsService.getAccessionRegisterSymbolic(this.id).subscribe(accessionRegisterSymbolic => {
-      this.attachedRegisters = accessionRegisterSymbolic.$results.map(e => ({
-        TotalObjectGroups: e.ObjectGroup,
-        TotalUnits: e.ArchiveUnit,
-        TotalObjects: e.BinaryObject,
-        ObjectSize: e.BinaryObjectSize,
-        CreationDate: `${new Date(e.CreationDate).toLocaleDateString()} à ${new Date(e.CreationDate).toLocaleTimeString()}`
-      }));
+  getSymbolic() {
+    this.searchReferentialsService.getAccessionRegisterSymbolic(this.id).subscribe(accessionRegisterSymbolics => {
+      this.attachedRegisters = plainToClass(AccessionRegisterSymbolic, accessionRegisterSymbolics.$results);
+      this.attachedRegisters.forEach(e => e.CreationDate = `${new Date(e.CreationDate).toLocaleDateString()} à ${new Date(e.CreationDate).toLocaleTimeString()}`)
     });
 
     this.searchReferentialsService.getFundRegisterById(this.id, 1).subscribe((value) => {

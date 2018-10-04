@@ -39,11 +39,6 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
             <artifactId>storage-engine-common</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -85,11 +80,15 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
-	    <dependency>
-	        <groupId>org.apache.logging.log4j</groupId>
-	        <artifactId>log4j-core</artifactId>
-	        <scope>test</scope>
-	    </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.zjsonpatch</groupId>
+            <artifactId>zjsonpatch</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -100,7 +99,9 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.functional.administration.accession.register.symbolic.AccessionRegisterSymbolicMain</mainClass>
+                            <mainClass>
+                                fr.gouv.vitam.functional.administration.accession.register.symbolic.AccessionRegisterSymbolicMain
+                            </mainClass>
                         </manifest>
                     </archive>
                 </configuration>
