@@ -413,7 +413,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         JsonNode detachedGotAfterElimination = getById(remainingGots, detachedGotId);
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.version()).asInt()).isEqualTo(1);
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.unitups())).hasSize(1);
-        assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.allunitups())).hasSize(1);
+        assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.allunitups())).hasSize(2);
 
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.unitups()).get(0).asText()).isEqualTo(
             getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)));

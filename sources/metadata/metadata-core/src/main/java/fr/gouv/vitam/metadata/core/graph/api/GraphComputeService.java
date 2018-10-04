@@ -320,6 +320,11 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
 
         computeObjectGroupGraph(sps, unitParents, up);
 
+        // Add current _up to _us
+        if (null != up) {
+            unitParents.addAll(up);
+        }
+
         String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
         if (StringUtils.isNotEmpty(originatingAgency)) {
             sps.add(originatingAgency);
