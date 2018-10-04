@@ -179,17 +179,16 @@ export class MySelectionComponent extends PageComponent {
     let ids = [];
 
     if (deleteSelection) {
-      // Export all selected items
+      // Delete selected items
       ids = this.displayedItems
         .filter(value => value.selected)
         .map(value => value.archiveUnitMetadata['#id']);
+      this.mySelectionService.deleteFromBasket(ids);
     } else {
-      // Export all items in basket
-      ids = this.selectedArchiveUnits
-        .map(value => value.archiveUnitMetadata['#id']);
+      // Delete all items in basket
+      this.mySelectionService.deleteAllFromBasket();
     }
 
-    this.mySelectionService.deleteFromBasket(ids);
     this.displaySelectedDelete = false;
     this.displayDeleteAll = false;
     this.mySelectionService.getResults(this.firstItem, 50).subscribe(
