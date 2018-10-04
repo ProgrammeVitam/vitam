@@ -24,7 +24,7 @@
 - name: Copy the functional_administration accession register reconstruction input script
   template:
     src: "reconstruction_payload.json.j2"
-    dest: "{{ vitam_defaults.folder.root_path }}/script/functional-administration/accession_register_reconstruction.sh"
+    dest: "{{ vitam_defaults.folder.root_path }}/script/functional-administration/reconstruction_payload.json"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.script_permission }}"

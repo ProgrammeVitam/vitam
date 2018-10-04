@@ -84,7 +84,7 @@ public class AdminFunctionalApplication extends Application {
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
-            singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
+            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
             singletons.add(new ReindexationResource());
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();

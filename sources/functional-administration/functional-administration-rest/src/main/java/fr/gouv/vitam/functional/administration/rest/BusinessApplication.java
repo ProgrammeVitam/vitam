@@ -104,7 +104,7 @@ public class BusinessApplication extends Application {
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
             singletons.add(new EvidenceResource());
-            singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
+            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
             singletons.add(new ProbativeValueResource());
 
             singletons.add(profileResource);

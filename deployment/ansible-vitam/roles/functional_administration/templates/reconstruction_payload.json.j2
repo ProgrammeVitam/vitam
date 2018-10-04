@@ -1,12 +1,12 @@
 [
     {% for tenant  in vitam_tenant_ids %}
     {
-        "collection": "ACCESSION_REGISTER_DETAIL",
+        "collection": "AccessionRegisterDetail",
         "tenant": {{ tenant }},
         "limit": 1000
     },
     {
-        "collection": "ACCESSION_REGISTER_SYMBOLIC",
+        "collection": "AccessionRegisterSymbolic",
         "tenant": {{ tenant }},
         "limit": 1000
     }
