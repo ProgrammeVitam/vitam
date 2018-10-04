@@ -96,7 +96,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                 @Override
                 public Document load(String key) {
                     return (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, key))
-                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES))
+                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.UNITUPS))
                         .first();
                 }
 
@@ -104,7 +104,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                 public Map<String, Document> loadAll(Iterable<? extends String> keys) {
                     Map<String, Document> docs = new HashMap<>();
                     MongoCursor<Document> it = MetadataCollections.UNIT.getCollection().find(in(Unit.ID, keys))
-                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES)).iterator();
+                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.UNITUPS)).iterator();
                     while (it.hasNext()) {
                         final Document doc = it.next();
                         docs.put(doc.get(Unit.ID, String.class), doc);
@@ -320,6 +320,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
 
         if (null != unitCache.getIfPresent(unitId)) {
             document.put(Unit.ORIGINATING_AGENCIES, new ArrayList<>(sps));
+            document.put(Unit.UNITUPS, new ArrayList<>(us));
             unitCache.put(unitId, document);
         }
 
@@ -349,15 +350,24 @@ public interface GraphBuilderService extends VitamAutoCloseable {
     default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
         throws VitamRuntimeException {
         Set<String> sps = new HashSet<>();
+        Set<String> unitParents = new HashSet<>();
         String gotId = document.get(ObjectGroup.ID, String.class);
-        String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
         List<String> up = document.get(ObjectGroup.UP, List.class);
-        computeObjectGroupGraph(sps, up);
 
+        computeObjectGroupGraph(sps, unitParents, up);
+
+        // Add current _up to _us
+        if (null != up) {
+            unitParents.addAll(up);
+        }
+
+
+        String originatingAgency = document.get(ObjectGroup.ORIGINATING_AGENCY, String.class);
         if (StringUtils.isNotEmpty(originatingAgency)) {
             sps.add(originatingAgency);
         }
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
+            .append(Unit.UNITUPS, unitParents)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
 
@@ -421,11 +431,13 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
      *
      * @param originatingAgencies
+     * @param unitParents
      * @param up
      * @throws VitamRuntimeException
      */
-    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> up)
+    default void computeObjectGroupGraph(Set<String> originatingAgencies, Set<String> unitParents, List<String> up)
         throws VitamRuntimeException {
+
         if (null == up || up.isEmpty()) {
             return;
         }
@@ -442,6 +454,11 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             List agencies = au.get(Unit.ORIGINATING_AGENCIES, List.class);
             if (CollectionUtils.isNotEmpty(agencies)) {
                 originatingAgencies.addAll(agencies);
+            }
+
+            List parents = au.get(Unit.UNITUPS, List.class);
+            if (CollectionUtils.isNotEmpty(parents)) {
+                unitParents.addAll(parents);
             }
         }
     }

@@ -96,6 +96,11 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      */
     public static final String ORIGINATING_AGENCIES = "_sps";
     /**
+     * All unit parents
+     */
+    public static final String UNITUPS = "_us";
+
+    /**
      * Last persisted date of Unit / Object Group
      */
     public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";

@@ -64,6 +64,7 @@ public class MetadataDocumentHelper {
     private enum ComputedGraphObjectGroupFields {
 
         SPS("_sps"),
+        US("_us"),
         GRAPH_LAST_PERSISTED_DATE("_glpd");
 
         private final String fieldName;

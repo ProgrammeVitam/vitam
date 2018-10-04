@@ -26,14 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
@@ -200,36 +192,6 @@ public class Unit extends MetadataDocument<Unit> {
     @Override
     protected MetadataCollections getMetadataCollections() {
         return MetadataCollections.UNIT;
-    }
-
-    /**
-     * @return the map of parent units with depth
-     */
-    public Map<String, Integer> getDepths() {
-        final Object object = get(UNITDEPTHS);
-        if (object == null) {
-            return SingletonUtils.singletonMap();
-        }
-        final Map<String, Integer> map = new HashMap<>();
-        if (object instanceof List) {
-            final List<Document> list = (List<Document>) object;
-            for (final Document document : list) {
-                for (final Map.Entry<String, Object> entry : document.entrySet()) {
-                    map.put(entry.getKey(), (Integer) entry.getValue());
-                }
-            }
-        } else if (object instanceof HashMap) {
-            for (final Map.Entry<String, Integer> entry : ((HashMap<String, Integer>) object).entrySet()) {
-                map.put(entry.getKey(), entry.getValue());
-            }
-            return map;
-        } else {
-            final Document list = (Document) object;
-            for (final Map.Entry<String, Object> entry : list.entrySet()) {
-                map.put(entry.getKey(), (Integer) entry.getValue());
-            }
-        }
-        return map;
     }
 
 }

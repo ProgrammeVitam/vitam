@@ -82,7 +82,7 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 0);
         map.put(MetadataCollections.OBJECTGROUP, 0);
-        Integer totalTreatedDocuments = 0;
+        Integer totalTreatedDocuments;
 
         if (tryBuildGraph) {
             try {
