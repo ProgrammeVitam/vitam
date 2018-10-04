@@ -232,8 +232,7 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_request_offset_when_es_exception()
-        throws DatabaseException, LogbookException, InvalidParseOperationException,
-        AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
         when(restoreBackupService.getListing("default", 100L,

@@ -217,7 +217,7 @@ public class ManifestBuilder implements AutoCloseable {
                         String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
 
                         maps.put(minimalDataObjectType.getId(),
-                            AccessLogUtils.getWorkerInfo(dataObjectVersion[0], Integer.parseInt(dataObjectVersion[1]), binaryDataObjectType.getSize().intValue(), linkedAU, fileName));
+                            AccessLogUtils.getWorkerInfo(dataObjectVersion[0], Integer.parseInt(dataObjectVersion[1]), binaryDataObjectType.getSize().longValue(), linkedAU, fileName));
                     }
                     marshaller.marshal(minimalDataObjectType, writer);
                 }

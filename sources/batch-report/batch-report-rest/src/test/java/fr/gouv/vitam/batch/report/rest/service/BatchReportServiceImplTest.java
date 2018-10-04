@@ -195,7 +195,7 @@ public class BatchReportServiceImplTest {
             .thenReturn(emptyMongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
-        batchReportServiceImpl.exportDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report.json",
+        batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report.json",
             TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {

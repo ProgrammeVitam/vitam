@@ -42,10 +42,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportService;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportExportEntry;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.BufferedOutputStream;
@@ -70,8 +69,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
 
     static final String REPORT_JSON = "report.json";
 
-    private final EliminationActionUnitReportService eliminationActionUnitReportService;
-    private final EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService;
+    private final EliminationActionReportService eliminationActionReportService;
     private final BackupService backupService;
 
     /**
@@ -79,8 +77,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
      */
     public EliminationActionReportGenerationHandler() {
         this(
-            new EliminationActionUnitReportService(),
-            new EliminationActionObjectGroupReportService(),
+            new EliminationActionReportService(),
             new BackupService());
     }
 
@@ -89,11 +86,9 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionReportGenerationHandler(
-        EliminationActionUnitReportService eliminationActionUnitReportService,
-        EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService,
+        EliminationActionReportService eliminationActionReportService,
         BackupService backupService) {
-        this.eliminationActionUnitReportService = eliminationActionUnitReportService;
-        this.eliminationActionObjectGroupReportService = eliminationActionObjectGroupReportService;
+        this.eliminationActionReportService = eliminationActionReportService;
         this.backupService = backupService;
     }
 
@@ -129,7 +124,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
             jsonGenerator.writeStartArray();
 
             try (CloseableIterator<EliminationActionUnitReportEntry>
-                unitIterator = eliminationActionUnitReportService.exportUnits(param.getContainerName())) {
+                unitIterator = eliminationActionReportService.exportUnits(param.getContainerName())) {
 
                 while (unitIterator.hasNext()) {
                     EliminationActionUnitReportEntry unitEliminationExport = unitIterator.next();
@@ -142,11 +137,12 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
             jsonGenerator.writeFieldName("objectGroups");
             jsonGenerator.writeStartArray();
 
-            try (CloseableIterator<EliminationActionObjectGroupReportEntry> objectGroupIterator =
-                eliminationActionObjectGroupReportService.exportObjectGroups(param.getContainerName())) {
+            try (CloseableIterator<EliminationActionObjectGroupReportExportEntry> objectGroupIterator =
+                eliminationActionReportService.exportObjectGroups(param.getContainerName())) {
 
                 while (objectGroupIterator.hasNext()) {
-                    EliminationActionObjectGroupReportEntry objectGroupEliminationExport = objectGroupIterator.next();
+                    EliminationActionObjectGroupReportExportEntry objectGroupEliminationExport =
+                        objectGroupIterator.next();
                     jsonGenerator.writeObject(objectGroupEliminationExport);
                 }
             }

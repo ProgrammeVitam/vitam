@@ -26,8 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.elimination;
 
+import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.client.model.Filters;
@@ -72,6 +93,7 @@ import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -102,31 +124,16 @@ import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObje
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Configuration;
 import org.apache.commons.collections4.SetUtils;
+import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Ingest Internal integration test
@@ -184,6 +191,14 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
     private static String TEST_ELIMINATION_SIP =
         "elimination/TEST_ELIMINATION.zip";
+
+
+    private static String ACCESSION_REGISTER_DETAIL =
+        "elimination/accession_regoister_detail.json";
+
+    private static String ACCESSION_REGISTER_SUMMARY =
+        "elimination/accession_regoister_summary.json";
+
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -350,6 +365,17 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         Set<String> remainingObjectIds = getObjectIds(remainingGots);
         assertThat(remainingObjectIds).hasSize(2);
 
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals(ACCESSION_REGISTER_DETAIL, JsonHandler.toJsonNode(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()), excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals(ACCESSION_REGISTER_SUMMARY,
+            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()),
+            excludeFields);
+
         // Check remaining units / gots & objects ids (low level)
 
         Set<String> ingestedUnitIds = getIds(ingestedUnits);
@@ -502,6 +528,31 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
                 consumeAnyEntityAndClose(reportResponse);
             }
         }
+    }
+
+    private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
+        throws FileNotFoundException, InvalidParseOperationException {
+        JsonNode expected = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
+        if (excludeFields != null) {
+            expected.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+            });
+            actual.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+
+            });
+        }
+
+        JsonAssert
+            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
     private String getId(JsonNode unit) {

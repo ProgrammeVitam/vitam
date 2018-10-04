@@ -29,10 +29,9 @@ package fr.gouv.vitam.worker.core.plugin.elimination.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 
-import java.util.List;
 import java.util.Set;
 
-public class EliminationActionObjectGroupReportEntry {
+public class EliminationActionObjectGroupReportExportEntry {
 
     @JsonProperty("id")
     private String objectGroupId;
@@ -44,26 +43,22 @@ public class EliminationActionObjectGroupReportEntry {
     private Set<String> deletedParentUnitIds;
     @JsonProperty("objectIds")
     private Set<String> objectIds;
-    @JsonProperty("objectVersions")
-    private List<EliminationActionObjectGroupObjectVersion> objectVersions;
     @JsonProperty("status")
     private EliminationActionObjectGroupStatus status;
 
-    public EliminationActionObjectGroupReportEntry() {
+    public EliminationActionObjectGroupReportExportEntry() {
         // Empty constructor for deserialization
     }
 
-    public EliminationActionObjectGroupReportEntry(String objectGroupId, String originatingAgency,
+    public EliminationActionObjectGroupReportExportEntry(String objectGroupId, String originatingAgency,
         String initialOperation, Set<String> deletedParentUnitIds,
-        Set<String> objectIds, EliminationActionObjectGroupStatus status,
-        List<EliminationActionObjectGroupObjectVersion> objectVersions) {
+        Set<String> objectIds, EliminationActionObjectGroupStatus status) {
         this.objectGroupId = objectGroupId;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
         this.deletedParentUnitIds = deletedParentUnitIds;
         this.objectIds = objectIds;
         this.status = status;
-        this.objectVersions = objectVersions;
     }
 
     public String getObjectGroupId() {
@@ -112,14 +107,5 @@ public class EliminationActionObjectGroupReportEntry {
 
     public void setStatus(EliminationActionObjectGroupStatus status) {
         this.status = status;
-    }
-
-    public List<EliminationActionObjectGroupObjectVersion> getObjectVersions() {
-        return objectVersions;
-    }
-
-    public void setObjectVersions(
-        List<EliminationActionObjectGroupObjectVersion> objectVersions) {
-        this.objectVersions = objectVersions;
     }
 }

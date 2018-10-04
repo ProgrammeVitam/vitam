@@ -55,9 +55,9 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupObjectVersion;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -99,8 +99,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
     private static final int DEFAULT_OBJECT_GROUP_BULK_SIZE = MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE;
 
     private final MetaDataClientFactory metaDataClientFactory;
-    private final EliminationActionUnitReportService eliminationActionUnitReportService;
-    private final EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService;
+    private final EliminationActionReportService eliminationActionReportService;
     private final int objectGroupBulkSize;
 
     /**
@@ -109,8 +108,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
     public EliminationActionObjectGroupPreparationHandler() {
         this(
             MetaDataClientFactory.getInstance(),
-            new EliminationActionUnitReportService(),
-            new EliminationActionObjectGroupReportService(),
+            new EliminationActionReportService(),
             DEFAULT_OBJECT_GROUP_BULK_SIZE);
     }
 
@@ -120,12 +118,10 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
     @VisibleForTesting
     EliminationActionObjectGroupPreparationHandler(
         MetaDataClientFactory metaDataClientFactory,
-        EliminationActionUnitReportService eliminationActionUnitReportService,
-        EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService,
+        EliminationActionReportService eliminationActionReportService,
         int objectGroupBulkSize) {
         this.metaDataClientFactory = metaDataClientFactory;
-        this.eliminationActionUnitReportService = eliminationActionUnitReportService;
-        this.eliminationActionObjectGroupReportService = eliminationActionObjectGroupReportService;
+        this.eliminationActionReportService = eliminationActionReportService;
         this.objectGroupBulkSize = objectGroupBulkSize;
     }
 
@@ -144,7 +140,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 JsonLineWriter objectGroupsToDeleteWriter = new JsonLineWriter(objectGroupsToDeleteStream);
                 JsonLineWriter objectGroupsToDetachWriter = new JsonLineWriter(objectGroupsToDetachStream);
                 CloseableIterator<String> iterator =
-                    eliminationActionUnitReportService.exportDistinctObjectGroups(param.getContainerName())) {
+                    eliminationActionReportService.exportDistinctObjectGroups(param.getContainerName())) {
 
                 BulkIterator<String> bulkIterator = new BulkIterator<>(iterator, objectGroupBulkSize);
 
@@ -206,6 +202,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
                 List<String> objectsToDelete = getBinaryObjectIds(objectGroup);
+                List<EliminationActionObjectGroupObjectVersion> objectVersions = getObjectVersions(objectGroup);
 
                 JsonLineModel entry =
                     new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(objectsToDelete));
@@ -213,7 +210,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 eliminationObjectGroupReportEntries.add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
                     objectGroup.getOriginatingAgency(), objectGroup.getOpi(), null,
-                    new HashSet<>(objectsToDelete), EliminationActionObjectGroupStatus.DELETED));
+                    new HashSet<>(objectsToDelete), EliminationActionObjectGroupStatus.DELETED, objectVersions));
 
             } else {
 
@@ -228,13 +225,14 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 eliminationObjectGroupReportEntries
                     .add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
-                        objectGroup.getOriginatingAgency(), objectGroup.getOpi(), removedParentUnits,
-                        null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT));
+                        objectGroup.getOriginatingAgency(),
+                        objectGroup.getOpi(),
+                        removedParentUnits,
+                        null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT, null));
             }
         }
 
-        eliminationActionObjectGroupReportService.appendEntries(processId, eliminationObjectGroupReportEntries);
-
+        eliminationActionReportService.appendObjectGroupEntries(processId, eliminationObjectGroupReportEntries);
     }
 
     private List<String> getBinaryObjectIds(ObjectGroupResponse objectGroup) {
@@ -243,6 +241,15 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
             .filter(version -> version.getPhysicalId() == null)
             .map(VersionsModel::getId)
+            .collect(Collectors.toList());
+    }
+
+    private List<EliminationActionObjectGroupObjectVersion> getObjectVersions(ObjectGroupResponse objectGroup) {
+
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+            .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
+            .map(version -> new EliminationActionObjectGroupObjectVersion(
+                version.getOpi(), version.getSize()))
             .collect(Collectors.toList());
     }
 

@@ -184,6 +184,10 @@
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDetachObjectGroupPlugin",
     "propertiesFile": "elimination_action_detach_object_group.properties"
   },
+  "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE":{
+    "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterUpdatePlugin",
+    "propertiesFile": "elimination_action_update_accession_register.properties"
+  },
   "PROBATIVE_VALUE_LIST_OBJECT": {
     "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValuePrepare"
   },

@@ -20,8 +20,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
@@ -71,10 +70,8 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
     private MetaDataClient metaDataClient;
 
     @Mock
-    private EliminationActionUnitReportService eliminationActionUnitReportService;
+    private EliminationActionReportService eliminationActionReportService;
 
-    @Mock
-    private EliminationActionObjectGroupReportService eliminationActionObjectGroupReportService;
     private ArrayList<EliminationActionObjectGroupReportEntry> reportEntries;
 
     @Mock
@@ -104,8 +101,8 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
 
         reportEntries = new ArrayList<>();
         doAnswer((args) -> reportEntries.addAll(args.getArgumentAt(1, List.class)))
-            .when(eliminationActionObjectGroupReportService)
-            .appendEntries(any(), any());
+            .when(eliminationActionReportService)
+            .appendObjectGroupEntries(any(), any());
     }
 
     @Test
@@ -114,7 +111,7 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
 
         doReturn(CloseableIteratorUtils
             .toCloseableIterator(asList("id_got_1", "id_got_2", "id_got_3", "id_got_4", "id_got_5").iterator()))
-            .when(eliminationActionUnitReportService).exportDistinctObjectGroups(any());
+            .when(eliminationActionReportService).exportDistinctObjectGroups(any());
 
         JsonNode objectGroups = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
             "EliminationAction/EliminationActionObjectGroupPreparationHandler/objectGroups.json"));
@@ -125,7 +122,7 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
         doReturn(existingUnits).when(metaDataClient).selectUnits(any());
 
         EliminationActionObjectGroupPreparationHandler instance = new EliminationActionObjectGroupPreparationHandler(
-            metaDataClientFactory, eliminationActionUnitReportService, eliminationActionObjectGroupReportService, 10);
+            metaDataClientFactory, eliminationActionReportService, 10);
         ItemStatus itemStatus = instance.execute(params, handler);
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -178,6 +175,7 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
         assertThat(entry.getObjectGroupId()).isEqualTo(id);
         assertThat(entry.getOriginatingAgency()).isEqualTo(sp);
         assertThat(entry.getInitialOperation()).isEqualTo(opi);
+        assertThat(entry.getStatus()).isEqualTo(status);
         assertThat(SetUtils.emptyIfNull(entry.getObjectIds()))
             .containsExactlyInAnyOrder(ListUtils.emptyIfNull(deletedObjectIds).toArray(new String[0]));
         assertThat(SetUtils.emptyIfNull(entry.getDeletedParentUnitIds()))

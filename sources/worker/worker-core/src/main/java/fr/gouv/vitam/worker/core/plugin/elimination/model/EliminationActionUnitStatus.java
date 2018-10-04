@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 public enum EliminationActionUnitStatus {
-    
+
     DELETED,
     NON_DESTROYABLE_HAS_CHILD_UNITS,
     GLOBAL_STATUS_KEEP,

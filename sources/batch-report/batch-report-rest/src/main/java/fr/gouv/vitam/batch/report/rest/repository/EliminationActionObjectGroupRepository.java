@@ -28,22 +28,27 @@ package fr.gouv.vitam.batch.report.rest.repository;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
-import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECTS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
 
 /**
  * EliminationObjectGroup
@@ -88,7 +93,10 @@ public class EliminationActionObjectGroupRepository extends EliminationCommonRep
                     new Document("params.objectIds", "$_metadata.objectIds")
                     )
                 ))
-        ).iterator();
+        )
+            // Aggregation query requires more than 100MB to proceed.
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {
@@ -96,10 +104,56 @@ public class EliminationActionObjectGroupRepository extends EliminationCommonRep
     }
 
     /**
-     * TODO : JBP
+     * Compute Own AccessionRegisterDetails
      */
-    public Optional<EliminationActionObjectGroupModel> computeRegisterDetails(String processId) {
-        //TODO : JBP
-        return Optional.empty();
+    public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
+        return objectGroupReportCollection.aggregate(
+            Arrays.asList(
+                // Filter
+                Aggregates.match(and(
+                    eq(EliminationActionObjectGroupModel.PROCESS_ID, processId),
+                    eq(EliminationActionObjectGroupModel.TENANT, tenantId),
+                    eq("_metadata.status", "DELETED")
+                )),
+
+                // Projection
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document("id", "$_metadata.id"),
+                    new Document(OPI, "$_metadata." + OPI),
+                    new Document(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
+                    new Document("objectVersions", "$_metadata.objectVersions")
+
+                    )
+                ),
+
+                // Create as many documents as there are items in the list objectVersions
+                Aggregates.unwind("$objectVersions"),
+
+                // Group BY
+                Aggregates.group("$" + OPI,
+                    Accumulators
+                        .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
+                    Accumulators.sum(TOTAL_SIZE, "$objectVersions.size"),
+                    Accumulators.sum(TOTAL_OBJECTS, 1),
+                    Accumulators.addToSet("listGOT", "$id")
+                ),
+                // Projection
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document(OPI, "$_id"),
+                    new Document(ORIGINATING_AGENCY, 1),
+                    new Document(TOTAL_SIZE, 1),
+                    new Document(TOTAL_OBJECTS, 1),
+                    new Document(TOTAL_OBJECT_GROUPS, new Document("$size", "$listGOT"))
+                    )
+                ),
+                // Sort
+                Aggregates.sort(Sorts.descending(OPI))
+            )
+        )
+            // Aggregation query requires more than 100MB to proceed.
+            .allowDiskUse(true)
+            .iterator();
     }
 }

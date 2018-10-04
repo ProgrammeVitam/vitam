@@ -178,15 +178,15 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             if (!registerDetail.getOpc().equals(registerDetail.getOpi())) {
                 addEventToAccessionRegisterDetail(registerDetail);
                 docToStorage = findAccessionRegisterDetail(registerDetail.getOriginatingAgency(), registerDetail.getOpi());
+
             } else {
                 JsonNode doc = VitamFieldsHelper.removeHash(JsonHandler.toJsonNode(registerDetail));
                 mongoAccess.insertDocument(doc,
                         FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
                 docToStorage = mongoAccess.getDocumentById(registerDetail.getId(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             }
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException | SchemaValidationException e) {
-            LOGGER.info("Create register detail Error", e);
-            throw new ReferentialException(e);
+        } catch (final InvalidParseOperationException | SchemaValidationException e) {
+            throw new ReferentialException("Create register detail error", e);
         }
 
         updateAccessionRegisterSummary(registerDetail);
@@ -195,8 +195,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             functionalBackupService.saveDocument(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, docToStorage);
         } catch (FunctionalBackupServiceException e) {
-            LOGGER.info("Store backup register detail Error", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Store backup register detail Error", e);
         }
 
     }
@@ -346,12 +345,10 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
     }
 
-    private VitamDocument<AccessionRegisterDetail> findAccessionRegisterDetail(String originatingAgency, String opi) throws InvalidCreateOperationException, ReferentialException {
-        Select query = new Select();
-        query.setQuery(QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgency), QueryHelper.eq(AccessionRegisterDetail.OPI, opi)));
-        DbRequestResult result = mongoAccess.findDocuments(query.getFinalSelect(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-        List<AccessionRegisterDetail> registers = result.getDocuments(AccessionRegisterDetail.class);
-        return registers.get(0);
+    private VitamDocument<AccessionRegisterDetail> findAccessionRegisterDetail(String originatingAgency, String opi) {
+        Bson filterQuery = and(eq(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgency),
+            eq(AccessionRegisterDetail.OPI, opi));
+        return (VitamDocument<AccessionRegisterDetail>) FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(filterQuery).iterator().next();
     }
 
     private void updateAccessionRegisterSummary(AccessionRegisterDetailModel registerDetail)

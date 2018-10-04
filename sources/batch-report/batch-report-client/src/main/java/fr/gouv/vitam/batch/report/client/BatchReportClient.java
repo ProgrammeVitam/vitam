@@ -68,12 +68,11 @@ public interface BatchReportClient extends BasicClient {
      * Report is stored in JSONL format in workspace.
      *
      * @param processId
-     * @param status
      * @param reportExportRequest report export request
      * @return
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId, String status,
+    RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -83,6 +82,18 @@ public interface BatchReportClient extends BasicClient {
      * @return RequestResponse
      */
     RequestResponse<JsonNode> appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
+
+    /**
+     * Generate elimination action accession register for deleted units by status and process Id.
+     * Report is stored in JSONL format in workspace ORDERED BY opi.
+     *
+     * @param processId
+     * @param reportExportRequest report export request
+     * @return
+     * @throws VitamClientInternalException
+     */
+    RequestResponse<JsonNode> generateEliminationActionAccessionRegisterReport(String processId,
+        ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
      * Clean all entries with the given process Id tenant and reportType

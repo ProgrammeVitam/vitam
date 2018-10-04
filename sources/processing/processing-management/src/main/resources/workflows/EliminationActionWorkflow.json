@@ -131,6 +131,40 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "accession_register.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_REPORT_GENERATION",
       "behavior": "BLOCKING",
       "distribution": {

@@ -14,15 +14,14 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportService;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -46,7 +45,6 @@ import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnit
 import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.UNITS_TO_DELETE_FILE;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -76,7 +74,7 @@ public class EliminationActionUnitPreparationHandlerTest {
     private EliminationAnalysisService eliminationAnalysisService;
 
     @Mock
-    private EliminationActionUnitReportService eliminationActionUnitReportService;
+    private EliminationActionReportService eliminationActionReportService;
     private List<EliminationActionUnitReportEntry> reportEntries;
 
     @InjectMocks
@@ -106,8 +104,8 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         reportEntries = new ArrayList<>();
         doAnswer((args) -> reportEntries.addAll(args.getArgumentAt(1, List.class)))
-            .when(eliminationActionUnitReportService)
-            .appendEntries(any(), any());
+            .when(eliminationActionReportService)
+            .appendUnitEntries(any(), any());
     }
 
     private EliminationAnalysisResult createAnalysisResponse(EliminationGlobalStatus destroy) {
@@ -168,7 +166,8 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try(JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
+            new FileInputStream(fileArgumentCaptor.getValue()))) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(2);
@@ -217,7 +216,8 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try(JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
+            new FileInputStream(fileArgumentCaptor.getValue()))) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(4);
@@ -264,7 +264,8 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try(JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
+            new FileInputStream(fileArgumentCaptor.getValue()))) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
             assertThat(entries).isEmpty();
         }

@@ -26,6 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.report;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
@@ -54,23 +63,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ReportManagementIT
@@ -192,13 +190,58 @@ public class ReportManagementIT extends VitamRuleRunner {
         batchReportClient.appendReportEntries(reportBody);
         // When
         RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), "DELETED",
-                reportExportRequest);
+            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest);
         // Then
         assertThat(requestResponse.getStatus()).isEqualTo(200);
 
-        checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
+        checkGeneratedReportEqualsExpectedJsonl("test.json",
+            "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_accession_register() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitWithDuplicateUnit.json");
+        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportExportRequest reportExportRequest = new ReportExportRequest("test_1.json");
+        batchReportClient.appendReportEntries(reportBody);
+        // When
+        RequestResponse<JsonNode> requestResponse = batchReportClient
+            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
+        // Then
+        assertThat(requestResponse.getStatus()).isEqualTo(200);
+
+        checkGeneratedReportEqualsExpectedJsonl("test_1.json",
+            "report/eliminationUnitWithDuplicateUnit_expectedReport.jsonl");
+
+        // Given
+        stream = getClass().getResourceAsStream("/report/eliminationObjectGroupWithDuplicateObjectGroup.json");
+        reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        reportExportRequest = new ReportExportRequest("test_2.json");
+        batchReportClient.appendReportEntries(reportBody);
+        // When
+        requestResponse = batchReportClient
+            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
+
+        // Then
+        assertThat(requestResponse.getStatus()).isEqualTo(200);
+
+        checkGeneratedReportEqualsExpectedJsonl("test_2.json",
+            "report/eliminationObjectGroupWithDuplicateObjectGroup_expectedReport.jsonl");
+
+        reportExportRequest = new ReportExportRequest("accession_register.json");
+
+        batchReportClient
+            .generateEliminationActionAccessionRegisterReport(reportBody.getProcessId(), reportExportRequest);
+
+        checkGeneratedReportEqualsExpectedJsonl("accession_register.json",
+            "report/accessionRegister_expectedReport.jsonl");
+
+
+    }
+
 
     @Test
     @RunWithCustomExecutor

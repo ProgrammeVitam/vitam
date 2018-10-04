@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
+import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -50,9 +52,11 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.*;
 import static fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionUnitRepositoryTest {
 
@@ -114,7 +118,36 @@ public class EliminationActionUnitRepositoryTest {
         while (iterator.hasNext()) {
             documents.add(iterator.next());
         }
+        Assertions.assertThat(documents.size()).isEqualTo(8);
+    }
+
+    @Test
+    public void compute_own_accession_register_ok()
+        throws InvalidParseOperationException {
+        // Given
+        List<EliminationActionUnitModel> eliminationActionUnitModels =
+            getDocuments("/eliminationUnitWithDuplicateUnit.json");
+        // When
+        repository.bulkAppendReport(eliminationActionUnitModels);
+
+        EliminationActionUnitModel first = eliminationActionUnitModels.iterator().next();
+        // When
+        MongoCursor<Document> iterator = repository.computeOwnAccessionRegisterDetails(first.getProcessId(), TENANT_ID);
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            documents.add(iterator.next());
+        }
+
+        // Then
         Assertions.assertThat(documents.size()).isEqualTo(3);
+
+        Assertions.assertThat(documents)
+            .extracting(OPI, ORIGINATING_AGENCY, TOTAL_UNITS)
+            .containsSequence(
+                tuple("opi3", "sp2", 2),
+                tuple("opi1", "sp1", 1),
+                tuple("opi0", "sp1", 3)
+            );
     }
 
     private List<EliminationActionUnitModel> getDocuments(String filename) throws InvalidParseOperationException {
