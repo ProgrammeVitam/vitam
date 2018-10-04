@@ -202,6 +202,11 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         originatingAgencies.addAll(unit.getCollectionOrEmpty(ORIGINATING_AGENCIES));
         this.put(ORIGINATING_AGENCIES, originatingAgencies);
 
+        // Merge ObjectGroup allUnitParents (_us) with unit all parents
+        Set<String> allUnitParents = new HashSet<>(this.getCollectionOrEmpty(UNITUPS));
+        allUnitParents.addAll(unit.getCollectionOrEmpty(UNITUPS));
+        this.put(UNITUPS, allUnitParents);
+
         // Add operation id
         Set<String> ops = new HashSet<>(unit.getCollectionOrEmpty(OPS));
         ops.add(VitamThreadUtils.getVitamSession().getRequestId());

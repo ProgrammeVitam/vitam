@@ -28,23 +28,17 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -66,67 +60,59 @@ public class MongoDbAccessMetadataImplTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String DEFAULT_MONGO =
-        "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
-            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test.ObjectGroup}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.ObjectGroup}}\n";
-
-    private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
-    private static final String s2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
+            "Unit\n" + "ObjectGroup\n" +
+            "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.Unit}}\n" +
+            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.Unit}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.ObjectGroup}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.ObjectGroup}}\n";
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String HOST_NAME = "127.0.0.1";
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-DB",
+            MetadataCollections.UNIT.getName(),
+            MetadataCollections.OBJECTGROUP.getName());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
+            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
+            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1"
+        );
 
     static final List<Integer> tenantList = Arrays.asList(0);
     private static ElasticsearchAccessMetadata esClient;
 
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
 
-    static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-
-    static int port;
     static MongoDbAccessMetadataImpl mongoDbAccess;
-    private static ElasticsearchTestConfiguration config = null;
-
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "ObjectGroup", "Unit");
-    private MongoClient mongoClient = mongoRule.getMongoClient();
 
 
     @BeforeClass
     public static void setupOne() throws IOException, VitamException {
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-        junitHelper = JunitHelper.getInstance();
+
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
-        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
+        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), nodes);
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
-        }
-        JunitHelper.stopElasticsearchForTest(config);
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient, tenantList);
+        mongoDbAccess =
+            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), true,
+                esClient, tenantList);
         assertThat(mongoDbAccess.getInfo()).isEqualTo(DEFAULT_MONGO);
         assertThat(MetadataCollections.UNIT.getName()).isEqualTo("Unit");
         assertThat(MetadataCollections.OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
@@ -136,13 +122,17 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
-        assertEquals("", mongoDbAccess.getInfo());
+        mongoDbAccess =
+            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
+                esClient, tenantList);
+        assertEquals(DEFAULT_MONGO, mongoDbAccess.getInfo());
     }
 
     @Test
     public void givenMongoDbAccessWhenFlushOnDisKThenDoNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
+        mongoDbAccess =
+            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
+                esClient, tenantList);
         mongoDbAccess.flushOnDisk();
     }
 

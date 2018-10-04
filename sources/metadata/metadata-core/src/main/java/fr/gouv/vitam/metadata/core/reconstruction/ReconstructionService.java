@@ -594,7 +594,7 @@ public class ReconstructionService {
             try {
                 collection.add(createUpdateOneModel(o));
                 /**
-                 * Take only documents having graph data and business data
+                 * Take only documents having graph data and business data to be indexed in elasticsearch
                  * Skip all documents with only graph data
                  */
                 if (null != o.get(Unit.TENANT_ID)) {
