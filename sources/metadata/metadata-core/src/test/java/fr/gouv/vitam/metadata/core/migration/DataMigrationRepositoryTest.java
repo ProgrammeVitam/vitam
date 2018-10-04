@@ -188,7 +188,7 @@ public class DataMigrationRepositoryTest {
     public void testSelectObjectGroupBulk_emptyDataSet() {
 
         // Given / When
-        try (CloseableIterator<List<String>> listCloseableIterator = repository.selectObjectGroupBulk()) {
+        try (CloseableIterator<List<ObjectGroup>> listCloseableIterator = repository.selectObjectGroupBulk()) {
 
             // Then
             assertThat(listCloseableIterator.hasNext()).isFalse();
@@ -203,10 +203,10 @@ public class DataMigrationRepositoryTest {
         importObjectGroupDataSetFile(dataSetFile);
 
         // When
-        try (CloseableIterator<List<String>> listCloseableIterator = repository.selectObjectGroupBulk()) {
+        try (CloseableIterator<List<ObjectGroup>> listCloseableIterator = repository.selectObjectGroupBulk()) {
 
             // Then
-            Set<String> idSet = new HashSet<>();
+            Set<ObjectGroup> idSet = new HashSet<>();
 
             listCloseableIterator.forEachRemaining(objectGroupBulk -> {
 
@@ -214,7 +214,7 @@ public class DataMigrationRepositoryTest {
                 assertThat(objectGroupBulk).size().isLessThanOrEqualTo(TEST_BULK_SIZE);
 
                 // Check uniqueness
-                for (String objectGroupId : objectGroupBulk) {
+                for (ObjectGroup objectGroupId : objectGroupBulk) {
                     assertThat(idSet.add(objectGroupId)).isTrue();
                 }
             });
@@ -231,7 +231,7 @@ public class DataMigrationRepositoryTest {
         importObjectGroupDataSetFile(dataSetFile);
 
         // When
-        try (CloseableIterator<List<String>> listCloseableIterator = repository.selectObjectGroupBulk()) {
+        try (CloseableIterator<List<ObjectGroup>> listCloseableIterator = repository.selectObjectGroupBulk()) {
 
             // Then
             assertThat(listCloseableIterator.hasNext()).isFalse();

@@ -1,17 +1,1 @@
-[
-  { "_id" : "1" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "2" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "3" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "4" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "5" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "6" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "7" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "8" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "9" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "10" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "11" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "12" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "13" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "14" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" },
-  { "_id" : "15" , "_sps" : [ "sp"] , "_glpd" : "#TIMESTAMP#" }
-]
+[{"_id":"1","_up":["1"],"_sps":["sp"],"_us":["1"],"_glpd":"#TIMESTAMP#"},{"_id":"10","_up":["10"],"_sps":["sp"],"_us":["1","2","4","5","7","10"],"_glpd":"#TIMESTAMP#"},{"_id":"11","_up":["11"],"_sps":["sp"],"_us":["11","1","2","4","5","7"],"_glpd":"#TIMESTAMP#"},{"_id":"12","_up":["12"],"_sps":["sp"],"_us":["1","12","2","4","5","7"],"_glpd":"#TIMESTAMP#"},{"_id":"13","_up":["13"],"_sps":["sp"],"_us":["1","2","13","4","5","7"],"_glpd":"#TIMESTAMP#"},{"_id":"14","_up":["14"],"_sps":["sp"],"_us":["1","2","14","4","5","7"],"_glpd":"#TIMESTAMP#"},{"_id":"15","_up":["15"],"_sps":["sp"],"_us":["1","2","4","15","5","7"],"_glpd":"#TIMESTAMP#"},{"_id":"2","_up":["2"],"_sps":["sp"],"_us":["2"],"_glpd":"#TIMESTAMP#"},{"_id":"3","_up":["1"],"_sps":["sp"],"_us":["1"],"_glpd":"#TIMESTAMP#"},{"_id":"4","_up":["2"],"_sps":["sp"],"_us":["2"],"_glpd":"#TIMESTAMP#"},{"_id":"5","_up":["1"],"_sps":["sp"],"_us":["1"],"_glpd":"#TIMESTAMP#"},{"_id":"6","_up":["2"],"_sps":["sp"],"_us":["2"],"_glpd":"#TIMESTAMP#"},{"_id":"7","_up":["1"],"_sps":["sp"],"_us":["1"],"_glpd":"#TIMESTAMP#"},{"_id":"8","_up":["8"],"_sps":["sp"],"_us":["1","2","4","5","7","8"],"_glpd":"#TIMESTAMP#"},{"_id":"9","_up":["9"],"_sps":["sp"],"_us":["1","2","4","5","7","9"],"_glpd":"#TIMESTAMP#"}]

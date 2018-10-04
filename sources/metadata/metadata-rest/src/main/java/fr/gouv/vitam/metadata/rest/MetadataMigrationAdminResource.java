@@ -26,19 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AuthenticationLevel;
-import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
 
 /**
  * Metadata reconstruction resource.
@@ -69,8 +69,7 @@ public class MetadataMigrationAdminResource {
     /**
      * Constructor
      */
-    @VisibleForTesting
-    MetadataMigrationAdminResource(
+    @VisibleForTesting MetadataMigrationAdminResource(
         DataMigrationService dataMigrationService) {
         this.dataMigrationService = dataMigrationService;
     }
@@ -134,11 +133,11 @@ public class MetadataMigrationAdminResource {
 
         private String message;
 
-        public ResponseMessage(String message) {
-            this.message = message;
+        public ResponseMessage() {
         }
 
-        public ResponseMessage() {
+        public ResponseMessage(String message) {
+            this.message = message;
         }
 
         public void setMessage(String message) {

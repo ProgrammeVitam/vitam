@@ -42,6 +42,7 @@ import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.apache.commons.lang3.time.StopWatch;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,7 +86,7 @@ public class DataMigrationRepository {
 
     private final int bulkSize;
     private final MongoCollection<Unit> unitCollection;
-    private final MongoCollection<ObjectGroup> ogCollection;
+    private final MongoCollection ogCollection;
 
     /**
      * Constructor
@@ -252,6 +254,31 @@ public class DataMigrationRepository {
     }
 
     /**
+     * Returns units graph by Ids
+     */
+    public Map<String, Unit> getUnitAllParentsByIds(Collection<String> unitIds) {
+
+        FindIterable<Unit> iterable = unitCollection
+            .find(in(Unit.ID, unitIds))
+            .batchSize(unitIds.size())
+            .projection(include(Unit.ID, Unit.UNITUPS));
+
+        Map<String, Unit> directParentById = new HashMap<>();
+        try (MongoCursor<Unit> cursor = iterable.iterator()) {
+            while (cursor.hasNext()) {
+                Unit unit = cursor.next();
+                directParentById.put(unit.getId(), unit);
+            }
+        }
+
+        return directParentById;
+    }
+
+    public void bulkUpdateObjectGroups(List<WriteModel<Document>> updates) {
+        ogCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
+    }
+
+    /**
      * Replaces all units in unordered bulk mode
      */
     public void bulkReplaceUnits(List<Unit> updatedUnits) {
@@ -270,11 +297,11 @@ public class DataMigrationRepository {
     /**
      * Returns all object group ids to migrate by chunks of (at most) BULK_SIZE.
      */
-    public CloseableIterator<List<String>> selectObjectGroupBulk() {
+    public CloseableIterator<List<ObjectGroup>> selectObjectGroupBulk() {
 
         MongoCursor<ObjectGroup> ogMongoCursor = selectObjectGroups();
 
-        return new CloseableIterator<List<String>>() {
+        return new CloseableIterator<List<ObjectGroup>>() {
 
             @Override
             public void close() {
@@ -287,19 +314,19 @@ public class DataMigrationRepository {
             }
 
             @Override
-            public List<String> next() {
+            public List<ObjectGroup> next() {
 
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
 
-                List<String> bulkGotIds = new ArrayList<>();
+                List<ObjectGroup> bulkGotIds = new ArrayList<>();
 
                 // Bulk processing
                 while (ogMongoCursor.hasNext()) {
 
                     ObjectGroup got = ogMongoCursor.next();
-                    bulkGotIds.add(got.getId());
+                    bulkGotIds.add(got);
 
                     boolean shouldSplitByBulkSize = bulkGotIds.size() == bulkSize;
                     if (shouldSplitByBulkSize) {
@@ -324,6 +351,7 @@ public class DataMigrationRepository {
         FindIterable<ObjectGroup> objectGroups =
             ogCollection.find(
                 exists(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, false))
+                .projection(include(ObjectGroup.ID, ObjectGroup.UP))
                 // Batch
                 .batchSize(bulkSize);
 
