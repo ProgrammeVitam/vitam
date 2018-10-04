@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
@@ -589,7 +590,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindLargeFileUNKNOWN() throws WorkerAlreadyExistsException,
+    public void whenDistributeKindEmptyLargeFileThenWarning() throws WorkerAlreadyExistsException,
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
@@ -604,10 +605,10 @@ public class ProcessDistributorImplTest {
                 PauseRecover.NO_RECOVER);
 
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus()));
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
-        assertNotNull(imap);
-        assertTrue(imap.isEmpty());
+        assertThat(imap).containsOnlyKeys(OBJECTS_LIST_EMPTY);
+        assertThat(imap.get(OBJECTS_LIST_EMPTY).getGlobalStatus()).isEqualTo(StatusCode.WARNING);
     }
 
     @Test
