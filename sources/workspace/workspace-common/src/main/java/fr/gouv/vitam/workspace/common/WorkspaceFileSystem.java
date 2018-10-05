@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -108,7 +109,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         ParametersChecker.checkParameter("Workspace configuration cannot be null", configuration);
         ParametersChecker.checkParameter("Storage path configuration have to be define",
             configuration.getStoragePath());
-        root = Paths.get(configuration.getStoragePath());
+        root = Paths.get(new File (configuration.getStoragePath()).getCanonicalPath());
         if (!Files.exists(root)) {
             Files.createDirectories(root);
         }
@@ -361,6 +362,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
         try {
+            SafeFileChecker.checkSafeFilePath(getContainerPath(containerName).toString(), objectName);
             Path objectPath = getObjectPath(containerName, objectName);
             InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
             long size = Files.size(objectPath);

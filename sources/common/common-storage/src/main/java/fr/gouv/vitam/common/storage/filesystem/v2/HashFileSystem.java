@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -200,6 +201,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                 objectName + " in container " + containerName + " not found");
         }
         try {
+            SafeFileChecker.checkSafeFilePath(fsHelper.getPathContainer(containerName).toString(), objectName);
             InputStream inputStream = Files.newInputStream(filePath);
             return new AbstractMockClient.FakeInboundResponse(Status.OK, inputStream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE,
