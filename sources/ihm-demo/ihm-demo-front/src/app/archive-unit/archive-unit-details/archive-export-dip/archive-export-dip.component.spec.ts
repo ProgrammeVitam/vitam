@@ -68,16 +68,16 @@ describe('ArchiveExportDIPComponent', () => {
   it('should make the good request', () => {
     component.exportType = 'AU';
     let query = component.getQuery();
-    expect(query.dslRequest.$query[0].$eq['#id']).toBe(component.id);
+    expect(query.$query[0].$eq['#id']).toBe(component.id);
 
     component.exportType = 'INGEST';
     query = component.getQuery();
 
-    expect(query.dslRequest.$query[0].$eq['#operations']).toBe(component.operation);
+    expect(query.$query[0].$eq['#operations']).toBe(component.operation);
 
     component.exportType = 'FULL';
     query = component.getQuery();
-    expect(query.dslRequest.$query[0].$or[0].$eq['#id']).toBe(component.id);
-    expect(query.dslRequest.$query[0].$or[1].$in['#allunitups'][0]).toBe(component.id);;
+    expect(query.$query[0].$or[0].$eq['#id']).toBe(component.id);
+    expect(query.$query[0].$or[1].$in['#allunitups'][0]).toBe(component.id);;
   })
 });

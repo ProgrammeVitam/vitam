@@ -6,7 +6,7 @@ import {SelectItem} from 'primeng/primeng';
 export class ReferentialHelper {
 
   static optionLists = {
-    'DataObjectVersion': ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
+    DataObjectVersion: ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
   };
 
   constructor() { }
@@ -20,11 +20,11 @@ export class ReferentialHelper {
   }
 
   useMultiSelect(key : string) {
-    return ['DataObjectVersion'].indexOf(key) > -1;
+    return 'DataObjectVersion' === key;
   }
 
   public selectionOptions = {
-    'DataObjectVersion': [
+    DataObjectVersion: [
       {label: 'Original numérique', value: 'BinaryMaster'},
       {label: 'Diffusion', value: 'Dissemination'},
       {label: 'Vignette', value: 'Thumbnail'},
