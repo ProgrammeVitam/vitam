@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
@@ -595,7 +596,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService,
+                             new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new OffsetRepository(mongoAccess)))) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(Status.CREATED).build();
         } catch (final ReferentialException e) {
@@ -659,7 +661,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, AccessUnauthorizedException, InvalidCreateOperationException,
         ReferentialException {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService,
+                             new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new OffsetRepository(mongoAccess)))) {
 
             RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
             SanityChecker.checkJsonAll(select);
@@ -703,7 +706,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
+                     new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService,
+                             new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new OffsetRepository(mongoAccess)))) {
             SanityChecker.checkJsonAll(select);
             SanityChecker.checkParameter(documentId);
 
@@ -851,7 +855,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response createAccessionRegisterSymbolic() {
         try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(
-                mongoAccess, vitamCounterService, new ReconstructionServiceImpl(VitamRepositoryFactory.get()))) {
+                mongoAccess, vitamCounterService,
+                new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new OffsetRepository(mongoAccess)))) {
 
             MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
             ArrayNode accessionRegisterSymbolic = (ArrayNode) client.createAccessionRegisterSymbolic()
@@ -882,8 +887,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response getAccessionRegisterSymbolic(JsonNode queryDsl) {
-        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, new ReconstructionServiceImpl(
-                VitamRepositoryFactory.get()))) {
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
+                vitamCounterService, new ReconstructionServiceImpl(
+                VitamRepositoryFactory.get(), new OffsetRepository(mongoAccess)))) {
             List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
             RequestResponseOK<AccessionRegisterSymbolic> entity = new RequestResponseOK<AccessionRegisterSymbolic>()
                     .addAllResults(accessionRegisterSymbolic)

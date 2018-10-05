@@ -26,9 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletConfig;
 import javax.validation.Valid;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -42,19 +45,28 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * reconstruction Service.
@@ -87,13 +99,27 @@ public class AdminReconstructionResource {
      */
     private ReconstructionService reconstructionService;
 
+    private final MongoDbAccessAdminImpl mongoAccess;
+
     /**
      * Constructor
      * 
      * @param reconstructionFactory
      */
-    public AdminReconstructionResource(VitamRepositoryProvider reconstructionFactory) {
-        this.reconstructionService = new ReconstructionServiceImpl(reconstructionFactory);
+    public AdminReconstructionResource(AdminManagementConfiguration configuration, VitamRepositoryProvider reconstructionFactory) {
+
+        DbConfigurationImpl adminConfiguration;
+        if (configuration.isDbAuthentication()) {
+            adminConfiguration =
+                    new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
+                            true, configuration.getDbUserName(), configuration.getDbPassword());
+        } else {
+            adminConfiguration =
+                    new DbConfigurationImpl(configuration.getMongoDbNodes(),
+                            configuration.getDbName());
+        }
+        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
+        this.reconstructionService = new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess));
     }
 
     /**

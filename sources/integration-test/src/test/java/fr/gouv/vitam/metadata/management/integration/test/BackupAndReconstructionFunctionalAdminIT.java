@@ -157,6 +157,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
+        OffsetRepository offsetRepository;
+
+        MongoDbAccess mongoDbAccess =
+                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        offsetRepository = new OffsetRepository(mongoDbAccess);
+
+        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
         // Import 1 document agencies
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
@@ -194,8 +202,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(agencyDoc).isEmpty();
 
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository,
-                new RestoreBackupServiceImpl());
+                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
@@ -304,6 +311,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
+        OffsetRepository offsetRepository;
+
+        MongoDbAccess mongoDbAccess =
+                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        offsetRepository = new OffsetRepository(mongoDbAccess);
+
+        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             File securityProfileFiles =
@@ -345,8 +360,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository,
-                new RestoreBackupServiceImpl());
+                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 
         securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);

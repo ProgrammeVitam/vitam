@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -65,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.impl.ReconstructionService
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -126,9 +128,10 @@ public class ReferentialAccessionRegisterImplTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
-            mock(FunctionalBackupService.class), new ReconstructionServiceImpl(VitamRepositoryFactory.get()));
+        MongoDbAccessAdminImpl mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        accessionRegisterImpl = new ReferentialAccessionRegisterImpl(mongoDbAccessAdmin,
+            mock(FunctionalBackupService.class),
+                new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new OffsetRepository(mongoDbAccessAdmin)));
     }
 
     @AfterClass
