@@ -41,8 +41,8 @@ import java.util.regex.Pattern;
  */
 public class SafeFileChecker {
 
-    private static final Pattern filenamePattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)?");
-    private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+");
+    private static final Pattern filenamePattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)?$");
+    private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+$");
 
     private SafeFileChecker() {
         // Empty constructor
@@ -61,7 +61,7 @@ public class SafeFileChecker {
         try {
             File sanityCheckedFile = doSanityCheck(path);
             //do Path Traversal check
-            doCanonicalPathCheck(path);
+            doCanonicalPathCheck(sanityCheckedFile.getPath());//N.B : the getPath return a normalized pathname string
             doDirCheck(sanityCheckedFile.getParent());
             doFilenameCheck(sanityCheckedFile.getName());
         } catch (Exception ex) {
@@ -127,11 +127,11 @@ public class SafeFileChecker {
         String[] dirComponent = pathParent.split(File.separator);
 
         for (int index = 0; index < dirComponent.length; index++) {
-            if (!(index == 0 && dirComponent[index].equals("")) &&
-                !pathComponentPattern.matcher(dirComponent[index]).matches()) {
+            String component = dirComponent[index];
+            if (index != 0 && !pathComponentPattern.matcher(component).matches()) {
                 throw new VitamRuntimeException(String
                     .format("Invalid path (%s) (has unauthorized characters in component[%d] : %s", pathParent, index,
-                        dirComponent[index]));
+                        component));
             }
         }
 

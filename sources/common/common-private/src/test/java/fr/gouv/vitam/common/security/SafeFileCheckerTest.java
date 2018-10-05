@@ -40,10 +40,12 @@ import java.io.IOException;
 
 public class SafeFileCheckerTest {
     private final String ROOT_PATH = "/mydir/app-directory";
+    private final String ROOT_MULTI_SLASH_PATH = "/mydir///app-directory";
     private final String ROOT_PATH_INFECTED = "/mydir/./app-_directory";
     private final String SUBPATH_SAFE = "json_good_sanity,";
-    private final String SUBPATH_INFECTED = "../../etc/password";
+    private final String SUBPATH_INFECTED = "../..//etc/password";
     private final String SUBPATH_INFECTED_ENCODED = "%2e%2e%2f..\\/etc/password";
+    private final String SUBPATH_INFECTED_BAD_CHARS = "myDir&,";
     private final String VALID_FILENAME = "good-file,.pdf";
     private final String INVALID_FILENAME = "my%2ffilename.json";
     private final String INVALID_FILENAME_NULLED = "filename\0.json";
@@ -52,6 +54,10 @@ public class SafeFileCheckerTest {
     @Test(expected = IOException.class)
     public void checkInvalidPathComponentFile() throws IOException, VitamRuntimeException {
         SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED, VALID_FILENAME);
+    }
+    @Test
+    public void checkValidMultiSlashPathComponentFile() throws IOException, VitamRuntimeException {
+        SafeFileChecker.checkSafeFilePath(ROOT_MULTI_SLASH_PATH, SUBPATH_SAFE, VALID_FILENAME);
     }
 
     @Test(expected = IOException.class)
@@ -62,6 +68,11 @@ public class SafeFileCheckerTest {
     @Test(expected = IOException.class)
     public void checkInvalidEncodedPathComponentFile() throws IOException, VitamRuntimeException {
         SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED_ENCODED);
+    }
+
+    @Test(expected = IOException.class)
+    public void checkInvalidBadCharPathComponentFile() throws IOException, VitamRuntimeException {
+        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED_BAD_CHARS);
     }
 
     @Test
