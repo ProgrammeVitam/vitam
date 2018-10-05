@@ -18,9 +18,7 @@
   roles:
     - curator
 
-- hosts: vitam
-  roles:
-    - vitam_browser
+- import_playbook: browser.yml
 
 - import_playbook: dev-tools.yml
 
