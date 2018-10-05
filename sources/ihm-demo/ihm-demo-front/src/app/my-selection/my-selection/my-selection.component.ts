@@ -14,6 +14,7 @@ import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DialogService} from '../../common/dialog/dialog.service';
 import {SelectItem} from 'primeng/api';
+import {ReferentialHelper} from "../../referentials/referential.helper";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Panier', routerLink: 'basket'}
@@ -296,29 +297,24 @@ export class MySelectionComponent extends PageComponent {
       }, {ids: [], roots: []});
 
     return {
-      '$query': [
+      $query: [
         {
-          '$or': [
+          $or: [
             {
-              '$in': {
-                '#id': ids
-              }
+              $in: {'#id': ids}
             },
             {
-              '$in': {
-                '#allunitups': roots
-              }
+              $in: {'#allunitups': roots}
             }
           ]
         }
       ],
-      '$filter': {},
-      '$projection': {}
+      $filter: {},
+      $projection: {}
     };
   }
 
   actionOnBasket(isOnSelection: boolean = false) {
-    console.log('selection: ', isOnSelection);
     if (this.selectedOption === 'DELETE') {
       this.doDelete(isOnSelection);
       return;
@@ -341,12 +337,9 @@ export class MySelectionComponent extends PageComponent {
 
     switch (this.selectedOption) {
       case 'EXPORT':
-        this.archiveUnitService.exportDIP(query).subscribe(
-          () => {
-            this.displayActionEnded(this.selectedOption, true);
-          }, () => {
-            this.displayActionEnded(this.selectedOption, false);
-          }
+        this.archiveUnitService.exportDIP(query, ReferentialHelper.optionLists.DataObjectVersion).subscribe(
+          () => this.displayActionEnded(this.selectedOption, true),
+          () => this.displayActionEnded(this.selectedOption, false)
         );
         break;
       case 'AUDIT':

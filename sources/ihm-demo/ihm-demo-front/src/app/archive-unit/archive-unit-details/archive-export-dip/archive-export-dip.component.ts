@@ -21,7 +21,7 @@ export class ArchiveExportDIPComponent implements OnInit {
   contract: AccessContract;
   updatedFields: any = {};
 
-  constructor(private archiveUnitService: ArchiveUnitService, 
+  constructor(private archiveUnitService: ArchiveUnitService,
     private searchReferentialsService: ReferentialsService,
     private errorService: ErrorService,
     private referentialHelper: ReferentialHelper,
@@ -85,21 +85,11 @@ export class ArchiveExportDIPComponent implements OnInit {
         "$projection": {}
       };
     }
-    
-    return {
-      "dslRequest": query,
-      "dataObjectVersionToExport": {
-        "dataObjectVersions": this.updatedFields.DataObjectVersion
-      }
-    };
+    return query
   }
 
   exportDIP() {
-    this.archiveUnitService.exportDIP(this.getQuery()).subscribe(
-        (response) => {
-          this.display = true;
-        }
-    );
+    this.archiveUnitService.exportDIP(this.getQuery(), this.updatedFields.DataObjectVersion).subscribe(() => this.display = true);
   }
 
   initCurrentContract(accessContract: string) {
@@ -119,7 +109,7 @@ export class ArchiveExportDIPComponent implements OnInit {
     }
 
     if(this.contract.EveryDataObjectVersion) {
-      this.updatedFields = ReferentialHelper.optionLists.DataObjectVersion;      
+      this.updatedFields = ReferentialHelper.optionLists.DataObjectVersion;
     } else {
       this.updatedFields = this.contract.DataObjectVersion;
     }

@@ -64,7 +64,11 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNITS}`, headers, body);
   }
 
-  exportDIP(body: any): Observable<VitamResponse> {
+  exportDIP(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[]): Observable<VitamResponse> {
+    const body = {
+      dslRequest: query,
+      dataObjectVersionToExport: {dataObjectVersions}
+    };
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
   }
 
