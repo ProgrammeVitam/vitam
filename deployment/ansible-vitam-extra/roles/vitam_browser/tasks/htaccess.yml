@@ -1,6 +1,14 @@
 ---
 
-- name: apply .htaccess to hide some files 
+- name: Make sure /vitam/conf/offer directory exists & don't modify initial permissions
+  file:
+    path: "{{vitam_defaults.folder.root_path}}/conf/offer/"
+    state: "directory"
+  tags:
+    - htaccess
+
+
+- name: apply .htaccess to hide some files
   copy:
     src: .htaccess
     dest: "{{vitam_defaults.folder.root_path}}/conf/offer/.htaccess"
