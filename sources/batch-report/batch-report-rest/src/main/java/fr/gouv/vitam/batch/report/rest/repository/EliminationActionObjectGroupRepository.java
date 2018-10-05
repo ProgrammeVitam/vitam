@@ -56,6 +56,7 @@ import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegiste
 public class EliminationActionObjectGroupRepository extends EliminationCommonRepository {
 
     public static final String ELIMINATION_ACTION_OBJECT_GROUP = "EliminationActionObjectGroup";
+    public static final String OPI_GOT = "opi_got";
 
     private final MongoCollection<Document> objectGroupReportCollection;
 
@@ -131,23 +132,27 @@ public class EliminationActionObjectGroupRepository extends EliminationCommonRep
                 Aggregates.unwind("$objectVersions"),
 
                 // Group BY
-                Aggregates.group("$" + OPI,
+                Aggregates.group(new Document(OPI, "$objectVersions." + OPI)
+                        .append(OPI_GOT, "$"+OPI),
                     Accumulators
                         .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
                     Accumulators.sum(TOTAL_SIZE, "$objectVersions.size"),
                     Accumulators.sum(TOTAL_OBJECTS, 1),
                     Accumulators.addToSet("listGOT", "$id")
                 ),
+
                 // Projection
                 Aggregates.project(Projections.fields(
                     new Document("_id", 0),
-                    new Document(OPI, "$_id"),
+                    new Document(OPI, "$_id." + OPI),
+                    new Document(OPI_GOT, "$_id." + OPI_GOT),
                     new Document(ORIGINATING_AGENCY, 1),
                     new Document(TOTAL_SIZE, 1),
                     new Document(TOTAL_OBJECTS, 1),
                     new Document(TOTAL_OBJECT_GROUPS, new Document("$size", "$listGOT"))
                     )
                 ),
+
                 // Sort
                 Aggregates.sort(Sorts.descending(OPI))
             )

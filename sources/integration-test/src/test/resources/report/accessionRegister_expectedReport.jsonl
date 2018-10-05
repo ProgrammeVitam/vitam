@@ -1,4 +1,9 @@
-{"id":"opi3","params":{"opi":"opi3","originatingAgency":"sp2","totalUnits":2,"totalObjectGroups":1,"totalObjects":2,"totalSize":3}}
-{"id":"opi2","params":{"opi":"opi2","originatingAgency":"sp1","totalUnits":0,"totalObjectGroups":1,"totalObjects":2,"totalSize":7}}
+{"id":"opi9","params":{"opi":"opi9","originatingAgency":"sp1","totalUnits":1,"totalObjectGroups":1,"totalObjects":1,"totalSize":3}}
+{"id":"opi8","params":{"opi":"opi8","originatingAgency":"sp1","totalUnits":0,"totalObjectGroups":0,"totalObjects":1,"totalSize":6}}
+{"id":"opi3add","params":{"opi":"opi3add","originatingAgency":"sp2","totalUnits":0,"totalObjectGroups":0,"totalObjects":1,"totalSize":2}}
+{"id":"opi3","params":{"opi":"opi3","originatingAgency":"sp2","totalUnits":2,"totalObjectGroups":1,"totalObjects":1,"totalSize":1}}
+{"id":"opi2add","params":{"opi":"opi2add","originatingAgency":"sp1","totalUnits":0,"totalObjectGroups":0,"totalObjects":1,"totalSize":4}}
+{"id":"opi2","params":{"opi":"opi2","originatingAgency":"sp1","totalUnits":0,"totalObjectGroups":1,"totalObjects":1,"totalSize":3}}
 {"id":"opi1","params":{"opi":"opi1","originatingAgency":"sp1","totalUnits":1,"totalObjectGroups":0,"totalObjects":0,"totalSize":0}}
-{"id":"opi0","params":{"opi":"opi0","originatingAgency":"sp1","totalUnits":3,"totalObjectGroups":2,"totalObjects":4,"totalSize":14}}
+{"id":"opi0add","params":{"opi":"opi0add","originatingAgency":"sp1","totalUnits":0,"totalObjectGroups":0,"totalObjects":2,"totalSize":10}}
+{"id":"opi0","params":{"opi":"opi0","originatingAgency":"sp1","totalUnits":3,"totalObjectGroups":2,"totalObjects":2,"totalSize":4}}

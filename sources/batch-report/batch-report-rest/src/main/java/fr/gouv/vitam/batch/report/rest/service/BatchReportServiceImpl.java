@@ -72,6 +72,8 @@ public class BatchReportServiceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportServiceImpl.class);
     private static final String JSONL_EXTENSION = ".jsonl";
+    private static final String OPI_GOT = "opi_got";
+
     private EliminationActionUnitRepository eliminationActionUnitRepository;
     private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -196,10 +198,15 @@ public class BatchReportServiceImpl {
             }
 
             if (objectGroup != null) {
+                String opi_version = objectGroup.getString(OPI);
+                String opi_got = objectGroup.getString(OPI_GOT);
+
                 eliminationAccessionRegisterModel.setOpi(objectGroup.getString(OPI));
                 eliminationAccessionRegisterModel.setOriginatingAgency(objectGroup.getString(ORIGINATING_AGENCY));
-                eliminationAccessionRegisterModel
-                    .setTotalObjectGroups(((Number) objectGroup.get(TOTAL_OBJECT_GROUPS)).longValue());
+                if (opi_got.equals(opi_version)) {
+                    eliminationAccessionRegisterModel
+                        .setTotalObjectGroups(((Number) objectGroup.get(TOTAL_OBJECT_GROUPS)).longValue());
+                }
                 eliminationAccessionRegisterModel
                     .setTotalObjects(((Number) objectGroup.get(TOTAL_OBJECTS)).longValue());
                 eliminationAccessionRegisterModel.setTotalSize(((Number) objectGroup.get(TOTAL_SIZE)).longValue());

@@ -118,7 +118,7 @@ public class EliminationActionObjectGroupRepositoryTest {
         while (iterator.hasNext()) {
             documents.add(iterator.next());
         }
-        Assertions.assertThat(documents.size()).isEqualTo(5);
+        Assertions.assertThat(documents.size()).isEqualTo(6);
     }
 
     @Test
@@ -139,14 +139,19 @@ public class EliminationActionObjectGroupRepositoryTest {
         }
 
         // Then
-        Assertions.assertThat(documents.size()).isEqualTo(3);
+        Assertions.assertThat(documents.size()).isEqualTo(8);
 
         Assertions.assertThat(documents)
             .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
             .containsSequence(
-                tuple("sp2", 3, 2, "opi3", 1),
-                tuple("sp1", 7, 2, "opi2", 1),
-                tuple("sp1", 14, 4, "opi0", 2)
+                tuple("sp1", 3, 1, "opi9", 1),
+                tuple("sp1", 6, 1, "opi8", 1),
+                tuple("sp2", 2, 1, "opi3add", 1),
+                tuple("sp2", 1, 1, "opi3", 1),
+                tuple("sp1", 4, 1, "opi2add", 1),
+                tuple("sp1", 3, 1, "opi2", 1),
+                tuple("sp1", 10, 2, "opi0add", 2),
+                tuple("sp1", 4, 2, "opi0", 2)
             );
     }
 

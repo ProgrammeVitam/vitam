@@ -66,6 +66,13 @@
       "originatingAgency": "sp2",
       "status": "PARTIAL_DESTROY",
       "id": "unitId7"
+    },
+    {
+      "opi": "opi9",
+      "objectGroupId": "id9",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId9"
     }
   ]
 }
