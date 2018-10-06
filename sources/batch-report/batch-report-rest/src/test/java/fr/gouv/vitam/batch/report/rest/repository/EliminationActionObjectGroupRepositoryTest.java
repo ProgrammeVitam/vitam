@@ -25,11 +25,9 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  * accept its terms.
  *******************************************************************************/
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -39,7 +37,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -122,6 +119,36 @@ public class EliminationActionObjectGroupRepositoryTest {
     }
 
     @Test
+    public void compute_own_accession_register_multiple_objects_from_different_operation_ok()
+            throws InvalidParseOperationException {
+        // Given
+        List<EliminationActionObjectGroupModel> eliminationUnitModels =
+                getDocuments("/eliminationObjectGroupMultipleObjectsDifferentOperations.json");
+        // When
+        repository.bulkAppendReport(eliminationUnitModels);
+
+        EliminationActionObjectGroupModel first = eliminationUnitModels.iterator().next();
+        // When
+        MongoCursor<Document> iterator = repository.computeOwnAccessionRegisterDetails(first.getProcessId(), TENANT_ID);
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            documents.add(iterator.next());
+        }
+
+        // Then
+        Assertions.assertThat(documents.size()).isEqualTo(4);
+
+        Assertions.assertThat(documents)
+                .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
+                .containsSequence(
+                        tuple("sp1", 6, 1, "opi3", 0),
+                        tuple("sp1", 20, 4, "opi2", 1),
+                        tuple("sp1", 13, 3, "opi1", 1),
+                        tuple("sp1", 7, 2, "opi0", 2)
+                );
+    }
+
+    @Test
     public void compute_own_accession_register_ok()
         throws InvalidParseOperationException {
         // Given
@@ -145,12 +172,12 @@ public class EliminationActionObjectGroupRepositoryTest {
             .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
             .containsSequence(
                 tuple("sp1", 3, 1, "opi9", 1),
-                tuple("sp1", 6, 1, "opi8", 1),
-                tuple("sp2", 2, 1, "opi3add", 1),
+                tuple("sp1", 6, 1, "opi8", 0),
+                tuple("sp2", 2, 1, "opi3add", 0),
                 tuple("sp2", 1, 1, "opi3", 1),
-                tuple("sp1", 4, 1, "opi2add", 1),
+                tuple("sp1", 4, 1, "opi2add", 0),
                 tuple("sp1", 3, 1, "opi2", 1),
-                tuple("sp1", 10, 2, "opi0add", 2),
+                tuple("sp1", 10, 2, "opi0add", 0),
                 tuple("sp1", 4, 2, "opi0", 2)
             );
     }
