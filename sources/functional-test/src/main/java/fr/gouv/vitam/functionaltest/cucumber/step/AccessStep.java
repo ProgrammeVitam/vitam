@@ -593,6 +593,28 @@ public class AccessStep {
         assertThat(selectedInheritedCategoryResult.get("Properties")).hasSize(nbProperties);
     }
 
+    /**
+     * search an object groups according to the query define before
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les groupes d'objets")
+    public void search_object_groups() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectObjects(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+            facetResults = requestResponseOK.getFacetResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
     @Then("^la catégorie contient une règle (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
     public void check_rule_metadata(String ruleId, String unitTitle, DataTable dataTable) throws Throwable {
 
@@ -1044,8 +1066,8 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je lance une analyse d'élimination avec pour date le (.*)$")
-    public void start_elimination_analysis(String analysisDate) throws Throwable {
+    @When("^je lance une analyse d'élimination avec pour date le (.*) qui se termine avec le statut (.*)$")
+    public void start_elimination_analysis(String analysisDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -1060,7 +1082,7 @@ public class AccessStep {
         final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setEliminationOperationId(eliminationOperationId);
 
-        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+        checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
 
     }
 
@@ -1069,8 +1091,8 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je lance une élimination définitive avec pour date le (.*)$")
-    public void start_elimination_action(String deleteDate) throws Throwable {
+    @When("^je lance une élimination définitive avec pour date le (.*) qui se termine avec le statut (.*)$")
+    public void start_elimination_action(String deleteDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAction(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -1085,7 +1107,7 @@ public class AccessStep {
         final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setEliminationOperationId(eliminationOperationId);
 
-        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+        checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
     }
 
     @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")
