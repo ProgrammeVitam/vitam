@@ -286,7 +286,7 @@ documentation:
           body:
             application/json:
 
-  /storageaccesslog:
+/storageaccesslog:
   displayName: Actions relatives aux fichiers journaux d'accès aux objets binaires
   description: |
     API qui permet de lancer des actions relatives aux fichiers journaux d'accès aux objets binaires des unités archivistiques.
@@ -298,7 +298,7 @@ documentation:
     description:
         Lancer la récupération des journaux sous la forme d'un ZIP contenant des fichiers de log au format Json Lines.
         La requête prend en paramètre un objet Json pouvant contenir une date de début (StartDate) ou de fin (EndDate) pour filtrer les journaux.
-    reponses:
+    responses:
         200:
             description: Success
             body:
