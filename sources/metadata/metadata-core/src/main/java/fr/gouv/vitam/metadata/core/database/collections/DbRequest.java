@@ -1137,8 +1137,9 @@ public class DbRequest {
             finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
                 eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, finalQuery, null);
+
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             MetadataCollections.UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor, tenantId);
@@ -1165,9 +1166,9 @@ public class DbRequest {
         } else {
             finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
-        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-                .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.OBJECTGROUP, finalQuery, null);
+
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             MetadataCollections.OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);
