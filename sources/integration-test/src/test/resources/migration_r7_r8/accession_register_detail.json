@@ -1,0 +1,106 @@
+[
+  {
+    "_id": "aehaaaaaaehdfg3uabrxcale57asp2qaaaaq",
+    "OriginatingAgency": "producteur1",
+    "Identifier": "aeeaaaaaaghgaihjabmruale57anmxiaaaaq",
+    "OperationGroup": "aeeaaaaaaghgaihjabmruale57anmxiaaaaq",
+    "SubmissionAgency": "producteur1",
+    "ArchivalAgreement": "ArchivalAgreement0",
+    "EndDate": "2018-07-31T09:52:50.666",
+    "StartDate": "2018-07-31T09:52:50.666",
+    "AcquisitionInformation": null,
+    "LegalStatus": null,
+    "Symbolic": false,
+    "Status": "STORED_AND_COMPLETED",
+    "LastUpdate": "2018-07-31T09:52:50.666",
+    "TotalObjectGroups": {
+      "ingested": 1,
+      "deleted": 0,
+      "remained": 1,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalUnits": {
+      "ingested": 3,
+      "deleted": 0,
+      "remained": 3,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalObjects": {
+      "ingested": 3,
+      "deleted": 0,
+      "remained": 3,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "ObjectSize": {
+      "ingested": 229360,
+      "deleted": 0,
+      "remained": 229360,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "OperationIds": [
+      "aeeaaaaaaghgaihjabmruale57anmxiaaaaq"
+    ],
+    "_v": 1,
+    "_tenant": 0
+  },
+  {
+    "_id": "aehaaaaaaehdfg3uabrxcale57t4pqiaaaaq",
+    "OriginatingAgency": "FRAN_NP_009913",
+    "Identifier": "aeeaaaaaaghgaihjabmruale57txxzyaaaaq",
+    "OperationGroup": "aeeaaaaaaghgaihjabmruale57txxzyaaaaq",
+    "SubmissionAgency": "FRAN_NP_009913",
+    "ArchivalAgreement": "ArchivalAgreement0",
+    "EndDate": "2018-07-31T10:35:01.953",
+    "StartDate": "2018-07-31T10:35:01.953",
+    "AcquisitionInformation": null,
+    "LegalStatus": null,
+    "Symbolic": false,
+    "Status": "STORED_AND_COMPLETED",
+    "LastUpdate": "2018-07-31T10:35:01.953",
+    "TotalObjectGroups": {
+      "ingested": 4,
+      "deleted": 0,
+      "remained": 4,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalUnits": {
+      "ingested": 7,
+      "deleted": 0,
+      "remained": 7,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalObjects": {
+      "ingested": 4,
+      "deleted": 0,
+      "remained": 4,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "ObjectSize": {
+      "ingested": 156647,
+      "deleted": 0,
+      "remained": 156647,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "OperationIds": [
+      "aeeaaaaaaghgaihjabmruale57txxzyaaaaq"
+    ],
+    "_v": 0,
+    "_tenant": 0
+  }
+]

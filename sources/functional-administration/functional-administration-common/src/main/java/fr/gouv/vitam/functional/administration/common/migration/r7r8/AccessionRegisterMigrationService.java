@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.common.migration.r7r8;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -58,7 +59,7 @@ public class AccessionRegisterMigrationService {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterMigrationService.class);
 
-    private final AccessionRegisterMigrationRepository dataMigrationRepository;
+    private final AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
 
     private final AtomicBoolean isRunning = new AtomicBoolean();
 
@@ -74,7 +75,7 @@ public class AccessionRegisterMigrationService {
      */
     @VisibleForTesting
     AccessionRegisterMigrationService(AccessionRegisterMigrationRepository dataMigrationRepository) {
-        this.dataMigrationRepository = dataMigrationRepository;
+        this.accessionRegisterMigrationRepository = dataMigrationRepository;
     }
 
     public boolean isMongoDataUpdateInProgress() {
@@ -104,22 +105,14 @@ public class AccessionRegisterMigrationService {
         return true;
     }
 
-    void mongoDataUpdate(FunctionalAdminCollections accessionRegisterDetailCollection, FunctionalAdminCollections accessionRegisterSummaryCollection) throws InterruptedException {
-        processAccessionRegisters(accessionRegisterDetailCollection);
-        processAccessionRegisters(accessionRegisterSummaryCollection);
-    }
-
-
     void mongoDataUpdate() throws InterruptedException {
-
-        dataMigrationRepository.migrateIndexes();
-
-        mongoDataUpdate(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        processAccessionRegisters(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        processAccessionRegisters(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
     }
 
     private void processAccessionRegisters(FunctionalAdminCollections collection) throws InterruptedException {
         try (CloseableIterator<List<Document>> bulkRegisterIterator =
-            dataMigrationRepository.selectAccessionRegistesBulk(collection)) {
+                     accessionRegisterMigrationRepository.selectAccessionRegistesBulk(collection)) {
             processAccessionRegistersByBulk(bulkRegisterIterator, collection);
         }
     }
@@ -148,91 +141,101 @@ public class AccessionRegisterMigrationService {
     }
 
     private void processRegisterBulk(ExecutorService executor, List<Document> registersToUpdate,
-                                           StopWatch sw, AtomicInteger updatedRegistersCount,
+                                     StopWatch sw, AtomicInteger updatedRegistersCount,
                                      AtomicInteger registersWithErrorsCount, FunctionalAdminCollections collection) {
-        
+
         List<Document> updatedRegisters = ListUtils.synchronizedList(new ArrayList<>());
 
         CompletableFuture[] futures =
-            registersToUpdate.stream().map(register -> CompletableFuture.runAsync(() -> {
-                try {
-                    switch (collection) {
-                        case ACCESSION_REGISTER_DETAIL:
-                            migrateAccessionRegisterDetail(register);
-                            break;
-                        case ACCESSION_REGISTER_SUMMARY:
-                            migrateAccessionRegisterSummary(register);
-                            break;
-                    }
+                registersToUpdate.stream().map(register -> CompletableFuture.runAsync(() -> {
+                    try {
+                        switch (collection) {
+                            case ACCESSION_REGISTER_DETAIL:
+                                migrateAccessionRegisterDetail(register);
+                                break;
+                            case ACCESSION_REGISTER_SUMMARY:
+                                migrateAccessionRegisterSummary(register);
+                                break;
+                        }
 
-                    updatedRegisters.add(register);
-                } catch (Exception e) {
-                    LOGGER.error(String.format("An error occurred during %s migration: %s %s",
-                            collection.getName(), register.get(AccessionRegisterDetail.ID), e));
-                }
-            }, executor)).toArray(CompletableFuture[]::new);
+                        updatedRegisters.add(register);
+                    } catch (Exception e) {
+                        LOGGER.error(String.format("An error occurred during %s migration: %s %s",
+                                collection.getName(), register.get(AccessionRegisterDetail.ID), e));
+                    }
+                }, executor)).toArray(CompletableFuture[]::new);
 
         CompletableFuture.allOf(futures).join();
 
-        this.dataMigrationRepository.bulkReplaceOrUpdateAccessionRegisters(updatedRegisters, collection);
+        switch (collection) {
+            case ACCESSION_REGISTER_DETAIL:
+                this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterDetail(updatedRegisters);
+                break;
+            case ACCESSION_REGISTER_SUMMARY:
+                this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterSummary(updatedRegisters);
+                break;
+        }
 
         updatedRegistersCount.addAndGet(updatedRegisters.size());
         registersWithErrorsCount.addAndGet(registersToUpdate.size() - updatedRegisters.size());
 
         LOGGER.info(String.format(
-            "%s migration progress : elapsed time= %d seconds, updated registers= %d, registers with errors= %d",
-            collection.getName(), sw.getTime(TimeUnit.SECONDS), updatedRegistersCount.get(), registersWithErrorsCount.get()));
+                "%s migration progress : elapsed time= %d seconds, updated registers= %d, registers with errors= %d",
+                collection.getName(), sw.getTime(TimeUnit.SECONDS), updatedRegistersCount.get(), registersWithErrorsCount.get()));
     }
 
-    private void migrateAccessionRegisterDetail(Document register)  {
+    private void migrateAccessionRegisterDetail(Document register) {
         register.remove("Symbolic");
-        ((Document)register.get("TotalObjectGroups")).remove("attached");
-        ((Document)register.get("TotalObjectGroups")).remove("detached");
-        ((Document)register.get("TotalObjectGroups")).remove("symbolicRemained");
+        ((Document) register.get("TotalObjectGroups")).remove("attached");
+        ((Document) register.get("TotalObjectGroups")).remove("detached");
+        ((Document) register.get("TotalObjectGroups")).remove("symbolicRemained");
 
-        ((Document)register.get("TotalUnits")).remove("attached");
-        ((Document)register.get("TotalUnits")).remove("detached");
-        ((Document)register.get("TotalUnits")).remove("symbolicRemained");
+        ((Document) register.get("TotalUnits")).remove("attached");
+        ((Document) register.get("TotalUnits")).remove("detached");
+        ((Document) register.get("TotalUnits")).remove("symbolicRemained");
 
-        ((Document)register.get("TotalObjects")).remove("attached");
-        ((Document)register.get("TotalObjects")).remove("detached");
-        ((Document)register.get("TotalObjects")).remove("symbolicRemained");
+        ((Document) register.get("TotalObjects")).remove("attached");
+        ((Document) register.get("TotalObjects")).remove("detached");
+        ((Document) register.get("TotalObjects")).remove("symbolicRemained");
 
-        ((Document)register.get("ObjectSize")).remove("attached");
-        ((Document)register.get("ObjectSize")).remove("detached");
-        ((Document)register.get("ObjectSize")).remove("symbolicRemained");
+        ((Document) register.get("ObjectSize")).remove("attached");
+        ((Document) register.get("ObjectSize")).remove("detached");
+        ((Document) register.get("ObjectSize")).remove("symbolicRemained");
 
-        register.put("Opc", register.get("Identifier"));
-        register.put("Opi", register.get("OperationGroup"));
+        String opi = register.getString("Identifier");
+        String opc = register.getString("OperationGroup");
+
+        register.append("Opi", opi);
+        register.append("Opc", opc);
+
         register.remove("Identifier");
         register.remove("OperationGroup");
 
-        register.put("Events", Arrays.asList(new Document()
-                .append("Opc", register.get("Opc"))
+        register.append("Events", Arrays.asList(new Document("Opc", opc)
                 .append("OpType", "INGEST")
-                .append("Gots", ((Document)register.get("TotalObjectGroups")).get("remained"))
-                .append("Units", ((Document)register.get("TotalUnits")).get("remained"))
-                .append("Objects", ((Document)register.get("TotalObjects")).get("remained"))
-                .append("ObjSize", ((Document)register.get("ObjectSize")).get("remained"))
-                .append("CreationDate", register.get("StartDate"))
+                .append("Gots", ((Document) register.get("TotalObjectGroups")).get("remained"))
+                .append("Units", ((Document) register.get("TotalUnits")).get("remained"))
+                .append("Objects", ((Document) register.get("TotalObjects")).get("remained"))
+                .append("ObjSize", ((Document) register.get("ObjectSize")).get("remained"))
+                .append("CreationDate", register.getString("StartDate"))
         ));
     }
 
-    private void migrateAccessionRegisterSummary(Document register)  {
-        ((Document)register.get("TotalObjectGroups")).remove("attached");
-        ((Document)register.get("TotalObjectGroups")).remove("detached");
-        ((Document)register.get("TotalObjectGroups")).remove("symbolicRemained");
+    private void migrateAccessionRegisterSummary(Document register) {
+        ((Document) register.get("TotalObjectGroups")).remove("attached");
+        ((Document) register.get("TotalObjectGroups")).remove("detached");
+        ((Document) register.get("TotalObjectGroups")).remove("symbolicRemained");
 
-        ((Document)register.get("TotalUnits")).remove("attached");
-        ((Document)register.get("TotalUnits")).remove("detached");
-        ((Document)register.get("TotalUnits")).remove("symbolicRemained");
+        ((Document) register.get("TotalUnits")).remove("attached");
+        ((Document) register.get("TotalUnits")).remove("detached");
+        ((Document) register.get("TotalUnits")).remove("symbolicRemained");
 
-        ((Document)register.get("TotalObjects")).remove("attached");
-        ((Document)register.get("TotalObjects")).remove("detached");
-        ((Document)register.get("TotalObjects")).remove("symbolicRemained");
+        ((Document) register.get("TotalObjects")).remove("attached");
+        ((Document) register.get("TotalObjects")).remove("detached");
+        ((Document) register.get("TotalObjects")).remove("symbolicRemained");
 
-        ((Document)register.get("ObjectSize")).remove("attached");
-        ((Document)register.get("ObjectSize")).remove("detached");
-        ((Document)register.get("ObjectSize")).remove("symbolicRemained");
+        ((Document) register.get("ObjectSize")).remove("attached");
+        ((Document) register.get("ObjectSize")).remove("detached");
+        ((Document) register.get("ObjectSize")).remove("symbolicRemained");
     }
 }

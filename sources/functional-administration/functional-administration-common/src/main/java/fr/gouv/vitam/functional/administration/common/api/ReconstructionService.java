@@ -69,7 +69,5 @@ public interface ReconstructionService {
 
     void computeAccessionRegisterSummary(String originatingAgency, Integer tenant);
 
-    Document prepareAccessionRegisterSummary(Document aggregation);
-
     List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
 }

@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.migration.r7r8;
 
-import com.mongodb.client.ListIndexesIterable;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.*;
-import com.mongodb.util.JSON;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -50,35 +52,17 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class AccessionRegisterMigrationRepository {
 
+    private FunctionalAdminCollections accessionRegisterDetailCollection;
+    private FunctionalAdminCollections accessionRegisterSummaryCollection;
 
-    private static final String NAME = "name";
-    private static final String ACCESSION_REGISTER_DETAIL_INDEX_TO_DELETE = "OriginatingAgency_1_Identifier_1__tenant_1";
+    public AccessionRegisterMigrationRepository() {
+        this(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+    }
 
-    public void migrateIndexes() {
-
-        MongoCollection collection = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
-
-        ListIndexesIterable listIndexes = collection.listIndexes();
-        if (null != listIndexes) {
-            MongoCursor<Document> indexes = listIndexes.iterator();
-            while (indexes.hasNext()) {
-                Document index = indexes.next();
-                System.err.println(JSON.serialize(index));
-                String indexName = index.getString(NAME);
-                if (ACCESSION_REGISTER_DETAIL_INDEX_TO_DELETE.equals(indexName)) {
-                    collection.dropIndex(ACCESSION_REGISTER_DETAIL_INDEX_TO_DELETE);
-                }
-
-            }
-        }
-
-        collection.createIndex(Indexes.ascending("OriginatingAgency", "Opi", "_tenant"), new IndexOptions().unique(true));
-        collection.createIndex(Indexes.ascending("_tenant"));
-        collection.createIndex(Indexes.ascending("OriginatingAgency"));
-        collection.createIndex(Indexes.ascending("SubmissionAgency"));
-        collection.createIndex(Indexes.ascending("Opc"));
-        collection.createIndex(Indexes.ascending("Opi"));
-
+    @VisibleForTesting
+    public AccessionRegisterMigrationRepository(FunctionalAdminCollections accessionRegisterDetailCollection, FunctionalAdminCollections accessionRegisterSummaryCollection) {
+        this.accessionRegisterDetailCollection = accessionRegisterDetailCollection;
+        this.accessionRegisterSummaryCollection = accessionRegisterSummaryCollection;
     }
 
     /**
@@ -130,7 +114,7 @@ public class AccessionRegisterMigrationRepository {
     /**
      * Replace all accession register (Detail or summary)
      */
-    public void bulkReplaceOrUpdateAccessionRegisters(List<Document> updatedDocuments, FunctionalAdminCollections collection) {
+    public void bulkReplaceOrUpdateAccessionRegisters(List<Document> updatedDocuments, MongoCollection<Document> collection) {
 
         List<WriteModel<Document>> updates = updatedDocuments
                 .stream()
@@ -138,7 +122,23 @@ public class AccessionRegisterMigrationRepository {
                         new UpdateOptions().upsert(false)))
                 .collect(Collectors.toList());
 
-        collection.getCollection().bulkWrite(updates, new BulkWriteOptions().ordered(false));
+        collection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
 
+    }
+
+    public MongoCollection<Document> getAccessionRegisterDetailCollection() {
+        return accessionRegisterDetailCollection.getCollection();
+    }
+
+    public MongoCollection<Document> getAccessionRegisterSummaryCollection() {
+        return accessionRegisterSummaryCollection.getCollection();
+    }
+
+    public void bulkReplaceOrUpdateAccessionRegisterDetail(List<Document> updatedRegisters) {
+        bulkReplaceOrUpdateAccessionRegisters(updatedRegisters, getAccessionRegisterDetailCollection());
+    }
+
+    public void bulkReplaceOrUpdateAccessionRegisterSummary(List<Document> updatedRegisters) {
+        bulkReplaceOrUpdateAccessionRegisters(updatedRegisters, getAccessionRegisterSummaryCollection());
     }
 }

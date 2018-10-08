@@ -598,7 +598,7 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je recherche les groupes d'objets")
+    @When("^je recherche les groupes d'objets$")
     public void search_object_groups() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectObjects(

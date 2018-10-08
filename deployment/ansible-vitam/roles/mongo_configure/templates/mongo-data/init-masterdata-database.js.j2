@@ -12,9 +12,14 @@ db.FileRules.createIndex( { "RuleType" : 1 } )
 
 db.FileFormat.createIndex( { "PUID" : 1 } , { unique: true } )
 
+// Create AccessionRegisterSummary indexes
 db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 , "OriginatingAgency" : 1 } , { unique: true } )
 db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 } )
 
+// [Migration R7 -> R8] Drop R6 and R7 AccessionRegisterDetail indexes
+db.AccessionRegisterDetail.dropIndex( { "OriginatingAgency" : 1, "Identifier" : 1, "_tenant" : 1} )
+
+// Create AccessionRegisterDetail indexes
 db.AccessionRegisterDetail.createIndex( { "_tenant" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "SubmissionAgency" : 1 } )

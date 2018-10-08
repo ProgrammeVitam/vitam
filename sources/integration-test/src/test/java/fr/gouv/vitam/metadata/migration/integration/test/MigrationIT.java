@@ -26,17 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.migration.integration.test;
 
-import static com.mongodb.client.model.Indexes.ascending;
-import static com.mongodb.client.model.Sorts.orderBy;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -51,21 +40,20 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.functional.administration.common.migration.r7r8.AccessionRegisterMigrationService;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.migration.r7tor8.AccessionRegisterMigrationRepository;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
-import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.OkHttpClient;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -80,40 +68,52 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import static com.mongodb.client.model.Indexes.ascending;
+import static com.mongodb.client.model.Sorts.orderBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 /**
  * Integration test of metadata migration services.
  */
-public class MetadataMigrationIT extends VitamRuleRunner {
+public class MigrationIT extends VitamRuleRunner {
 
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(MetadataMigrationIT.class, mongoRule.getMongoDatabase().getName(),
+            new VitamServerRunner(MigrationIT.class, mongoRule.getMongoDatabase().getName(),
                     elasticsearchRule.getClusterName(),
                     Sets.newHashSet(
                             MetadataMain.class,
                             AdminManagementMain.class
                     ));
 
-    private static final int PORT_ADMIN_METADATA = 28098;
-    private static final int PORT_SERVICE_METADATA = 8098;
 
-    private static final String METADATA_URL = "http://localhost:" + PORT_ADMIN_METADATA;
+    private static final String METADATA_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_METADATA_ADMIN;
+    private static final String ADMIN_MANAGEMENT_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
     private MetadataAdminMigrationService metadataAdminMigrationService;
-    private MongoCollection<Unit> unitCollection;
-    private MongoCollection<ObjectGroup> ogCollection;
+    private AccessionRegisterAdminMigrationService accessionRegisterAdminMigrationService;
+
+    private MongoCollection<Document> unitCollection;
+    private MongoCollection<Document> ogCollection;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
+    public static void setUpBeforeClass() {
+        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", VitamServerRunner.PORT_SERVICE_METADATA));
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -124,10 +124,15 @@ public class MetadataMigrationIT extends VitamRuleRunner {
         // Metadata migration service interface - replace non existing client
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
-        Retrofit retrofit =
+        Retrofit retrofit_metadata =
                 new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
                         .addConverterFactory(JacksonConverterFactory.create()).build();
-        metadataAdminMigrationService = retrofit.create(MetadataAdminMigrationService.class);
+
+        Retrofit retrofit_admin_management =
+                new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
+                        .addConverterFactory(JacksonConverterFactory.create()).build();
+        metadataAdminMigrationService = retrofit_metadata.create(MetadataAdminMigrationService.class);
+        accessionRegisterAdminMigrationService = retrofit_admin_management.create(AccessionRegisterAdminMigrationService.class);
 
         unitCollection = MetadataCollections.UNIT.getCollection();
         ogCollection = MetadataCollections.OBJECTGROUP.getCollection();
@@ -140,7 +145,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
 
     @Test
-    public void startDataMigration_failedAuthn() throws Exception {
+    public void startMetadataDataMigration_failedAuthn() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
                 response = metadataAdminMigrationService.startDataMigration("BAD TOKEN").execute();
@@ -153,14 +158,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
     }
 
     @Test
-    public void test_migration_purge_indexes() throws Exception {
-
-        AccessionRegisterMigrationRepository accessionRegisterMigrationRepository = new AccessionRegisterMigrationRepository();
-        accessionRegisterMigrationRepository.migrateIndexes();
-    }
-
-    @Test
-    public void startDataMigration_emptyDb() throws Exception {
+    public void startMetadataDataMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
                 response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
@@ -170,7 +168,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
     }
 
     @Test
-    public void startDataMigration_emptyDataSet() throws Exception {
+    public void startMetadataDataMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
                 response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
@@ -178,6 +176,88 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
         awaitTermination();
     }
+
+    @Test
+    public void startMetadataDataMigration_fullDataSet() throws Exception {
+
+        // Given
+        importDataSetFile(unitCollection, "integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
+        importDataSetFile(ogCollection, "integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
+
+        // When
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        assertThat(response.isSuccessful()).isTrue();
+        awaitTermination();
+
+        // Then
+        String expectedUnitDataSetFile = "integration-metadata-migration/30UnitDataSet/ExpectedR7UnitDataSet.json";
+        assertDataSetEqualsExpectedFile(unitCollection, expectedUnitDataSetFile, true);
+
+        String expectedOGDataSetFile =
+                "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
+        assertDataSetEqualsExpectedFile(ogCollection, expectedOGDataSetFile, true);
+    }
+
+
+    @Test
+    public void startAccessionRegisterMigration_failedAuthn() throws Exception {
+
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                response = accessionRegisterAdminMigrationService.startDataMigration("BAD TOKEN").execute();
+        assertThat(response.isSuccessful()).isFalse();
+
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                responseMigrationInProgress = accessionRegisterAdminMigrationService.checkDataMigrationInProgress().execute();
+        assertThat(responseMigrationInProgress.code())
+                .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void startAccessionRegisterMigration_emptyDb() throws Exception {
+
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        assertThat(response.isSuccessful()).isTrue();
+
+        awaitTermination();
+    }
+
+    @Test
+    public void startAccessionRegisterMigration_emptyDataSet() throws Exception {
+
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        assertThat(response.isSuccessful()).isTrue();
+
+        awaitTermination();
+    }
+
+    @Test
+    public void startAccessionRegisterMigration_fullDataSet() throws Exception {
+
+        // Given
+        String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
+
+        String accessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary.json";
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), accessionRegisterSummaryDataSetFile);
+
+        // When
+        Response<MetadataMigrationAdminResource.ResponseMessage>
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        assertThat(response.isSuccessful()).isTrue();
+        awaitTermination();
+
+        // Then
+        String expectedAccessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail_EXPECTED.json";
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), expectedAccessionRegisterDetailDataSetFile, false);
+
+        String expectedAccessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary_EXPECTED.json";
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), expectedAccessionRegisterSummaryDataSetFile, false);
+
+    }
+
 
     private void awaitTermination() throws InterruptedException, IOException {
 
@@ -194,52 +274,21 @@ public class MetadataMigrationIT extends VitamRuleRunner {
         fail("Migration termination took too long");
     }
 
-    @Test
-    public void startDataMigration_fullDataSet() throws Exception {
 
-        // Given
-        importUnitDataSetFile("integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
-        importObjectGroupDataSetFile("integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
-
-        // When
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
-        assertThat(response.isSuccessful()).isTrue();
-        awaitTermination();
-
-        // Then
-        String expectedUnitDataSetFile = "integration-metadata-migration/30UnitDataSet/ExpectedR7UnitDataSet.json";
-        assertDataSetEqualsExpectedFile(unitCollection, expectedUnitDataSetFile);
-
-        String expectedOGDataSetFile =
-                "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
-        assertDataSetEqualsExpectedFile(ogCollection, expectedOGDataSetFile);
-    }
-
-    private void importUnitDataSetFile(String dataSetFile)
+    private void importDataSetFile(MongoCollection collection, String dataSetFile)
             throws FileNotFoundException, InvalidParseOperationException {
 
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
-            unitCollection.insertOne(new Unit(JsonHandler.unprettyPrint(jsonNode)));
+            collection.insertOne(Document.parse(JsonHandler.unprettyPrint(jsonNode)));
         }
     }
 
-    private void importObjectGroupDataSetFile(String dataSetFile)
-            throws FileNotFoundException, InvalidParseOperationException {
-
-        InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
-        ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
-        for (JsonNode jsonNode : jsonDataSet) {
-            ogCollection.insertOne(new ObjectGroup(JsonHandler.unprettyPrint(jsonNode)));
-        }
-    }
-
-    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
+    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile, boolean replaceFields)
             throws InvalidParseOperationException, FileNotFoundException {
 
-        ArrayNode unitDataSet = dumpDataSet(mongoCollection);
+        ArrayNode unitDataSet = dumpDataSet(mongoCollection, replaceFields);
 
         String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
         String expectedUnitDataSet =
@@ -250,7 +299,7 @@ public class MetadataMigrationIT extends VitamRuleRunner {
                 JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
+    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean replaceFields) throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find()
@@ -258,11 +307,11 @@ public class MetadataMigrationIT extends VitamRuleRunner {
 
         for (T document : documents) {
             ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
-
-            // Replace _glpd with marker
-            assertThat(docObjectNode.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
-            docObjectNode.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
-
+            if (replaceFields) {
+                // Replace _glpd with marker
+                assertThat(docObjectNode.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
+                docObjectNode.put(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, "#TIMESTAMP#");
+            }
             dataSet.add(docObjectNode);
         }
 
@@ -281,6 +330,17 @@ public class MetadataMigrationIT extends VitamRuleRunner {
                 @Header("Authorization") String basicAuthnToken);
 
         @GET("/metadata/v1/migration/status")
+        Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
+    }
+
+
+    public interface AccessionRegisterAdminMigrationService {
+
+        @POST("/adminmanagement/v1/migration/accessionregister")
+        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
+                @Header("Authorization") String basicAuthnToken);
+
+        @GET("/adminmanagement/v1/migration/accessionregister/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
     }
 }

@@ -76,8 +76,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_LOGBOOK_ADMIN = 28099;
     public static final int PORT_SERVICE_STORAGE = 8193;
     public static final int PORT_SERVICE_STORAGE_ADMIN = 28193;
-    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
-    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN = 28093;
+    public static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
+    public static final int PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN = 28093;
     public static final int PORT_SERVICE_OFFER = 8194;
     public static final int PORT_SERVICE_OFFER_ADMIN = 28194;
     public static final int PORT_SERVICE_WORKER = 8096;
@@ -449,6 +449,10 @@ public class VitamServerRunner extends ExternalResource {
         }
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+
+        SystemPropertyUtil
+                .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                        Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
 
         // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
