@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -39,21 +33,28 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
-import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
+import static fr.gouv.vitam.common.model.MetadataType.OBJECTGROUP;
+import static fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService.loadInformationFromFile;
+import static java.io.File.separator;
 import static java.nio.charset.Charset.defaultCharset;
 
 /**
@@ -87,10 +88,10 @@ public class ProbativeValueGenerateReports extends ActionHandler {
         try {
 
             File securedDataFile =
-                handlerIO.getFileFromWorkspace("dataDir" + File.separator + param.getObjectName() );
+                handlerIO.getFileFromWorkspace("dataDir" + separator + param.getObjectName());
 
             File listOfObjectByFile =
-                handlerIO.getFileFromWorkspace("operation" + File.separator + param.getObjectName());
+                handlerIO.getFileFromWorkspace("operation" + separator + param.getObjectName());
 
             List<String> securedLines = Files.readAllLines(securedDataFile.toPath(), defaultCharset());
 
@@ -100,46 +101,41 @@ public class ProbativeValueGenerateReports extends ActionHandler {
 
             for (String objectToAuditId : listIds) {
 
-                File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + File.separator + objectToAuditId);
+                File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + separator + objectToAuditId);
 
                 ProbativeParameter parameter =
                     getFromFile(infoFromDatabase, ProbativeParameter.class);
 
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
-                LifeCycleTraceabilitySecureFileObject secureFileObject =
-                    null;
+                LifeCycleTraceabilitySecureFileObject secureFileObject;
+
                 try {
-                    secureFileObject = EvidenceService.loadInformationFromFile(securedLines, MetadataType.OBJECTGROUP,
-                        objectToAuditId);
+                    secureFileObject = loadInformationFromFile(securedLines, OBJECTGROUP, objectToAuditId);
+
                 } catch (EvidenceAuditException e) {
                     LOGGER.error(e);
                     parameter.setEvidenceStatus(EvidenceStatus.KO);
                     continue;
                 }
 
-                // todo Iterate
+                for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()) {
 
-                for (ProbativeUsageParameter usage : parameter.getUsageParameters().values()){
                     probativeService.checkSecuredVersion(secureFileObject, usage);
                 }
 
-
                 writeAsFile(parameter, file);
 
-                handlerIO.transferFileToWorkspace(REPORTS + File.separator + objectToAuditId + ".report.json",
+                handlerIO.transferFileToWorkspace(REPORTS + separator + objectToAuditId + ".report.json",
                     file, true, false);
-
             }
-
             itemStatus.increment(StatusCode.OK);
 
         } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException e) {
 
             LOGGER.error(e);
-
             return itemStatus.increment(StatusCode.FATAL);
- }
+        }
         return new ItemStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS)
             .setItemsStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS, itemStatus);
     }

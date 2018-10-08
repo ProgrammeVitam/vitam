@@ -97,6 +97,8 @@ public class ProbativeService {
     public static final String JSON = ".json";
     private static final String LAST_VERSION = "LAST";
     public static final String ID = "_id";
+    public static final String EVENTS = "events";
+    public static final String CHECK_LFC_STORAGE_EVENT = "checkLfcStorageEvent";
 
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -138,16 +140,23 @@ public class ProbativeService {
                 Optional<ProbativeUsageParameter> usageInfo = extractQualifierVersion(metadata, usage, usageVersion);
 
                 if (usageInfo.isPresent()) {
+
                     ProbativeUsageParameter usageParam = usageInfo.get();
                     getLogbookOperationInfo(usageParam);
 
                     checkStorageHash(usageParam);
+
                     checkStorageEvent(usageParam, lifecycle);
+
                     String hashEventsBeforeDate =
-                        getHashEventsBeforeDate(usageParam.getLogbookEvent().getLastPersistedDate(), lifecycle);
+                        getHashEventsBeforeDate(usageParam.getStorageLogbookEvent().getLastPersistedDate(), lifecycle);
+
                     usageParam.setHashEvents(hashEventsBeforeDate);
+
                     checkStorageLogbookOperationInfo(usageParam);
+
                     loadFileInfoFromLogbooks(usageParam);
+
                     parameter.getUsageParameters().put(usage, usageParam);
                 }
             }
@@ -298,11 +307,12 @@ public class ProbativeService {
 
         LocalDateTime parsedLastPersistedDate = LocalDateTime.parse(lastPersitedDate);
 
-        ArrayNode events = (ArrayNode) lfc.get("events");
+        ArrayNode events = (ArrayNode) lfc.get(EVENTS);
         ArrayNode target = JsonHandler.createArrayNode();
 
         for (JsonNode node : events) {
             LocalDateTime date = LocalDateTime.parse(node.get("_lastPersistedDate").textValue());
+
             if (date.isBefore(parsedLastPersistedDate) || date.isEqual(parsedLastPersistedDate)) {
                 target.add(node);
             }
@@ -316,12 +326,12 @@ public class ProbativeService {
 
         ArrayList<LogbookEvent> eventsLists = new ArrayList<>();
 
-        if (lfc.get("events") == null || !lfc.get("events").isArray()) {
-            reportCheckKo(parameter, "checkLfcStorageEvent", "No lfc Events found");
+        if (lfc.get(EVENTS) == null || !lfc.get(EVENTS).isArray()) {
+            reportCheckKo(parameter, CHECK_LFC_STORAGE_EVENT, "No lfc Events found");
             return;
         }
 
-        Iterator<JsonNode> events = lfc.get("events").elements();
+        Iterator<JsonNode> events = lfc.get(EVENTS).elements();
 
         while (events.hasNext()) {
 
@@ -344,14 +354,14 @@ public class ProbativeService {
         }
 
         if (eventsLists.size() > 1) {
-            reportCheckKo(parameter, "checkLfcStorageEvent",
+            reportCheckKo(parameter, CHECK_LFC_STORAGE_EVENT,
                 String.format("More than one storage events: '%s '", unprettyPrint(events)));
             return;
         }
 
-        parameter.setLogbookEvent(eventsLists.get(0));
+        parameter.setStorageLogbookEvent(eventsLists.get(0));
 
-        reportCheckOk(parameter, "checkLfcStorageEvent");
+        reportCheckOk(parameter, CHECK_LFC_STORAGE_EVENT);
     }
 
     void checkStorageHash(ProbativeUsageParameter parameter) {
@@ -382,12 +392,12 @@ public class ProbativeService {
     }
 
 
-    void loadFileInfoFromLogbooks(ProbativeUsageParameter parameter)
+    private void loadFileInfoFromLogbooks(ProbativeUsageParameter parameter)
         throws EvidenceAuditException {
 
         String checkName = "Checking secured info from logbook";
 
-        String lastPersistedDate = parameter.getLogbookEvent().getLastPersistedDate();
+        String lastPersistedDate = parameter.getStorageLogbookEvent().getLastPersistedDate();
 
         JsonNode result = createLastSecureObjectGroupSelect(lastPersistedDate,
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
@@ -427,6 +437,7 @@ public class ProbativeService {
         throws InvalidParseOperationException {
 
         ProbativeUsageParameter probativeUsageParameter = new ProbativeUsageParameter(usage);
+
         JsonNode qualifiers = metadata.get(SedaConstants.PREFIX_QUALIFIERS);
 
         if (qualifiers == null || !qualifiers.isArray() || qualifiers.size() == 0) {
@@ -550,7 +561,7 @@ public class ProbativeService {
 
         isCheckSecuredObjectOk = isCheckSecuredObjectOk && hashLFCEvents.equals(parameter.getHashEvents());
 
-        String errorMessage = "Hash for binary is not equal to secured one ";
+        String errorMessage ;
         if (!isCheckSecuredObjectOk) {
             errorMessage = "Hash for Lfc events  is not equal to secured one ";
             reportCheckKo(parameter, checkName, errorMessage);

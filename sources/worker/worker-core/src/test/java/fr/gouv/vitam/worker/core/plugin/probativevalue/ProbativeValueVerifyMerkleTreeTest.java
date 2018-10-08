@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -44,12 +45,14 @@ public class ProbativeValueVerifyMerkleTreeTest {
             logbookOperationsClientFactory);
         when(logbookOperationsClient.selectOperationById("aecaaaaaacfpcnnvabc4ialfdxp5jviaaaaq"))
             .thenReturn(secureLogbook);
+        ObjectNode node = JsonHandler.createObjectNode();
 
+        verifier.checkMerkleTree(
+            "aecaaaaaacfpcnnvabc4ialfdxp5jviaaaaq", secured_data, merkleFile, node);
 
-            verifier.checkMerkleTree(
-                "aecaaaaaacfpcnnvabc4ialfdxp5jviaaaaq",secured_data,merkleFile);
-
-        assertThat(verifier.getMerkleJsonRootHash()).isEqualTo(JsonHandler.getFromFile(merkleFile).get("Root").textValue());
+        assertThat(node.get("EvTypeProc").textValue()).isEqualTo("INGEST");
+        assertThat(verifier.getMerkleJsonRootHash())
+            .isEqualTo(JsonHandler.getFromFile(merkleFile).get("Root").textValue());
 
     }
 }

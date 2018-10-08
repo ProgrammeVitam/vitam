@@ -121,11 +121,18 @@
         {
           "action": {
             "actionKey": "PROBATIVE_VALUE_CHECK_MERKLE_TREE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkLogBookOpi",
+                "uri": "VALUE:false"
+              }
+            ]
           }
         }
       ]
-    },    {
+    },
+    {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PROBATIVE_VALUE_CHECK_MERKLE_TREE",
       "behavior": "BLOCKING",
@@ -137,7 +144,13 @@
         {
           "action": {
             "actionKey": "PROBATIVE_VALUE_CHECK_MERKLE_TREE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkLogBookOpi",
+                "uri": "VALUE:true"
+              }
+            ]
           }
         }
       ]

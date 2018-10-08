@@ -29,6 +29,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import org.assertj.core.util.Lists;
 
 /**
  * step defining logbook behaviors
@@ -452,4 +454,6 @@ public class LogbookStep {
                 eventResults)
             .isEqualTo(eventResults);
     }
+
+
 }

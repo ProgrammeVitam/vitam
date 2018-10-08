@@ -49,6 +49,7 @@ public class ProbativeUsageParameter {
 
     private String id;
 
+    private String binaryVersion;
     private VersionsModel versionsModel;
 
 
@@ -94,7 +95,7 @@ public class ProbativeUsageParameter {
 
     private Map<String, StoredInfoResult> mdOptimisticStorageInfoMap;
 
-    private LogbookEvent logbookEvent;
+    private LogbookEvent storageLogbookEvent;
 
     private String evIdAppSession;
 
@@ -295,12 +296,12 @@ public class ProbativeUsageParameter {
         this.reports = reports;
     }
 
-    public LogbookEvent getLogbookEvent() {
-        return logbookEvent;
+    public LogbookEvent getStorageLogbookEvent() {
+        return storageLogbookEvent;
     }
 
-    public void setLogbookEvent(LogbookEvent logbookEvent) {
-        this.logbookEvent = logbookEvent;
+    public void setStorageLogbookEvent(LogbookEvent storageLogbookEvent) {
+        this.storageLogbookEvent = storageLogbookEvent;
     }
 
     public String getEvIdAppSession() {
@@ -343,5 +344,13 @@ public class ProbativeUsageParameter {
 
     public void setUsage(String usage) {
         this.usage = usage;
+    }
+
+    public String getBinaryVersion() {
+        return binaryVersion;
+    }
+
+    public void setBinaryVersion(String binaryVersion) {
+        this.binaryVersion = binaryVersion;
     }
 }

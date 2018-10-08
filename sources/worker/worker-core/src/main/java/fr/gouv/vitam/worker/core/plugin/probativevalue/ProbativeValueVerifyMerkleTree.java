@@ -26,15 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
-import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -57,6 +49,19 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.rightsStatementIdentifier;
+import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
 
 /**
  * Using Merkle trees to detect inconsistencies in data
@@ -67,6 +72,8 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
 
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CHECK_MERKLE_TREE";
+    public static final String EV_ID_APP_SESSION = "EvIdAppSession";
+    public static final String EV_TYPE_PROC = "EvTypeProc";
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     private String merkleJsonRootHash = null;
@@ -92,9 +99,11 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
 
         try {
 
+            ObjectNode result = JsonHandler.createObjectNode();
+
             checkMerkleTree(param.getObjectName(),
                 handlerIO.getFileFromWorkspace("dataDir" + "/" + param.getObjectName()),
-                handlerIO.getFileFromWorkspace("merkleDir" + "/" + param.getObjectName()));
+                handlerIO.getFileFromWorkspace("merkleDir" + "/" + param.getObjectName()), result);
 
 
             boolean isMerkleOk =
@@ -102,9 +111,7 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
                     && merkleJsonRootHash.equals(merkleDataRootHash)
                     && merkleDataRootHash.equals(merkleLogbookRootHash);
 
-            ObjectNode result = JsonHandler.createObjectNode();
-
-            result.put("id", param.getObjectName());
+            result.put("Id", param.getObjectName());
 
             result.put("OperationCheckStatus", isMerkleOk ? "OK" : "KO");
 
@@ -115,6 +122,11 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
             handlerIO.transferInputStreamToWorkspace("operationReport" + "/" + param.getObjectName(),
                 new ByteArrayInputStream(result.toString().getBytes()), null, false);
 
+            boolean shouldCheckOpi = Boolean.parseBoolean((String) handlerIO.getInput(0));
+
+            if (shouldCheckOpi) {
+                checkOpiInfo(param, handlerIO);
+            }
         } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -123,21 +135,53 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    void checkMerkleTree(String operationId, File dataFile, File merkleFile) {
+    private void checkOpiInfo(WorkerParameters param,
+        HandlerIO handlerIO)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException, IOException,
+        LogbookClientException, InvalidParseOperationException, ProcessingException {
+        File listOpiFile = handlerIO.getFileFromWorkspace("operationForOpi/" + param.getObjectName());
+
+        Set<String> opiList = JsonHandler.getFromFileAsTypeRefence(listOpiFile, new TypeReference<HashSet<String>>() {
+        });
+
+        for (String id : opiList) {
+            LogbookOperation logbookOperation = getLogbookOperation(id);
+            ObjectNode node = JsonHandler.createObjectNode();
+
+            node.put("id", id);
+            String agIdApp = (String) logbookOperation.get("agIdApp");
+
+            String evIdAppSession = (String) logbookOperation.get(EV_ID_APP_SESSION);
+
+            JsonNode rightStatement =
+                JsonHandler.getFromString((String) logbookOperation.get(rightsStatementIdentifier.getDbname()));
 
 
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient();
-            InputStream dataStream = new FileInputStream(dataFile);
+            String evTypeProc = (String) logbookOperation.get("evTypeProc");
+            node.put(EV_TYPE_PROC, evTypeProc);
+            node.put(EV_ID_APP_SESSION, evIdAppSession);
+            node.put("agIdApp", agIdApp);
+            node.put(EV_ID_APP_SESSION, rightStatement.get("ArchivalAgreement").textValue());
+            node.put("OperationCheckStatus", "OK");
+
+            handlerIO.transferInputStreamToWorkspace("operationReport" + "/" + id,
+                new ByteArrayInputStream(node.toString().getBytes()), null, false);
+        }
+    }
+
+    void checkMerkleTree(String operationId, File dataFile, File merkleFile, ObjectNode report) {
+
+
+        try (InputStream dataStream = new FileInputStream(dataFile);
         ) {
 
             JsonNode merkleFileJson = JsonHandler.getFromFile(merkleFile);
 
             merkleJsonRootHash = merkleFileJson.get("Root").asText();
 
-            JsonNode node = client.selectOperationById(operationId);
-
-            LogbookOperation logbookOperation =
-                new LogbookOperation(node.get("$results").get(0));
+            LogbookOperation logbookOperation = getLogbookOperation(operationId);
+            String evTypeProc = (String) logbookOperation.get("evTypeProc");
+            report.put(EV_TYPE_PROC, evTypeProc);
 
             String evDetData = logbookOperation.getString(LogbookMongoDbName.eventDetailData.getDbname());
             JsonNode eventDetail = JsonHandler.getFromString(evDetData);
@@ -148,10 +192,7 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
             merkleLogbookRootHash = traceabilityEvent.getHash();
             MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(dataStream);
             MerkleTree merkleTree = merkleTreeAlgo.generateMerkle();
-
             merkleDataRootHash = BaseXx.getBase64(merkleTree.getRoot());
-
-
 
         } catch (InvalidParseOperationException | LogbookClientException | IOException | ProcessingException e) {
             LOGGER.error(e);
@@ -159,11 +200,20 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
         }
     }
 
-     String getMerkleJsonRootHash() {
+    private LogbookOperation getLogbookOperation(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+            JsonNode node = client.selectOperationById(operationId);
+            return new LogbookOperation(node.get("$results").get(0));
+        }
+    }
+
+    String getMerkleJsonRootHash() {
         return merkleJsonRootHash;
     }
 
-     String getMerkleDataRootHash() {
+    String getMerkleDataRootHash() {
         return merkleDataRootHash;
     }
 

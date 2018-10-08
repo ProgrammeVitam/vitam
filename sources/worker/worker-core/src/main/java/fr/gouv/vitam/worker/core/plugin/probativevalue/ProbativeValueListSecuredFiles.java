@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,9 +72,9 @@ public class ProbativeValueListSecuredFiles extends ActionHandler {
         List<URI> uriListObjectsWorkspace =
             handlerIO.getUriList(handlerIO.getContainerName(), DATA);
 
-        Map<String, List<String>> secureOperationMap = new HashMap<>();
+        Map<String, Set<String>> secureOperationMap = new HashMap<>();
 
-        Map<String, List<String>> secureOperationOpiMap = new HashMap<>();
+        Map<String, Set<String>> secureOperationOpiMap = new HashMap<>();
 
         try {
 
@@ -92,7 +93,9 @@ public class ProbativeValueListSecuredFiles extends ActionHandler {
                     ) {
                     addToSecureOperationMap(parameter.getSecuredOperationId(), element.toString(), secureOperationMap);
 
-                    addToSecureOperationMap(parameter.getSecureOperationIdForOpId(),element.toString(), secureOperationOpiMap);
+                    addToSecureOperationMap(parameter.getSecureOperationIdForOpId(),
+                        parameter.getVersionsModel().getOpi(),
+                        secureOperationOpiMap);
                 }
             }
 
@@ -114,13 +117,13 @@ public class ProbativeValueListSecuredFiles extends ActionHandler {
             .setItemsStatus(PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD, itemStatus);
     }
 
-    private void transferMapElementsToWorkspace(HandlerIO handlerIO, Map<String, List<String>> securedFilenameMap,
+    private void transferMapElementsToWorkspace(HandlerIO handlerIO, Map<String, Set<String>> securedFilenameMap,
         String type)
         throws ProcessingException, InvalidParseOperationException {
 
-        Set<Entry<String, List<String>>> entrySet = securedFilenameMap.entrySet();
+        Set<Entry<String, Set<String>>> entrySet = securedFilenameMap.entrySet();
 
-        for (Entry<String, List<String>> me : entrySet) {
+        for (Entry<String, Set<String>> me : entrySet) {
             File file = handlerIO.getNewLocalFile(me.getKey());
             JsonHandler.writeAsFile(me.getValue(), file);
             handlerIO.transferFileToWorkspace(type + File.separator + me.getKey(), file, true, false);
@@ -129,20 +132,15 @@ public class ProbativeValueListSecuredFiles extends ActionHandler {
 
 
 
-    private void addToSecureOperationMap(String index, String element,
-        Map<String, List<String>> map) {
+    private void addToSecureOperationMap(String index, String element, Map<String, Set<String>> map) {
 
-        if (map.get(index) == null) {
-
-            ArrayList<String> listIds = new ArrayList<>();
-
-            listIds.add(element);
-
+        map.computeIfAbsent(index, k -> {
+            HashSet<String> listIds = new HashSet<>();
             map.put(index, listIds);
+            return listIds;
+        });
 
-        } else {
-            map.get(index).add(element);
-        }
+        map.get(index).add(element);
     }
 
     @Override
