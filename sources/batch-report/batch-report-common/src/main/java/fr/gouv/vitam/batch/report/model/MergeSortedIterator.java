@@ -32,7 +32,6 @@ import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
 
@@ -60,8 +59,8 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
     public MergeSortedIterator(Iterator<A> one, Iterator<A> two, Comparator<A> comparator,
         BiFunction<A, A, E> mergeFunction) {
         ParametersChecker.checkParameter("All params are required", one, two, comparator, mergeFunction);
-        this.one = (PeekingIterator<A>) IteratorUtils.peekingIterator(one);
-        this.two = (PeekingIterator<A>) IteratorUtils.peekingIterator(two);
+        this.one = PeekingIterator.peekingIterator(one);
+        this.two = PeekingIterator.peekingIterator(two);
         this.mergeFunction = mergeFunction;
         this.comparator = comparator;
     }
@@ -84,14 +83,15 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
 
             return mergeFunction.apply(one.next(), two.next());
 
-        } else if (compare > 0) {
+        }
+
+        if (compare > 0) {
 
             return mergeFunction.apply(one.next(), null);
 
-        } else {
-
-            return mergeFunction.apply(null, two.next());
-
         }
+
+
+        return mergeFunction.apply(null, two.next());
     }
 }

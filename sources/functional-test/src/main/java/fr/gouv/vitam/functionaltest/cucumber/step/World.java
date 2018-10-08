@@ -81,6 +81,12 @@ public class World {
      * id of the operation
      */
     private String operationId;
+
+    /**
+     * id of the elimination operation
+     */
+    private String eliminationOperationId;
+
     /**
      * DSL query
      */
@@ -263,6 +269,14 @@ public class World {
         this.operationId = operationId;
     }
 
+    public String getEliminationOperationId() {
+        return eliminationOperationId;
+    }
+
+    public void setEliminationOperationId(String eliminationOperationId) {
+        this.eliminationOperationId = eliminationOperationId;
+    }
+
     /**
      * @return the dsl query
      */
@@ -296,6 +310,8 @@ public class World {
     public static void setOperationId(String testSet, String operationId) {
         operationIdsByTestSet.put(testSet, operationId);
     }
+
+
 
     /**
      * @return unitId

@@ -6,3 +6,4 @@
 {"id":"unitId7","params":{"id":"unitId7","status":"PARTIAL_DESTROY","opi":"opi5","originatingAgency":"sp2","objectGroupId":"id7"}}
 {"id":"unitId6","params":{"id":"unitId6","status":"PARTIAL_DESTROY","opi":"opi3","originatingAgency":"sp2","objectGroupId":"id6"}}
 {"id":"unitId5","params":{"id":"unitId5","status":"DELETED","opi":"opi0","originatingAgency":"sp1","objectGroupId":"id5"}}
+{"id":"unitId9","params":{"id":"unitId9","status":"DELETED","opi":"opi9","originatingAgency":"sp1","objectGroupId":"id9"}}

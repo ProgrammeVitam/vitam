@@ -121,6 +121,7 @@ public class AccessStep {
         "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
+    private static final String ELIMINATION_OPERATION_ID = "Elimination-Operation-Id";
 
     private static final String UNIT_PREFIX = "unit:";
 
@@ -209,7 +210,6 @@ public class AccessStep {
             transformedResults.add(JsonHandler.getFromString(resultAsStringTransformed));
         }
         DataTable transformedDataTable = getTransformedDataTable(dataTable);
-
 
         world.getAccessService().checkResultsForParticularData(transformedResults, resultNumber, transformedDataTable);
     }
@@ -409,9 +409,7 @@ public class AccessStep {
     public void i_use_the_following_file_query(String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         String query = FileUtil.readFile(queryFile.toFile());
-        if (world.getOperationId() != null) {
-            query = query.replace(OPERATION_ID, world.getOperationId());
-        }
+        query = replaceOperationIds(query);
         world.setQuery(query);
     }
 
@@ -464,24 +462,18 @@ public class AccessStep {
     @When("^j'utilise la requête suivante$")
     public void i_use_the_following_query(String query) throws Throwable {
         String queryTmp = query;
-        if (world.getOperationId() != null) {
-            queryTmp = queryTmp.replace(OPERATION_ID, world.getOperationId());
-        }
+        queryTmp = replaceOperationIds(queryTmp);
         world.setQuery(queryTmp);
     }
 
-    /**
-     * define a query to reuse it after
-     *
-     * @param query
-     * @throws Throwable
-     */
-    @When("^j'utilise la requête suivante avec l'identifient sauvégardé$")
-    public void i_use_the_following_query_with_saved(String query) throws Throwable {
-        String queryTmp = query;
-        if (world.getOperationId() != null) {
-            queryTmp = queryTmp.replace(OPERATION_ID, world.getOperationId());
+    private String replaceOperationIds(String query) {
+        if (world.getEliminationOperationId() != null) {
+            query = query.replace(ELIMINATION_OPERATION_ID, world.getEliminationOperationId());
         }
+        if (world.getOperationId() != null) {
+            query = query.replace(OPERATION_ID, world.getOperationId());
+        }
+        return query;
     }
 
     /**
@@ -599,6 +591,28 @@ public class AccessStep {
 
         assertThat(selectedInheritedCategoryResult.get("Rules")).hasSize(nbRules);
         assertThat(selectedInheritedCategoryResult.get("Properties")).hasSize(nbProperties);
+    }
+
+    /**
+     * search an object groups according to the query define before
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les groupes d'objets")
+    public void search_object_groups() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectObjects(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+            facetResults = requestResponseOK.getFacetResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
     }
 
     @Then("^la catégorie contient une règle (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
@@ -1016,7 +1030,7 @@ public class AccessStep {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         String query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {
-            query = query.replace(OPERATION_ID, world.getOperationId());
+            query = replaceOperationIds(query);
         }
         world.setQuery(query);
 
@@ -1052,8 +1066,8 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je lance une analyse d'élimination avec pour date le (.*)$")
-    public void start_elimination_analysis(String analysisDate) throws Throwable {
+    @When("^je lance une analyse d'élimination avec pour date le (.*) qui se termine avec le statut (.*)$")
+    public void start_elimination_analysis(String analysisDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -1066,8 +1080,10 @@ public class AccessStep {
         }
 
         final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setEliminationOperationId(eliminationOperationId);
 
-        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+        checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
+
     }
 
     /**
@@ -1075,8 +1091,8 @@ public class AccessStep {
      *
      * @throws Throwable
      */
-    @When("^je lance une élimination définitive avec pour date le (.*)$")
-    public void start_elimination_action(String deleteDate) throws Throwable {
+    @When("^je lance une élimination définitive avec pour date le (.*) qui se termine avec le statut (.*)$")
+    public void start_elimination_action(String deleteDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAction(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -1089,8 +1105,9 @@ public class AccessStep {
         }
 
         final String eliminationOperationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setEliminationOperationId(eliminationOperationId);
 
-        checkOperationStatus(eliminationOperationId, StatusCode.OK);
+        checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
     }
 
     @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")

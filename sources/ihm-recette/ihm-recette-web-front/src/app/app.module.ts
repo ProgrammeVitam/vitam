@@ -6,7 +6,7 @@ import { CookieService } from 'angular2-cookie/core';
 import {
   FieldsetModule, PanelModule, ButtonModule, MenubarModule, InputTextModule,
   DialogModule, MessagesModule, DataTableModule, SharedModule, BreadcrumbModule, DropdownModule,
-  GrowlModule, PasswordModule, ProgressBarModule
+  GrowlModule, PasswordModule, ProgressBarModule, ChipsModule
 } from 'primeng/primeng';
 import { RouterModule, Routes } from '@angular/router';
 import { VisNetworkDirective } from 'ng2-vis';
@@ -127,6 +127,7 @@ const appRoutes: Routes = [
     SharedModule,
     BreadcrumbModule,
     DropdownModule,
+    ChipsModule,
     GrowlModule,
     PasswordModule,
     InputTextModule,

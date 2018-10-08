@@ -10,9 +10,8 @@
       placeholder="Sélectionner un contrat"></p-dropdown>
   </div>
   <div class="ui-g-4">
-    <label for="operationId">Identifiant d'opération</label>
-    <input id="operationId" class="fs-1-1em" size="35" pInputText [(ngModel)]="operationId" placeholder="Identifiant d'opération"
-    />
+    <label>Identifiants des opérations</label>
+    <p-chips size="35" [(ngModel)]="operationIds"></p-chips>
   </div>
   <div class="ui-g-3">
     <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()" [disabled]="!tenant"></button>

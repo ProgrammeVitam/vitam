@@ -35,7 +35,7 @@ class VitamNetworkData implements VisNetworkData {
 export class DagVisualizationComponent extends PageComponent {
   selectedContract: Contract;
   contractsList: Array<SelectItem>;
-  operationId: string;
+  operationIds: string[];
   requestResponse: string;
   showError = false;
   showGraph = false;
@@ -59,11 +59,11 @@ export class DagVisualizationComponent extends PageComponent {
     const contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
     const jsonRequest = {
       $roots: [],
-      $query: [{$eq: {}}],
+      $query: [{$in: {}}],
       $projection: {}
     };
     if (contractIdentifier != null) {
-      jsonRequest.$query[0].$eq['#operations'] = this.operationId;
+      jsonRequest.$query[0].$in['#operations'] = this.operationIds;
     }
 
     // manage errors

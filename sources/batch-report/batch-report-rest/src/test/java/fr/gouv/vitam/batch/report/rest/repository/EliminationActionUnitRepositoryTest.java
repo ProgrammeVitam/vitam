@@ -118,7 +118,7 @@ public class EliminationActionUnitRepositoryTest {
         while (iterator.hasNext()) {
             documents.add(iterator.next());
         }
-        Assertions.assertThat(documents.size()).isEqualTo(8);
+        Assertions.assertThat(documents.size()).isEqualTo(9);
     }
 
     @Test
@@ -139,11 +139,12 @@ public class EliminationActionUnitRepositoryTest {
         }
 
         // Then
-        Assertions.assertThat(documents.size()).isEqualTo(3);
+        Assertions.assertThat(documents.size()).isEqualTo(4);
 
         Assertions.assertThat(documents)
             .extracting(OPI, ORIGINATING_AGENCY, TOTAL_UNITS)
             .containsSequence(
+                tuple("opi9", "sp1", 1),
                 tuple("opi3", "sp2", 2),
                 tuple("opi1", "sp1", 1),
                 tuple("opi0", "sp1", 3)

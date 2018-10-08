@@ -121,6 +121,26 @@
           "size": 2
         }
       ]
+    },
+    {
+      "opi": "opi9",
+      "id": "id9",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds":[
+        "binary1",
+        "binary2"
+      ],
+      "objectVersions": [
+        {
+          "opi": "opi9",
+          "size": 3
+        },
+        {
+          "opi": "opi8",
+          "size": 6
+        }
+      ]
     }
   ]
 }

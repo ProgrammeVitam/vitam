@@ -2,14 +2,13 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DropdownModule, InputTextModule, SelectItem } from 'primeng/primeng';
+import { DropdownModule, InputTextModule, SelectItem, ChipsModule } from 'primeng/primeng';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { ResourcesService } from '../../common/resources.service';
 import { TenantService } from "../../common/tenant.service";
 import { QueryDslService } from '../query-dsl/query-dsl.service';
-
 import { DagVisualizationComponent } from './dag-visualization.component';
 import { VisModule, VisNetworkService } from 'ng2-vis';
 import {HttpHeaders} from "@angular/common/http";
@@ -106,7 +105,8 @@ describe('DagVisualizationComponent', () => {
         FormsModule,
         DropdownModule,
         BrowserAnimationsModule,
-        VisModule
+        VisModule,
+        ChipsModule
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
@@ -137,7 +137,7 @@ describe('DagVisualizationComponent', () => {
     component.sendRequest();
     let emptyJsonRequest = {
       $roots: [],
-      $query: [{ $eq: {} }],
+      $query: [{ $in: {} }],
       $projection: {}
     };
     expect(spyQueryDslExecRequest).toHaveBeenCalledWith(emptyJsonRequest, null, 'UNIT', 'GET', 'GET', null);
@@ -148,14 +148,14 @@ describe('DagVisualizationComponent', () => {
     let spyQueryDslExecRequest: any = spyOn(component.queryDslService, 'executeRequest').and.callThrough();
     let spyDisplayDag: any = spyOn(component, 'displayDag').and.callThrough();
     component.selectedContract = contract1;
-    component.operationId = 'opId';
+    component.operationIds = ['opId'];
     component.sendRequest();
     let correctJsonRequest = {
       $roots: [],
-      $query: [{ $eq: {} }],
+      $query: [{ $in: {} }],
       $projection: {}
     };
-    correctJsonRequest.$query[0].$eq["#operations"] = 'opId';
+    correctJsonRequest.$query[0].$in["#operations"] = ['opId'];
     expect(spyQueryDslExecRequest).toHaveBeenCalledWith(correctJsonRequest, contract1.Identifier, 'UNIT', 'GET', 'GET', null);
     expect(spyDisplayDag).toHaveBeenCalledTimes(1);
   });
