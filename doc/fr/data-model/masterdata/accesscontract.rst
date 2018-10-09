@@ -82,7 +82,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
 Détail des champs
 =================
 
-**"_id":** identifiant unique par tenant par contrat.
+**"_id":** identifiant unique du contrat par tenant par contrat.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Champ peuplé par la solution logicielle Vitam.
@@ -101,7 +101,7 @@ Détail des champs
 
 **"Identifier" :** identifiant signifiant donné au contrat.
 
-  * Il est constitué du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par la solution logicielle Vitam. Par exemple : AC-001223. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat.
+  * Il est constitué du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par la solution logicielle Vitam. Par exemple : AC-001223. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat et est unique sur le tenant.
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
@@ -151,7 +151,7 @@ Détail des champs
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"DataObjectVersion":** usages d'un groupe d'objets auxquels le détenteur du contrat a accès.
+**"DataObjectVersion":** types d'usages des groupes d'objets auxquels le détenteur du contrat a accès.
 
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
@@ -186,18 +186,11 @@ Détail des champs
   * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
   * Cardinalité : 1-1
 
-**"MasterIsMandatory":** objet de type Master est obligatoire
-
-  * Il s'agit d'un booléen.
-  * Si la valeur est à true, alors un objet de type Master ( Binary ou Physical ) est obligatoire.
-  * Cardinalité : 1-1
-
-
 **"AccessLog":** enregistrement des accès
 
   * Peut être ACTIVE ou INACTIVE
   * Si la valeur est à ACTIVE, alors les téléchargements des objets sont enregistrés dans un fichier de log
-  * Cardinalité : 1-1  
+  * Cardinalité : 1-1
 
 **"_tenant":** identifiant du tenant.
 
