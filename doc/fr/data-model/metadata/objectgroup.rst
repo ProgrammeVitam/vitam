@@ -191,15 +191,13 @@ Détail des champs du JSON
 **"_profil":** catégorie de l'objet.
 
   * Repris du nom de la balise présente dans le bloc Metadata du DataObjectPackage présent dans le bordereau de transfert au niveau du BinaryMaster.  Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
-  Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
-
+  * Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
   * Cardinalité : 1-1
 
 **"FileInfo":** informations sur le fichier constituant l'objet-données numérique de référence.
 
   * Reprend le bloc FileInfo du BinaryMaster présent dans le bordereau de transfert.
-  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminée (en application des règles de gestion).
-  * Cardinalité : 1-1
+  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster pour en faciliter la recherche et augmenter la qualité des résultats en cas de recherche multi critères ne portant que sur les BinaryMaster.
 
 **"_qualifiers":** tableau de structures décrivant les objets inclus dans ce groupe d'objets. Il est composé comme suit :
 

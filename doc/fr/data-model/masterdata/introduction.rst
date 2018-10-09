@@ -6,11 +6,14 @@ La base Masterdata contient les collections relatives aux référentiels utilis�
   * AccessContract
   * AccessionRegisterDetail
   * AccessionRegisterSummary
+  * AccessionRegisterSymbolic
   * Agencies
+  * ArchiveUnitProfile
   * Context
   * FileFormat
   * FileRules
   * IngestContract
+  * Ontology
   * Profile
   * SecurityProfile
   * VitamSequence
@@ -22,6 +25,7 @@ Certaines collections sont enregistrées sur un tenant et utilisables pour tous 
 
   * Context
   * FileFormat
+  * Ontology
   * SecurityProfile
 
 Elles sont enregistrées sur le tenant d'administration.

@@ -236,13 +236,6 @@ On récupère la valeur IC-000001.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-n
 
-**"_v":** version de l'enregistrement décrit
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
-
 **"Events":** les détails des registres des fonds ayant modifié un lot d'ingest existant.
 
   * Le premier événement contient les remained de l'opération d'ingest.
@@ -277,4 +270,17 @@ On récupère la valeur IC-000001.
 
 **"Events.CreationDate":** La date de l'évenement.
 
+  * Cardinalité : 1-1
+
+**"_v":** version de l'enregistrement décrit.
+
+  * Il s'agit d'un entier.
+  * Champ peuplé par la solution logicielle Vitam.
+  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
+  * Cardinalité : 1-1
+
+**"_tenant":** correspondant à l'identifiant du tenant.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1

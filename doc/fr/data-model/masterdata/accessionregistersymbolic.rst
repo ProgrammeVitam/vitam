@@ -22,7 +22,7 @@ Chaque document représente un instantané (snapshot) du stock symbolique pour u
       "_v": 0
   }
 
-::
+
 
 Détail des champs
 =================
@@ -39,12 +39,6 @@ Détail des champs
 
   ``"CreationDate": "2017-04-10T11:30:33.798"``
 
-  * Cardinalité : 1-1
-
-**"_tenant":** correspondant à l'identifiant du tenant.
-
-  * Il s'agit d'une chaîne de caractères.
-  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"OriginatingAgency":** identifiant du service producteur symbolique.
@@ -81,4 +75,10 @@ Détail des champs
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement. Un document dans le registre des fonds symbolique n'est pas censé être modifié et donc avoir une version supérieure à 0
+  * Cardinalité : 1-1
+
+**"_tenant":** correspondant à l'identifiant du tenant.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
