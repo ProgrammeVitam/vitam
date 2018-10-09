@@ -279,7 +279,7 @@ public class AgenciesResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(select.getFinalSelect())
             .when()
-            .post(AgenciesResource.AGENCIES)
+            .get(AgenciesResource.AGENCIES)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
         names = body.get("$results.Identifier");
         assertThat(names.size()).isGreaterThan(1);

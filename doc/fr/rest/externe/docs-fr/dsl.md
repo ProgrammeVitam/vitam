@@ -517,7 +517,7 @@ Les filtres permettent de spécifier des comportement additionnels à la recherc
 - $offset: la position de démarrage dans la liste retournée (positionné à 0 par défaut)
 - $orderby: { fieldname: 1, fieldname: -1 } : permet de définir un tri ascendant (1) ou descendant (-1).
   - Pour un champ non analysé : l'ordre est lexicographique pour un texte, l'ordre est naturel pour un champ date ou nombre
-  - Pour un champ analysé (plein texte), le tri n'est pas lexicographique mais basé sur le score de correspondance
+  - Pour un texte champ analysé (plein texte) : **Le tri sur un champ analysé n'est pas supporté** tel quel sur Elasticsearch. Cependant, par défault, Elasticsearch trie automatiquement les résultats par pertinence.
   - L'ordre de déclaration des tris est respectés dans la réponse
 
 **Note :**

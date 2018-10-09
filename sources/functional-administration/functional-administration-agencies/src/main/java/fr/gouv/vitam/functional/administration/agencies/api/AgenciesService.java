@@ -240,26 +240,22 @@ public class AgenciesService implements VitamAutoCloseable {
      * @return the vitamDocument as an Agencies object
      * @throws ReferentialException thrown if the agency is not found or if the an error is encountered
      */
-    public VitamDocument<Agencies> findDocumentById(String id) throws ReferentialException {
-        try {
-            SanityChecker.checkParameter(id);
+    public VitamDocument<Agencies> findDocumentById(String id)
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+        SanityChecker.checkParameter(id);
 
-            final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
-            parser.parse(parser.getRequest().getFinalSelect());
-            parser.addCondition(eq(AgenciesModel.TAG_IDENTIFIER, id));
-            DbRequestResult result =
-                mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
-            parser.parse(new Select().getFinalSelect());
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        parser.parse(parser.getRequest().getFinalSelect());
+        parser.addCondition(eq(AgenciesModel.TAG_IDENTIFIER, id));
+        DbRequestResult result =
+            mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
+        parser.parse(new Select().getFinalSelect());
 
-            final List<Agencies> list = result.getDocuments(Agencies.class);
-            if (list.isEmpty()) {
-                throw new ReferentialException("Agency not found");
-            }
-            return list.get(0);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("ReferentialException", e);
+        final List<Agencies> list = result.getDocuments(Agencies.class);
+        if (list.isEmpty()) {
+            return null;
         }
-        throw new ReferentialException("Agency not found");
+        return list.get(0);
     }
 
     /**
@@ -279,16 +275,12 @@ public class AgenciesService implements VitamAutoCloseable {
      *
      * @return list of FileAgencies in database
      */
-    public List<Agencies> findAllAgencies() {
+    private List<Agencies> findAllAgencies() throws ReferentialException {
         final Select select = new Select();
         List<Agencies> agenciesModels = new ArrayList<>();
-        try {
-            RequestResponseOK<Agencies> response = findDocuments(select.getFinalSelect());
-            if (response != null) {
-                return response.getResults();
-            }
-        } catch (ReferentialException e) {
-            LOGGER.error("ReferentialException", e);
+        RequestResponseOK<Agencies> response = findDocuments(select.getFinalSelect());
+        if (response != null) {
+            return response.getResults();
         }
         return agenciesModels;
     }
@@ -489,7 +481,7 @@ public class AgenciesService implements VitamAutoCloseable {
     /**
      * Check agencies in database
      */
-    public void checkAgenciesInDb() {
+    public void checkAgenciesInDb() throws ReferentialException {
 
         List<Agencies> tempAgencies = findAllAgencies();
         tempAgencies.forEach(a -> agenciesInDb.add(a.wrap()));
