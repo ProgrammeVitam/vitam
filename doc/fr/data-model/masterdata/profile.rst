@@ -1,7 +1,7 @@
 Collection Profile
 ##################
 
-Utilisation de la collection profile
+Utilisation de la collection Profile
 ====================================
 
 La collection Profile permet de référencer et décrire unitairement les notices de profil d'archivage.
@@ -64,69 +64,65 @@ Détail des champs
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Identifier":** indique l'identifiant signifiant de la notice de profil d'archivage.
+**"Identifier":** identifiant signifiant de la notice de profil d'archivage.
 
   * Si Vitam est maître dans la création de cet identifiant, il est alors constitué du préfixe "PR-" suivi d'une suite de 6 chiffres. Par exemple : PR-001573. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine de la notice du profil d'archivage.
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-"Name": indique le nom de la notice du profil d'archivage.
+**"Name"**: indique le nom de la notice du profil d'archivage.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-"Description": Description du profil d'archivage.
+**"Description"**: description du profil d'archivage.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 0-1
 
-"Status": statut du profil d'archivage.
+**"Status"**: statut du profil d'archivage.
 
   * Peut être ACTIVE ou INACTIVE
   * Si ce champ n'est pas défini lors de la création de l'enregistrement, alors il est par défaut INACTIVE.
   * Cardinalité : 1-1
 
-**"Format": Champ obligatoire** Indiquant le format attendu pour le fichier décrivant les règles du profil d'archivage.
-  
+**"Format": champ obligatoire** format attendu pour le fichier décrivant les règles du profil d'archivage.
+
   * Il s'agit d'une chaîne de caractères devant correspondre à l'énumération ProfileFormat.
   * Ses valeurs sont soit RNG, soit XSD.
   * Cardinalité : 1-1
-  
+
 **"CreationDate":** date de création de la notice du profil d'archivage.
 
   * La date est au format ISO 8601
-
-  ``"CreationDate": "2017-04-10T11:30:33.798",``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"CreationDate": "2017-04-10T11:30:33.798",``
 
 **"LastUpdate":**  date de dernière mise à jour de la notice du profil d'archivage dans la collection Profile.
 
   * La date est au format ISO 8601
-
-  ``"LastUpdate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"LastUpdate": "2017-04-10T11:30:33.798"``
 
 **"ActivationDate":** date d'activation de la notice du profil d'archivage.
 
   * La date est au format ISO 8601
-
-  ``"ActivationDate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"ActivationDate": "2017-04-10T11:30:33.798"``
 
 **"DeactivationDate":** date de désactivation de la notice du profil d'archivage.
 
   * La date est au format ISO 8601
-
-  ``"DeactivationDate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"DeactivationDate": "2017-04-10T11:30:33.798"``
 
 **"_v":**  version de l'enregistrement décrit
 
@@ -141,9 +137,9 @@ Détail des champs
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Path":** Champ contribué par Vitam lors d'un import de fichier XSD ou RNG.
+**"Path":** champ contribué par Vitam lors d'un import de fichier XSD ou RNG.
 
-  * Indiquant le chemin pour accéder au fichier du profil d'archivage.
+  * Indique le chemin pour accéder au fichier du profil d'archivage.
   * Chaîne de caractères.
   * Le format de fichier doit correspondre à celui qui est décrit dans le champ Format.
-  * Cardinalité : 0-1 
+  * Cardinalité : 0-1
