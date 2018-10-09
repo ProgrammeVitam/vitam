@@ -164,11 +164,7 @@ public class ContractResource {
                 .entity(ingestContractModelList)
                 .build();
 
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
@@ -300,11 +296,7 @@ public class ContractResource {
                     .setQuery(queryDsl);
             return Response.status(Status.OK)
                 .entity(accessContractModelList).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();

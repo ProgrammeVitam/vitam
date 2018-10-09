@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -525,8 +524,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
                     break;
 
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                case BAD_REQUEST:
+                    LOGGER.error(Response.Status.BAD_REQUEST.getReasonPhrase());
                     throw new AccessionRegisterException("File format error");
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());

@@ -811,14 +811,8 @@ public class ContextServiceImpl implements ContextService {
         private ContextValidator securityProfileIdentifierValidator() {
             return (context) -> {
 
-                Optional<SecurityProfileModel> securityProfileModel = Optional.empty();
-                try {
-                    securityProfileModel =
+                Optional<SecurityProfileModel> securityProfileModel =
                         securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
-
-                } catch (ReferentialException | InvalidParseOperationException e) {
-                    LOGGER.warn("An error occurred during security profile validation", e);
-                }
 
                 if (!securityProfileModel.isPresent()) {
                     return Optional.of(ContextValidator.ContextRejectionCause

@@ -263,12 +263,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (final VitamDBException ve) {
+        } catch (final Exception ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -312,13 +310,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (final Exception ve) {
+            LOGGER.error(ve);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(UNITS)
+                    .setState(CODE_VITAM)
+                    .setMessage(ve.getMessage())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
@@ -1182,12 +1186,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (final VitamDBException ve) {
+        } catch (final Exception ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)

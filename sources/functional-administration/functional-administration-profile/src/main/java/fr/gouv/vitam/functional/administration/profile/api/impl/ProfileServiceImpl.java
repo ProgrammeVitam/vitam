@@ -432,10 +432,8 @@ public class ProfileServiceImpl implements ProfileService {
             return new VitamAsyncInputStreamResponse(response,
                 Status.OK, headers);
         } catch (final StorageServerClientException e) {
-            LOGGER.error(e.getMessage(), e);
             throw new ReferentialException(e);
         } catch (final StorageNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
             throw new ProfileNotFoundException(e);
         }
     }

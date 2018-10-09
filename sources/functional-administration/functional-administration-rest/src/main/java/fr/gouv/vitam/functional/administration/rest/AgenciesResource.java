@@ -164,37 +164,6 @@ public class AgenciesResource {
     }
 
     /**
-     * Find agencies by queryDsl
-     *
-     * @param queryDsl
-     * @return Response
-     */
-    @POST
-    @Path(AGENCIES)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findAgencies(JsonNode queryDsl) {
-
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService)) {
-            SanityChecker.checkJsonAll(queryDsl);
-            try (DbRequestResult result = agencyService.findAgencies(queryDsl)) {
-                RequestResponseOK<AgenciesModel> response =
-                    result.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
-                return Response.status(Status.OK).entity(response).build();
-            }
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
-                .build();
-        } catch (final InvalidParseOperationException | InvalidGuidOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
-        }
-    }
-
-    /**
      * find access contracts by queryDsl
      *
      * @param queryDsl
@@ -208,16 +177,11 @@ public class AgenciesResource {
         try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
             functionalBackupService)) {
             SanityChecker.checkJsonAll(queryDsl);
-
             final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
             RequestResponseOK reponse =
                 agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
             return Response.status(Status.OK).entity(reponse).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
-                .build();
-        } catch (final InvalidParseOperationException | InvalidGuidOperationException  e) {
+        } catch (Exception  e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();

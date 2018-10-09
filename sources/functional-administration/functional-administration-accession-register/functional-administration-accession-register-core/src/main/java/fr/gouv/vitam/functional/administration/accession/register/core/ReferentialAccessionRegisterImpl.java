@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -135,9 +136,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 functionalBackupService.saveDocument(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
                         mongoAccess.getDocumentById(accessionRegisterSymbolic.getId(), FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC));
             }
-        } catch(ReferentialException | FunctionalBackupServiceException e){
-            LOGGER.info("Store backup register symbolic Error", e);
-            throw new ReferentialException(e);
+        } catch(FunctionalBackupServiceException e){
+            throw new ReferentialException("Store backup register symbolic Error", e);
         }
     }
 
@@ -162,7 +162,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @throws ReferentialException throws when insert mongodb error
      */
     public void createOrUpdateAccessionRegister(AccessionRegisterDetailModel registerDetail)
-        throws ReferentialException {
+        throws ReferentialException, BadRequestException {
 
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
                 registerDetail.getOriginatingAgency());
@@ -184,7 +184,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 docToStorage = mongoAccess.getDocumentById(registerDetail.getId(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             }
         } catch (final InvalidParseOperationException | SchemaValidationException e) {
-            throw new ReferentialException("Create register detail error", e);
+            throw new BadRequestException("Create register detail error", e);
         }
 
         updateAccessionRegisterSummary(registerDetail);
@@ -293,8 +293,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
 
         } catch (final Exception e) {
-            LOGGER.info("Create register detail Error", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Create register detail Error", e);
         }
     }
 
@@ -312,12 +311,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      */
     public RequestResponseOK<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (DbRequestResult result = mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
-            final RequestResponseOK<AccessionRegisterSummary> list =
-                result.getRequestResponseOK(select, AccessionRegisterSummary.class);
-            return list;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+            return result.getRequestResponseOK(select, AccessionRegisterSummary.class);
         }
     }
 
@@ -331,15 +325,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public RequestResponseOK<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
-            final RequestResponseOK<AccessionRegisterDetail> list =
-                result.getRequestResponseOK(select, AccessionRegisterDetail.class);
-            if (list.isEmpty()) {
-                throw new ReferentialNotFoundException("Register Detail not found");
-            }
-            return list;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+            return result.getRequestResponseOK(select, AccessionRegisterDetail.class);
         }
     }
 
@@ -377,8 +363,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_SUMMARY);
         } catch (final Exception e) {
-            LOGGER.info("Unknown error", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Unknown error", e);
         }
     }
 }
