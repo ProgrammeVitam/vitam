@@ -166,11 +166,7 @@ public class ContextResource {
                     result.getRequestResponseOK(queryDsl, fr.gouv.vitam.functional.administration.common.Context.class, ContextModel.class);
                 return Response.status(Status.OK).entity(response).build();
             }
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
@@ -206,6 +202,7 @@ public class ContextResource {
             return Response.status(Status.NOT_FOUND)
                 .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
         }  catch (VitamException exp) {
+            // FIXME : Proper error management
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();

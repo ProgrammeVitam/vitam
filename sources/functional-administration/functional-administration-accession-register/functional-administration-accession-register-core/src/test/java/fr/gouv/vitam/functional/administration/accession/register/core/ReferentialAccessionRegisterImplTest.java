@@ -159,8 +159,7 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterDetail()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
-        FileNotFoundException {
+        throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
@@ -185,8 +184,7 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterSummary()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException,
-        FileNotFoundException {
+        throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_SYMBOLIC_OK),

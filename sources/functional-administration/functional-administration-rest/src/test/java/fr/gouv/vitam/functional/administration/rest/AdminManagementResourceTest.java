@@ -811,6 +811,48 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void getDocumentRulesFileBug4806WhenOrderByAnalyzedFieldThenReturnInternalServerError() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
+        stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
+
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
+            .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
+
+        final Select selectOrderByNonAnalyzed = new Select();
+        selectOrderByNonAnalyzed.setQuery(eq("RuleId", "APP-00001"));
+        selectOrderByNonAnalyzed.addOrderByAscFilter("RuleId");
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
+            .body(selectOrderByNonAnalyzed.getFinalSelect())
+            .when().post(GET_DOCUMENT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select selectOrderByAnalyzed = new Select();
+        selectOrderByAnalyzed.setQuery(eq("RuleId", "APP-00001"));
+        selectOrderByAnalyzed.addOrderByAscFilter("RuleValue");
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
+            .body(selectOrderByAnalyzed.getFinalSelect())
+            .when().post(GET_DOCUMENT_RULES_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testImportRulesForTenant0_ThenSearchForTenant1ReturnNotFound()
         throws InvalidCreateOperationException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);

@@ -121,7 +121,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 return result;
             } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
                 VitamDBException | SchemaValidationException e) {
-                throw new DatabaseException("Delete document exception");
+                throw new DatabaseException("Delete document exception", e);
             }
         }
         return new DbRequestResult();
@@ -157,7 +157,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 return result;
             } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
                 VitamDBException e) {
-                throw new DatabaseException("Delete document exception");
+                throw new DatabaseException("Delete document exception", e);
             }
         }
         return new DbRequestResult();
@@ -165,14 +165,12 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @VisibleForTesting
     @Override
-    public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
-        throws ReferentialException {
+    public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection) {
         return (VitamDocument<?>) collection.getCollection().find(eq(VitamDocument.ID, id)).first();
     }
 
     @Override
-    public VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field)
-        throws ReferentialException {
+    public VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field) {
         if (collection.isMultitenant()) {
             Integer tenantId = ParameterHelper.getTenantParameter();
             return (VitamDocument<?>) collection.getCollection().find(and(eq(field, id),
@@ -191,8 +189,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             return dbrequest.execute(parser.getRequest());
         } catch (final DatabaseException | BadRequestException | InvalidParseOperationException |
             InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
-            LOGGER.error("find Document Exception", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("find Document Exception", e);
         }
     }
 
@@ -211,8 +208,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new BadRequestException(e);
         } catch (final DatabaseException | VitamDBException e) {
-            LOGGER.error("find Document Exception", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("find Document Exception", e);
         }
     }
 
