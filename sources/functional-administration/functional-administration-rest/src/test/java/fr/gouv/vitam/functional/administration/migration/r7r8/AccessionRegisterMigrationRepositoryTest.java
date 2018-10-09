@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.common.migration.r7r8;
+package fr.gouv.vitam.functional.administration.migration.r7r8;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -73,7 +73,7 @@ public class AccessionRegisterMigrationRepositoryTest {
 
         // Given : Complex data set with R6 model (no graph fields)
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(repository.getAccessionRegisterDetailCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
 
         // When
         try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
@@ -94,7 +94,7 @@ public class AccessionRegisterMigrationRepositoryTest {
 
         // Given : Complex data set with R6 model (no graph fields)
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(repository.getAccessionRegisterDetailCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
 
         // When
         try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {

@@ -24,17 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.migration.r7r8;
+package fr.gouv.vitam.functional.administration.migration.r7r8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.apache.commons.collections4.iterators.PeekingIterator;
@@ -52,17 +54,15 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class AccessionRegisterMigrationRepository {
 
-    private FunctionalAdminCollections accessionRegisterDetailCollection;
-    private FunctionalAdminCollections accessionRegisterSummaryCollection;
+    private VitamRepositoryProvider vitamRepositoryProvider;
 
     public AccessionRegisterMigrationRepository() {
-        this(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        this(VitamRepositoryFactory.get());
     }
 
     @VisibleForTesting
-    public AccessionRegisterMigrationRepository(FunctionalAdminCollections accessionRegisterDetailCollection, FunctionalAdminCollections accessionRegisterSummaryCollection) {
-        this.accessionRegisterDetailCollection = accessionRegisterDetailCollection;
-        this.accessionRegisterSummaryCollection = accessionRegisterSummaryCollection;
+    public AccessionRegisterMigrationRepository(VitamRepositoryProvider vitamRepositoryProvider) {
+        this.vitamRepositoryProvider = vitamRepositoryProvider;
     }
 
     /**
@@ -111,10 +111,18 @@ public class AccessionRegisterMigrationRepository {
         };
     }
 
+    public void bulkMongo(FunctionalAdminCollections functionalAdminCollections, List<WriteModel<Document>> collection) throws DatabaseException {
+        this.vitamRepositoryProvider.getVitamMongoRepository(functionalAdminCollections.getVitamCollection()).update(collection);
+    }
+
+    public void bulkElasticsearch(FunctionalAdminCollections functionalAdminCollections, List<Document> collection) throws DatabaseException {
+        this.vitamRepositoryProvider.getVitamESRepository(functionalAdminCollections.getVitamCollection()).save(collection);
+    }
+
     /**
      * Replace all accession register (Detail or summary)
      */
-    public void bulkReplaceOrUpdateAccessionRegisters(List<Document> updatedDocuments, MongoCollection<Document> collection) {
+    public void bulkReplaceAccessionRegisters(List<Document> updatedDocuments, FunctionalAdminCollections functionalAdminCollections) throws DatabaseException {
 
         List<WriteModel<Document>> updates = updatedDocuments
                 .stream()
@@ -122,23 +130,15 @@ public class AccessionRegisterMigrationRepository {
                         new UpdateOptions().upsert(false)))
                 .collect(Collectors.toList());
 
-        collection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
-
+        bulkMongo(functionalAdminCollections, updates);
+        bulkElasticsearch(functionalAdminCollections, updatedDocuments);
     }
 
-    public MongoCollection<Document> getAccessionRegisterDetailCollection() {
-        return accessionRegisterDetailCollection.getCollection();
+    public void bulkReplaceOrUpdateAccessionRegisterDetail(List<Document> updatedRegisters) throws DatabaseException {
+        bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
     }
 
-    public MongoCollection<Document> getAccessionRegisterSummaryCollection() {
-        return accessionRegisterSummaryCollection.getCollection();
-    }
-
-    public void bulkReplaceOrUpdateAccessionRegisterDetail(List<Document> updatedRegisters) {
-        bulkReplaceOrUpdateAccessionRegisters(updatedRegisters, getAccessionRegisterDetailCollection());
-    }
-
-    public void bulkReplaceOrUpdateAccessionRegisterSummary(List<Document> updatedRegisters) {
-        bulkReplaceOrUpdateAccessionRegisters(updatedRegisters, getAccessionRegisterSummaryCollection());
+    public void bulkReplaceOrUpdateAccessionRegisterSummary(List<Document> updatedRegisters) throws DatabaseException {
+        bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
     }
 }

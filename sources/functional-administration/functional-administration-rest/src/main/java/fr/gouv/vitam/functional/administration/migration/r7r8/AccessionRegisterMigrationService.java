@@ -24,15 +24,18 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.migration.r7r8;
+package fr.gouv.vitam.functional.administration.migration.r7r8;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -60,22 +63,24 @@ public class AccessionRegisterMigrationService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterMigrationService.class);
 
     private final AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
+    private final FunctionalBackupService functionalBackupService;
 
     private final AtomicBoolean isRunning = new AtomicBoolean();
 
     /**
      * Constructor
      */
-    public AccessionRegisterMigrationService() {
-        this(new AccessionRegisterMigrationRepository());
+    public AccessionRegisterMigrationService(FunctionalBackupService functionalBackupService) {
+        this(new AccessionRegisterMigrationRepository(), functionalBackupService);
     }
 
     /**
      * Constructor for testing
      */
     @VisibleForTesting
-    AccessionRegisterMigrationService(AccessionRegisterMigrationRepository dataMigrationRepository) {
+    AccessionRegisterMigrationService(AccessionRegisterMigrationRepository dataMigrationRepository, FunctionalBackupService functionalBackupService) {
         this.accessionRegisterMigrationRepository = dataMigrationRepository;
+        this.functionalBackupService = functionalBackupService;
     }
 
     public boolean isMongoDataUpdateInProgress() {
@@ -105,19 +110,19 @@ public class AccessionRegisterMigrationService {
         return true;
     }
 
-    void mongoDataUpdate() throws InterruptedException {
+    void mongoDataUpdate() throws InterruptedException, DatabaseException, FunctionalBackupServiceException {
         processAccessionRegisters(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
         processAccessionRegisters(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
     }
 
-    private void processAccessionRegisters(FunctionalAdminCollections collection) throws InterruptedException {
+    private void processAccessionRegisters(FunctionalAdminCollections collection) throws InterruptedException, DatabaseException, FunctionalBackupServiceException {
         try (CloseableIterator<List<Document>> bulkRegisterIterator =
                      accessionRegisterMigrationRepository.selectAccessionRegistesBulk(collection)) {
             processAccessionRegistersByBulk(bulkRegisterIterator, collection);
         }
     }
 
-    private void processAccessionRegistersByBulk(Iterator<List<Document>> bulkRegisterIterator, FunctionalAdminCollections collection) throws InterruptedException {
+    private void processAccessionRegistersByBulk(Iterator<List<Document>> bulkRegisterIterator, FunctionalAdminCollections collection) throws InterruptedException, DatabaseException, FunctionalBackupServiceException {
 
         LOGGER.info(String.format("Updating %s ...", collection.getName()));
         int nbThreads = Math.max(Runtime.getRuntime().availableProcessors(), 16);
@@ -142,7 +147,7 @@ public class AccessionRegisterMigrationService {
 
     private void processRegisterBulk(ExecutorService executor, List<Document> registersToUpdate,
                                      StopWatch sw, AtomicInteger updatedRegistersCount,
-                                     AtomicInteger registersWithErrorsCount, FunctionalAdminCollections collection) {
+                                     AtomicInteger registersWithErrorsCount, FunctionalAdminCollections collection) throws DatabaseException, FunctionalBackupServiceException {
 
         List<Document> updatedRegisters = ListUtils.synchronizedList(new ArrayList<>());
 
@@ -170,12 +175,17 @@ public class AccessionRegisterMigrationService {
         switch (collection) {
             case ACCESSION_REGISTER_DETAIL:
                 this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterDetail(updatedRegisters);
+
+                // Save in offers
+                for (Document doc : updatedRegisters) {
+                    functionalBackupService.saveDocument(collection, doc);
+                }
+
                 break;
             case ACCESSION_REGISTER_SUMMARY:
                 this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterSummary(updatedRegisters);
                 break;
         }
-
         updatedRegistersCount.addAndGet(updatedRegisters.size());
         registersWithErrorsCount.addAndGet(registersToUpdate.size() - updatedRegisters.size());
 

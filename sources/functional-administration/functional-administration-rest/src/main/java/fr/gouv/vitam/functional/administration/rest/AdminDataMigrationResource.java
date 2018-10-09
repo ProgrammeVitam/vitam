@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -47,7 +48,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.migration.r7r8.AccessionRegisterMigrationService;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.migration.r7r8.AccessionRegisterMigrationService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -103,8 +105,8 @@ public class AdminDataMigrationResource {
      */
     private final AccessionRegisterMigrationService accessionRegisterMigrationService;
 
-    AdminDataMigrationResource() {
-        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(), WorkspaceClientFactory.getInstance(), new AccessionRegisterMigrationService());
+    AdminDataMigrationResource(FunctionalBackupService functionalBackupService) {
+        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(), WorkspaceClientFactory.getInstance(), new AccessionRegisterMigrationService(functionalBackupService));
     }
 
     /**
@@ -196,6 +198,8 @@ public class AdminDataMigrationResource {
     public Response startAccessionRegisterMigration() {
 
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+
             boolean started = this.accessionRegisterMigrationService.tryStartMongoDataUpdate();
 
             if (started) {

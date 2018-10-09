@@ -132,8 +132,7 @@ public class ReferentialAccessionRegisterImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         MongoDbAccessAdminImpl mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(mongoDbAccessAdmin,
-                mock(FunctionalBackupService.class),
-                new ReconstructionServiceImpl(VitamRepositoryFactory.get(), new RestoreBackupServiceImpl(), new OffsetRepository(mongoDbAccessAdmin)));
+                mock(FunctionalBackupService.class));
     }
 
     @AfterClass
