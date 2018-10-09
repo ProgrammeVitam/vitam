@@ -31,7 +31,7 @@
     src: "{{ item }}"
     dest: "/etc/metricbeat/modules.d/{{ item | basename | regex_replace('\\.j2$') }}"
     owner: root
-    mode: 0644
+    mode: 0640
   with_fileglob:
     - "{{ role_path }}/templates/modules/*yml"
 
@@ -59,7 +59,7 @@
   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
   notify:
     - restart kibana
- 
+
 - name: restart metricbeat
   service:
     name: metricbeat

@@ -1,6 +1,6 @@
 {% if inventory_hostname in groups['hosts-mongoc-data'] %}
 - module: mongodb
-  hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
+  hosts: ["{{ip_service}}:{{ mongodb.mongoc_port }}"]
   metricsets: ["collstats","dbstats", "status"]
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
@@ -27,7 +27,7 @@
 
 {% if inventory_hostname in groups['hosts-mongoc-offer'] and inventory_hostname not in groups['hosts-mongoc-data'] %}
 - module: mongodb
-  hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
+  hosts: ["{{ip_service}}:{{ mongodb.mongoc_port }}"]
   metricsets: ["collstats","dbstats", "status"]
   username: {{ mongodb[mongo_cluster_name]['localadmin']['user'] }}
   password: {{ mongodb[mongo_cluster_name]['localadmin']['password'] }}
