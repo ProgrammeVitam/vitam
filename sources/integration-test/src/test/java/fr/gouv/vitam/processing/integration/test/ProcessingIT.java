@@ -1114,7 +1114,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1146,8 +1146,8 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         //N.B : The old status StatusCode.KO is do to Invalid content in manifest (validation ko against old SEDA 2.0 of no FormatIdentification tag)
-        //In Seda 2.1 this is authorize and test pass to warning result status
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        //In Seda 2.1 this is authorize and test pass to OK result status (just idenified format by vitam in evDetData of the dataObject)
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
     }
 
 
@@ -1517,7 +1517,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow3 = processMonitoring.findOneProcessWorkflow(containerName3, tenantId);
         assertNotNull(processWorkflow3);
         assertEquals(ProcessState.COMPLETED, processWorkflow3.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow3.getStatus());
+        assertEquals(StatusCode.OK, processWorkflow3.getStatus());
         assertNotNull(processWorkflow3.getSteps());
 
 
@@ -1576,7 +1576,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow5 = processMonitoring.findOneProcessWorkflow(containerName5, tenantId);
         assertNotNull(processWorkflow5);
         assertEquals(ProcessState.COMPLETED, processWorkflow5.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow5.getStatus());
+        assertEquals(StatusCode.OK, processWorkflow5.getStatus());
 
         try {
             Files.delete(new File(zipPath).toPath());
@@ -1756,7 +1756,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertEquals(StatusCode.OK, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
         // Check that we have an AU where in his up we have idUnit
