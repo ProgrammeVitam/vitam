@@ -1609,6 +1609,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                         info.put("RuleDurationMin", VitamRuleService.getMinimumRuleDuration(getTenant(),
                             error.getFileRulesModel().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
+                        break;
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:
                         errorNode.put(ADDITIONAL_INFORMATION, error.getMissingInformations());
                         break;
