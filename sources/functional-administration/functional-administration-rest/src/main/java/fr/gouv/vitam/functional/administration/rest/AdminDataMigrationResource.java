@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.migration.r7r8.AccessionRegisterMigrationService;
+import fr.gouv.vitam.functional.administration.migration.r7r8.MigrationAction;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -96,7 +97,8 @@ public class AdminDataMigrationResource {
     private static String DATA_MIGRATION = "DATA_MIGRATION";
 
 
-    private final String ACCESSION_REGISTER_MIGRATION_URI = "/migration/accessionregister";
+    private final String ACCESSION_REGISTER_MIGRATION_MIGRATE_URI = "/migration/accessionregister/migrate";
+    private final String ACCESSION_REGISTER_MIGRATION_PURGE_URI = "/migration/accessionregister/purge";
     private final String ACCESSION_REGISTER_MIGRATION_STATUS_URI = "/migration/accessionregister/status";
 
 
@@ -191,16 +193,32 @@ public class AdminDataMigrationResource {
      *
      * @return the response
      */
-    @Path(ACCESSION_REGISTER_MIGRATION_URI)
+    @Path(ACCESSION_REGISTER_MIGRATION_MIGRATE_URI)
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response startAccessionRegisterMigration() {
+        return handleMigrationProcess(MigrationAction.MIGRATE);
+    }
 
+    /**
+     * API for Accession Register migration
+     *
+     * @return the response
+     */
+    @Path(ACCESSION_REGISTER_MIGRATION_PURGE_URI)
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response startAccessionRegisterMigrationPurge() {
+        return handleMigrationProcess(MigrationAction.PURGE);
+    }
+
+    private Response handleMigrationProcess(MigrationAction migrationAction) {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
 
-            boolean started = this.accessionRegisterMigrationService.tryStartMongoDataUpdate();
+            boolean started = this.accessionRegisterMigrationService.tryStartMigration(migrationAction);
 
             if (started) {
                 LOGGER.info("Accession Register migration started successfully");
@@ -215,7 +233,6 @@ public class AdminDataMigrationResource {
             return Response.serverError().entity(new MetadataMigrationAdminResource.ResponseMessage(e.getMessage())).build();
         }
     }
-
     /**
      * API for Accession Register migration status check
      *
@@ -227,7 +244,7 @@ public class AdminDataMigrationResource {
     public Response isAccessionRegisterMigrationInProgress() {
 
         try {
-            boolean started = this.accessionRegisterMigrationService.isMongoDataUpdateInProgress();
+            boolean started = this.accessionRegisterMigrationService.isMigrationInProgress();
 
             if (started) {
                 LOGGER.info("Accession Register migration still in progress");

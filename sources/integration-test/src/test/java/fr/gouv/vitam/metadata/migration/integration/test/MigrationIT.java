@@ -80,7 +80,9 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
+import javax.ws.rs.PathParam;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,7 +100,7 @@ import static org.assertj.core.groups.Tuple.tuple;
  * Integration test of metadata migration services.
  */
 public class MigrationIT extends VitamRuleRunner {
-    public static final int TENANT_ID_O = 0;
+
     @ClassRule
     public static VitamServerRunner runner =
             new VitamServerRunner(MigrationIT.class, mongoRule.getMongoDatabase().getName(),
@@ -220,7 +222,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_failedAuthn() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(TENANT_ID_O, "BAD TOKEN").execute();
+                response = accessionRegisterAdminMigrationService.startDataMigration("BAD TOKEN").execute();
         assertThat(response.isSuccessful()).isFalse();
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
@@ -233,7 +235,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(TENANT_ID_O, getBasicAuthnToken()).execute();
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -243,7 +245,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(TENANT_ID_O, getBasicAuthnToken()).execute();
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -261,7 +263,7 @@ public class MigrationIT extends VitamRuleRunner {
 
         // When
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(TENANT_ID_O, getBasicAuthnToken()).execute();
+                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -293,6 +295,24 @@ public class MigrationIT extends VitamRuleRunner {
                         tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57asp2qaaaaq.json"),
                         tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57t4pqiaaaaq.json")
                 );
+
+
+        // When purge
+        response = accessionRegisterAdminMigrationService.startDataPurge(getBasicAuthnToken()).execute();
+        assertThat(response.isSuccessful()).isTrue();
+        awaitTermination();
+
+        // Then Mongo and Elasticsearch purged
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
+
+        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+                .setQuery(QueryBuilders.matchAllQuery()).get();
+        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
+
+        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+                .setQuery(QueryBuilders.matchAllQuery()).get();
+        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
     }
 
 
@@ -373,9 +393,12 @@ public class MigrationIT extends VitamRuleRunner {
 
     public interface AccessionRegisterAdminMigrationService {
 
-        @POST("/adminmanagement/v1/migration/accessionregister")
-        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-                @Header("X-Tenant-Id") Integer tenant, @Header("Authorization") String basicAuthnToken);
+        @POST("/adminmanagement/v1/migration/accessionregister/migrate")
+        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(@Header("Authorization") String basicAuthnToken);
+
+        @POST("/adminmanagement/v1/migration/accessionregister/purge")
+        Call<MetadataMigrationAdminResource.ResponseMessage> startDataPurge(@Header("Authorization") String basicAuthnToken);
+
 
         @GET("/adminmanagement/v1/migration/accessionregister/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();

@@ -10,8 +10,6 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -23,33 +21,25 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,8 +47,10 @@ import java.util.concurrent.TimeUnit;
 import static com.mongodb.client.model.Sorts.ascending;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
@@ -102,40 +94,54 @@ public class AccessionRegisterMigrationServiceTest {
     }
 
     @Test
-    public void tryStartMongoDataUpdate_firstStart() throws Exception {
+    public void tryStartMigration_firstStart() throws Exception {
         // Given
         AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
-        CountDownLatch awaitTermination = new CountDownLatch(1);
-        Mockito.doAnswer(i -> {
-            awaitTermination.countDown();
+        CountDownLatch awaitTermination_1 = new CountDownLatch(1);
+        doAnswer(i -> {
+            awaitTermination_1.countDown();
             return null;
         }).when(instance).mongoDataUpdate();
 
         // When
-        boolean started = instance.tryStartMongoDataUpdate();
-        awaitOrThrow(awaitTermination);
+        boolean started = instance.tryStartMigration(MigrationAction.MIGRATE);
+        awaitOrThrow(awaitTermination_1);
 
         // Than
         assertThat(started).isTrue();
-        verify(instance, Mockito.times(1)).mongoDataUpdate();
+        verify(instance, times(1)).mongoDataUpdate();
+
+        CountDownLatch awaitTermination_2 = new CountDownLatch(1);
+        doAnswer(i -> {
+            awaitTermination_2.countDown();
+            return null;
+        }).when(instance).purge();
+
+        // When
+       started = instance.tryStartMigration(MigrationAction.PURGE);
+        awaitOrThrow(awaitTermination_2);
+
+        // Than
+        assertThat(started).isTrue();
+        verify(instance, times(1)).purge();
     }
 
     @Test
-    public void tryStartMongoDataUpdate_alreadyRunning() throws Exception {
+    public void tryStartMigration_alreadyRunning() throws Exception {
 
         // Given
         AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         CountDownLatch longRunningTask = new CountDownLatch(1);
 
-        Mockito.doAnswer(i -> {
+        doAnswer(i -> {
             awaitOrThrow(longRunningTask);
             return null;
         }).when(instance).mongoDataUpdate();
 
         // When
-        boolean firstStart = instance.tryStartMongoDataUpdate();
-        boolean secondStart = instance.tryStartMongoDataUpdate();
+        boolean firstStart = instance.tryStartMigration(MigrationAction.MIGRATE);
+        boolean secondStart = instance.tryStartMigration(MigrationAction.MIGRATE);
 
         longRunningTask.countDown();
         awaitTermination(instance);
@@ -143,11 +149,11 @@ public class AccessionRegisterMigrationServiceTest {
         // Then : Ensure process invoked once
         assertThat(firstStart).isTrue();
         assertThat(secondStart).isFalse();
-        verify(instance, Mockito.times(1)).mongoDataUpdate();
+        verify(instance, times(1)).mongoDataUpdate();
     }
 
     @Test
-    public void tryStartMongoDataUpdate_restart() throws Exception {
+    public void tryStartMigration_restart() throws Exception {
 
         // First invocation
 
@@ -155,16 +161,16 @@ public class AccessionRegisterMigrationServiceTest {
         AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
-        boolean firstStart = instance.tryStartMongoDataUpdate();
+        boolean firstStart = instance.tryStartMigration(MigrationAction.MIGRATE);
         awaitTermination(instance);
 
-        boolean secondStart = instance.tryStartMongoDataUpdate();
+        boolean secondStart = instance.tryStartMigration(MigrationAction.MIGRATE);
         awaitTermination(instance);
 
         // Then : Ensure process invoked twice
         assertThat(firstStart).isTrue();
         assertThat(secondStart).isTrue();
-        verify(instance, Mockito.times(2)).mongoDataUpdate();
+        verify(instance, times(2)).mongoDataUpdate();
     }
 
     private static void awaitOrThrow(CountDownLatch awaitTermination) throws InterruptedException {
@@ -178,7 +184,7 @@ public class AccessionRegisterMigrationServiceTest {
         AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
-        instance.mongoDataUpdate();
+        instance.tryStartMigration(MigrationAction.MIGRATE);
 
         awaitTermination(instance);
 
@@ -199,7 +205,7 @@ public class AccessionRegisterMigrationServiceTest {
         AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
-        instance.mongoDataUpdate();
+        instance.tryStartMigration(MigrationAction.MIGRATE);
 
         awaitTermination(instance);
 
@@ -221,6 +227,22 @@ public class AccessionRegisterMigrationServiceTest {
         assertThat(search.getHits().getTotalHits()).isEqualTo(2);
 
 
+        // When purge
+        instance.tryStartMigration(MigrationAction.PURGE);
+
+        awaitTermination(instance);
+
+        // Then Mongo and Elasticsearch purged
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
+
+        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+                .setQuery(QueryBuilders.matchAllQuery()).get();
+        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
+
+        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+                .setQuery(QueryBuilders.matchAllQuery()).get();
+        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
     }
 
     private void importDataSetFile(MongoCollection<Document> mongoCollection, String dataSetFile)
@@ -264,7 +286,7 @@ public class AccessionRegisterMigrationServiceTest {
         for (int i = 0; i < 30; i++) {
             Thread.sleep(1000);
 
-            if (!instance.isMongoDataUpdateInProgress())
+            if (!instance.isMigrationInProgress())
                 return;
         }
 

@@ -111,6 +111,23 @@ public class AccessionRegisterMigrationRepository {
         };
     }
 
+
+    public void purgeMongo(FunctionalAdminCollections functionalAdminCollections) {
+        try {
+            this.vitamRepositoryProvider.getVitamMongoRepository(functionalAdminCollections.getVitamCollection()).purge();
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void purgeElasticsearch(FunctionalAdminCollections functionalAdminCollections) {
+        try {
+            this.vitamRepositoryProvider.getVitamESRepository(functionalAdminCollections.getVitamCollection()).purge();
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void bulkMongo(FunctionalAdminCollections functionalAdminCollections, List<WriteModel<Document>> collection) throws DatabaseException {
         this.vitamRepositoryProvider.getVitamMongoRepository(functionalAdminCollections.getVitamCollection()).update(collection);
     }
@@ -132,13 +149,5 @@ public class AccessionRegisterMigrationRepository {
 
         bulkMongo(functionalAdminCollections, updates);
         bulkElasticsearch(functionalAdminCollections, updatedDocuments);
-    }
-
-    public void bulkReplaceOrUpdateAccessionRegisterDetail(List<Document> updatedRegisters) throws DatabaseException {
-        bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-    }
-
-    public void bulkReplaceOrUpdateAccessionRegisterSummary(List<Document> updatedRegisters) throws DatabaseException {
-        bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
     }
 }

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.apache.commons.collections4.ListUtils;
@@ -83,11 +82,11 @@ public class AccessionRegisterMigrationService {
         this.functionalBackupService = functionalBackupService;
     }
 
-    public boolean isMongoDataUpdateInProgress() {
+    public boolean isMigrationInProgress() {
         return isRunning.get();
     }
 
-    public boolean tryStartMongoDataUpdate() {
+    public boolean tryStartMigration(MigrationAction migrationAction) {
 
         boolean lockAcquired = isRunning.compareAndSet(false, true);
         if (!lockAcquired) {
@@ -98,7 +97,18 @@ public class AccessionRegisterMigrationService {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
             try {
                 LOGGER.info("Starting data migration");
-                mongoDataUpdate();
+                switch (migrationAction) {
+                    case MIGRATE:
+                        // To be executed in primary site
+                        mongoDataUpdate();
+                        break;
+                    case PURGE:
+                        // To be executed in secondary site
+                        purge();
+                        break;
+                    default:
+                        new IllegalArgumentException("Not implemented migration action");
+                }
             } catch (Exception e) {
                 LOGGER.error("A fatal error occurred during data migration", e);
             } finally {
@@ -109,6 +119,30 @@ public class AccessionRegisterMigrationService {
 
         return true;
     }
+
+
+    public void purge() throws InterruptedException {
+
+        LOGGER.info(String.format("Start purge Accession Register (detail and summary) ..."));
+        int nbThreads = Math.max(Runtime.getRuntime().availableProcessors(), 16);
+        ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+
+        try {
+            CompletableFuture.allOf(
+                    new CompletableFuture[]{
+                            CompletableFuture.runAsync(() -> accessionRegisterMigrationRepository.purgeMongo(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL), executor),
+                            CompletableFuture.runAsync(() -> accessionRegisterMigrationRepository.purgeElasticsearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL), executor),
+                            CompletableFuture.runAsync(() -> accessionRegisterMigrationRepository.purgeMongo(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), executor),
+                            CompletableFuture.runAsync(() -> accessionRegisterMigrationRepository.purgeElasticsearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), executor)
+                    }
+            ).join();
+        } finally {
+            LOGGER.info(String.format("End purge Accession Register (detail and summary) ..."));
+            executor.shutdown();
+            executor.awaitTermination(10L, TimeUnit.MINUTES);
+        }
+    }
+
 
     void mongoDataUpdate() throws InterruptedException, DatabaseException, FunctionalBackupServiceException {
         processAccessionRegisters(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
@@ -174,7 +208,7 @@ public class AccessionRegisterMigrationService {
 
         switch (collection) {
             case ACCESSION_REGISTER_DETAIL:
-                this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterDetail(updatedRegisters);
+                this.accessionRegisterMigrationRepository.bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
 
                 // Save in offers
                 for (Document doc : updatedRegisters) {
@@ -183,7 +217,7 @@ public class AccessionRegisterMigrationService {
 
                 break;
             case ACCESSION_REGISTER_SUMMARY:
-                this.accessionRegisterMigrationRepository.bulkReplaceOrUpdateAccessionRegisterSummary(updatedRegisters);
+                this.accessionRegisterMigrationRepository.bulkReplaceAccessionRegisters(updatedRegisters, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
                 break;
         }
         updatedRegistersCount.addAndGet(updatedRegisters.size());

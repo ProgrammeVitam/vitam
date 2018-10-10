@@ -905,7 +905,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA2");
 
-        // Purge mongo
+        // PURGE mongo
         mongoRule.handleAfter();
         // Re-insert
         Document got_with_unit_up = got_without_unit
