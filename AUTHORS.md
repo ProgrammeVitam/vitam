@@ -1,62 +1,46 @@
 # Authors of Vitam
 
-## Release 6 (V1) active development team (03/2018)
+## Release 8 (V1) active development team (10/2018)
 
 ### French government team
 
 * Edouard Vasseur (Archivist Leader)
 * Mehdi Afnaï
 * Pierre Ané
-* Frédéric Deguilhen
 * Emmanuel Laborde
 * Jean-Séverin Lair
-* Charles Pouplin
 * Mélanie Rebours
 * Marion Ville
 * Nathalie Morin
 
 ### Linagora development team
 
-* Zhang Chen
 * Laurent Dubois
 * Olivier Elbhar
-* Ba Tuan Ngo
 * Abderrahim Fraoucene
+* Mahmoud Sayad
 
-### Smile - Palpateam development team
+### Smile - Ulteam
 
 * Ludovic Blanchet
-* Gaëlle Fournier
-* Germain Ledroit
-* Cédric Legrand
 * Antoine Paris
-* Hassen Bamri
-* Ludivine Lenoir
-* Guillaume Dutey-Harispe
-* Clémence Boyer
 * Thomas Peigné
-
-### Smile - HexaTeam development team
-
-* Stéphanie Bonnet
 * Jean-Eudes Couignoux
 * Djamel Hamas
 * Idrissa Manzo
-* Clément Massard
-* Pierre Pavy
 * Dédé Agbodji
-* Claude Prabel
-* Lilas Becha
 * Lotfi Gheribi
+* Jean-Baptiste Petit
+* Edith Abouquir
 
 ### Thales integration team
 
 * Joachim Gonthier
 * Olivier Marsol
 * Nicolas Ménétrier
-* Kristopher Waltzer
 * Bernardo Resende
 * Nicolas Roselier
+* Karima Belili
 
 ## Those who have gone a long (or short) way with us
 
@@ -83,20 +67,42 @@
 * Nathanaël Attar
 * Ismail Jamel
 * Frédéric Nguyen Huynh
-* ...
+* Frédéric Deguilhen
+* Charles Pouplin
+* Zhang Chen
+* Ba Tuan Ngo
+* Gaëlle Fournier
+* Germain Ledroit
+* Cédric Legrand
+* Hassen Bamri
+* Ludivine Lenoir
+* Guillaume Dutey-Harispe
+* Clémence Boyer
+* Stéphanie Bonnet
+* Clément Massard
+* Pierre Pavy
+* Claude Prabel
+* Lilas Becha
+* Kristopher Waltzer
+
 
 ## Thanks for collaboration
 
-* French Ministry of Culture and Communication
-* French Ministry of Defence
-* French Ministry of Foreign Affairs
-* French Ministry of the Environment, Energy and Marine Affairs
+* French Ministry of Culture - Adamant
+* French Ministry for the Armed Forces - Archipel
+* French Ministry for Europe and Foreign Affairs - Saphir
+* French Ministry for the Ecological and Inclusive Transition
+* French Ministry for Solidarity and Health
+* French Agency for Food, Environmental and Occupational Health & Safety (ANSES)
+* French Alternative Energies and Atomic Energy Commission (CEA)
+* French public institution of Exploitation of the Computerized Land Book (EPELFI)
 * National Computing Center for Higher Education (CINES)
 * Payment Services Agency (ASP)
 
 ## Thanks for support
 
 * Claire Botella
+* Julie Garnier
 
 ## Main contributors
 
