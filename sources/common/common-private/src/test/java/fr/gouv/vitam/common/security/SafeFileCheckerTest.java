@@ -47,7 +47,7 @@ public class SafeFileCheckerTest {
     private final String SUBPATH_INFECTED = "../..//etc/password";
     private final String SUBPATH_INFECTED_ENCODED = "%2e%2e%2f..\\/etc/password";
     private final String SUBPATH_INFECTED_BAD_CHARS = "myDir&,";
-    private final String VALID_FILENAME = "good-file,.pdf";
+    private final String VALID_FILENAME = "good-file,.report.json";
     private final String INVALID_FILENAME = "my%2ffilename.json";
     private final String INVALID_FILENAME_NULLED = "filename\0.json";
     private final String INVALID_BLACKLISTED_FILENAME = "my|filena?me<.json";
