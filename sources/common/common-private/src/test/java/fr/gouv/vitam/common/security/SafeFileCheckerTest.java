@@ -39,14 +39,15 @@ import java.io.IOException;
  */
 
 public class SafeFileCheckerTest {
-    private final String ROOT_PATH = "/mydir/app-directory";
+    private final String ROOT_PATH = "/my.dir/app-directory";
     private final String ROOT_MULTI_SLASH_PATH = "/mydir///app-directory";
+    private final String ROOT_DOOTED_PATH = "/..0_StorageTraceability_20180220@031002.zip";
     private final String ROOT_PATH_INFECTED = "/mydir/./app-_directory";
     private final String SUBPATH_SAFE = "json_good_sanity,";
     private final String SUBPATH_INFECTED = "../..//etc/password";
     private final String SUBPATH_INFECTED_ENCODED = "%2e%2e%2f..\\/etc/password";
     private final String SUBPATH_INFECTED_BAD_CHARS = "myDir&,";
-    private final String VALID_FILENAME = "good-file,.pdf";
+    private final String VALID_FILENAME = "good-file,.report.json";
     private final String INVALID_FILENAME = "my%2ffilename.json";
     private final String INVALID_FILENAME_NULLED = "filename\0.json";
     private final String INVALID_BLACKLISTED_FILENAME = "my|filena?me<.json";
@@ -58,6 +59,11 @@ public class SafeFileCheckerTest {
     @Test
     public void checkValidMultiSlashPathComponentFile() throws IOException, VitamRuntimeException {
         SafeFileChecker.checkSafeFilePath(ROOT_MULTI_SLASH_PATH, SUBPATH_SAFE, VALID_FILENAME);
+    }
+
+    @Test
+    public void checkValidDotedPathComponentFile() throws IOException, VitamRuntimeException {
+        SafeFileChecker.checkSafeFilePath(ROOT_DOOTED_PATH, SUBPATH_SAFE, VALID_FILENAME);
     }
 
     @Test(expected = IOException.class)
