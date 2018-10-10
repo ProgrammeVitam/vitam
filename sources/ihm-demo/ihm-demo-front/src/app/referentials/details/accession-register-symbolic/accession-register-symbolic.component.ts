@@ -57,7 +57,7 @@ export class AccessionRegisterSymbolicComponent extends PageComponent {
     data: [],
   };
   BinaryObjectSize = {
-    label: 'Taille totale des objects',
+    label: 'Taille totale des objets',
     backgroundColor: this.colorFunct(this.chartColors.orange).alpha(0.5).rgbString(),
     borderColor: this.chartColors.orange,
     fill: false,
