@@ -17,17 +17,23 @@ Les étapes et traitements associées ci-dessous décrivent le processus d'entr�
 Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 ------------------------------------------------------------
 
-* Vérification de la non existence d'objets (CHECK_NO_OBJECT)
+**Vérification de la non existence d'objets (CHECK_NO_OBJECT)**
 
-  + **Règle** : vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert du plan
++ **Règle** : vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert du plan
 
-  + **Statuts** :
++ **Type** : bloquant
+
++ **Statuts** :
 
    - OK : aucun objet numérique n'est présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
 
    - KO : des objets numériques sont présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d'objet : objet(s) trouvé(s))
 
    - FATAL : une erreur fatale est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
+
+Structure de workflow d'entrée d'un plan de classement
+#######################################################
+
 
 Le workflow actuel mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultFilingSchemeWorkflow.json". Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
 
