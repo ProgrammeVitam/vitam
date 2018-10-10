@@ -261,6 +261,8 @@ export class ComputeRulesUtilsService {
             newCategory[propertyName] = property;
             isCategoryUpdated = true;
             updateInfo.updated++;
+          } else if(propertyName === "FinalAction") {
+            newCategory[propertyName] = property;
           }
         }
       }
