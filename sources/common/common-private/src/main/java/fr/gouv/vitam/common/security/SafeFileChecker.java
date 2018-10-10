@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 public class SafeFileChecker {
 
     private static final Pattern filenamePattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)?$");
-    private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+$");
+    private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_\\.@]+$");
 
     private SafeFileChecker() {
         // Empty constructor
