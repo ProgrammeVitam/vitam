@@ -4,7 +4,7 @@ Workflow d'administration d'un référentiel des contrats d'entrée
 Introduction
 ============
 
-Cette section décrit le processus (workflow) permettant d'importer un contrat d'entrée.
+Cette section décrit le processus (workflow) permettant d'importer et de mettre à jour un contrat d'entrée.
 
 Processus d'import  et mise à jour d'un contrat d'entrée (vision métier)
 ========================================================================
@@ -16,9 +16,8 @@ Tous les élements réalisés au cours de ce processus sont exécutés dans une 
 Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 ----------------------------------------------------------
 
-* Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
+Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
-  + **Type** : bloquant
 
   + **Règle** : vérification et enregistrement du contrat :
 
@@ -39,29 +38,43 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
     * Le champ "EveryFormatType" doit avoir la valeur true ou false
     * Le champ "FormatType" doit être un tableau dont chaque élément est une PUID du référentiel des formats (exemple : "fmt/17")
 
+  + **Type** : bloquant
 
   + **Statuts** :
 
-    - OK : le contrat répond aux exigences des règles (STP_IMPORT_INGEST_CONTRACT.OK=Succès du processus d'import du contrat d'entrée)
+    - OK : le contrat répond aux exigences des règles (STP_IMPORT_INGEST_CONTRACT.OK = Succès du processus d'import du contrat d'entrée)
 
-    - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO=Échec du processus d'import du contrat d'entrée)
+    - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO = Échec du processus d'import du contrat d'entrée)
 
-    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
+    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL = Erreur technique du processus d'import du contrat d'entrée)
 
-    - WARNING : Avertissement lors du processus d'import du contrat d''entrée ( STP_IMPORT_INGEST_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'entrée )
+    - WARNING : Avertissement lors du processus d'import du contrat d'entrée (STP_IMPORT_INGEST_CONTRACT.WARNING = Avertissement lors du processus d'import du contrat d'entrée)
 
-    - DUPLICATION : L'identifiant utilisé existe déjà ( STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé )
+    - DUPLICATION : L'identifiant utilisé existe déjà (STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO = Échec de l'import : l'identifiant est déjà utilisé)
 
-    - EMPTY REQUIRED FIELD : un champ obligatoire n'est pas renseigné ( STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné )
+    - EMPTY REQUIRED FIELD : un champ obligatoire n'est pas renseigné (STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO = Échec de l'import : au moins un des champs obligatoires n'est pas renseigné)
 
-    - PROFILE NOT FOUND : Le profil d'archivage mentionné n' existe pas ( STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO=Échec de l'import : profil d'archivage non trouvé )
+    - PROFILE NOT FOUND : Le profil d'archivage mentionné n'existe pas (STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO = Échec de l'import : profil d'archivage non trouvé)
 
 
 
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
 ---------------------------------------------------------------
 
-La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création. La clé de l'événement est "STP_UPDATE_INGEST_CONTRACT", entraînant des statuts STP_UPDATE_INGEST_CONTRACT.OK, STP_UPDATE_INGEST_CONTRACT.KO et STP_UPDATE_INGEST_CONTRACT.FATAL sur les mêmes contrôles que l'import.
+
+  + **Règle** : La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création
+
+  + **Type** :  bloquant
+
+  + **Statuts** :
+
+    - OK : la mise à jour du contrat d'entrée a bien été effectuée (STP_UPDATE_INGEST_CONTRACT.OK = Succès du processus de mise à jour du contrat d'entrée)
+
+    - KO : la mise à jour du contrat d'entrée n'a pas été effectuée (STP_UPDATE_INGEST_CONTRACT.KO = Échec du processus de mise à jour du contrat d'entrée)
+	
+    - FATAL : une erreur technique est survenue lors du processus de mise à jour du contrat d'entrée (STP_UPDATE_INGEST_CONTRACT.FATAL = Erreur technique lors du processus de mise à jour du contrat d'entrée)
+
+
 
 Sauvegarde du JSON (STP_BACKUP_INGEST_CONTRACT)
 -----------------------------------------------
@@ -74,8 +87,8 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
   + **Statuts** :
 
-      - OK : une copie de la base de donnée nouvellement importée est enregistrée (STP_BACKUP_INGEST_CONTRACT.OK = Succès du processus de sauvegarde des contrats d'entrée)
+      - OK : une copie de la base de données nouvellement importée est enregistrée (STP_BACKUP_INGEST_CONTRACT.OK = Succès du processus de sauvegarde des contrats d'entrée)
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_INGEST_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'entrée)
+      - FATAL : une erreur technique est survenue lors de la copie de la base de données nouvellement importée (STP_BACKUP_INGEST_CONTRACT.FATAL = Erreur technique lors du processus de sauvegarde des contrats d'entrée)
