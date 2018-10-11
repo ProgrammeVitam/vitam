@@ -44,7 +44,8 @@ consul_component: consul
 consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_component }}"
 
 # Workspace should be useless but storage have a dependency to it...
-vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos" ]
+# elastic-kibana-interceptor is present as kibana is present, if kibana-data & interceptor are not needed in the secondary site, just do not add them in the hosts file
+vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" ]
 
 
 ### Composants Vitam ###
@@ -53,7 +54,8 @@ vitam:
     accessexternal:
         # Component name: do not modify
         vitam_component: access-external
-        # DNS record for the service: do not modify
+        # DNS record for the service:
+        # Modify if ihm-demo is not using consul (typical production deployment)
         host: "access-external.service.{{ consul_domain }}"
         port_admin: 28102
         port_service: 8444
@@ -64,6 +66,7 @@ vitam:
         # Force the log level for this component: this are logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
         # If this var is not set, the default one will be used (vitam_defaults.services.log_level)
         # log_level: "DEBUG"
+        metrics_enabled: true
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -73,6 +76,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -83,6 +87,7 @@ vitam:
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
+        metrics_enabled: true
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -93,8 +98,20 @@ vitam:
         secret_platform: "false"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
+	metrics_enabled: true
+    batchreport:
+        vitam_component: batch-report
+        host: "batch-report.service.{{ consul_domain }}"
+        port_service: 8015
+        port_admin: 18015
+        baseuri: "batch-report"
+        https_enabled: false
+        secret_platform: "false"
+        # log_level: "DEBUG"
     ingestexternal:
         vitam_component: ingest-external
+        # DNS record for the service:
+        # Modify if ihm-demo is not using consul (typical production deployment)
         host: "ingest-external.service.{{ consul_domain }}"
         port_admin: 28001
         port_service: 8443
@@ -111,6 +128,11 @@ vitam:
         # Action done to file after local ingest (see below for further information)
         upload_final_action: "MOVE"
         # log_level: "DEBUG"
+        # upload_final_action can be set to three different values (lower or upper case does not matter)
+        #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
+        #   DELETE : After upload, the local file will be deleted if the upload succeeded
+        #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
+        metrics_enabled: true
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -120,6 +142,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -148,6 +171,7 @@ vitam:
             - iniRealm
             # - ldapRealm
         # log_level: "DEBUG"
+        metrics_enabled: true
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -165,8 +189,8 @@ vitam:
         lifecycleTraceabilityTemporizationDelay: 300
         # Max entries selected per (Unit or Object Group) LFC traceability operation
         lifecycleTraceabilityMaxEntries: 100000
-        disablePurgeForTempLFC: false
         # log_level: "DEBUG"
+        metrics_enabled: true
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -177,6 +201,7 @@ vitam:
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
+        metrics_enabled: true
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -186,6 +211,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -195,6 +221,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -206,6 +233,7 @@ vitam:
         storageTraceabilityOverlapDelay: 300
         restoreBulkSize: 1000
         # log_level: "DEBUG"
+        metrics_enabled: true
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -214,6 +242,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     worker:
         vitam_component: worker
         port_service: 9104
@@ -222,6 +251,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
+        metrics_enabled: true
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -231,9 +261,4 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
-
-# ingestexternal:
-# upload_final_action can be set to three different values (lower or upper case does not matter)
-#   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
-#   DELETE : After upload, the local file will be deleted if the upload succeeded
-#   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
+        metrics_enabled: true
