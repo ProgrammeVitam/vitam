@@ -54,6 +54,17 @@ Paramétrage des certificats externes (\*-externe)
 
 Se reporter au chapitre dédié à la gestion des certificats: :doc:`20-certificats`
 
+Placer "hors Vitam" le composant ihm-demo 
+-----------------------------------------
+
+Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé par le nom de machine hébergeant le composant ihm-demo et ajouter le contenu ci-dessous ::
+
+   consul_disabled: true
+
+A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse IP de services les composants "access-external" et "ingest-external".
+
+Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à  ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer de données sur "elasticsearch-log".
+
 
 Paramétrage de la centralisation des logs Vitam
 -----------------------------------------------

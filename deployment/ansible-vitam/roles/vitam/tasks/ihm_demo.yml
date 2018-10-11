@@ -1,3 +1,5 @@
+---
+
 - name: install vitam-ihm-demo-front-v2 package
   package:
     name: vitam-ihm-demo-front-v2
