@@ -56,14 +56,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -76,7 +69,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
 import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
-import fr.gouv.vitam.common.model.administration.*;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -125,11 +120,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import static fr.gouv.vitam.common.error.VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT;
+import static fr.gouv.vitam.common.json.SchemaValidationUtils.AVAILABLE_MANAGEMENT_ATTRIBUTES;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -1450,7 +1449,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
     private static void checkActionsOnRules(UpdateMultiQuery request, List<String> deletedCategoryRules,
-        Map<String, JsonNode> updatedCategoryRules) {
+        Map<String, JsonNode> updatedCategoryRules) throws AccessInternalRuleExecutionException {
         Iterator<Action> actionsIterator = request.getActions().iterator();
         while (actionsIterator.hasNext()) {
             Action action = actionsIterator.next();
@@ -1476,20 +1475,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         ObjectNode objectToPut = null;
                         String field = fields.next();
                         if (field.startsWith(MANAGEMENT_PREFIX)) {
-                            // 2 possibilities are now handled :
-                            // - {"#management.AccessRule.Rules":[...]}
-                            // - {"#management.AccessRule":{"Rules":[...]}}
                             String ruleToBeChecked = field.substring(MANAGEMENT_PREFIX.length());
                             if (ruleToBeChecked.contains(".")) {
                                 String[] params = ruleToBeChecked.split("\\.");
                                 String mainAtt = params[0];
                                 String subAtt = params[params.length - 1];
+                                if (!AVAILABLE_MANAGEMENT_ATTRIBUTES.contains(subAtt)) {
+                                    throw new AccessInternalRuleExecutionException(ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT);
+                                }
                                 objectToPut = JsonHandler.createObjectNode();
                                 objectToPut.set(subAtt, object.get(field));
                                 ruleToBeChecked = mainAtt;
                             }
                             if (VitamConstants.getSupportedRules().contains(ruleToBeChecked)) {
-                                // Set a ruleCategory
                                 updatedCategoryRules.put(ruleToBeChecked,
                                     objectToPut != null ? objectToPut : object.get(field));
                                 actionsIterator.remove();
