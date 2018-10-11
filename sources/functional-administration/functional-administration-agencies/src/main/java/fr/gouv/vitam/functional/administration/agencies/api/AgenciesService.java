@@ -260,6 +260,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * @return the vitamDocument as an Agencies object
      * @throws ReferentialException thrown if the agency is not found or if the an error is encountered
      */
+    @VisibleForTesting
     public VitamDocument<Agencies> findDocumentById(String id)
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         SanityChecker.checkParameter(id);
@@ -297,12 +298,8 @@ public class AgenciesService implements VitamAutoCloseable {
      */
     private List<Agencies> findAllAgencies() throws ReferentialException {
         final Select select = new Select();
-        List<Agencies> agenciesModels = new ArrayList<>();
         RequestResponseOK<Agencies> response = findDocuments(select.getFinalSelect());
-        if (response != null) {
-            return response.getResults();
-        }
-        return agenciesModels;
+        return response.getResults();
     }
 
 
