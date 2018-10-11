@@ -116,7 +116,12 @@ public class ContextResource {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
 
+        } catch (ReferentialException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         } catch (VitamException exp) {
+            // FIXME Proper exception handling
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
