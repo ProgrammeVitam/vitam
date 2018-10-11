@@ -38,7 +38,7 @@
 - name: Configure Kibana connection to elasticsearch
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#elasticsearch\.url:.*$'
+    regexp: '^#{0,1}elasticsearch\.url:.*$'
     replace: "elasticsearch.url: \"http://{{ elasticsearch_host }}:{{ elasticsearch_port }}\""
   notify:
     - restart kibana
@@ -46,7 +46,7 @@
 - name: Configure basePath for reverse if one is declared in the inventory
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#server\.basePath:.*$'
+    regexp: '^#{0,1}server\.basePath:.*$'
     replace: "server.basePath: \"/{{ composant.baseuri }}\""
   when: groups['reverse']|length > 0
   notify:
@@ -55,7 +55,7 @@
 - name: Configure rewritePath boolean in Kibana when reverse is declared in the inventory
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#server\.rewriteBasePath:.*$'
+    regexp: '^#{0,1}server\.rewriteBasePath:.*$'
     replace: "server.rewriteBasePath: false"
   when: groups['reverse']|length > 0
   notify:
@@ -64,10 +64,13 @@
 - name: Configure Kibana web listening
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#server\.host:.*$'
-    replace: "server.host: \"{{ ip_service }}\""
+    regexp: '^#{0,1}server\.host:.*$'
+    replace: "server.host: \"{{ ip_admin }}\""
   notify:
     - restart kibana
+
+- name: flush_handlers
+  meta: flush_handlers
 
 - name: Make sure kibana is started
   systemd:

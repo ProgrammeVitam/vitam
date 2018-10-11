@@ -2,14 +2,14 @@
   "service": {
     "name": "cerebro",
     "port": {{ cerebro.port }},
-    "address": "{{ ip_service }}",
+    "address": "{{ ip_admin }}",
     "enable_tag_override": false,
     "tags": ["tools"],
     "checks": [
       {
         "name": "cerebro : HTTP check",
         "notes": "HTTP status check",
-        "http": "http://{{ ip_service }}:{{ cerebro.port }}/{{ cerebro.baseuri }}/",
+        "http": "http://{{ ip_admin }}:{{ cerebro.port }}/{{ cerebro.baseuri }}/",
         "interval": "1s"
       }
     ]

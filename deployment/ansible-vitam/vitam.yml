@@ -25,7 +25,7 @@
       when: confirmation|upper != "YES"
 
 # ### HOSTS NETWORK VARS CHECK ###
-- hosts: hosts
+- hosts: vitam
   any_errors_fatal: true
   roles:
     - check_networks

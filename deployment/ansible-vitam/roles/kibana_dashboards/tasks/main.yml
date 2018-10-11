@@ -2,13 +2,13 @@
 # tasks file for kibana_dashboards
 
 # Note pour exporter des dashboards
-# Pour export des dashboards, se mettre dans le dossier des JSON au niveau du rôle ansible, exécuter la commande : 
+# Pour export des dashboards, se mettre dans le dossier des JSON au niveau du rôle ansible, exécuter la commande :
 # for dashboard in `ls`;do ID=$(echo $dashboard | sed -e "s/\.json//g"); echo $ID; curl "http://172.17.0.2/kibana_log/api/kibana/dashboards/export?dashboard=$ID" >> kibana6_$ID.json;done
 
 #### Kibana dashboards configuration ####
 - name: Wait for the kibana port to be open
   wait_for:
-    host: "{{ ip_service }}"
+    host: "{{ ip_admin }}"
     port: "{{ composant.port }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
@@ -16,7 +16,7 @@
 
 - name: Wait until kibana service is OK
   uri:
-    url: 'http://{{ip_service}}:{{ composant.port }}/status'
+    url: 'http://{{ip_admin}}:{{ composant.port }}/status'
     method: GET
     #status_code: 200,302
   register: kibana_result
@@ -40,7 +40,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_service}}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
+    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -48,14 +48,14 @@
     headers:
       kbn-xsrf: "{{ kibana.header_value }}"
     timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob: 
+  with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/index-pattern/*.json"
 
 - name: load search into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_service}}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -63,14 +63,14 @@
     timeout: "{{ composant.api_call_timeout }}"
     headers:
       kbn-xsrf: "{{ kibana.header_value }}"
-  with_fileglob: 
+  with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/search/*.json"
 
 - name: load visualizations into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_service}}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -78,14 +78,14 @@
     headers:
       kbn-xsrf: "{{ kibana.header_value }}"
     timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob: 
+  with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/visualization/*.json"
 
 - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_service}}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -93,7 +93,7 @@
     headers:
       kbn-xsrf: "{{ kibana.header_value }}"
     timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob: 
+  with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/dashboard/*.json"
 
 # OMA : tout est OK, et pourtant... Ne marche pas !
@@ -101,7 +101,7 @@
   tags: load_kibana
   run_once: true
   uri:
-    url: "http://{{ip_service}}:{{ kibana.data.port }}/api/kibana/settings"
+    url: "http://{{ip_admin}}:{{ kibana.data.port }}/api/kibana/settings"
     method: POST
     body: ' {"changes":{"defaultIndex":"{{ composant.default_index_pattern }}"}}'
     headers:
@@ -114,7 +114,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_service}}:{{ composant.port }}/api/kibana/settings"
+    url: "http://{{ip_admin}}:{{ composant.port }}/api/kibana/settings"
     method: POST
     body: "{\"changes\":{\"telemetry:optIn\": \"false\"}}"
     body_format: json

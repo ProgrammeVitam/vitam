@@ -173,35 +173,35 @@
     {% if groups['hosts-kibana-log']|length >0 %}
     # Kibana-log
 
-    ProxyPass /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/api/status {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/api/status
+    ProxyPass /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/api/status {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/api/status http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/api/status
 
     # Needed as it conflicts with Elasticsearch reverse proxy
-    ProxyPass /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/elasticsearch {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{kibana.log.port}}/elasticsearch
+    ProxyPass /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/elasticsearch {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/elasticsearch http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{kibana.log.port}}/elasticsearch
 
-    ProxyPass /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/app/kibana {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/app/kibana
+    ProxyPass /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/app/kibana {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log/app/kibana http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/app/kibana
 
-    ProxyPass /kibana_log/ http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/ {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_log http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_service']}}:{{ kibana.log.port }}/
+    ProxyPass /kibana_log/ http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/ {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_log http://{{hostvars[groups['hosts-kibana-log'][0]]['ip_admin']}}:{{ kibana.log.port }}/
     {% endif %}
 
     {% if groups['hosts-kibana-data']|length >0 %}
     # Kibana-data
 
-    ProxyPass /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/api/status {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/api/status
+    ProxyPass /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/api/status {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/api/status http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/api/status
 
     # Needed as it conflicts with Elasticsearch reverse proxy
-    ProxyPass /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/elasticsearch {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/elasticsearch
+    ProxyPass /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/elasticsearch {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/elasticsearch http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/elasticsearch
 
-    ProxyPass /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/app/kibana {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/app/kibana
+    ProxyPass /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/app/kibana {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data/app/kibana http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/app/kibana
 
-    ProxyPass /kibana_data/ http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/ {{reverse_connection_short_params}}
-    ProxyPassReverse /kibana_data http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_service']}}:{{ kibana.data.port }}/
+    ProxyPass /kibana_data/ http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/ {{reverse_connection_short_params}}
+    ProxyPassReverse /kibana_data http://{{hostvars[groups['hosts-kibana-data'][0]]['ip_admin']}}:{{ kibana.data.port }}/
     {% endif %}
 
     {% if groups['library']|length >0 %}
@@ -221,8 +221,8 @@
 
     {% if groups['hosts-cerebro']|length >0 %}
     # Elasticsearch Cerebro
-    ProxyPass /{{ cerebro.baseuri }} http://{{ hostvars[groups['hosts-cerebro'][0]]['ip_service']}}:{{cerebro.port}}/{{ cerebro.baseuri }}
-    ProxyPassReverse /{{ cerebro.baseuri }}/ http://{{ hostvars[groups['hosts-cerebro'][0]]['ip_service']}}:{{cerebro.port}}/{{ cerebro.baseuri }}
+    ProxyPass /{{ cerebro.baseuri }} http://{{ hostvars[groups['hosts-cerebro'][0]]['ip_admin']}}:{{cerebro.port}}/{{ cerebro.baseuri }}
+    ProxyPassReverse /{{ cerebro.baseuri }}/ http://{{ hostvars[groups['hosts-cerebro'][0]]['ip_admin']}}:{{cerebro.port}}/{{ cerebro.baseuri }}
     {% endif %}
 
     {% if groups['hosts-elasticsearch-log']|length >0 %}
@@ -239,10 +239,10 @@
 
     {% if groups['hosts-consul-server']|length >0 %}
     # Consul UI
-    ProxyPass /ui http://{{hostvars [groups['hosts-consul-server'][0]]['ip_service']}}:8500/ui
-    ProxyPassReverse /ui http://{{hostvars [groups['hosts-consul-server'][0]]['ip_service']}}:8500/ui
-    ProxyPass /v1 http://{{hostvars [groups['hosts-consul-server'][0]]['ip_service']}}:8500/v1
-    ProxyPassReverse /v1 http://{{hostvars [groups['hosts-consul-server'][0]]['ip_service']}}:8500/v1
+    ProxyPass /ui http://{{hostvars [groups['hosts-consul-server'][0]]['ip_admin']}}:8500/ui
+    ProxyPassReverse /ui http://{{hostvars [groups['hosts-consul-server'][0]]['ip_admin']}}:8500/ui
+    ProxyPass /v1 http://{{hostvars [groups['hosts-consul-server'][0]]['ip_admin']}}:8500/v1
+    ProxyPassReverse /v1 http://{{hostvars [groups['hosts-consul-server'][0]]['ip_admin']}}:8500/v1
     {% endif %}
 
 </VirtualHost>
