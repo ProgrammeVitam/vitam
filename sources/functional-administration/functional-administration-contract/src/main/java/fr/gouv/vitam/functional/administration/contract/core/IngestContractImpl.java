@@ -125,6 +125,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO";
     private static final String PROFILE_NOT_FOUND_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
     private static final String FORMAT_NOT_FOUND = "STP_IMPORT_INGEST_CONTRACT.FORMAT_NOT_FOUND.KO";
+    private static final String FORMAT_MUST_BE_EMPTY = "STP_IMPORT_INGEST_CONTRACT.FORMAT_MUST_BE_EMPTY.KO";
 
     private static final String UPDATE_CONTRACT_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.CONTRACT_NOT_FOUND.KO";
     private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_INGEST_CONTRACT.NOT_IN_ENUM.KO";
@@ -235,7 +236,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 //when everyformattype is true, formattype must  be empty
                 if (acm.isEveryFormatType() && acm.getFormatType() != null) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        EVERYFORMAT_LIST_NOT_EMPTY, StatusCode.KO).setMessage(CONTRACTS_IMPORT_EVENT));
+                        EVERYFORMAT_LIST_NOT_EMPTY, StatusCode.KO).setMessage(FORMAT_MUST_BE_EMPTY));
                     continue;
                 }
 
