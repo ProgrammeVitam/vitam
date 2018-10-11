@@ -46,7 +46,7 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
+    - { role: consul, when: "( inventory_hostname not in groups['hosts-consul-server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
 
 ### ELASTICSEARCH LOG INSTALLATION ###
@@ -285,7 +285,6 @@
   any_errors_fatal: true
   roles:
     - vitam
-    - ihm-demo-front-v2
   vars:
     vitam_struct: "{{ vitam.ihm_demo }}"
     vitam_certificate_client_type: "external"
