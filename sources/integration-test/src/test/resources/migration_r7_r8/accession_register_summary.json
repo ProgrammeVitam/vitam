@@ -1,0 +1,80 @@
+[
+  {
+    "_id": "aefaaaaaaehfvmm5abkceale57asqnqaaaaq",
+    "OriginatingAgency": "producteur1",
+    "TotalObjects": {
+      "ingested": 6,
+      "deleted": 0,
+      "remained": 6,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalObjectGroups": {
+      "ingested": 2,
+      "deleted": 0,
+      "remained": 2,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalUnits": {
+      "ingested": 6,
+      "deleted": 0,
+      "remained": 6,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "ObjectSize": {
+      "ingested": 458720,
+      "deleted": 0,
+      "remained": 458720,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "CreationDate": "2018-07-31T09:52:50.742",
+    "_v": 1,
+    "_tenant": 0
+  },
+  {
+    "_id": "aefaaaaaaehfvmm5abkceale57t4p7iaaaaq",
+    "OriginatingAgency": "FRAN_NP_009913",
+    "TotalObjects": {
+      "ingested": 8,
+      "deleted": 0,
+      "remained": 8,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalObjectGroups": {
+      "ingested": 8,
+      "deleted": 0,
+      "remained": 8,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "TotalUnits": {
+      "ingested": 14,
+      "deleted": 0,
+      "remained": 14,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "ObjectSize": {
+      "ingested": 313294,
+      "deleted": 0,
+      "remained": 313294,
+      "attached": 0,
+      "detached": 0,
+      "symbolicRemained": 0
+    },
+    "CreationDate": "2018-07-31T10:35:02.013",
+    "_v": 2,
+    "_tenant": 0
+  }
+]

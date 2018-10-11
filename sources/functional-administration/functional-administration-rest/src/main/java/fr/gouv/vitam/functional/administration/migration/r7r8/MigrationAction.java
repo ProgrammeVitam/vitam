@@ -24,50 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.api;
+package fr.gouv.vitam.functional.administration.migration.r7r8;
 
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
-import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import org.bson.Document;
-
-import java.util.List;
-import java.util.Set;
-
-/**
- * Reconstrution of Vitam Collections interface.<br>
- */
-public interface ReconstructionService {
-
-    /**
-     * Reconstrut Vitam collection by tenant.
-     *
-     * @param collection the collection to reconstruct.
-     * @param tenant the given tenant.
-     * @throws DatabaseException in case error with database occurs
-     */
-    public void reconstruct(FunctionalAdminCollections collection, Integer... tenant) throws DatabaseException;
-
-    /**
-     * Reconstrut Vitam collection.
-     *
-     * @param collection the collection to reconstruct.
-     * @throws DatabaseException in case error with database occurs
-     */
-    public void reconstruct(FunctionalAdminCollections collection) throws DatabaseException;
-
-    /**
-     * Reconstruct a collection
-     *
-     * @param reconstructionItem request for reconstruction
-     * @return response of reconstruction
-     * @throws DatabaseException        database exception
-     * @throws IllegalArgumentException invalid input
-     */
-    ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem);
-
-    void computeAccessionRegisterSummary(String originatingAgency, Integer tenant);
-
-    List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
+public enum MigrationAction {
+    PURGE,
+    MIGRATE
 }

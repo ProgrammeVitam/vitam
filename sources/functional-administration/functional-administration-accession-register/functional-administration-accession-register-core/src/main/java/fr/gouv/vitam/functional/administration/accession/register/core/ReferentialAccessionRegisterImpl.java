@@ -88,7 +88,6 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private final FunctionalBackupService functionalBackupService;
-    private final ReconstructionService reconstructionService;
     private final ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil;
 
     /**
@@ -96,8 +95,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      *
      * @param dbConfiguration the mongo access configuration
      */
-    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService, ReconstructionService reconstructionService) {
-        this(dbConfiguration, new FunctionalBackupService(vitamCounterService), reconstructionService);
+    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
+        this(dbConfiguration, new FunctionalBackupService(vitamCounterService));
     }
 
     /**
@@ -105,10 +104,9 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      *
      * @param dbConfiguration the mongo access configuration
      */
-    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration, FunctionalBackupService functionalBackupService, ReconstructionService reconstructionService) {
+    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration, FunctionalBackupService functionalBackupService) {
         mongoAccess = dbConfiguration;
         this.functionalBackupService = functionalBackupService;
-        this.reconstructionService = reconstructionService;
         this.referentialAccessionRegisterSummaryUtil = new ReferentialAccessionRegisterSummaryUtil();
     }
 

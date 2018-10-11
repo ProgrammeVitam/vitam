@@ -113,7 +113,7 @@ public class AdminFunctionalApplication extends Application {
                 new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);
 
-            AdminDataMigrationResource adminDataMigrationResource = new AdminDataMigrationResource();
+            AdminDataMigrationResource adminDataMigrationResource = new AdminDataMigrationResource(functionalBackupService);
             singletons.add(adminDataMigrationResource);
             singletons.add(new AdminMigrationResource(adminDataMigrationResource));
 

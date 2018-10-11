@@ -1,0 +1,79 @@
+.. _upgrade_r7_r8:
+
+Migration R7 vers R8
+####################
+
+.. caution:: la migration n'est possible qu'en partant de la version la plus récente de la version "R7" (1.4.2).
+.. caution:: Il faut d'abord lancer la migration sur le site secondaire pour purger les registres des fonds, ensuite lancer la migration sur le site primaire et à la fin lancer la reconstruction des registres des fonds sur le site secondaire.
+
+Dans le cadre d'une montée de version de :term:`VITAM` depuis la version 1.4.2 (version la plus récente de la "R7"), il est nécessaire d'appliquer un `playbook` de migration de données, à l'issue de l'installation de la solution logicielle :term:`VITAM` R8.
+
+Avant de procéder à la migration
+================================
+
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
+
+A l'issue de ce playbook, les timer systemD ont été arrêtés, afin de ne pas perturber la migration.
+
+Il est également recommandé de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement.
+
+Procédure de migration des données
+==================================
+Lancer les commandes ci-dessous, d'abord sur le site secondaire pour purger les registres des fonds, ensuite sur le site primaire pour la migration des registres des fonds.
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --ask-vault-pass``
+
+.. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer jusqu'à plusieurs heures.
+
+.. note:: Durant le temps des migrations, il est fortement recommandé de ne pas procéder à des injections de données. Le `playbook` se charge d'arrêter les composants "ingest-external" et "access-external", de réaliser les opérations de migration des données, puis de redémarrer les composants "ingest-external" et "access-external".
+
+Les changements de la migration R7 -> R8 :
+
+    - Les registres des fonds (Accession Registers)
+        - Diff AccessionRegisterDetail:
+            - Suppression du champs "Identifier" remplacé par "Opc" (Opération courante)
+            - Suppression du champs "OperationGroup" remplacé par "Opi" (Opération d'ingest)
+            - Suppression du champs "Symbolic"
+            - Suppression des champs "attached", "detached", "symbolicRemained" des sous objets ("TotalUnits", "TotalObjectGroups", "TotalObjects", "ObjectSize")
+            - Ajout d'un sous objet "Events"
+
+         - Diff AccessionRegisterSummary:
+                     - Suppression des champs "attached", "detached", "symbolicRemained" des sous objets ("TotalUnits", "TotalObjectGroups", "TotalObjects", "ObjectSize")
+        @Voir la documentation du nouveau modèle de données de la R8.
+    - Le journal des opérations
+        - On aura que les données du registre des fonds selon le nouveau modèle dans le "evDetData" du journal de l'opération d'ingest.
+
+.. warning:: En cas de souci, contacter l'équipe support.
+
+Après la migration
+==================
+
+A l'issue de la bonne exécution du `playbook`, il faut lancer la commande suivante pour réactiver les timers systemD sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass``
+
+Une fois le site secondaire est up
+==================================
+Vérifier que le processus de reconstruction des registres des fonds sur le site secondaire s'est bien démarré.
+
+``systemctl status vitam-functional-administration-accession-register-reconstruction.service``
+
+
+Vérification de la bonne migration des données
+==============================================
+
+A l'issue de la migration, il est fortement conseillé de lancer un "Audit de cohérence" sur les différents tenants.
