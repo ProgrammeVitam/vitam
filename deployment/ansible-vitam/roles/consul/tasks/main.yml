@@ -38,7 +38,7 @@
     - tmp
   notify:
     - restart consul
-  
+
 - name: Deploy consul common configuration files
   template:
     src: "{{ item }}.j2"
@@ -113,3 +113,11 @@
         - vitam_dns_localhost_enforce.service
 
   when: ansible_distribution == "CentOS" and ansible_virtualization_type != "docker"
+
+- meta: flush_handlers
+
+- name: Wait for consul port to be open
+  wait_for:
+    host: "127.0.0.1"
+    port: "{{ consul.dns_port }}"
+    state: "started"
