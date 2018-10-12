@@ -49,7 +49,7 @@ public class AccessLogUtils {
             logInfo.setArchiveId((String) objectInfo.get(ARCHIVE_ID));
             logInfo.setQualifier((String) objectInfo.get(QUALIFIER));
             logInfo.setVersion((Integer) objectInfo.get(VERSION));
-            logInfo.setSize((Long)objectInfo.get(SIZE));
+            logInfo.setSize(((Number)objectInfo.get(SIZE)).longValue());
         }
 
         return logInfo;
