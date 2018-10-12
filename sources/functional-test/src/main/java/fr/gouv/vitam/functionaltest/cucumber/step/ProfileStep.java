@@ -94,8 +94,24 @@ public class ProfileStep {
      * @throws IOException
      * @throws AccessExternalClientException
      */
-    @When("je fais un import du profile d'archivage")
-    public void create_profile()
+    @When("^j'importe le profile d'archivage$")
+    public void create_profile() throws AccessExternalClientException, IOException, InvalidParseOperationException {
+
+        create_profile(false);
+    }
+
+    /**
+     * @throws InvalidParseOperationException
+     * @throws IOException
+     * @throws AccessExternalClientException
+     */
+    @When("^j'importe le profile d'archivage sans échec$")
+    public void create_profile_without_failure()
+        throws AccessExternalClientException, IOException, InvalidParseOperationException {
+        create_profile(true);
+    }
+
+    private void create_profile(boolean withoutFailure)
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
@@ -103,30 +119,51 @@ public class ProfileStep {
                 .createProfiles(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(profil, StandardOpenOption.READ));
-        assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
+
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        world.setOperationId(operationId);
-        if (response.isOk()) {
-            RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
-            Object o = (res.getResults().stream().findFirst()).get();
-            this.model = (JsonNode) o;
-        } else {
-            fail("Fail to import profile :" + response.toString());
+        if (!withoutFailure) {
+            assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
+            world.setOperationId(operationId);
+            if (response.isOk()) {
+                RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
+                Object o = (res.getResults().stream().findFirst()).get();
+                this.model = (JsonNode) o;
+            } else {
+                fail("Fail to import profile :" + response.toString());
+            }
         }
     }
 
 
-    @When("je rattache un ficher à ce profil d'archivage")
+    @When("^je rattache un ficher à ce profil d'archivage$")
     public void import_profile()
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
-        Path profil = Paths.get(world.getBaseDirectory(), fileName);
-        final RequestResponse response =
-            world.getAdminClient().createProfileFile(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                this.model.get("Identifier").asText(),
-                Files.newInputStream(profil, StandardOpenOption.READ));
-        assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
+        import_profile(true);
+    }
+
+    @When("^je rattache un ficher à ce profil d'archivage sans échec$")
+    public void import_profile_withoutFailure()
+        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+        import_profile(false);
+    }
+
+
+    private void import_profile(boolean withoutFailure)
+        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+        Path profile = Paths.get(world.getBaseDirectory(), fileName);
+        RequestResponse response = null;
+        if (this.model != null && this.model.get("Identifier") != null) {
+            response =
+                world.getAdminClient().createProfileFile(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    this.model.get("Identifier").asText(),
+                    Files.newInputStream(profile, StandardOpenOption.READ));
+        }
+        if (withoutFailure) {
+            assertThat(response).isNotNull();
+            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        }
     }
 
     @When("^je cherche un profil nommé (.*)")
