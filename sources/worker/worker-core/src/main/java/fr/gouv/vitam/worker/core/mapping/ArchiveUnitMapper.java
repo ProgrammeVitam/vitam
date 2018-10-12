@@ -147,10 +147,6 @@ public class ArchiveUnitMapper {
         if (storageRule != null && storageRule.getFinalAction() != null && storageRuleCategory == null) {
             // that means we only have FinalAction set in the rule
             storageRuleCategory = new RuleCategoryModel();
-            List<RuleModel> rules = new ArrayList<>();
-            RuleModel newRule = new RuleModel();
-            rules.add(newRule);
-            storageRuleCategory.getRules().addAll(rules);
         }
 
         if (archiveUnit.getManagement().getStorage() != null) {
