@@ -26,20 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.migration;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamConstants;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.GraphService;
-
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.time.StopWatch;
+import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,11 +41,38 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.graph.GraphService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.time.StopWatch;
+import org.bson.Document;
 
 /**
  * Data migration service.
  */
-public class DataMigrationService {
+public class DataMigrationService implements AutoCloseable {
+
+    Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 16);
+    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
 
     /**
      * Vitam Logger.
@@ -84,8 +98,8 @@ public class DataMigrationService {
     /**
      * Constructor for testing
      */
-    @VisibleForTesting
-    DataMigrationService(DataMigrationRepository dataMigrationRepository, GraphService graphService) {
+    @VisibleForTesting DataMigrationService(DataMigrationRepository dataMigrationRepository,
+        GraphService graphService) {
         this.dataMigrationRepository = dataMigrationRepository;
         this.graphService = graphService;
     }
@@ -110,7 +124,13 @@ public class DataMigrationService {
                 LOGGER.error("A fatal error occurred during data migration", e);
             } finally {
                 isRunning.set(false);
-                LOGGER.info("Data migration finished");
+               LOGGER.info("Data migration finished");
+                try {
+                    close();
+                } catch (Exception e) {
+                    LOGGER.error("Data migration finished with error. Cannot close Executor :" + e.getMessage());
+
+                }
             }
         });
 
@@ -135,23 +155,15 @@ public class DataMigrationService {
     private void processUnitsByBulk(Iterator<List<Unit>> bulkUnitIterator) throws InterruptedException {
 
         LOGGER.info("Updating units...");
-        int nbThreads = Math.max(Runtime.getRuntime().availableProcessors(), 16);
-        ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
 
         StopWatch sw = StopWatch.createStarted();
         AtomicInteger updatedUnits = new AtomicInteger();
         AtomicInteger unitsWithErrors = new AtomicInteger();
 
-        try {
 
-            while (bulkUnitIterator.hasNext()) {
-                List<Unit> bulkUnits = bulkUnitIterator.next();
-                processBulk(executor, bulkUnits, sw, updatedUnits, unitsWithErrors);
-            }
-
-        } finally {
-            executor.shutdown();
-            executor.awaitTermination(10L, TimeUnit.MINUTES);
+        while (bulkUnitIterator.hasNext()) {
+            List<Unit> bulkUnits = bulkUnitIterator.next();
+            processBulk(executor, bulkUnits, sw, updatedUnits, unitsWithErrors);
         }
     }
 
@@ -194,7 +206,7 @@ public class DataMigrationService {
         updateUnitSedaModel(unit);
         unit.put("_sedaVersion", VitamConstants.SEDA_CURRENT_VERSION);
         String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
-        if(vitamImplVersion != null) {
+        if (vitamImplVersion != null) {
             unit.put("_implementationVersion", vitamImplVersion);
         } else {
             unit.put("_implementationVersion", "");
@@ -213,7 +225,7 @@ public class DataMigrationService {
         StopWatch sw = StopWatch.createStarted();
         AtomicInteger updatedObjectCount = new AtomicInteger();
 
-        try (CloseableIterator<List<String>> objectGroupListIterator = dataMigrationRepository
+        try (CloseableIterator<List<ObjectGroup>> objectGroupListIterator = dataMigrationRepository
             .selectObjectGroupBulk()) {
             objectGroupListIterator.forEachRemaining(
                 objectGroupIds -> {
@@ -229,11 +241,86 @@ public class DataMigrationService {
         }
     }
 
-    private void processObjectGroupBulk(List<String> objectGroupIds) {
-        dataMigrationRepository.bulkUpgradeObjectGroups(objectGroupIds);
+    private void processObjectGroupBulk(List<ObjectGroup> objectGroupIds) {
+
+        Set<String> allUps =
+            objectGroupIds
+                .stream()
+                .map(o -> (List<String>) o.get(ObjectGroup.UP, List.class))
+                .filter(CollectionUtils::isNotEmpty)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        if (allUps.isEmpty()) {
+            // Bug: GOT without units
+            throw new RuntimeException(
+                "[Migration ERROR] GOT without units :" + JsonHandler.unprettyPrint(objectGroupIds));
+        }
+
+        try {
+            Map<String, Unit> map = dataMigrationRepository.getUnitAllParentsByIds(allUps);
+
+            CompletableFuture<WriteModel<Document>>[] features = objectGroupIds.stream()
+                .map(o -> CompletableFuture.supplyAsync(() -> computeObjectGroupGraph(o, map), executor))
+                .toArray(CompletableFuture[]::new);
+
+            CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).
+                thenApply(v ->
+                    Stream.of(features)
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
+
+            List<WriteModel<Document>> updateOneModels = result.get();
+
+            if (!updateOneModels.isEmpty()) {
+                dataMigrationRepository.bulkUpdateObjectGroups(updateOneModels);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    /**
+     * Create update model for ObjectGroup
+     *
+     * @param objectGroup
+     * @return UpdateOneModel for ObjectGroup
+     */
+    private UpdateOneModel<Document> computeObjectGroupGraph(ObjectGroup objectGroup, Map<String, Unit> units) {
+        Set<String> gotUnitParents = new HashSet<>();
+        String gotId = objectGroup.get(ObjectGroup.ID, String.class);
+        List<String> up = objectGroup.get(ObjectGroup.UP, List.class);
+
+
+        if (null != up && !up.isEmpty()) {
+
+            up.forEach(o -> {
+                Unit au = units.get(o);
+                List<String> auParents = au.get(Unit.UNITUPS, List.class);
+                if (CollectionUtils.isNotEmpty(auParents)) {
+                    gotUnitParents.addAll(auParents);
+                }
+            });
+
+            gotUnitParents.addAll(up);
+        }
+
+
+        final Document data = new Document("$set", new Document(Unit.UNITUPS, gotUnitParents)
+            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+
+        return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
+    }
+
 
     private void updateUnitSedaModel(Unit unit) {
         SedaConverterTool.convertUnitToSeda21(unit);
+    }
+
+    @Override
+    public void close() throws Exception {
+        executor.shutdown();
+        executor.awaitTermination(10L, TimeUnit.MINUTES);
     }
 }

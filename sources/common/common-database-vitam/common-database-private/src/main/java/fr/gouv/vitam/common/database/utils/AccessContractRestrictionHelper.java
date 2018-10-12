@@ -105,23 +105,29 @@ public final class AccessContractRestrictionHelper {
         if (!rootUnits.isEmpty() || !excludedRootUnits.isEmpty()) {
             String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
             String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[excludedRootUnits.size()]);
-            // If unit then query _id else (GOT) then query _up
-            String fieldToQuery = BuilderToken.PROJECTIONARGS.ID.exactToken();
-            if (!isUnit) {
-                fieldToQuery = BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
+
+            Query rootUnitsRestriction;
+            Query excludeRootUnitsRestriction;
+
+            if (isUnit) {
+                rootUnitsRestriction = or()
+                    .add(
+                        in(BuilderToken.PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
+                        in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray)
+                    );
+
+                excludeRootUnitsRestriction = and()
+                    .add(
+                        nin(BuilderToken.PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
+                        nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray)
+                    );
+            } else {
+                // GOT then check _us
+                rootUnitsRestriction = in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray);
+
+                excludeRootUnitsRestriction =
+                    nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray);
             }
-            Query rootUnitsRestriction = or()
-                .add(
-                    in(fieldToQuery, rootUnitsArray),
-                    in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray)
-                );
-
-            Query excludeRootUnitsRestriction = and()
-                .add(
-                    nin(fieldToQuery, excludedRootUnitsArray),
-                    nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray)
-                );
-
 
             if (queryList.isEmpty()) {
                 if (rootUnits.size() > 0 && excludedRootUnits.size() > 0) {
