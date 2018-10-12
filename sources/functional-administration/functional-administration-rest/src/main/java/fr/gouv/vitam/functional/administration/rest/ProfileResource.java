@@ -194,6 +194,7 @@ public class ProfileResource {
 
 
         } catch (VitamException exp) {
+            // FIXME : Use proper exception handling
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
@@ -269,7 +270,7 @@ public class ProfileResource {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build();
-        } catch (final ReferentialException | InvalidParseOperationException exc) {
+        } catch (Exception exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()).build();
@@ -299,11 +300,7 @@ public class ProfileResource {
                 .entity(profileModelList)
                 .build();
 
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();

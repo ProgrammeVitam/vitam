@@ -424,7 +424,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
             return error;
-        } catch (VitamException | InvalidCreateOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Security profile delete failed > ").append(e.getMessage()).toString();
             manager.logFatalError(err, SECURITY_PROFILE_DELETE_EVENT);

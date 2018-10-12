@@ -165,11 +165,7 @@ public class SecurityProfileResource {
                 .entity(securityProfileModelList)
                 .build();
 
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(getErrorEntity(Response.Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
@@ -203,11 +199,7 @@ public class SecurityProfileResource {
                 .entity(securityProfileModelList)
                 .build();
 
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(getErrorEntity(Response.Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
