@@ -238,7 +238,7 @@ public class LogbookInternalResourceImpl {
             Select unitQuery = new Select();
             unitQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), unitLifeCycleId));
             JsonNode unitResult =
-                    accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnit(unitQuery.getFinalSelect(),
+                    accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(unitQuery.getFinalSelect(),
                             VitamThreadUtils.getVitamSession().getContract()));
             if(unitResult.get("$hits").get("total").toString().equals("0")) {
                 return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
@@ -319,7 +319,7 @@ public class LogbookInternalResourceImpl {
             gotQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), objectGroupLifeCycleId));
             final JsonNode gotResult = accessModule
                     .selectObjects(AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForObjectGroup(gotQuery.getFinalSelect(),
+                            .applyAccessContractRestrictionForObjectGroupForSelect(gotQuery.getFinalSelect(),
                                     VitamThreadUtils.getVitamSession().getContract()));
             if(gotResult.get("$hits").get("total").toString().equals("0")) {
                 return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();

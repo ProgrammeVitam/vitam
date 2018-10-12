@@ -32,11 +32,9 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.RestAssured;
-import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -60,7 +58,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
@@ -72,7 +69,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -121,7 +117,6 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
@@ -133,8 +128,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -2084,7 +2077,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             JsonNode newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
 
             assertThat(newJson).isNotNull();
 
@@ -2102,7 +2095,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("Identifier0")).hasSize(3);
 
@@ -2116,7 +2109,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getOriginatingAgencies().add("Identifier1");
             newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("Identifier0")).hasSize(3);
 
@@ -2131,7 +2124,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq");
             newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq")).hasSize(5);
 
@@ -2148,7 +2141,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
             newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq")).hasSize(5);
 
@@ -2181,7 +2174,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // => should not return result
             newJson =
                 AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(selectMultiple.getFinalSelect(), accessContractModel);
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
 
             result = accessInternalModule.selectUnit(newJson);
