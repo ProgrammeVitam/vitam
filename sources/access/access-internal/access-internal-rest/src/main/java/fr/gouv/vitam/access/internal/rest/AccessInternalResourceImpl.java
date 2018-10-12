@@ -72,6 +72,8 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -225,7 +227,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
             result =
-                accessModule.selectUnit(applyAccessContractRestriction(queryDsl));
+                accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                    VitamThreadUtils.getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -353,7 +356,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             resetQuery(result, queryDsl);
 
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -381,7 +387,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
 
-            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode unit = results.get(0);
             Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -459,20 +468,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-            Set<String> prodServices = contract.getOriginatingAgencies();
-            JsonNode result;
-
-            if (contract.getEveryOriginatingAgency()) {
-                result = accessModule.selectObjectGroupById(query, idObjectGroup);
-            } else {
-                final SelectParserMultiple parser = new SelectParserMultiple();
-                parser.parse(query);
-                parser.getRequest().addQueries(
-                    QueryHelper.in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]))
-                        .setDepthLimit(0));
-                result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
-            }
+            JsonNode result = accessModule
+                .selectObjectGroupById(AccessContractRestrictionHelper
+                        .applyAccessContractRestrictionForObjectGroupForSelect(query,
+                            VitamThreadUtils.getVitamSession().getContract()),
+                    idObjectGroup);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
             InvalidCreateOperationException exc) {
@@ -496,8 +496,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkParameter(objectId);
             SanityChecker.checkJsonAll(dslQuery);
-            final JsonNode result =
-                accessModule.selectObjectGroupById(addProdServicesToQueryForObjectGroup(dslQuery), objectId);
+            final JsonNode result = accessModule.selectObjectGroupById(
+                AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect(dslQuery,
+                    VitamThreadUtils.getVitamSession().getContract()),
+                objectId);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode objectGroup = results.get(0);
             Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, objectId);
@@ -526,7 +528,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
             //
-            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode objectGroup = results.get(0);
             // Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -660,23 +665,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .add(QueryHelper.in(
                     ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
                 .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
-                .setDepthLimit(0));
-            return parser.getRequest().getFinalSelect();
-        }
-    }
-
-    private JsonNode addProdServicesToQueryForObjectGroup(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-        Set<String> prodServices = contract.getOriginatingAgencies();
-        if (contract.getEveryOriginatingAgency()) {
-            return queryDsl;
-        } else {
-            final SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(queryDsl);
-            parser.getRequest().addQueries(QueryHelper.or()
-                .add(QueryHelper.in(
-                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
                 .setDepthLimit(0));
             return parser.getRequest().getFinalSelect();
         }
