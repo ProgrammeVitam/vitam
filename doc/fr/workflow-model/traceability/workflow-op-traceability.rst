@@ -9,7 +9,7 @@ Cette section décrit le processus (workflow) de sécurisation des journaux mis 
 Celui-ci est défini dans le fichier "LogbookAdministration.java" ( situé ici: sources/logbook/logbook-administration/src/main/java/fr/gouv/vitam/logbook/administration/core/)
 
 
-Processus de sécurisation des journaux des opérations  (vision métier)
+Processus de sécurisation des journaux des opérations (vision métier)
 =======================================================================
 
 Le processus de sécurisation des journaux consiste en la création d'un fichier .zip contenant l'ensemble des journaux à sécuriser, ainsi que le tampon d'horodatage calculé à partir de l'arbre de Merkle de la liste de ces mêmes journaux. Les journaux concernés par cette sécurisation sont le journal des opérations et le journal des écritures.
@@ -51,7 +51,8 @@ OP_SECURISATION_STORAGE (LogbookAdministration.java)
 	* OK : le journal sécurisé est écrit sur les offres de stockage (OP_SECURISATION_STORAGE.OK = Succès de l'enregistrement des journaux sur les offres de stockage)
 	* FATAL : une erreur technique est survenue lors de l'écriture du journal sécurisé (OP_SECURISATION_STORAGE.FATAL = Erreur technique lors de l'enregistrement des journaux sur les offres de stockage)
 
-D'une façon synthétique, le workflow est décrit de cette façon.
+Structure de workflow de sécurisation du journal des opérations
+=================================================================
 
 .. figure:: images/workflow_op_traceability.png
 	:align: center
