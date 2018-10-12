@@ -118,7 +118,7 @@ public class AccessInternalResourceImplTest {
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
 
-    private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
+    private static final String QUERY_SIMPLE_TEST = "{ \"$eq\" : { \"title\" : \"test\" } }";
 
     private static final String EMPTY_QUERY = "{ \"$query\" : \"\", \"$roots\" : []  }";
 
