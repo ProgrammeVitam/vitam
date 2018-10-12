@@ -124,6 +124,10 @@
               {
                 "name": "ontology.file",
                 "uri": "WORKSPACE:Ontology/ontology.json"
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
               }
             ]
           }
@@ -289,6 +293,11 @@
               {
                 "name": "mapsOG.file",
                 "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json",
                 "optional": true
               }
             ],

@@ -26,46 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -173,6 +133,45 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
+
 /**
  * Handler class used to extract metaData. </br>
  * Create and put a new file (metadata extracted) json.json into container GUID
@@ -194,8 +193,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 12;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 13;
     private static final int ONTOLOGY_IO_RANK = 11;
+    private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 12;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
@@ -299,6 +299,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String linkParentId = null;
 
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
+    private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
 
     private static JAXBContext jaxbContext;
 
@@ -378,6 +379,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         existingUnitIdWithExistingObjectGroup = new HashMap<>();
         dataObjectGroupMasterMandatory = new HashMap<>();
         isThereManifestRelatedReferenceRemained = new HashMap<>();
+        existingGOTGUIDToNewGotGUIDInAttachment = new HashMap<>();
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -423,7 +425,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                 dataObjectIdToGuid, unitIdToSetOfRuleId,
                 workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup,
-                isThereManifestRelatedReferenceRemained);
+                isThereManifestRelatedReferenceRemained, existingGOTGUIDToNewGotGUIDInAttachment);
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
@@ -1133,6 +1135,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerUtils.saveMap(handlerIO, unitIdToGuid, UNIT_ID_TO_GUID_IO_RANK, true, asyncIO);
         // Save guidToUnitId Map post unmarshalling
         HandlerUtils.saveMap(handlerIO, guidToUnitId, GUID_TO_UNIT_ID_IO_RANK, true, asyncIO);
+
+        HandlerUtils
+                .saveMap(handlerIO, existingGOTGUIDToNewGotGUIDInAttachment,
+                    EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK,
+                    true, asyncIO);
     }
 
     /**
@@ -2936,6 +2943,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+
         if (!handler.checkHandlerIO(HANDLER_IO_OUT_PARAMETER_NUMBER, handlerInputIOList)) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
