@@ -195,8 +195,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 12;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 13;
     private static final int ONTOLOGY_IO_RANK = 11;
+    private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 12;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
@@ -297,6 +298,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String linkParentId = null;
 
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
+    private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
 
     private static JAXBContext jaxbContext;
 
@@ -375,6 +377,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         existingUnitIdWithExistingObjectGroup = new HashMap<>();
         dataObjectGroupMasterMandatory = new HashMap<>();
         isThereManifestRelatedReferenceRemained = new HashMap<>();
+        existingGOTGUIDToNewGotGUIDInAttachment = new HashMap<>();
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -420,7 +423,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                     dataObjectIdToGuid, unitIdToSetOfRuleId,
                     workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup,
-                    isThereManifestRelatedReferenceRemained);
+                    isThereManifestRelatedReferenceRemained, existingGOTGUIDToNewGotGUIDInAttachment);
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
@@ -1131,6 +1134,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerUtils.saveMap(handlerIO, unitIdToGuid, UNIT_ID_TO_GUID_IO_RANK, true, asyncIO);
         // Save guidToUnitId Map post unmarshalling
         HandlerUtils.saveMap(handlerIO, guidToUnitId, GUID_TO_UNIT_ID_IO_RANK, true, asyncIO);
+
+        HandlerUtils
+            .saveMap(handlerIO, existingGOTGUIDToNewGotGUIDInAttachment,
+                EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK,
+                true, asyncIO);
     }
 
     /**
