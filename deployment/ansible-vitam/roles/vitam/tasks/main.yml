@@ -244,9 +244,23 @@
     name: "vitam-consul"
     state: started
 
+- name: Check if consul is listening
+  wait_for:
+    host: "127.0.0.1"
+    port: "{{ consul.dns_port }}"
+    state: started
+
 - name: Ensure {{ package_name }} service is started
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
+    state: started
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
+
+- name: Check if {{ package_name }} is listening
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ vitam_struct.port_service }}"
     state: started
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
