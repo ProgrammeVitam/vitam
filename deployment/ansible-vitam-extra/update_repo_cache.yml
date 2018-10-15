@@ -1,0 +1,5 @@
+---
+
+- hosts: vitam
+  roles:
+    - update_repo_cache
