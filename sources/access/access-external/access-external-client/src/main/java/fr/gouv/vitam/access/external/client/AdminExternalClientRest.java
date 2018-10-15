@@ -160,7 +160,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
 
-    private <T> RequestResponse<T> internalFindDocuments(VitamContext vitamContext, AdminCollections documentType, JsonNode select, Class<T> clazz) throws VitamClientException {
+    private <T> RequestResponse<T> internalFindDocuments(VitamContext vitamContext, AdminCollections documentType,
+        JsonNode select, Class<T> clazz) throws VitamClientException {
         Response response = null;
 
         try {
@@ -1134,7 +1135,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+                RequestResponseOK requestResponseOK = new RequestResponseOK();
+                requestResponseOK
+                    .setHttpCode(Status.OK.getStatusCode());
+
+                requestResponseOK.addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
+                return requestResponseOK;
+
             } else {
                 return RequestResponse.parseFromResponse(response);
             }
