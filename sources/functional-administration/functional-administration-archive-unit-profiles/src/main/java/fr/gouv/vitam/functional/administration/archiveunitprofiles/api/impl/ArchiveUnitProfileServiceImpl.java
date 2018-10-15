@@ -260,7 +260,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             }
 
             archiveProfilesToPersist = JsonHandler.createArrayNode();
-            final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
+            final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap();
 
             for (final ArchiveUnitProfileModel aupm : profileModelList) {
                 setIdentifier(slaveMode, aupm);
@@ -402,7 +402,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         if (schemaUpdate) {
             try {
                 if (newSchema != null) {
-                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
+                    final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap();
                     HashMap<String, ArrayNode> extractFields =
                         new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
                     //Get the extra properties (enum and date) for ontologyType comparison
@@ -609,35 +609,27 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     /**
      * Get ontology map
      *
-     * @param error
      * @return ontology map
      */
-    private Map<String, OntologyModel> getOntologyModelMap(final VitamError error) {
-        try {
-            final fr.gouv.vitam.common.database.builder.request.single.Select select =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
-            // TODO when it's merged -> search on archive unit fields defined in ontology
-            /*
-             * final BooleanQuery query = and(); select.setQuery(query);
-             */
-            JsonNode queryDsl = select.getFinalSelect();
-            try (DbRequestResult result =
-                mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ONTOLOGY)) {
-                final RequestResponseOK<OntologyModel> ontologyModelResponse =
-                    result.getRequestResponseOK(queryDsl, Ontology.class, OntologyModel.class);
-                List<OntologyModel> ontologyModelList = ontologyModelResponse.getResults();
-                Map<String, OntologyModel> ontologyModelMap =
-                    ontologyModelList.stream().collect(Collectors.toMap(OntologyModel::getIdentifier,
-                        c -> c));
-                return ontologyModelMap;
-            }
-        } catch (ReferentialException | InvalidParseOperationException e) {
-            error
-                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                    .setDescription("The archive unit profile could not be checked against Ontology")
-                    .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA));
+    private Map<String, OntologyModel> getOntologyModelMap()
+        throws ReferentialException, InvalidParseOperationException {
+        final fr.gouv.vitam.common.database.builder.request.single.Select select =
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
+        // TODO when it's merged -> search on archive unit fields defined in ontology
+        /*
+         * final BooleanQuery query = and(); select.setQuery(query);
+         */
+        JsonNode queryDsl = select.getFinalSelect();
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ONTOLOGY)) {
+            final RequestResponseOK<OntologyModel> ontologyModelResponse =
+                result.getRequestResponseOK(queryDsl, Ontology.class, OntologyModel.class);
+            List<OntologyModel> ontologyModelList = ontologyModelResponse.getResults();
+            Map<String, OntologyModel> ontologyModelMap =
+                ontologyModelList.stream().collect(Collectors.toMap(OntologyModel::getIdentifier,
+                    c -> c));
+            return ontologyModelMap;
         }
-        return new HashMap<String, OntologyModel>();
     }
 
     /**

@@ -237,12 +237,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (final VitamDBException ve) {
+        } catch (final Exception ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
