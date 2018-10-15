@@ -1,4 +1,8 @@
 ---
+
+consul:
+    dns_port: 53
+
 consul_remote_sites:
     # wan contains the wan addresses of the consul server instances of the external vitam sites
     # Exemple, if our local dc is dc1, we will need to set dc2 & dc3 wan conf:
@@ -80,7 +84,7 @@ kibana:
 
 syslog:
     # value can be syslog-ng or rsyslog
-    name: "rsyslog" 
+    name: "rsyslog"
 
 cerebro:
     baseuri: "cerebro"
