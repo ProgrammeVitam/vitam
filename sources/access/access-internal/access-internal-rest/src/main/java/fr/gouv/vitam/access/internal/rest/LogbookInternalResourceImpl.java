@@ -341,7 +341,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * Checks a traceability operation based on a given DSLQuery
-     * 
+     *
      * @param query the DSLQuery used to find the traceability operation to validate
      * @return The verification report == the logbookOperation
      * @throws LogbookClientNotFoundException

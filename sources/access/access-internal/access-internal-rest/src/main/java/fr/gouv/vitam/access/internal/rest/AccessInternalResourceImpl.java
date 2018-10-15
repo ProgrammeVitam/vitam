@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -226,8 +227,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
             result =
-                accessModule.selectUnit(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(queryDsl, VitamThreadUtils.getVitamSession().getContract()));
+                accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                    VitamThreadUtils.getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -355,9 +356,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            JsonNode result = accessModule.selectUnitbyId(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(queryDsl, VitamThreadUtils.getVitamSession().getContract()),
-                idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             resetQuery(result, queryDsl);
 
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -385,9 +387,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
 
-            JsonNode result = accessModule.selectUnitbyId(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(queryDsl, VitamThreadUtils.getVitamSession().getContract()),
-                idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode unit = results.get(0);
             Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -433,10 +436,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
-            JsonNode result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
+            JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
@@ -466,8 +470,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             JsonNode result = accessModule
-                .selectObjectGroupById(
-                    AccessContractRestrictionHelper.applyAccessContractRestrictionOnOriginatingAgencies(query),
+                .selectObjectGroupById(AccessContractRestrictionHelper
+                        .applyAccessContractRestrictionForObjectGroupForSelect(query,
+                            VitamThreadUtils.getVitamSession().getContract()),
                     idObjectGroup);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
@@ -492,9 +497,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkParameter(objectId);
             SanityChecker.checkJsonAll(dslQuery);
-            final JsonNode result =
-                accessModule.selectObjectGroupById(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionOnOriginatingAgencies(dslQuery), objectId);
+            final JsonNode result = accessModule.selectObjectGroupById(
+                AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect(dslQuery,
+                    VitamThreadUtils.getVitamSession().getContract()),
+                objectId);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, objectId);
@@ -523,9 +529,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
             //
-            JsonNode result = accessModule.selectUnitbyId(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnit(queryDsl, VitamThreadUtils.getVitamSession().getContract()),
-                idUnit);
+            JsonNode result =
+                accessModule
+                    .selectUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        VitamThreadUtils.getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             // Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
