@@ -154,7 +154,7 @@ public class CheckExistenceObjectPluginTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertTrue(((String) response.getData("eventDetailData")).contains("\"errors\":[]"));
         assertTrue(((String) response.getData("eventDetailData")).contains(
-            "\"errorsPhysical\":[{\"IdObj\":\"aeaaaaaaaagesnmfaaglialcsywj2haaaaba\",\"Usage\":\"PhysicalMaster_1\"}]"));
+            "\"errorsPhysical\":[{\"IdObj\":\"aeaaaaaaaagesnmfaaglialcsywj2haaaaba\",\"Usage\":\"PhysicalMaster_1\",\"IdAU\":[\"aeaqaaaaaaesq6c3abnimak6qzrsfziaaaaq\"]}]"));
     }
 
 }
