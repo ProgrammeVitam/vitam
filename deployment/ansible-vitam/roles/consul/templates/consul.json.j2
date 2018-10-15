@@ -33,7 +33,7 @@
   "disable_remote_exec": true,
   "encrypt": "{{ consul_encrypt }}",
   "ports": {
-    "dns" : 53
+    "dns" : {{ consul.dns_port }}
   },
   "checks" : [
     {
