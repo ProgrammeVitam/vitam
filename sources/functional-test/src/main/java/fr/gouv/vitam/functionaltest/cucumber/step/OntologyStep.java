@@ -28,12 +28,14 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 
 import java.io.IOException;
@@ -42,6 +44,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OntologyStep {
 
@@ -54,16 +58,7 @@ public class OntologyStep {
     private Path fileName;
 
 
-    public JsonNode getModel() {
-        return model;
-    }
 
-    public void setModel(JsonNode model) {
-        this.model = model;
-    }
-
-
-    private JsonNode model;
 
 
     /**
@@ -100,6 +95,15 @@ public class OntologyStep {
                 world.getAdminClient().importOntologies(forceUpdate, vitamContext, inputStream);
             final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
+
+            String httpCode = String.valueOf(requestResponse.getHttpCode());
+            ObjectNode responseCode = JsonHandler.createObjectNode();
+            responseCode.put("Code", httpCode);
+            List<JsonNode> result = new ArrayList<>();
+            result.add(responseCode);
+            world.setResults(result);
+
+
         }
     }
 }

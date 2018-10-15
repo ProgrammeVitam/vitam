@@ -29,8 +29,10 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -76,7 +78,7 @@ public class World {
     private String unitId;
     private String objectGroupId;
     private String applicationSessionId;
-
+    private List<JsonNode> results;
     /**
      * id of the operation
      */
@@ -448,5 +450,13 @@ public class World {
         File confFile = PropertiesUtils.findFile("logbook-client.conf");
         ClientConfigurationImpl conf = PropertiesUtils.readYaml(confFile, ClientConfigurationImpl.class);
         LogbookOperationsClientFactory.changeMode(conf);
+    }
+
+    public List<JsonNode> getResults() {
+        return results;
+    }
+
+    public void setResults(List<JsonNode> results) {
+        this.results = results;
     }
 }

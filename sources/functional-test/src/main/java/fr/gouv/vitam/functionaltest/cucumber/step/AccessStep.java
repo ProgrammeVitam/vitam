@@ -131,7 +131,6 @@ public class AccessStep {
 
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
 
-    private List<JsonNode> results;
     private JsonNode selectedInheritedCategoryResult;
 
     private List<FacetResult> facetResults;
@@ -206,7 +205,7 @@ public class AccessStep {
     public void metadata_are_for_particular_result(int resultNumber, DataTable dataTable) throws Throwable {
         // Transform results
         List<JsonNode> transformedResults = new ArrayList<>();
-        for (JsonNode result : results) {
+        for (JsonNode result : world.getResults()) {
             String resultAsString = JsonHandler.unprettyPrint(result);
             String resultAsStringTransformed = transformUnitTitleToGuid(resultAsString);
             transformedResults.add(JsonHandler.getFromString(resultAsStringTransformed));
@@ -360,6 +359,8 @@ public class AccessStep {
      * @throws Throwable
      */
     private String getValueFromResult(String field, int numResult) throws Throwable {
+
+        List<JsonNode> results = world.getResults();
         if (results.size() < numResult) {
             Fail.fail("numResult " + numResult + " > result size " + results.size());
         }
@@ -376,7 +377,7 @@ public class AccessStep {
      */
     @Then("^le nombre de résultat est (\\d+)$")
     public void number_of_result_are(int numberOfResult) throws Throwable {
-        assertThat(results).hasSize(numberOfResult);
+        assertThat(world.getResults()).hasSize(numberOfResult);
     }
 
     /**
@@ -535,7 +536,7 @@ public class AccessStep {
             queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
             facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -558,7 +559,7 @@ public class AccessStep {
             queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
             facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -605,7 +606,7 @@ public class AccessStep {
             queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
             selectedInheritedCategoryResult = null;
             facetResults = requestResponseOK.getFacetResults();
         } else {
@@ -652,7 +653,7 @@ public class AccessStep {
             queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
             facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -741,7 +742,7 @@ public class AccessStep {
         String unitGuid = selectLoadedUnitGuidByTitle(unitTitle);
 
         JsonNode unitJson = null;
-        for (JsonNode result : results) {
+        for (JsonNode result : world.getResults()) {
             if (result.get(VitamFieldsHelper.id()).asText().equals(unitGuid)) {
                 unitJson = result;
                 break;
@@ -774,7 +775,7 @@ public class AccessStep {
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
             JsonNode unit = requestResponseOK.getResults().iterator().next();
             world.setUnitId(unit.get("#id").asText());
             world.setObjectGroupId(unit.get("#object").asText());
@@ -802,7 +803,7 @@ public class AccessStep {
                 queryJSON, unitId);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
+            world.setResults(requestResponseOK.getResults());
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
@@ -873,7 +874,8 @@ public class AccessStep {
                     Fail.fail("request selectObject return an error: " + vitamError.getCode());
                 }
             }
-            results = objectGroupsResponseOK.getResults();
+            world.setResults(objectGroupsResponseOK.getResults());
+
         } else {
             VitamError vitamError = (VitamError) requestResponseUnit;
             Fail.fail("request selectUnit for GOT return an error: " + vitamError.getCode());
@@ -896,7 +898,9 @@ public class AccessStep {
                     .setApplicationSessionId(world.getApplicationSessionId()),
                 new SelectMultiQuery().getFinalSelectById(), unitId);
         if (responseObjectGroup.isOk()) {
-            results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
+            List<JsonNode> results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
+            world.setResults(results);
+
         } else {
             VitamError vitamError = (VitamError) responseObjectGroup;
             Fail.fail("request selectObject return an error: " + vitamError.getCode());
@@ -919,7 +923,8 @@ public class AccessStep {
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
-            results = requestResponseOK.getResultsAsJsonNodes();
+            List<JsonNode> results = requestResponseOK.getResultsAsJsonNodes();
+            world.setResults(results);
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectOperation return an error: " + vitamError.getCode());
@@ -941,7 +946,7 @@ public class AccessStep {
         try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
             AdminCollections adminCollection = AdminCollections.valueOf(collection);
             int status = 0;
-            results = new ArrayList<>();
+            ArrayList<JsonNode> results = new ArrayList<>();
             if ("vérifie".equals(action)) {
                 status = actionVerify(inputStream, adminCollection);
             } else if ("importe".equals(action)) {
@@ -950,6 +955,7 @@ public class AccessStep {
             if (status != 0) {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status)));
             }
+            world.setResults(results);
         } catch (Exception e) {
             LOGGER.warn("Referentiels collection already imported");
         }
@@ -1056,7 +1062,8 @@ public class AccessStep {
         }
 
         if (requestResponse != null && requestResponse.isOk()) {
-            results = ((RequestResponseOK) requestResponse).getResultsAsJsonNodes();
+            List results = ((RequestResponseOK) requestResponse).getResultsAsJsonNodes();
+            world.setResults(results);
         } else if (requestResponse != null) {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
