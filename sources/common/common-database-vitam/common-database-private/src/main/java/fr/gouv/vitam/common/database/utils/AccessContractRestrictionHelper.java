@@ -41,7 +41,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -54,7 +56,7 @@ public final class AccessContractRestrictionHelper {
     }
 
     /**
-     * Apply access contract restriction for archive unit
+     * Apply access contract restriction for archive unit for select request
      *
      * @param queryDsl
      * @param contract
@@ -62,13 +64,16 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForUnit(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForUnitForSelect(JsonNode queryDsl, AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        return applyAccessContractRestriction(queryDsl, contract, true);
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl);
+        applyAccessContractRestriction(parser, contract, true);
+        return parser.getRequest().getFinalSelect();
     }
 
     /**
-     * Apply access contract restriction for object group
+     * Apply access contract restriction for object group for select request
      *
      * @param queryDsl
      * @param contract
@@ -76,30 +81,47 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForObjectGroup(JsonNode queryDsl, AccessContractModel contract)
+    public static JsonNode applyAccessContractRestrictionForObjectGroupForSelect(JsonNode queryDsl, AccessContractModel contract)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        return applyAccessContractRestriction(queryDsl, contract, false);
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl);
+        applyAccessContractRestriction(parser, contract, false);
+        return parser.getRequest().getFinalSelect();
     }
 
+    /**
+     * Apply access contract restriction for archive unit for update request
+     *
+     * @param queryDsl
+     * @param contract
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl, AccessContractModel contract)
+            throws InvalidParseOperationException, InvalidCreateOperationException {
+        final UpdateParserMultiple parser = new UpdateParserMultiple();
+        parser.parse(queryDsl);
+        applyAccessContractRestriction(parser, contract, true);
+        return parser.getRequest().getFinalUpdate();
+    }
 
     /**
      * Apply access contract restriction for object group and archive unit
      *
-     * @param queryDsl
+     * @param parser
      * @param contract
      * @param isUnit
      * @return JsonNode contains restriction
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestriction(JsonNode queryDsl, AccessContractModel contract,
+    public static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
         boolean isUnit)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
 
-        final SelectParserMultiple parser = new SelectParserMultiple();
-        parser.parse(queryDsl);
         List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
 
         if (!rootUnits.isEmpty() || !excludedRootUnits.isEmpty()) {
@@ -183,13 +205,12 @@ public final class AccessContractRestrictionHelper {
             }
         }
 
-        return parser.getRequest().getFinalSelect();
     }
 
     /**
      * Just filter by originating agency.
      *
-     * Deprecated as used just for object group, from Release 8 use applyAccessContractRestrictionForObjectGroup instead
+     * Deprecated as used just for object group, from Release 8 use applyAccessContractRestrictionForObjectGroupForSelect instead
      *
      * @param queryDsl
      * @return

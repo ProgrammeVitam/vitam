@@ -33,10 +33,12 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -68,6 +70,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -637,7 +640,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
-            updateParserMultiple.parse(queryJson);
+            updateParserMultiple.parse(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryJson,
+                    VitamThreadUtils.getVitamSession().getContract()));
             UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
             RequestResponse<JsonNode> response = client.updateUnits(updateMultiQuery.getFinalUpdate());
 
@@ -647,7 +651,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     error);
             }
             return Response.status(Status.OK).entity(response).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
