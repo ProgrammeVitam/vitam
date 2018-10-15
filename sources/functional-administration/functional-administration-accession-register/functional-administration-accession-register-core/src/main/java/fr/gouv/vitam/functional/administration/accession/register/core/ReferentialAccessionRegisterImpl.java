@@ -48,7 +48,6 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
@@ -87,8 +86,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         } catch (final InvalidParseOperationException | SchemaValidationException e) {
-            LOGGER.info("Create register detail Error", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Create register detail error", e);
         }
 
         // store accession register summary
@@ -117,8 +115,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_SUMMARY);
         } catch (final Exception e) {
-            LOGGER.info("Unknown error", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Create register detail Error", e);
         }
 
     }
@@ -138,14 +135,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
      */
     public RequestResponseOK<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
-            final RequestResponseOK<AccessionRegisterSummary> list =
-                result.getRequestResponseOK(select, AccessionRegisterSummary.class);
-            return list;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+        try (DbRequestResult result = mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
+            return result.getRequestResponseOK(select, AccessionRegisterSummary.class);
         }
     }
 
@@ -159,15 +150,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public RequestResponseOK<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
-            final RequestResponseOK<AccessionRegisterDetail> list =
-                result.getRequestResponseOK(select, AccessionRegisterDetail.class);
-            if (list.isEmpty()) {
-                throw new ReferentialNotFoundException("Register Detail not found");
-            }
-            return list;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+            return result.getRequestResponseOK(select, AccessionRegisterDetail.class);
         }
     }
 

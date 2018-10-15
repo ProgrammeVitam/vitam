@@ -109,7 +109,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -296,7 +295,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
             if (fileFormat == null) {
-                throw new ReferentialException("NO DATA for the specified formatId");
+                LOGGER.error("NO DATA for the specified formatId '" + formatId + "'");
+                return Response.status(Status.NOT_FOUND)
+                    .entity(getErrorEntity(Status.NOT_FOUND, "Format not found")).build();
             }
 
             CacheControl cacheControl = new CacheControl();
@@ -317,14 +318,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -349,15 +346,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .entity(fileFormatList).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -495,7 +489,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
             if (fileRules == null) {
-                throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
+                LOGGER.error("NO DATA for the specified rule Value or More than one records exists '" + ruleId + "'");
+                return Response.status(Status.NOT_FOUND)
+                    .entity(getErrorEntity(Status.NOT_FOUND, "Rule not found")).build();
             }
 
             CacheControl cacheControl = new CacheControl();
@@ -516,14 +512,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
-        } catch (final FileRulesException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(e.getMessage()).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -550,15 +542,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -584,11 +573,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.CREATED).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -607,21 +597,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
         RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
         try {
             fileFundRegisters = findFundRegisters(select);
-        } catch (final ReferentialNotFoundException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(status).build();
-        } catch (final InvalidParseOperationException | ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Access contract does not allow ", e);
-            final Status status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorEntity(Status.UNAUTHORIZED, e.getMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
         return Response.status(Status.OK)
@@ -692,7 +679,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 Set<String> prodServices = contract.getOriginatingAgencies();
 
                 if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
-                    return Response.status(Status.UNAUTHORIZED).entity(Status.UNAUTHORIZED).build();
+                    return Response.status(Status.UNAUTHORIZED)
+                        .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
                 }
                 if (!isEveryOriginatingAgency) {
                     parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
@@ -705,17 +693,20 @@ public class AdminManagementResource extends ApplicationStatusResource {
             accessionRegisterDetails =
                 accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
 
+            if (accessionRegisterDetails == null) {
+                LOGGER.warn("Accession register details not found " + documentId);
+                return Response.status(Status.NOT_FOUND)
+                    .entity(getErrorEntity(Status.NOT_FOUND, "Accession register not found")).build();
+            }
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialNotFoundException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
         return Response.status(Status.OK)
@@ -820,7 +811,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private AccessContractModel getContractDetails(String contractId) throws InvalidCreateOperationException {
+    private AccessContractModel getContractDetails(String contractId)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException {
 
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
@@ -829,9 +821,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 accessContract.findContracts(getQueryDsl(contractId)).setQuery(JsonHandler.createObjectNode());
             return Iterables.getOnlyElement(accessContractModelList.getResults(), null);
 
-        } catch (ReferentialException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return null;
         }
     }
 

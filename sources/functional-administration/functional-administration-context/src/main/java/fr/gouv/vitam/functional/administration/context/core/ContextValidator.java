@@ -82,17 +82,6 @@ public interface ContextValidator {
         }
 
         /**
-         * Reject if multiple context have the same name in the same request before persist into database. The context
-         * identifier must be unique
-         *
-         * @param contextIdentifier
-         * @return ContextRejectionCause
-         */
-        public static ContextRejectionCause rejectDuplicatedEntry(String contextIdentifier) {
-            return new ContextRejectionCause(String.format(ERR_DUPLICATE_CONTEXT_ENTRY, contextIdentifier));
-        }
-
-        /**
          * Reject if one of multiple mandatory parameter are null
          * 
          * @param fieldName

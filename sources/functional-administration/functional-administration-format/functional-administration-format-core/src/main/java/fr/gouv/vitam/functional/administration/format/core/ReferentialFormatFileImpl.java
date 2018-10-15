@@ -222,18 +222,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     }
 
     @Override
-    public FileFormat findDocumentById(String id) throws ReferentialException {
-        try {
-            FileFormat fileFormat =
-                (FileFormat) mongoAccess.getDocumentByUniqueId(id, FORMATS, FileFormat.PUID);
-            if (fileFormat == null) {
-                throw new FileFormatException("FileFormat Not Found");
-            }
-            return fileFormat;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw new FileFormatException(e);
-        }
+    public FileFormat findDocumentById(String id) {
+        return (FileFormat)mongoAccess.getDocumentByUniqueId(id, FORMATS, FileFormat.PUID);
     }
 
     @Override
@@ -241,11 +231,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         throws ReferentialException {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FORMATS)) {
-            final RequestResponseOK<FileFormat> list = result.getRequestResponseOK(select, FileFormat.class);
-            return list;
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            throw new FileFormatException(e);
+            return result.getRequestResponseOK(select, FileFormat.class);
         }
     }
 

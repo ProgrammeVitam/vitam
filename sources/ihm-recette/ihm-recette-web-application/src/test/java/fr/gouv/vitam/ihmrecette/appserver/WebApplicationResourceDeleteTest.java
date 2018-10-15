@@ -687,13 +687,8 @@ public class WebApplicationResourceDeleteTest {
         }
         return adminContext;
     }
-    public boolean existsData(FunctionalAdminCollections collection, String id)
-        throws ReferentialException {
-        try {
-            return mongoDbAccessAdmin.getDocumentById(id, collection) != null;
-        } catch (final ReferentialException exc) {
-            return false;
-        }
+    public boolean existsData(FunctionalAdminCollections collection, String id) {
+        return mongoDbAccessAdmin.getDocumentById(id, collection) != null;
     }
 
     public boolean existsData(LogbookCollections collection, String id) {

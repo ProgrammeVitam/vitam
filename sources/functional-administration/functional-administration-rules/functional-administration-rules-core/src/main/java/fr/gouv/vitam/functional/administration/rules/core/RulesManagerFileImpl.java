@@ -475,7 +475,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private void checkRulesLinkedToAu(ArrayNode validatedRules, List<FileRulesModel> filesRulesDeleted,
         List<FileRulesModel> filesRulesUpdated, List<FileRulesModel> fileRulesModelToInsert,
         Set<String> fileRulesNotLinkedToUnitForDelete, Set<String> fileRulesNotLinkedToUnitForUpdate)
-        throws InvalidParseOperationException {
+        throws ReferentialException {
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
         List<FileRulesModel> fileRulesModelToDelete = new ArrayList<>();
@@ -854,7 +854,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @return The JsonArray containing the referential data if they are all valid
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception
-     * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     public ArrayNode checkFile(InputStream rulesFileStream, Map<Integer, List<ErrorReport>> errorsMap,
@@ -1165,16 +1164,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @return list of FileRules in database
      */
-    private List<FileRules> findAllFileRulesQueryBuilder() {
+    private List<FileRules> findAllFileRulesQueryBuilder() throws ReferentialException {
         final Select select = new Select();
-        List<FileRules> fileRules = new ArrayList<FileRules>();
-        try {
-            RequestResponseOK<FileRules> response = findDocuments(select.getFinalSelect());
-            if (response != null) {
-                return response.getResults();
-            }
-        } catch (ReferentialException e) {
-            LOGGER.error("ReferentialException", e);
+        List<FileRules> fileRules = new ArrayList<>();
+        RequestResponseOK<FileRules> response = findDocuments(select.getFinalSelect());
+        if (response != null) {
+            return response.getResults();
         }
         return fileRules;
     }
@@ -1415,13 +1410,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     @Override
-    public FileRules findDocumentById(String id) throws ReferentialException {
-        FileRules fileRule =
-            (FileRules) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.RULES, FileRules.RULEID);
-        if (fileRule == null) {
-            throw new FileRulesException("FileRules Not Found");
-        }
-        return fileRule;
+    public FileRules findDocumentById(String id) {
+        return (FileRules) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.RULES, FileRules.RULEID);
     }
 
     @Override
@@ -1429,9 +1419,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         try (DbRequestResult result =
             mongoAccess.findDocuments(select, FunctionalAdminCollections.RULES)) {
             return result.getRequestResponseOK(select, FileRules.class);
-        } catch (final FileRulesException e) {
-            LOGGER.error(e.getMessage());
-            throw new ReferentialException(e);
         }
     }
 
