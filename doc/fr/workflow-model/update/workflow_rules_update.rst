@@ -1,10 +1,10 @@
-Workflow de mise à jour des règles de gestion des unités archivistiques
-#######################################################################
+Workflow de mise à jour des règles de gestion des unités archivistiques lors de l'import d'un nouveau référentiel 
+##################################################################################################################
 
 Introduction
 ============
 
-Cette section décrit le processus (workflow) permettant la mise à jour des règles de gestion des unités archivistiques.
+Cette section décrit le processus (workflow) permettant la mise à jour des règles de gestion des unités archivistiques lors d'une modification unitaire ou lors de l'import d'un nouveau référentiel des règles de gestion.
 
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultRulesUpdateWorkflow.json".
 Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
@@ -30,11 +30,11 @@ Distribution sur REF -> GUID/PROCESSING/updatedRules.json
 
   + **Statuts** :
 
-    - OK : le fichier listant les entrées (qu'il soit vide ou non) a bien été créé (LIST_RUNNING_INGESTS.OK=Succès de l'établissement de la liste des processus d'entrée en cours).
+    - OK : le fichier listant les entrées (qu'il soit vide ou non) a bien été créé (LIST_RUNNING_INGESTS.OK = Succès du processus de préparation des listes des unités archivistiques à mettre à jour).
 
-    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des entrées n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO=Échec de l'établissement de la liste des processus d'entrée en cours)
+    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des entrées n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO =Échec du processus de préparation des listes des unités archivistiques à mettre à jour)
 
-    - FATAL : une erreur fatale est survenue lors du listage des entrées  (LIST_RUNNING_INGESTS.FATAL=Erreur fatale lors de l'établissement de la liste des processus d'entrée en cours)
+    - FATAL : une erreur technique est survenue lors du listage des entrées  (LIST_RUNNING_INGESTS.FATAL = Erreur technique lors du processus de préparation des listes des unités archivistiques à mettre à jour)
 
 * Liste des unités archivistiques à mettre à jour - LIST_ARCHIVE_UNITS - fichier de sortie : GUID/PROCESSING/auToBeUpdated.json
 
@@ -42,9 +42,9 @@ Distribution sur REF -> GUID/PROCESSING/updatedRules.json
 
   + **Statuts** :
 
-    - OK : la liste des unités archivistiques à traiter a pu être créée. Les fichiers associés ont bien été créés (LIST_ARCHIVE_UNITS.OK=Succès lors de l'établissement de la liste des unités archivistiques à mettre à jour)
+    - OK : la liste des unités archivistiques à traiter a pu être créée. Les fichiers associés ont bien été créés (LIST_ARCHIVE_UNITS.OK=Succès lors du processus de l'établissement de la liste des unités archivistiques à mettre à jour)
 
-    - FATAL : une erreur fatale est survenue lors du listage des unités archivistiques (LIST_ARCHIVE_UNITS.FATAL=Erreur fatale lors de l'établissement de la liste des unités archivistiques à mettre à jour)
+    - FATAL : une erreur technique est survenue lors de la récupèration de la liste des unités archivistiques à mettre à jour (LIST_ARCHIVE_UNITS.FATAL=Erreur technique lors du processus de l'établissement de la liste des unités archivistiques à mettre à jour)
 
 
 - **Étape 2** - STP_UNIT_UPDATE
@@ -57,11 +57,11 @@ Distribution sur LIST GUID/UnitsWithoutLevel. Etape distribuée.
 
   + **Statuts** :
 
-    - OK : l'unité archivistique a bien été mise à jour  (UPDATE_UNIT_RULES.OK=Succès de la mise à jour des règles de gestion des unités archivistiques).
+    - OK : l'unité archivistique a bien été mise à jour  (UPDATE_UNIT_RULES.OK = Succès de la mise à jour des règles de gestion des unités archivistiques).
 
-    - KO : l'unité archivistique n'a pas été trouvée, ou n'a pas pu être mise à jour (UPDATE_UNIT_RULES.KO=Échec de la mise à jour des règles de gestion des unités archivistiques)
+    - KO : l'unité archivistique n'a pas été trouvée, ou n'a pas pu être mise à jour (UPDATE_UNIT_RULES.KO = Échec de la mise à jour des règles de gestion des unités archivistiques)
 
-    - FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (UPDATE_UNIT_RULES.FATAL=Erreur fatale lors de la mise à jour des règles de gestion des unités archivistiques)
+    - FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (UPDATE_UNIT_RULES.FATAL = Erreur technique lors de la mise à jour des règles de gestion des unités archivistiques)
 
 - **Étape 3** - STP_UPDATE_RUNNING_INGESTS
 
@@ -69,18 +69,20 @@ Distribution sur REF GUID/PROCESSING/updatedRules.json.
 
 * Mise à jour des entrées en cours - UPDATE_RUNNING_INGESTS
 
-  + **Règle** : pour une liste d'entrées en cours, vérification de la finalisation de chaque entrées puis vérification des règles de gestion impactées, et recalcul / mise à jour des dates de fin. Fichier d'entrée : GUID/PROCESSING/runningIngests.json
+  + **Règle** : pour une liste d'entrées en cours, vérification de la finalisation de chaque entrée puis vérification des règles de gestion impactées, et recalcul / mise à jour des dates de fin. Fichier d'entrée : GUID/PROCESSING/runningIngests.json
 
   + **Statuts** :
 
-    - OK : les entrées en cours ont été finalisées, et les unités archivistiques ont bien été mises à jour  (STP_UPDATE_RUNNING_INGESTS.OK=Succès du processus de mise à jour des entrées en cours).
+    - OK : les entrées en cours ont été finalisées, et les unités archivistiques ont bien été mises à jour  (STP_UPDATE_RUNNING_INGESTS.OK = Succès de la mise à jour des entrées en cours).
 
-    - KO : un problème a été rencontré avec le fichier des règles de gestion mises à jour (STP_UPDATE_RUNNING_INGESTS.KO=Échec du processus de mise à jour des entrées en cours)
+    - KO : un problème a été rencontré avec le fichier des règles de gestion mises à jour (STP_UPDATE_RUNNING_INGESTS.KO = Échec de la mise à jour des entrées en cours)
 
-    - FATAL : une erreur fatale est survenue lors de la mise à jour des processus d'entrées (STP_UPDATE_RUNNING_INGESTS.FATAL=Erreur fatale lors du processus de mise à jour des entrées en cours)
+    - FATAL : une erreur technique est survenue lors de la mise à jour des processus d'entrées (STP_UPDATE_RUNNING_INGESTS.FATAL=Erreur technique lors de la mise à jour des entrées en cours)
 
 
-D'une façon synthétique, le workflow est décrit de cette façon :
+Structure de worklow du processus de mise à jour des règles de gestion des unités archivistiques
+==================================================================================================
+
 
   .. figure:: images/workflow_rules_update.png
     :align: center
