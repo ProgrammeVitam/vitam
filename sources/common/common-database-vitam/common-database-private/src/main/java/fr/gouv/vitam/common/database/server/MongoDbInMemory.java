@@ -348,10 +348,12 @@ public class MongoDbInMemory {
             final JsonNode element = iterator.next();
             String fieldName = element.asText();
             JsonNode node = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
-            String[] fieldNamePath = fieldName.split("[.]");
-            String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-            ((ObjectNode) node).remove(lastNodeName);
-            updatedFields.add(fieldName);
+            if(node != null) {
+                String[] fieldNamePath = fieldName.split("[.]");
+                String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
+                ((ObjectNode) node).remove(lastNodeName);
+                updatedFields.add(fieldName);
+            }
         }
     }
 
