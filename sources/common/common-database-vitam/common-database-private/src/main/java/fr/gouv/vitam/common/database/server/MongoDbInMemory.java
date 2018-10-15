@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -162,7 +161,7 @@ public class MongoDbInMemory {
                         unset(content);
                         break;
                     case SETREGEX:
-                        setregex(content);
+                        setRegex(content);
                         break;
                     default:
                         break;
@@ -191,14 +190,14 @@ public class MongoDbInMemory {
 
             JsonHandler.setNodeInPath((ObjectNode) updatedDocument, MANAGEMENT_KEY, initialMgt, true);
         }
-        
+
         return updatedDocument;
     }
-    
+
     private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
-        
+
         ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
             String category = entry.getKey();
             RuleCategoryAction ruleCategoryAction = entry.getValue();
@@ -265,7 +264,7 @@ public class MongoDbInMemory {
             initialMgt.set(category, initialRuleCategory);
         });
     }
-    
+
     private void applyDeleteRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
@@ -295,7 +294,7 @@ public class MongoDbInMemory {
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
         return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
     }
-    
+
     private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction) {
         ObjectNode newRule = JsonHandler.createObjectNode();
         newRule.put(RULE_KEY, ruleAction.getRule());
@@ -303,7 +302,7 @@ public class MongoDbInMemory {
         newRule.put(END_DATE_KEY, ruleAction.getEndDate());
         return newRule;
     }
-    
+
     private void updateJsonNodeUsingRuleAction(ObjectNode node, RuleAction ruleAction) {
         if (ruleAction.getRule() != null) {
             node.put(RULE_KEY, ruleAction.getRule());
@@ -370,24 +369,50 @@ public class MongoDbInMemory {
         }
     }
 
-    private void setregex(final JsonNode content) throws InvalidParseOperationException {
+    private void setRegex(final JsonNode content) throws InvalidParseOperationException {
         QueryPattern queryPattern = JsonHandler.getFromJsonNodeLowerCamelCase(content, QueryPattern.class);
         String fieldName = queryPattern.getTarget();
-        String stringToSearch = originalDocument.get(fieldName).asText();
-        // The pattern to search for
+        ObjectNode parentObjectNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
+
+        String lastFieldName = JsonHandler.getLastFieldName(fieldName);
+        if (parentObjectNode == null || !parentObjectNode.has(lastFieldName)) {
+            return;
+        }
+        JsonNode jsonNode = parentObjectNode.get(lastFieldName);
+
+
         Pattern pattern = Pattern.compile(queryPattern.getControlPattern());
-        Matcher matcher = pattern.matcher(stringToSearch);
-        StringBuffer sb = new StringBuffer();
-        // find & replace all matches
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, queryPattern.getUpdatePattern());
+
+        if (jsonNode.isTextual()) {
+
+            // Update text field
+            String stringToSearch = jsonNode.asText();
+            String newString = replaceAll(pattern, stringToSearch, queryPattern.getUpdatePattern());
+            if (!stringToSearch.equals(newString)) {
+                parentObjectNode.put(lastFieldName, newString);
+                updatedFields.add(fieldName);
+            }
+
+        } else if (jsonNode.isArray()) {
+
+            // Update array field
+            ArrayNode arrayNode = (ArrayNode) jsonNode;
+            for (int i = 0; i < arrayNode.size(); i++) {
+                JsonNode item = arrayNode.get(i);
+                if (item.isTextual()) {
+                    String stringToSearch = item.asText();
+                    String newString = replaceAll(pattern, stringToSearch, queryPattern.getUpdatePattern());
+                    if (!stringToSearch.equals(newString)) {
+                        arrayNode.set(i, new TextNode(newString));
+                        updatedFields.add(fieldName);
+                    }
+                }
+            }
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(sb)) {
-            matcher.appendTail(sb);
-            ((ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false)).
-                put(fieldName, sb.toString());
-            updatedFields.add(fieldName);
-        }
+    }
+
+    private String replaceAll(Pattern pattern, String stringToSearch, String replacement) {
+        return pattern.matcher(stringToSearch).replaceAll(replacement);
     }
 
     private void min(final BuilderToken.UPDATEACTION req, final JsonNode content)

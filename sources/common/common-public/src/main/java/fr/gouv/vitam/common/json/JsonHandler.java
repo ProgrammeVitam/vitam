@@ -919,6 +919,10 @@ public final class JsonHandler {
         currentLevelNode.set(lastNodeName, value);
     }
 
+    public static String getLastFieldName(String nodePath) {
+        return nodePath.substring(nodePath.lastIndexOf('.') + 1);
+    }
+
     /**
      * transform an {@link ArrayNode} (JSON Array) to an {@link java.util.ArrayList}
      *
