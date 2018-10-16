@@ -120,33 +120,6 @@ types:
         }]
       }
 
-    DslBatchProcessionQuery:
-           displayName: Requête DSL multiple pour le traitement de masse
-           description: Requête DSL Vitam externe multi-requête pour le traitement de masse
-           type: object
-           properties:
-             $roots:
-               description: Contient les racines de la recherche
-               type: string[]
-             $query:
-               description: Contient plusieurs requêtes
-               type: object[]
-             $threshold?:
-               description: Contient le seuil du traitement de masse (optionnel)
-               type: integer
-               required: false
-               minimum: 1
-               maximum: 100000000
-           example: {
-             "$roots": ["guid1","guid2"],
-             "$query": [
-               {
-                 "$eq": { "myField1": "myValue" },
-                 "$depth": 4
-               },
-             ],
-             "$threshold": 1000
-           }
 
   AbstractDslResponse:
     type: object
