@@ -88,6 +88,42 @@ A l'issue, vérifier le contenu des fichiers générés sous ``environments/host
 
 .. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan``  a bein été déclarée (l'ajouter manuelleent, le cas échéant), pour que site le site "primaire" sache les contacter via une IP particulière. Par cdéfaut, c'est l'IP de service.
 
+
+Passage des identifiants des référentiels en mode esclave
+----------------------------------------------------------
+
+La génération des identifiants des référentiels est gérée par Vitam quand il fonctionne en mode maître.
+
+Par exemple :
+
+- Préfixé par PR- pour les profils
+- Préfixé par IC- pour les contrats d'entrée
+- Préfixé par AC- pour les contrats d'accès
+
+Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
+Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de Vitam, il faut modifier le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+Un exemple de ce fichier se trouve dans la Documentation d’exploitation chap "Exploitation des composants de la solution logicielle VITAM".
+
+.. code-block:: text
+
+ # ExternalId configuration
+
+ listEnableExternalIdentifiers:
+  0:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+  1:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+    - PROFILE
+    - SECURITY_PROFILE
+    - CONTEXT
+   
+Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des identifiants externes (ceux qui sont dans le fichier json importé).
+
+ - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
+ - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
+
 Déploiement
 -------------
 
