@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +30,8 @@ public class MongoDbInMemoryTest {
         "{" + "\"oldValue\": \"value\"," + "\"oldField\": \"valueOld\"," + "\"nullField\": null," +
             "\"numberTen\": 10," + "\"numberAsString\": \"2\"," + "\"arrayToPop\": [\"val1\", \"val2\", \"val3\"]," +
             "\"arrayToPull\": [\"v1\", \"v2\", \"v3\"]," + "\"ArrayToAdd\": [\"val1\", \"val2\"]," +
-            "\"ArrayToPush\": [\"v1\", \"v2\"]," + "\"subItem\": {\"subArray\": [\"subValue\"], \"subInt\": 42}" + "}";
+            "\"ArrayToPush\": [\"v1\", \"v2\"]," + "\"subItem\": {\"subArray\": [\"subValue\"], \"subInt\": 42}," +
+            "\"expandField\": \"XXX\", \"arrayRegex\": [ \"V1\", \"\", \"V2\"] }";
     private static JsonNode jsonDocument;
     private static MongoDbInMemory mDIM;
     private static AbstractParser<?> parser = new UpdateParserSingle(new SingleVarNameAdapter());
@@ -101,6 +104,41 @@ public class MongoDbInMemoryTest {
     private static String requestRenameSubField =
         "{\"$action\": [{ \"$rename\": {\"subItem.subInt\": \"newSubItem.newName\" } }]}";
     private static String requestRenameUnknowField = "{\"$action\": [{ \"$rename\": {\"unknowField\": \"field\" } }]}";
+
+    private static String requestSetRegexRemovePrefix = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"oldField\", " +
+        "\"$controlPattern\": \"value\", " +
+        "\"$updatePattern\": \"\" } } ]}";
+
+    private static String requestSetRegexReplaceAll = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"oldValue\", " +
+        "\"$controlPattern\": \"^.*$\", " +
+        "\"$updatePattern\": \"newValue\" } } ]}";
+
+    private static String requestSetRegexStringArray = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"arrayRegex\", " +
+        "\"$controlPattern\": \"V\", " +
+        "\"$updatePattern\": \"W\" } } ]}";
+
+    private static String requestSetRegexExpand = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"expandField\", " +
+        "\"$controlPattern\": \"X\", " +
+        "\"$updatePattern\": \"XX\" } } ]}";
+
+    private static String requestSetRegexNonExitingField = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"subItem.NonExistingField\", " +
+        "\"$controlPattern\": \"^.*$\", " +
+        "\"$updatePattern\": \"XX\" } } ]}";
+
+    private static String requestSetRegexSubField = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"subItem.subArray\", " +
+        "\"$controlPattern\": \"subValue\", " +
+        "\"$updatePattern\": \"newSubValue\" } } ]}";
+
+    private static String requestSetRegexNullField = "{\"$action\": [{\"$setregex\": { " +
+        "\"$target\": \"nullField\", " +
+        "\"$controlPattern\": \"oldValue\", " +
+        "\"$updatePattern\": \"newValue\" } } ]}";
 
     private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
     private static String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
@@ -494,6 +532,47 @@ public class MongoDbInMemoryTest {
         } catch (final InvalidParseOperationException e) {
             // Normal Path of the unit test
         }
+    }
+
+    @Test
+    public void testSetRegexActions() throws InvalidParseOperationException {
+
+        AbstractParser<?> parserMulti = new UpdateParserMultiple(new SingleVarNameAdapter());
+
+        // Remove prefix
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexRemovePrefix));
+        JsonNode result = mDIM.getUpdateJson(parserMulti);
+        assertEquals("Old", result.get("oldField").asText());
+
+        // Replace all text
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexReplaceAll));
+        result = mDIM.getUpdateJson(parserMulti);
+        assertEquals("newValue", result.get("oldValue").asText());
+
+        // String array
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexStringArray));
+        result = mDIM.getUpdateJson(parserMulti);
+        assertEquals("[\"W1\",\"\",\"W2\"]", JsonHandler.unprettyPrint(result.get("arrayRegex")));
+
+        // Expand X to XX
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexExpand));
+        result = mDIM.getUpdateJson(parserMulti);
+        assertEquals("XXXXXX", result.get("expandField").asText());
+
+        // Non existing field
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexNonExitingField));
+        mDIM.getUpdateJson(parserMulti);
+        // Then : No error
+
+        // Sub field
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexSubField));
+        mDIM.getUpdateJson(parserMulti);
+        assertEquals("[\"newSubValue\"]", JsonHandler.unprettyPrint(result.get("subItem").get("subArray")));
+
+        // Null field
+        parserMulti.parse(JsonHandler.getFromString(requestSetRegexNullField));
+        mDIM.getUpdateJson(parserMulti);
+        // Then : No error
     }
 
     @Test
