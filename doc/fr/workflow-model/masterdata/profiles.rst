@@ -72,7 +72,7 @@ Import du profil d'archivage STP_IMPORT_PROFILE_FILE (ProfileServiceImpl.java)
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur technique lors du processus d'import du profil d'archivage (fichier xsd ou rng))
 
 Processus de mise à jour d'un profil d'archivage STP_UPDATE_PROFILE_JSON (ProfileServiceImpl.java)
--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 
   + **Règle** : La modification d'un profil d'archivage doit suivre les mêmes règles que celles décrites pour la création. L'association d'un fichier de profil avec les métadonnées d'un profil provoque également une opération de mise à jour du profil d'archivage.
