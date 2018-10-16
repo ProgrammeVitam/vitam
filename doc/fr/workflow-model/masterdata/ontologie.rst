@@ -13,7 +13,7 @@ Le processus d'import d'une ontologie permet d'ajouter des vocabulaires qui sero
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import des métadonnées d'une ontologie STP_IMPORT_ONTOLOGY (OntologyServiceImpl.java)
----------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 
 Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
