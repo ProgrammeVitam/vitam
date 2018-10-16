@@ -378,6 +378,8 @@ public enum VitamCode {
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "03",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a given EndDate"),
+    ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "39",
+        Status.BAD_REQUEST, "Bad format ! You can either do {\"#management.CategoryRule.Rules\":[...]} or {\"#management.CategoryRule\":{\"Rules\":[...]}}"),
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "04",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a wrong FinalAction"),

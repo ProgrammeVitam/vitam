@@ -75,6 +75,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -98,7 +100,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.json.SchemaValidationUtils.AVAILABLE_MANAGEMENT_ATTRIBUTES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -1180,6 +1185,22 @@ public class AccessInternalModuleImplTest {
         assertThat(parser.getRequest().getActions())
             .extracting(Action::toString)
             .containsOnly("{\"$set\":{\"#management.StorageRule.FinalAction\":\"Transfer\"}}");
+    }
+
+    @Test
+    public void should_throw_error_when_malformated_set_request() throws Exception {
+        // Given
+        UpdateParserMultiple parser = new UpdateParserMultiple();
+        String updateFinalAction =
+            "{\"$roots\":[\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.StorageRule.Rules.Rule\":\"R2\"}}]}";
+        parser.parse(fromStringToJson(updateFinalAction));
+        AVAILABLE_MANAGEMENT_ATTRIBUTES.contains("Rules");
+
+        // When
+        ThrowingCallable checkAndUpdate = () -> accessModuleImpl.checkAndUpdateRuleQuery(parser);
+
+        // Then
+        assertThatThrownBy(checkAndUpdate).isInstanceOf(AccessInternalRuleExecutionException.class);
     }
 
     @Test

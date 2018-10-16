@@ -850,20 +850,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * @param request   request http
-     * @param sessionId json session id from shiro
-     * @param criteria  criteria search for units
-     * @return Reponse
-     */
     @POST
     @Path("/dslQueryTest")
     @Produces(MediaType.APPLICATION_JSON)
-    // @RequiresPermissions("archivesearch:units:read")
     public Response getAndExecuteTestRequest(@Context HttpServletRequest request,
         @CookieParam("JSESSIONID") String sessionId,
         JsonNode criteria) {
         String requestId;
+
         RequestResponse result;
         OffsetBasedPagination pagination = null;
         String requestMethod = request.getHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);

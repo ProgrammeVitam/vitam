@@ -26,36 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
-import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-
-import java.io.FileNotFoundException;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.DoubleNode;
-import com.fasterxml.jackson.databind.node.LongNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.*;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
@@ -68,17 +40,30 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.*;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.lang3.BooleanUtils;
+
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
+import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 /**
  * SchemaValidationUtils
@@ -161,11 +146,33 @@ public class SchemaValidationUtils {
         .toFormatter();
 
     private static final String PROPERTIES = "properties";
+
     private static final String ITEMS = "items";
+
     private static final String DATE_TIME_VITAM = "date-time-vitam";
+
     private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList("$schema",
         "id", "type", "additionalProperties", "anyOf", "required", "description", "items", "title",
         "oneOf", "enum", "minLength", "minItems", "properties");
+
+    public static Set<String> AVAILABLE_MANAGEMENT_ATTRIBUTES = listOfAvailableAttributes();
+
+    private static Set<String> listOfAvailableAttributes() {
+        try {
+            Set<String> attributes = new HashSet<>();
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_FILENAME))
+                .get(PROPERTIES)
+                .get("Management")
+                .get(PROPERTIES)
+                .forEach(p -> p.path(PROPERTIES).fieldNames().forEachRemaining(attributes::add));
+            if (attributes.isEmpty()) {
+                throw new IllegalStateException("Cannot initialize set of available management attributes");
+            }
+            return attributes;
+        } catch (InvalidParseOperationException | FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Constructor with a default schema filename

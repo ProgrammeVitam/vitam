@@ -1,17 +1,18 @@
 package fr.gouv.vitam.access.internal.common.exception;
 
+import fr.gouv.vitam.common.error.VitamCode;
+
 public class AccessInternalRuleExecutionException extends
 		AccessInternalException {
 
 	private static final long serialVersionUID = 3507862590422500648L;
 
-	/**
-     * constructor with message
-     *
-     * @param message message to associate with the exception
-     */
     public AccessInternalRuleExecutionException(String message) {
         super(message);
+    }
+
+    public AccessInternalRuleExecutionException(VitamCode code) {
+        super(code.name());
     }
 
     /**
