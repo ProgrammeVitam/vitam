@@ -101,7 +101,7 @@ Par exemple :
 - Préfixé par AC- pour les contrats d'accès
 
 Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
-Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de Vitam, il faut modifier le fichier ansible ``ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de Vitam, il faut modifier le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
 Un exemple de ce fichier se trouve dans la Documentation d’exploitation chap "Exploitation des composants de la solution logicielle VITAM".
 
 .. code-block:: text
@@ -119,7 +119,7 @@ Un exemple de ce fichier se trouve dans la Documentation d’exploitation chap "
     - SECURITY_PROFILE
     - CONTEXT
    
-La configuration par défaut de Vitam pour la 1.4.1 autorise des identifiants externes (ceux qui sont dans le fichier json importé).
+Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des identifiants externes (ceux qui sont dans le fichier json importé).
 
  - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
  - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
