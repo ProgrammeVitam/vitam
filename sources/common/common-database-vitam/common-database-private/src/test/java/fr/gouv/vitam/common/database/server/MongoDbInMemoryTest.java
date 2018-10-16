@@ -106,6 +106,7 @@ public class MongoDbInMemoryTest {
 
     private static String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";
     private static String requestUnsetSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.subInt\" ] }]}";
+    private static String requestNonExistingSubSubField = "{\"$action\": [{ \"$unset\": [ \"subItem.nonExisting.NonExistingSubField\" ] }]}";
 
     @Before
     public void setUp() throws InvalidParseOperationException {
@@ -495,5 +496,19 @@ public class MongoDbInMemoryTest {
         parser.parse(JsonHandler.getFromString(requestUnsetSubField));
         resultAfterUpdate = mDIM.getUpdateJson(parser);
         assertNull("Json should unset value", JsonHandler.getNodeByPath(resultAfterUpdate, "subItem.subInt", true));
+    }
+
+    @Test
+    public void testSetUnsetActionsForNonExistingSubSubFieldBug5195() throws InvalidParseOperationException {
+
+        // Given
+        parser.parse(JsonHandler.getFromString(requestSet));
+        mDIM.resetUpdatedAU();
+        parser.parse(JsonHandler.getFromString(requestNonExistingSubSubField));
+
+        // When
+        mDIM.getUpdateJson(parser);
+
+        // Then : NO NPE
     }
 }
