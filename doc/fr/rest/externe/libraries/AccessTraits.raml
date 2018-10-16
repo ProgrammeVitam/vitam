@@ -173,7 +173,8 @@ traits:
 
   DipCreationResponseAsync:
     description: Requête de création d'un DIP
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON.
@@ -193,3 +194,27 @@ traits:
         body:
           application/json:
             description: Rapport final du DIP
+
+  EliminationResponseAsync:
+    description: Requête d'élimination
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contient la requête DSL **multiple** au format JSON ainsi que la date d'élimination.
+        schema: AccessTypes.EliminationRequest
+        example: !include examples/eliminationRequest.json
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de l'élimination
+        body:
+          application/json:
+            description: Operation d'élimination acceptée
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/eliminationResponse.json
+      500:
+        description: Renvoie le statut final de l'opération d'élimination en KO
+        body:
+          application/json:
+            description: Rapport final de l'opération d'élimination
