@@ -46,8 +46,17 @@
 - name: Configure basePath for reverse if one is declared in the inventory
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#server.basePath:.*$'
+    regexp: '^#server\.basePath:.*$'
     replace: "server.basePath: \"/{{ composant.baseuri }}\""
+  when: groups['reverse']|length > 0
+  notify:
+    - restart kibana
+
+- name: Configure rewritePath boolean in Kibana when reverse is declared in the inventory
+  replace:
+    dest: /etc/kibana/kibana.yml
+    regexp: '^#server\.rewriteBasePath:.*$'
+    replace: "server.rewriteBasePath: false"
   when: groups['reverse']|length > 0
   notify:
     - restart kibana
