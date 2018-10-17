@@ -106,9 +106,19 @@ public class SedaConstants {
     public static final String TAG_BINARY_DATA_OBJECT = "BinaryDataObject";
 
     /**
+     * Tag of BinaryMaster
+     */
+    public static final String TAG_BINARY_MASTER = "BinaryMaster";
+
+    /**
      * Tag of PhysicalDataObject
      */
     public static final String TAG_PHYSICAL_DATA_OBJECT = "PhysicalDataObject";
+
+    /**
+     * Tag of PhysicalMaster
+     */
+    public static final String TAG_PHYSICAL_MASTER = "PhysicalMaster";
 
     /**
      * Tag of FormatIdentification
