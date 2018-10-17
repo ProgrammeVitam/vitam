@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
@@ -42,21 +41,13 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.VitamDateTimeAttribute;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
@@ -95,14 +86,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 
@@ -227,12 +216,10 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             List<String> units = workerParameters.getObjectNameList();
             multiQuery.resetRoots().addRoots(units.stream().toArray(String[]::new));
 
-            actionNode = checkAndCompleteRuleWithEndDateForUpdateAndAdd(actionNode);
+            Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(actionNode);
 
             // call update BULK service
-            // TODO: Remonter un vrai KO dans la requestResponse si l'opération totale est refusée pour incohérance
-            // TODO: Traiter les cas KO de chaque sous tâche (unitaire Unit)
-            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(multiQuery.getFinalUpdate(), actionNode);
+            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(multiQuery.getFinalUpdate(), actionNode, bindRulesToDuration);
 
             List<DistributionReportModel> reportModelOK = new ArrayList<>();
             List<DistributionReportModel> reportModelWARN = new ArrayList<>();
@@ -331,82 +318,68 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         return itemStatuses;
     }
 
-    private JsonNode checkAndCompleteRuleWithEndDateForUpdateAndAdd(JsonNode actionNode)
+    private Map<String, DurationData> checkAndComputeRuleDurationData(JsonNode actionNode)
         throws InvalidParseOperationException, IllegalStateException {
+
+        Map<String, DurationData> bindRulesToDuration = new HashMap<>();
 
         RuleActions ruleActions = JsonHandler.getFromJsonNode(actionNode, RuleActions.class);
         List<Map<String, RuleCategoryAction>> ruleAddition = ruleActions.getAdd();
         if (ruleAddition != null) {
-            List<Map<String, RuleCategoryAction>> updatedAdd = ruleAddition.stream()
+            ruleAddition.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .map(this::computeRuleForCategory)
-                .collect(Collectors.toList());
-            ruleActions.setAdd(updatedAdd);
+                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration));
         }
 
         List<Map<String, RuleCategoryAction>> ruleUpdates = ruleActions.getUpdate();
         if (ruleUpdates != null) {
-            List<Map<String, RuleCategoryAction>> updatedUpdates = ruleUpdates.stream()
+            ruleUpdates.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .map(this::computeRuleForCategory)
-                .collect(Collectors.toList());
-            ruleActions.setUpdate(updatedUpdates);
+                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration));
         }
 
-        return JsonHandler.toJsonNode(ruleActions);
+        return bindRulesToDuration;
     }
 
-    private Map<String, RuleCategoryAction> computeRuleForCategory(Map.Entry<String, RuleCategoryAction> entry) {
-        String categoryName = entry.getKey();
+    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration) {
         RuleCategoryAction category = entry.getValue();
 
         if (category.getRules() == null) {
-            Map<String, RuleCategoryAction> elementMap = new HashMap<>();
-            elementMap.put(categoryName, category);
-            return elementMap;
+            return;
         }
 
         for (RuleAction rule: category.getRules()) {
+            String ruleId = rule.getRule();
             if (rule.getEndDate() != null) {
                 throw new IllegalStateException("Rule for update have a defined EndDate");
             }
 
             JsonNode ruleResponseInReferential;
             try {
-                ruleResponseInReferential = adminManagementClientFactory.getClient().getRuleByID(rule.getRule());
+                ruleResponseInReferential = adminManagementClientFactory.getClient().getRuleByID(ruleId);
             } catch (InvalidParseOperationException | AdminManagementClientServerException | FileRulesException e) {
                 throw new IllegalStateException("Can't get the Rule " + rule.getRule() + " in Rules Referential");
             }
             JsonNode ruleInReferential = ruleResponseInReferential.get("$results").get(0);
-
-            // FIXME Start of duplicated method, need to add it in a common module
             String startDateString = rule.getStartDate();
-            if (startDateString == null) { continue; }
-            String ruleId = rule.getRule();
-            String ruleTypeInReferential = ruleInReferential.get("RuleType").asText();
 
-            if (ParametersChecker.isNotEmpty(startDateString) && ParametersChecker.isNotEmpty(ruleId, ruleTypeInReferential)) {
-                LocalDateTime startDate = LocalDateUtil.parseMongoFormattedDate(startDateString);
-                if (startDate.getYear() >= 9000) {
-                    throw new IllegalStateException("Wrong Start Date: Year should be lower than 9000 but get " + startDate.getYear());
-                }
+            final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
+            final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
 
-                final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
-                final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
-                if (!"unlimited".equalsIgnoreCase(duration)) {
-                    final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                    if (ruleMeasurement != null) {
-                        LocalDateTime endDate = startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
-                        rule.setEndDate(LocalDateUtil.getFormattedDateForMongo(endDate));
-                    }
-                }
+            // save duration and mesurement for usage in MongoDbInMemory if needed
+            final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
+            if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) && ruleMeasurement != null) {
+                bindRuleDuration.put(ruleId, new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
             }
-            // End of duplicated method
+
+            // Never compute any endDate if no correct StartDate is given
+            if (startDateString == null) { continue; }
+            LocalDateTime startDate = LocalDateUtil.parseMongoFormattedDate(startDateString);
+            if (startDate.getYear() >= 9000) {
+                throw new IllegalStateException("Wrong Start Date: Year should be lower than 9000 but get " + startDate.getYear());
+            }
         }
 
-        Map<String, RuleCategoryAction> elementMap = new HashMap<>();
-        elementMap.put(categoryName, category);
-        return elementMap;
     }
 
     /**

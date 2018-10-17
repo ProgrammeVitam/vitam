@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -46,6 +47,7 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import org.bson.Document;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * MetaData interface for database operations
@@ -194,7 +196,7 @@ public interface MetaData {
      * $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
      */
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery)
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration)
             throws InvalidParseOperationException;
 
     /**

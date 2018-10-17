@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.client;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -303,7 +305,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
      */
-    RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions)
+    RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData)
             throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
             MetaDataDocumentSizeException, MetaDataClientServerException;
 

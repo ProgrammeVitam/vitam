@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.common.database.server;
 
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,6 +47,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -56,6 +60,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.QueryPattern;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -180,14 +185,14 @@ public class MongoDbInMemory {
      * @return the updated document
      * @throws InvalidParseOperationException
      */
-    public JsonNode getUpdateJsonForRule(RuleActions ruleActions) throws InvalidParseOperationException {
+    public JsonNode getUpdateJsonForRule(RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration) throws InvalidParseOperationException {
         if(ruleActions != null) {
             final ObjectNode initialMgt = (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
 
             // deal with adds
-            applyAddRuleAction(ruleActions.getAdd(), initialMgt);
+            applyAddRuleAction(ruleActions.getAdd(), initialMgt, bindRuleToDuration);
             // deal with update
-            applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt);
+            applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt, bindRuleToDuration);
             // deal with delete
             applyDeleteRuleAction(ruleActions.getDelete(), initialMgt);
 
@@ -197,7 +202,7 @@ public class MongoDbInMemory {
         return updatedDocument;
     }
 
-    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
+    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
 
@@ -245,7 +250,7 @@ public class MongoDbInMemory {
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ruleCategoryAction.getRules().forEach(ruleAction -> {
                     if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
-                        JsonNode newRule = getJsonNodeFromRuleAction(ruleAction);
+                        JsonNode newRule = getJsonNodeFromRuleAction(ruleAction, bindRuleToDuration);
                         initialRules.add(newRule);
                     }
                 });
@@ -267,7 +272,7 @@ public class MongoDbInMemory {
         return false;
     }
 
-    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
+    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
 
@@ -284,7 +289,7 @@ public class MongoDbInMemory {
                     ObjectNode node = (ObjectNode) it.next();
                     String actualRule = node.get(RULE_KEY).asText();
                     if (rulesToUpdate.keySet().contains(actualRule)) {
-                        updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule));
+                        updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule), bindRuleToDuration);
                     }
                 }
                 initialRuleCategory.set(RULES_KEY, initialRules);
@@ -374,22 +379,47 @@ public class MongoDbInMemory {
         return JsonHandler.createArrayNode();
     }
 
-    private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction) {
+    private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
         ObjectNode newRule = JsonHandler.createObjectNode();
         newRule.put(RULE_KEY, ruleAction.getRule());
         newRule.put(START_DATE_KEY, ruleAction.getStartDate());
-        newRule.put(END_DATE_KEY, ruleAction.getEndDate());
+        computeEndDate(newRule, bindRuleToDuration);
         return newRule;
     }
 
-    private void updateJsonNodeUsingRuleAction(ObjectNode node, RuleAction ruleAction) {
+    private void updateJsonNodeUsingRuleAction(ObjectNode unitRule, RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
         if (ruleAction.getRule() != null) {
-            node.put(RULE_KEY, ruleAction.getRule());
+            unitRule.put(RULE_KEY, ruleAction.getRule());
         }
+
         if (ruleAction.getStartDate() != null) {
-            node.put(START_DATE_KEY, ruleAction.getStartDate());
-            node.put(END_DATE_KEY, ruleAction.getEndDate());
+            unitRule.put(START_DATE_KEY, ruleAction.getStartDate());
         }
+
+        computeEndDate(unitRule, bindRuleToDuration);
+    }
+
+    private void computeEndDate(ObjectNode unitRule, Map<String, DurationData> bindRuleToDuration) {
+        String ruleId = unitRule.get(RULE_KEY) != null ? unitRule.get(RULE_KEY).asText() : null;
+        DurationData durationData = bindRuleToDuration.get(ruleId);
+
+        if (durationData == null) {
+            return;
+        }
+
+        String startDateString = unitRule.get(START_DATE_KEY).asText();
+        if (startDateString == null) { return; }
+        LocalDateTime startDate;
+        try {
+            startDate = LocalDateUtil.fromDate(LocalDateUtil.getSimpleFormattedDate(startDateString));
+        } catch (ParseException e) {
+            throw new IllegalStateException("Unable to parse StartDate from database", e);
+        }
+        Integer duration = durationData.getDurationValue();
+        TemporalUnit temporalUnit = durationData.getDurationUnit();
+
+        LocalDateTime endDate = startDate.plus(duration, temporalUnit);
+        unitRule.put(END_DATE_KEY, LocalDateUtil.getFormattedDateForMongo(endDate));
     }
 
     /**

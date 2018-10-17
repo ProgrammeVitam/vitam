@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
@@ -181,9 +182,9 @@ public class DbRequest {
      * @param ruleActions the list of ruleAction (by category)
      * @return the result
      */
-    public Result execRuleRequest(final String unitId, final RuleActions ruleActions)
+    public Result execRuleRequest(final String unitId, final RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
             throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
-        
+
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
         Result<MetadataDocument<?>> last = new ResultDefault(FILTERARGS.UNITS, Collections.singletonList(unitId));
@@ -222,7 +223,7 @@ public class DbRequest {
                             JsonHandler.prettyPrint(ruleActions));
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
-                final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions);
+                final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
                 if (documentId.equals(document.get(MetadataDocument.ID))) {
                     modified = true;
