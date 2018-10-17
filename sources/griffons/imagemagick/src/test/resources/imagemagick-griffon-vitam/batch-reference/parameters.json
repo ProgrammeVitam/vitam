@@ -1,0 +1,17 @@
+{
+  "requestId": "4f6ae8d7-cab7-4f8d-b5e1-d5c0a1ea5793",
+  "id": "batch-reference",
+  "debug": false,
+  "actions": [
+    {"type": "GENERATE", "values": {"extension": "GIF", "args": ["-thumbnail", "100x100"]}},
+    {"type": "ANALYSE"},
+    {"type": "EXTRACT", "values": {"dataToExtract": {"AU_METADATA_RESOLUTION": "/image/properties/exif:ResolutionUnit", "GOT_METADATA_METHOD": "/image/properties/exif:SensingMethod", "AU_METADATA_DATE": "/image/properties/xmp:ModifyDate"}}}
+  ],
+  "inputs": [
+    {"name": "test.jpg", "formatId": "fmt/41"},
+    {"name": "telechargement.jpeg", "formatId": "fmt/41"},
+    {"name": "280px-PNG_transparency_demonstration_1.png", "formatId": "fmt/12"},
+    {"name": "picture.jpg", "formatId": "fmt/41"},
+    {"name": "picture-corrupted.jpg", "formatId": "fmt/41"}
+  ]
+}
