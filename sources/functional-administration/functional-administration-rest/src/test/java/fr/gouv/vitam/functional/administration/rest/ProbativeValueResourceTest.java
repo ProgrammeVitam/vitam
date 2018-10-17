@@ -15,15 +15,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -38,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -55,6 +61,8 @@ public class ProbativeValueResourceTest {
     @Mock WorkspaceClient workspaceClient;
     @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
     @Mock LogbookOperationsClient logbookOperationsClient;
+    @Mock AdminManagementClientFactory managementClientFactory;
+    @Mock AdminManagementClient adminManagementClient;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -65,14 +73,21 @@ public class ProbativeValueResourceTest {
     private ProbativeValueResource probativeValueResource;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidParseOperationException, AdminManagementClientServerException {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        when(managementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(adminManagementClient.findAccessContracts(any()))
+                .thenReturn(new RequestResponseOK<AccessContractModel>()
+                                .addAllResults(Arrays.asList(new AccessContractModel()
+                                        .setEveryOriginatingAgency(true)
+                                        .setEveryDataObjectVersion(true))));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
+        VitamThreadUtils.getVitamSession().setContractId("fakeContract");
         probativeValueResource =
             new ProbativeValueResource(processingManagementClientFactory, logbookOperationsClientFactory,
                 workspaceClientFactory);

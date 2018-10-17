@@ -881,6 +881,21 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response getAccessionRegisterSymbolic(JsonNode queryDsl) {
         try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
                 vitamCounterService)) {
+
+            SanityChecker.checkJsonAll(queryDsl);
+
+            SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
+            parser.parse(queryDsl);
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null || contract.getEveryOriginatingAgency() == null) {
+                throw new AccessUnauthorizedException("Contract Not Found or EveryOriginatingAgency flag is null");
+            }
+
+            if (!contract.getEveryOriginatingAgency()) {
+                parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
+                        contract.getOriginatingAgencies().stream().toArray(String[]::new)).setDepthLimit(0));
+            }
+
             List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
             RequestResponseOK<AccessionRegisterSymbolic> entity = new RequestResponseOK<AccessionRegisterSymbolic>()
                     .addAllResults(accessionRegisterSymbolic)

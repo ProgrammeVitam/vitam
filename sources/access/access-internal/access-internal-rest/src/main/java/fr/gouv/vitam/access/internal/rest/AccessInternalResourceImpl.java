@@ -1000,7 +1000,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 workspaceClient.createContainer(operationId);
                 workspaceClient
-                    .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                        .putObject(operationId, "query.json", JsonHandler.writeToInpustream(
+                                AccessContractRestrictionHelper.
+                                        applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                                                VitamThreadUtils.getVitamSession().getContract())));
                 workspaceClient
                     .putObject(operationId, "actions.json", JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
                 processingClient.initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), operationId, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
@@ -1015,7 +1018,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 return Response.status(INTERNAL_SERVER_ERROR)
                         .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
             }
-        } catch (InvalidParseOperationException | BadRequestException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
