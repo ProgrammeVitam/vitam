@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -81,6 +82,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -153,6 +155,8 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -3546,7 +3550,113 @@ public class ProcessingIT {
         assertNotNull(fileInfo);
         assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_add_objects_to_existing_object_group_OK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+
+        String sip_ko = "integration-processing/add_objects_to_gots/KO_SIP_MULTIPLE_USAGES_MULTIPLE_VERSIONS.zip";
+        String sip_ok_1 = "integration-processing/add_objects_to_gots/OK_SIP_MULTIPLE_USAGES.zip";
+        String sip_ok_2 = "integration-processing/add_objects_to_gots/OK_ADD_OBJECTS.zip";
+
+        // 1. Test Usage with multiple versions KO
+
+        String containerName0 = createOperationContainer();
+
+        VitamThreadUtils.getVitamSession().setRequestId(containerName0);
+        // workspace client unzip SIP in workspace
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sip_ko);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName0);
+        workspaceClient.uncompressObject(containerName0, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName0, WORFKLOW_NAME);
+         RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName0, WORFKLOW_NAME,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName0);
+        ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+
+
+
+        // 2. Test multiple usages with only one version for each one
+        String containerName = createOperationContainer();
+
+        VitamThreadUtils.getVitamSession().setRequestId(containerName);
+        // workspace client unzip SIP in workspace
+        zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sip_ok_1);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
+        ObjectGroup got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
+        assertThat(got.get( ObjectGroup.OPS, List.class)).hasSize(1);
+        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
+        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple(SedaConstants.TAG_BINARY_MASTER, 1), tuple(SedaConstants.TAG_PHYSICAL_MASTER, 1));
+
+        // 2. Add objects to existing got
+        String containerName2 = createOperationContainer();
+        VitamThreadUtils.getVitamSession().setRequestId(containerName2);
+
+        InputStream zipInputStreamSipObject2 = PropertiesUtils.getResourceAsStream(sip_ok_2);
+
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName2);
+        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject2);
+
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret2 =
+                processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret2);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+
+        wait(containerName2);
+        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+        assertNotNull(processWorkflow2);
+        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertNotNull(processWorkflow2.getSteps());
+
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
+        got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
+        assertThat(got.get( ObjectGroup.OPS, List.class)).hasSize(2);
+        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
+        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple(SedaConstants.TAG_BINARY_MASTER, 3), tuple(SedaConstants.TAG_PHYSICAL_MASTER, 1));
 
     }
+
+
 
 }

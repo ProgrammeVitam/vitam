@@ -156,6 +156,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataO
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
@@ -512,6 +513,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException : unit not found", e);
             updateDetailItemStatus(globalCompositeItemStatus,
                     getMessageItemStatusAUNotFound(e.getUnitId(), e.getUnitGuid()), SUBTASK_ATTACHEMENT);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingTooManyVersionsByUsageException e) {
+            LOGGER.debug("ProcessingException :", e);
+            updateDetailItemStatus(globalCompositeItemStatus,
+                    JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("MsgError", e.getMessage())), SUBTASK_ATTACHEMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingMalformedDataException e) {
             LOGGER.debug("ProcessingException : Missing or malformed data in the manifest", e);
@@ -2468,6 +2474,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, ParameterHelper.getTenantParameter());
 
                 final List<String> versionList = new ArrayList<>();
+                final Set<String> dataObjectVersions = new HashSet<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);
                     final File dataObjectFile =
@@ -2497,7 +2504,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     versionList.add(nodeCategory);
 
                     List<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
-                    if (nodeCategory.split("_").length == 1) {
+                    String[] array = nodeCategory.split("_");
+                    String realCategory = array[0];
+
+                    // FIXME ugly fix of the BUG 5178. Do not allow multiple dataObjectVersion by usage if not adding objects to existing GOT
+                    // TODO To be deleted when the bug 5178 is properly fixed
+                    if (!existingGot && dataObjectVersions.contains(realCategory)) {
+                        // When ingest multiple dataObjectVersion by usage is not allowed
+                        throw new ProcessingTooManyVersionsByUsageException("[Not allowed for first ingest] Too many versions found for the usage (" + realCategory + ") of the object group (" + entry.getKey() + ")");
+                    }
+                    dataObjectVersions.add(realCategory);
+
+                    if (array.length == 1) {
                         final String nodeCategoryNumbered = nodeCategory + "_1";
                         ((ObjectNode) dataObjectNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
                     }
@@ -2526,7 +2544,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final ObjectNode workNode = getObjectGroupWork(categoryMap, containerId);
                 // in case of attachement, this will be true, we will then add information about existing og in work
                 // part
-                if (existingUnitIdWithExistingObjectGroup.containsKey(unitParentGUID)) {
+                if (existingGot) {
                     workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID,
                             existingUnitIdWithExistingObjectGroup.get(unitParentGUID));
                 }
