@@ -183,7 +183,6 @@ documentation:
   displayName: Elimination
   description: |
     API qui définit les requêtes pour l'élimination des unités archivistiques.
-
   /analysis:
     displayName: Opération d'analyse des unités archivistiques éliminables.
     description: |
@@ -233,7 +232,6 @@ documentation:
   displayName: LFC traceability audit
   description: |
     API qui définit les requêtes pour générer un audit de la traçabilité des journaux de cycles de vie.
-
   /unit/{id}:
     uriParameters:
         id:
@@ -259,7 +257,6 @@ documentation:
           description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
           body:
             application/json:
-
   /objects/{id}:
     uriParameters:
         id:
@@ -300,13 +297,13 @@ documentation:
         La requête prend en paramètre un objet Json pouvant contenir une date de début (StartDate) ou de fin (EndDate) pour filtrer les journaux.
     responses:
         200:
-            description: Success
-            body:
-                application/octet-stream
+          description: Success
+          body:
+                application/octet-stream:
         412:
-            description: Precondition Failed, date in json input body is not parsable, therefore the operation is not possible
-            body:
-                application/json:
+          description: Precondition Failed, date in json input body is not parsable, therefore the operation is not possible
+          body:
+            application/json:
 
 /:
   displayName: Endpoints

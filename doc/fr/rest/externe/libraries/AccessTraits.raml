@@ -211,7 +211,7 @@ traits:
         body:
           application/json:
             description: Operation d'élimination acceptée
-            schema: StandardTypes.AsyncStatus
+            schema: AccessTypes.EliminationResponse
             example: !include examples/eliminationResponse.json
       500:
         description: Renvoie le statut final de l'opération d'élimination en KO
