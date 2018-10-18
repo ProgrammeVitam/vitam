@@ -1,5 +1,5 @@
-workflow d'élimination
-######################
+Workflow d'analyse de l'élimination des unités archivistiques
+##############################################################
 
 Introduction
 ============
@@ -9,63 +9,121 @@ Cette section décrit les processus en lien avec les phases d'analyses des unit�
 Ces deux étapes ne sont pas liées, l'action d'élimination peut être exécutée directement depuis le panier. La phase d'analyse peut servir à déterminer une liste d'unités archivistiques potentiellement éliminables.
 
 
-Analyse de éliminables et indexation en base de données
-=======================================================
+Processus de préparation de l'analyse de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_PREPARATION)
+========================================================================================================================
 
-
-Lors de cette étape, le système va effectuer pour chaque unité archivistique une vérification des règles de gestion et des règles d'héritage dont elle dépend.  
-
-
-Les unités archivistiques éliminables apparaissent dans l'écran d'affichage des résultats d'élimination  :
- 
- - Unités archivistiques ayant un statut "DESTROY" = les unités archivistiques qui ont une règle de gestion de type "Durée d'utilité administrative" arrivée à échéance et dont le sort final est "détruire"
- - Unités archivistiques ayant un statut "CONFLICTS" = 
-				- KEEP_ACCESS_SP = un conflit existe entre services producteurs, le service producteur principal veut détruire l'archive, le secondaire la conserver.  
-				- ACCESS_LINK_INCONSISTENCY = deux unités empruntent le même chemin, il n'est pas possible de couper le lien à un parent pour l'une est pas pour l'autre. 
-
-Processus de préparation de l'analyse de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_ELIMINATION)
------------------------------------------------------------------------------------------------------------------------
-
++ **Règle** : Processus de préparation de l'analyse de l'élimination des unités archivistiques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-  + OK : la préparation de l'analyse de l'unité archivistique a bien été effectuée (ELIMINATION_ANALYSIS_PREPARATION.OK = la préparation de l'analyse de l'unité archivistique a bien été effectuée)
+  + OK : la préparation de l'analyse de l'unité archivistique a bien été effectuée (ELIMINATION_ANALYSIS_PREPARATION.OK = Succès de la préparation de l'analyse de l'élimination des unités archivistiques)
 
-  + KO : la préparation de l'analyse de l'unité archivistique n'a pas été effectuée (ELIMINATION_ANALYSIS_PREPARATION.KO = Echec lors de la préparation de l'analyse de l'unité archivistique)
+  + KO : la préparation de l'analyse de l'unité archivistique n'a pas été effectuée (ELIMINATION_ANALYSIS_PREPARATION.KO = Échec de la préparation de l'analyse de l'élimination des unités archivistiques)
 
-  + FATAL : une erreur technique est survenue lors de la préparation de l'analyse de l'unité archivistique (ELIMINATION_ANALYSIS_PREPARATION.FATAL = Erreur technique lors de la préparation de l'analyse )
+  + FATAL : une erreur technique est survenue lors de la préparation de l'analyse de l'unité archivistique (ELIMINATION_ANALYSIS_PREPARATION.FATAL=Erreur technique lors de la préparation de l'analyse de l'élimination des unités archivistiques)
 
 
-Processus d'indexation de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_INDEXATION)
--------------------------------------------------------------------------------------------------------
 
-Cette étape à pour but d'indexer les unités archivistiques qui répondent aux critères d'éliminabilité cités plus haut. 
+Vérification des seuils de l'élimination définitive des unités archivistiques ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD
+----------------------------------------------------------------------------------------------------------------------------------
+
++ **Règle** : Vérification des seuils de l'élimination définitive des unités archivistiques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-  + OK : l'indexation des unités archivistiques a bien été effectuée (ELIMINATION_ANALYSIS_INDEXATION.OK = l'indexation des unités archivistiques a bien été effectuée)
+  + OK : la préparation de l'analyse de l'unité archivistique a bien été effectuée (ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD.OK = Succès de vérification des seuils de l'élimination définitive des unités archivistiques)
 
-  + KO : Erreur lors de l'indexation des unités archivistiques (ELIMINATION_ANALYSIS_INDEXATION.KO = erreur lors de l'indexation des unités archivistiques)
+  + KO : la préparation de l'analyse de l'unité archivistique n'a pas été effectuée (ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD.KO = Échec de vérification des seuils de l'élimination définitive des unités archivistiques)
 
-  + FATAL : une erreur technique est survenue lors de l'indexation des unités archivistiques (ELIMINATION_ANALYSIS_INDEXATION.FATAL = erreur fatale lors de la préparation de l'analyse de l'unité archivistique)
+  + FATAL : une erreur technique est survenue lors de la préparation de l'analyse de l'unité archivistique (ELIMINATION_ANALYSIS_CHECK_DISTRIBUTION_THRESHOLD.FATAL = Erreur technique lors de la vérification des seuils de l'élimination définitive des unités archivistiques)
+
+
+
+
+Préparation de l'analyse de l'élimination des unités archivistiques ELIMINATION_ANALYSIS_PREPARATION
+-----------------------------------------------------------------------------------------------------
+
++ **Règle** : Préparation de l'analyse de l'élimination des unités archivistiques
+
+* **Type** : bloquant
+
+* **Statuts** :
+
+  + OK : la préparation de l'analyse de l'unité archivistique a bien été effectuée (ELIMINATION_ANALYSIS_PREPARATION.OK = Succès de la préparation de l'analyse de l'élimination des unités archivistiques)
+
+  + KO : la préparation de l'analyse de l'unité archivistique n'a pas été effectuée (ELIMINATION_ANALYSIS_PREPARATION.KO = Échec de la préparation de l'analyse de l'élimination des unités archivistiques)
+
+  + FATAL : une erreur technique est survenue lors de la préparation de l'analyse de l'unité archivistique (ELIMINATION_ANALYSIS_PREPARATION.FATAL = Erreur technique lors de la préparation de l'analyse de l'élimination des unités archivistiques)
+
+
+
+
+Processus d'indexation de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_UNIT_INDEXATION)
+=============================================================================================================
+
++ **Règle** : indexation des unités archivistiques qui répondent aux critères d'éliminabilité cités plus haut 
+
+* **Type** : bloquant
+
+* **Statuts** :
+
+  + OK : l'indexation des unités archivistiques a bien été effectuée (ELIMINATION_ANALYSIS_UNIT_INDEXATION.OK = Succès de l'indexation de l'élimination des unités archivistiques)
+
+  + KO : l'indexation des unités archivistiques n'a pas été effectuée (ELIMINATION_ANALYSIS_UNIT_INDEXATION.KO = Échec lors de l'indexation de l'élimination des unités archivistiques)
+
+  + FATAL : une erreur technique est survenue lors de l'indexation des unités archivistiques (ELIMINATION_ANALYSIS_UNIT_INDEXATION.FATAL = Erreur technique lors de l'indexation de l'élimination des unités archivistiques)
+
 
 
 Processus de finalisation de l'analyse de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_FINALIZATION)
--------------------------------------------------------------------------------------------------------------------------
+===========================================================================================================================
+
+
++ **Règle** : finalisation de l'analyse de l'élimination des unités archivistiques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-  + OK : la finalisation de l'analyse des unités archivistiques a bien été effectuée (ELIMINATION_ANALYSIS_FINALIZATION.OK = la finalisation des unités archivistiques a bien été effectuée)
+  + OK : la finalisation de l'analyse des unités archivistiques a bien été effectuée (ELIMINATION_ANALYSIS_FINALIZATION.OK = Succès de la finalisation de l'analyse de l'élimination des unités archivistiques)
 
-  + KO : Erreur lors de la finalisation de l'analyse des unités archivistiques (ELIMINATION_ANALYSIS_FINALIZATION.KO = erreur lors de la finalisation de l'analyse des unités archivistiques)
+  + KO : la finalisation de l'analyse des unités archivistiques n'a pas été effectuée (ELIMINATION_ANALYSIS_FINALIZATION.KO=Échec lors de la finalisation de l'analyse de l'élimination des unités archivistiques)
 
-  + FATAL : une erreur technique est survenue lors de l'analyse des unités archivistiques (ELIMINATION_ANALYSIS_FINALIZATION.FATAL = erreur fatale lors de l'analyse de l'unité archivistique)
+  + FATAL : une erreur technique est survenue lors de l'analyse de l'élimination des unités archivistiques (ELIMINATION_ANALYSIS_FINALIZATION.FATAL=Erreur technique lors de la finalisation de l'analyse de l'élimination des unités archivistiques)
+
+
+
+Analyse des archives éliminables et indexation en base de données (ELIMINATION_ANALYSIS)
+=========================================================================================
+
+
++ **Règle** : Le système va effectuer pour chaque unité archivistique une vérification des règles de gestion et des règles d'héritage dont elle dépend
+
+* **Type** : bloquant
+
+* **Statuts** :
+
+  + OK : l'analyse de l'élimination des unités archivistiques des unités archivistiques a bien été effectuée (ELIMINATION_ANALYSIS.OK = Succès de l'analyse de l'élimination des unités archivistiques)
+
+  + KO : la finalisation de l'analyse des unités archivistiques n'a pas été effectuée (ELIMINATION_ANALYSIS.KO = Échec de l'analyse de l'élimination des unités archivistiques)
+
+  + FATAL : une erreur technique est survenue lors de l'analyse de l'élimination des unités archivistiques (ELIMINATION_ANALYSIS.FATAL = Erreur technique lors de l'analyse de l'élimination des unités archivistiques)
+
+
+Structure de workflow d'analyse de l'élimination des unités archivistiques
+============================================================================
+
+.. image:: images/workflow_elimination_analysis.png
+    :align: center
+
+
+Workflow d'élimination définitive des unités archivistiques
+##############################################################
+
 
 
 Analyse des éliminables et action d'élimination (ELIMINATION_ACTION)
@@ -75,24 +133,28 @@ Le processus d'élimination comprend deux phases, une première d'analyse consis
 
 
 Processus de préparation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_PREPARATION)
--------------------------------------------------------------------------------------------------------------------
+====================================================================================================================
+
++ **Règle** : processus de préparation de l'élimination définitive des unités archivistiques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-+ OK : Le processus de préparation de l'élimination définitive des unités archivistiques a bien été effectuée (STP_ELIMINATION_ACTION_PREPARATION.OK = Succès lors du processus de préparation de l'élimination définitive des unités archivistiques)
++ OK : Le processus de préparation de l'élimination définitive des unités archivistiques a bien été effectuée (STP_ELIMINATION_ACTION_PREPARATION.OK = Succès du début du processus de préparation de l'élimination définitive des unités archivistiques)
 
 + KO : Le processus de préparation de l'élimination définitive des unités archivistiques n'a pas été effectuée (STP_ELIMINATION_ACTION_PREPARATION.KO = Echec lors du début du processus de préparation de l'élimination définitive des unités archivistiques)
 
-+ WARNING : Le processus de préparation de l'élimination définitive des unités archivistiques est en warning (STP_ELIMINATION_ACTION_PREPARATION.WARNING = Avertissement lors du processus de l'étape de préparation de l'élimination définitive des unités archivistiques)  
++ WARNING : Le processus de préparation de l'élimination définitive des unités archivistiques est en warning (STP_ELIMINATION_ACTION_PREPARATION.WARNING = Avertissement lors du début du processus de l'étape de préparation de l'élimination définitive des unités archivistiques)  
 
-+ FATAL : Une erreur technique est survenue lors du processus de préparation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_PREPARATION.FATAL = Erreur technique lors du processus de préparation de l'élimination définitive des unités archivistiques)
++ FATAL : Une erreur technique est survenue lors du début du processus de préparation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_PREPARATION.FATAL = Erreur technique lors du début du processus de préparation de l'élimination définitive des unités archivistiques)
 
 
 
 Vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK)
 -----------------------------------------------------------------------
+
++ **Règle** : la vérification des processus concurrents
 
 * **Type** : bloquant
 
@@ -100,7 +162,7 @@ Vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK)
 
 + OK : La vérification des processus concurrents a bien été effectuée (CHECK_CONCURRENT_WORKFLOW_LOCK.OK = Succès lors de la vérification des processus concurrents)
 
-+ KO : La vérification des processus concurrents  n'a pas été effectuée  (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Echec lors de la vérification des processus concurrents)
++ KO : La vérification des processus concurrents n'a pas été effectuée  (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Echec lors de la vérification des processus concurrents)
 
 + WARNING : La vérification des processus concurrents est en warning (CHECK_CONCURRENT_WORKFLOW_LOCK.WARNING = Avertissement lors de la vérification des processus concurrents)
 
@@ -111,22 +173,29 @@ Vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK)
 Vérification des seuils de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD)
 -------------------------------------------------------------------------------------------------------------------------------
 
+
++ **Règle** : la vérification des seuils de traitement des unités archivistiques
+
 * **Type** :  bloquant
 
 * **Statuts** :
 
-+ OK : La vérification des  seuils de l'élimination définitive des unités archivistiques a bien été effectuée (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.OK = Succès de vérification des seuils de l'élimination définitive des unités archivistiques)
++ OK : La vérification des seuils de l'élimination définitive des unités archivistiques a bien été effectuée (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.OK = Succès de vérification des seuils de l'élimination définitive des unités archivistiques)
 
-+ KO : La vérification des  seuils de l'élimination définitive des unités archivistiques n'a pas été effectuée (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.KO = Echec de vérification des seuils de l'élimination définitive des unités archivistiques)
++ KO : La vérification des seuils de l'élimination définitive des unités archivistiques n'a pas été effectuée (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.KO = Echec de vérification des seuils de l'élimination définitive des unités archivistiques)
 
-+ WARNING : La vérification des  seuils de l'élimination définitive des unités archivistiques est en warning (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.WARNING = Avertissement de vérification des seuils de l'élimination définitive des unités archivistiques)
++ WARNING : La vérification des seuils de l'élimination définitive des unités archivistiques est en warning (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.WARNING = Avertissement de vérification des seuils de l'élimination définitive des unités archivistiques)
 
-+ FATAL : Une erreur technique est survenue lors de la vérification des  seuils de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.FATAL = Erreur technique de vérification des seuils de l'élimination définitive des unités archivistiques
++ FATAL : Une erreur technique est survenue lors de la vérification des seuils de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD.FATAL = Erreur technique de vérification des seuils de l'élimination définitive des unités archivistiques
 
 
 
-Préparation de l'élimination définitive des unités archivistiques  (ELIMINATION_ACTION_UNIT_PREPARATION)
---------------------------------------------------------------------------------------------------------
+Préparation de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_UNIT_PREPARATION)
+---------------------------------------------------------------------------------------------------------
+
+
+
++ **Règle** : préparation de l'élimination définitive des unités archivistiques 
  
 * **Type** : bloquant
 
@@ -143,8 +212,11 @@ Préparation de l'élimination définitive des unités archivistiques  (ELIMINAT
 
 
 Processus d'élimination définitive des unités archivistiques éliminables (STP_ELIMINATION_ACTION_DELETE_UNIT)
--------------------------------------------------------------------------------------------------------------
+==============================================================================================================
 
+
++ **Règle** : processus d'élimination définitive des unités archivistiques éliminables 
+ 
 * **Type** : bloquant
 
 * **Statuts** :
@@ -157,27 +229,49 @@ Processus d'élimination définitive des unités archivistiques éliminables (ST
 
 + FATAL : Une erreur technique est survenue lors du processus d'élimination définitive des unités archivistiques éliminables (STP_ELIMINATION_ACTION_DELETE_UNIT.FATAL= Erreur technique lors du processus d'élimination définitive des unités archivistiques éliminables
 
+Établissement de la liste des objets  OBJECTS_LIST_EMPTY
+---------------------------------------------------------
+
++ **Règle** : établissement de la liste des objets
+ 
+* **Type** : bloquant
+
+* **Statuts** :
+
++ OK : l'établissement de la liste des objets a bien été effectuée (OBJECTS_LIST_EMPTY.OK = Succès de l'établissement de la liste des objets)
+
++ KO : l'établissement de la liste des objets n'a pas été effectuée (OBJECTS_LIST_EMPTY.KO = Échec de l'établissement de la liste des objets)
+
++ WARNING : Le processus d'établissement de la liste des objets est en warning (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
+
++ FATAL : Une erreur technique est survenue lors de l'établissement de la liste des objets (OBJECTS_LIST_EMPTY.FATAL = Erreur technique lors de l'établissement de la liste des objets)
+
+
 
 Processus de préparation de l'élimination définitive des groupes d'objets techniques (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION)
---------------------------------------------------------------------------------------------------------------------------------------
+=======================================================================================================================================
+
+
++ **Règle** : processus de préparation de l'élimination définitive des groupes d'objets techniques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-+ OK : Le processus de préparation de l'élimination définitive des groupes d'objets techniques a bien été effectuée (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.OK = Succès du processus de la préparation de l'élimination définitive des groupes d'objets techniques)
++ OK : Le processus de préparation de l'élimination définitive des groupes d'objets techniques a bien été effectuée (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.OK = Succès du processus de préparation de l'élimination définitive des groupes d'objets techniques)
 
-+ KO : Le processus de préparation de l'élimination définitive des groupes d'objets techniques n'a pas été effectuée (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.KO = Echec du processus de la préparation de l'élimination définitive des groupes d'objets techniques)
++ KO : Le processus de préparation de l'élimination définitive des groupes d'objets techniques n'a pas été effectuée (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.KO = Echec du processus de préparation de l'élimination définitive des groupes d'objets techniques)
 
-+ WARNING : Le processus de préparation de l'élimination définitive des groupes d'objets techniques est en warning (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.WARNING = Avertissement lors du processus de la préparation de l'élimination définitive des groupes d'objets techniques)
++ WARNING : Le processus de préparation de l'élimination définitive des groupes d'objets techniques est en warning (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.WARNING = Avertissement lors du processus de préparation de l'élimination définitive des groupes d'objets techniques)
 
-+ FATAL : Une erreur technique est survenue lors du processus de préparation de l'élimination définitive des groupes d'objets techniques (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.FATAL= Erreur technique lors du processus de la préparation de l'élimination définitive des groupes d'objets techniques)
++ FATAL : Une erreur technique est survenue lors du processus de préparation de l'élimination définitive des groupes d'objets techniques (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.FATAL= Erreur technique lors du processus de préparation de l'élimination définitive des groupes d'objets techniques)
 
 
 
 Préparation de l'élimination définitive des groupes d'objets techniques (ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION)
 ---------------------------------------------------------------------------------------------------------------------
 
++ **Règle** : processus de préparation de l'élimination définitive des groupes d'objets techniques
 
 * **Type** : bloquant
 
@@ -189,13 +283,15 @@ Préparation de l'élimination définitive des groupes d'objets techniques (ELIM
 
 + WARNING : La préparation de l'élimination définitive des groupes d'objets techniques est en warning (ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.WARNING = Avertissement lors de la préparation de l'élimination définitive des groupes d'objets techniques)
 
-+ FATAL : Une erreur technique est survenue lors de la préparation de l'élimination définitive des groupes d'objets techniques  Erreur technique lors de la préparation de l'élimination définitive des groupes d'objets techniques
++ FATAL : Une erreur technique est survenue lors de la préparation de l'élimination définitive des groupes d'objets techniques (ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION.FATAL = Erreur technique lors de la préparation de l'élimination définitive des groupes d'objets techniques
 
 
 
 Processus d'élimination définitive des groupes d'objets techniques dont les unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DELETE_OBJECT_GROUP)
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+=======================================================================================================================================================================
 
+
++ **Règle** : processus d'élimination définitive des groupes d'objets techniques dont les unités archivistiques parentes sont éliminées
 
 * **Type** : bloquant
 
@@ -210,10 +306,29 @@ Processus d'élimination définitive des groupes d'objets techniques dont les un
 + FATAL : Une erreur technique est survenue lors du processus d'élimination définitive des groupes d'objets techniques dont les unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DELETE_OBJECT_GROUP.FATAL = Erreur technique lors du processus d'élimination définitive des groupes d'objets techniques dont les unités archivistiques parentes sont éliminées)
 
 
+Établissement de la liste des objets OBJECTS_LIST_EMPTY
+---------------------------------------------------------
+
++ **Règle** : établissement de la liste des objets
+ 
+* **Type** : bloquant
+
+* **Statuts** :
+
++ OK : l'établissement de la liste des objets a bien été effectuée (OBJECTS_LIST_EMPTY.OK = Succès de l'établissement de la liste des objets)
+
++ KO : l'établissement de la liste des objets n'a pas été effectuée (OBJECTS_LIST_EMPTY.KO = Échec de l'établissement de la liste des objets)
+
++ WARNING : Le processus d'établissement de la liste des objets est en warning (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
+
++ FATAL : Une erreur technique est survenue lors de l'établissement de la liste des objets (OBJECTS_LIST_EMPTY.FATAL = Erreur technique lors de l'établissement de la liste des objets)
+
 
 Processus de détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DETACH_OBJECT_GROUP)
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+===================================================================================================================================================================
 
+
++ **Règle** : processus de détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées
 
 * **Type** : bloquant
 
@@ -228,27 +343,85 @@ Processus de détachement des groupes d'objets techniques dont certaines unités
 + FATAL : Une erreur technique est survenue lors du processus de détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DETACH_OBJECT_GROUP.FATAL = Erreur technique lors du processus de détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées)
 
 
+Établissement de la liste des objets  OBJECTS_LIST_EMPTY
+---------------------------------------------------------
 
-Processus de génération du rapport d'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_REPORT_GENERATION)
---------------------------------------------------------------------------------------------------------------------------------
++ **Règle** : établissement de la liste des objets
+ 
+* **Type** : bloquant
 
+* **Statuts** :
+
++ OK : l'établissement de la liste des objets a bien été effectuée (OBJECTS_LIST_EMPTY.OK = Succès de l'établissement de la liste des objets)
+
++ KO : l'établissement de la liste des objets n'a pas été effectuée (OBJECTS_LIST_EMPTY.KO = Échec de l'établissement de la liste des objets)
+
++ WARNING : Le processus d'établissement de la liste des objets est en warning (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
+
++ FATAL : Une erreur technique est survenue lors de l'établissement de la liste des objets (OBJECTS_LIST_EMPTY.FATAL = Erreur technique lors de l'établissement de la liste des objets)
+
+
+
+Processus de mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION)
+===================================================================================================================================================================
+
+
++ **Règle** : mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques
 
 * **Type** : bloquant
 
 * **Statuts** :
 
-+ OK : Le processus de génération du rapport d'élimination définitive des unités archivistiques a bien été effectuée (STP_ELIMINATION_ACTION_REPORT_GENERATION.OK = Succès du processus de génération du rapport d'élimination définitive des unités archivistiques)
++ OK : la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques a bien été effectuée (ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION.OK = Succès de la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques)
 
-+ KO : Le processus de génération du rapport d'élimination définitive des unités archivistiques n'a pas été effectuée (STP_ELIMINATION_ACTION_REPORT_GENERATION.KO = Echec du processus de génération du rapport d'élimination définitive des unités archivistiques)
++ KO :la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques n'a pas été effectuée (ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION.KO = Echec de la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques)
 
-+ WARNING : Le processus de génération du rapport d'élimination définitive des unités archivistiques est en warning (STP_ELIMINATION_ACTION_REPORT_GENERATION.WARNING = Avertissement lors du processus de génération du rapport d'élimination définitive des unités archivistiques)
++ WARNING :la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques est en warning (ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION.WARNING = Avertissement lors de la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques)
 
-+ FATAL : Une erreur technique est survenue lors du processus de génération du rapport d'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_REPORT_GENERATION.FATAL = Erreur technique lors du processus de génération du rapport d'élimination définitive des unités archivistiques
++ FATAL : Une erreur technique est survenue lors de la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION.FATAL = Erreur technique lors de la préparation du registre des fonds suite à l'élimination définitive des unités archivistiques)
 
 
+Processus de mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE)
+=============================================================================================================================================================
 
-Génération du rapport d'élimination définitive des unités archivistiques (ELIMINATION_ACTION_REPORT_GENERATION)
----------------------------------------------------------------------------------------------------------------
++ **Règle** : mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques
+
+* **Type** : bloquant
+
+* **Statuts** :
+
++ OK : La génération du rapport d'élimination définitive des unités archivistiques a bien été effectuée (ELIMINATION_ACTION_REPORT_GENERATION.OK = Succès de la génération du rapport d'élimination définitive des unités archivistiques)
+
++ KO : La génération du rapport d'élimination définitive des unités archivistiques n'a pas été effectuée (ELIMINATION_ACTION_REPORT_GENERATION.KO = Echec de la génération du rapport d'élimination définitive des unités archivistiques)
+
++ WARNING : La génération du rapport d'élimination définitive des unités archivistiques est en warning (ELIMINATION_ACTION_REPORT_GENERATION.WARNING = Avertissement lors de la génération du rapport d'élimination définitive des unités archivistiques)
+
++ FATAL : Une erreur technique est survenue lors de la génération du rapport d'élimination définitive des unités archivistiques (ELIMINATION_ACTION_REPORT_GENERATION.FATAL = Erreur technique lors de la génération du rapport d'élimination définitive des unités archivistiques)
+
+
+Établissement de la liste des objets OBJECTS_LIST_EMPTY
+---------------------------------------------------------
+
++ **Règle** : établissement de la liste des objets
+ 
+* **Type** : bloquant
+
+* **Statuts** :
+
++ OK : l'établissement de la liste des objets a bien été effectuée (OBJECTS_LIST_EMPTY.OK = Succès de l'établissement de la liste des objets)
+
++ KO : l'établissement de la liste des objets n'a pas été effectuée (OBJECTS_LIST_EMPTY.KO = Échec de l'établissement de la liste des objets)
+
++ WARNING : Le processus d'établissement de la liste des objets est en warning (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d''objet pour cette étape)
+
++ FATAL : Une erreur technique est survenue lors de l'établissement de la liste des objets (OBJECTS_LIST_EMPTY.FATAL = Erreur technique lors de l''établissement de la liste des objets)
+
+
+Processus de génération du rapport d'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_REPORT_GENERATION)
+=================================================================================================================================
+
+
++ **Règle** : génération du rapport d'élimination définitive des unités archivistiques
 
 * **Type** : bloquant
 
@@ -265,9 +438,9 @@ Génération du rapport d'élimination définitive des unités archivistiques (E
 
 
 Processus de finalisation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_FINALIZATION)
----------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------
 
-* **Type** : bloquant
++ **Règle** : finalisation de l'élimination définitive des unités archivistiques
 
 * **Statuts** :
 
@@ -277,11 +450,14 @@ Processus de finalisation de l'élimination définitive des unités archivistiqu
 
 + WARNING : Le processus de finalisation de l'élimination définitive des unités archivistiques est en warning (STP_ELIMINATION_ACTION_FINALIZATION.WARNING = Avertissement lors du processus de finalisation de l'élimination définitive des unités archivistiques)
 
-+ FATAL : Une erreur technique est survenue lors du processus de finalisation de l'élimination définitive des unités archivistiques  (STP_ELIMINATION_ACTION_FINALIZATION.FATAL = Erreur technique lors du processus de finalisation de l'élimination définitive des unités archivistiques)
++ FATAL : Une erreur technique est survenue lors du processus de finalisation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_FINALIZATION.FATAL = Erreur technique lors du processus de finalisation de l'élimination définitive des unités archivistiques)
 
 
 Finalisation de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION_FINALIZATION)
 ----------------------------------------------------------------------------------------------------
+
+
++ **Règle** : élimination définitive des unités archivistiques
 
 * **Type** : bloquant
 
@@ -299,6 +475,8 @@ Finalisation de l'élimination définitive des unités archivistiques (ELIMINATI
 Elimination définitive des unités archivistiques (ELIMINATION_ACTION)
 ---------------------------------------------------------------------
 
++ **Règle** : élimination définitive des unités archivistiques
+
 * **Type** : bloquant
 
 * **Statuts** :
@@ -309,7 +487,7 @@ Elimination définitive des unités archivistiques (ELIMINATION_ACTION)
 
 + WARNING : L'élimination définitive des unités archivistiques est an warning (ELIMINATION_ACTION.WARNING = Avertissement lors de l'élimination définitive des unités archivistiques) 
 
-+ FATAL :  Une erreur technique est survenue lors de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION.FATAL = Erreur technique lors de l'élimination définitive des unités archivistiques) 
++ FATAL : Une erreur technique est survenue lors de l'élimination définitive des unités archivistiques (ELIMINATION_ACTION.FATAL = Erreur technique lors de l'élimination définitive des unités archivistiques) 
 
 .. image:: images/workflow_elimination_action.png
     :align: center
@@ -386,25 +564,34 @@ Exemple de JSON : rapport d'élimination
   ]
   }
 
+"id" : "aeaqaaaabqhjsaaiabvjualghkg5n6aaaaca",
+  "originatingAgency" : "RATP",
+  "opi" : "aeeaaaaabshcalzeaami2alghkg45pyaaaaq",
+  "objectGroupId" : "aebaaaaabqhjsaaiabvjualghkg5nvyaaaaq",
+  "status" : "GLOBAL_STATUS_KEEP"
+
+
 Détails du rapport
 ==================
 
-Chaque section du rapport correspond au résultat de l’élimination 
-    "id": Identifiant de l’objet ou groupe d’objets ou unité archivistique
+Chaque section du rapport correspond aux résultats de l’élimination 
+    "id": identifiant de l’objet ou groupe d’objets ou unité archivistique
     "originatingAgency" : service producteur
     "opi" : identifiant de l'opération d'élimination 
    
    Les statuts possibles pour les unités archivistiques :
    
-      - GLOBAL_STATUS_KEEP 
-           "objectGroupId": "id_got_2" : identifiant du groupe d'objet auxquel appartient l'AU éliminée
+      - GLOBAL_STATUS_KEEP : les unités archivistiques sont conservées.
+           "objectGroupId": identifiant du groupe d'objet auxquel appartient l'unité archivistique éliminée
      
-      - NOT_DESTROYABLE_HAS_CHILD_UNIT
+      - NOT_DESTROYABLE_HAS_CHILD_UNIT : les unités ne sont pas éliminables car elles disposent d'enfants et leur suppression entrainerait une incohérence dans le graph.
+
       - DELETED Les unités sans enfants ont pour statut d'élimination DELETED et sont supprimées 
-           "objectIds": [ "id_got_1_object_1", "id_got_1_object_2" ] : 
+           "objectIds": liste des objets éliminés  
   
 
    Les statuts possibles pour les GOT : 
 
-      - DELETED 
-      - PARTIAL_DETACHMENT 
+      - DELETED : le Got a été éliminé
+
+      - PARTIAL_DETACHEMENT : le GOT a été détaché des unités archivistiques concernées dans le cas d'un GOT partagé par deux unités archivistiques dont une seule est éliminée.  
