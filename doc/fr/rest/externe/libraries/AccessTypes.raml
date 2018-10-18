@@ -13,9 +13,43 @@ types:
       description: Requête DSL multiple Vitam externe pour Access
 
   EliminationRequest:
-      type: DslTypes.DslBatchProcessionQuery
       displayName: Requête DSL multiple de traitement de masse pour élimination
       description: Requête DSL multiple Vitam de traitement de masse pour élimination
+      type: object
+      properties:
+        dslRequest:
+          description: Contient la requête de recherche
+          type: DslTypes.DslBatchProcessionQuery
+        date:
+          description: La date d'élimination
+          type: string
+      example:
+        {
+           "dslRequest": {
+             "$roots": [ "id0" ],
+             "$query": [
+               {
+                 "$match": { "title": "titre" },
+                 "$depth": 4
+               }
+             ],
+             "$threshold": 10000
+           },
+           "date": "2018-01-23"
+        }
+
+  EliminationResponse:
+      displayName: Requête DSL multiple de traitement de masse pour élimination
+      description: Requête DSL multiple Vitam de traitement de masse pour élimination
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la reponse
+          type: integer
+      example:
+        {
+           "httpCode" : 202
+        }
 
   AccessMultipleResponse:
     type: DslTypes.DslMultipeResponse
