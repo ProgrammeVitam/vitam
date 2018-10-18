@@ -37,7 +37,6 @@ import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
-import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -51,6 +50,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.functionaltest.cucumber.service.AccessService;
@@ -79,6 +79,7 @@ public class World {
     private String objectGroupId;
     private String applicationSessionId;
     private List<JsonNode> results;
+    private LogbookEvent logbookEvent;
     /**
      * id of the operation
      */
@@ -452,11 +453,19 @@ public class World {
         LogbookOperationsClientFactory.changeMode(conf);
     }
 
-    public List<JsonNode> getResults() {
+    List<JsonNode> getResults() {
         return results;
     }
 
-    public void setResults(List<JsonNode> results) {
+    void setResults(List<JsonNode> results) {
         this.results = results;
+    }
+
+    LogbookEvent getLogbookEvent() {
+        return logbookEvent;
+    }
+
+    void setLogbookEvent(LogbookEvent logbookEvent) {
+        this.logbookEvent = logbookEvent;
     }
 }

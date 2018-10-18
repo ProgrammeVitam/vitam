@@ -26,22 +26,8 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-import org.assertj.core.api.SoftAssertionError;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -52,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -61,7 +48,17 @@ import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import org.assertj.core.util.Lists;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
+import org.assertj.core.api.SoftAssertionError;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * step defining logbook behaviors
@@ -156,14 +153,25 @@ public class LogbookStep {
     @Then("^le statut final du journal des opérations est (.*)$")
     public void the_logbook_operation_has_a_status(String status)
         throws VitamClientException {
-        world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
-            world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), status);
+        LogbookEventOperation lastEvent =
+            world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
+                world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), status);
+        world.setLogbookEvent(lastEvent);
+    }
+
+    @Then("^le champ '(.*)' de l'évenement final est : (.*)$")
+    public void the_final_logbook_event_has_message(String field, String message)
+        throws VitamClientException, InvalidParseOperationException {
+        LogbookEvent logbookEvent = world.getLogbookEvent();
+        assertThat(logbookEvent).isNotNull();
+        JsonNode event = JsonHandler.toJsonNode(logbookEvent);
+        assertThat(event.get(field).textValue()).isEqualTo(message);
     }
 
     /**
      * Check logbook operation consistency : no double evId, same evProcType, evId = evProcId for master, max status
      * level is in the last event
-     * 
+     *
      * @throws VitamClientException
      */
     @Then("^le journal des opérations est cohérent$")
@@ -219,7 +227,7 @@ public class LogbookStep {
 
     /**
      * Check if logbook does not contains given status
-     * 
+     *
      * @param status forbidden status
      * @throws VitamClientException VitamClientException
      */
@@ -319,7 +327,7 @@ public class LogbookStep {
     /**
      * check if the status is valid for a list of event type according to logbook
      *
-     * @param eventNames list of event
+     * @param eventNames  list of event
      * @param eventStatus status of event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -391,7 +399,7 @@ public class LogbookStep {
     /**
      * check if the outcome detail is valid for an event type according to logbook
      *
-     * @param eventName the event
+     * @param eventName    the event
      * @param eventResults outcome detail of the event
      * @throws VitamClientException
      * @throws InvalidParseOperationException

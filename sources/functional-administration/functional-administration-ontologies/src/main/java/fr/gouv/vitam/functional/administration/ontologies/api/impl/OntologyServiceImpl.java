@@ -617,7 +617,6 @@ public class OntologyServiceImpl implements OntologyService {
         guidmasterNode.put(OUT_MESSG, VitamErrorMessages.getFromKey(ONTOLOGY_IMPORT_EVENT + "." + status));
 
         for (String identifier : errors.keySet()) {
-            Object o = errors.get(identifier);
             List<ErrorReportOntologies> errorsReports = errors.get(identifier);
             ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
             for (ErrorReportOntologies error : errorsReports) {

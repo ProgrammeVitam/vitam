@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -71,15 +72,13 @@ public class OntologyStep {
         this.fileName = Paths.get(world.getBaseDirectory(), fileName);
     }
 
-    @Then("^j'importe l'ontologie$")
+
+
+
+    @When("^j'importe l'ontologie$")
     public void uploadOntology() throws Exception {
-        uploadOntology(false);
-
-    }
-
-    @Then("^j'importe l'ontologie en mode forcé$")
-    public void uploadOntologyInForceMode() throws Exception {
         uploadOntology(true);
+
     }
 
     private void uploadOntology(boolean forceUpdate)

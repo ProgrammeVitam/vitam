@@ -53,12 +53,12 @@ public class LogbookService {
 
     /**
      * Get a Logbook operation by its id
-     * 
-     * @param accessClient access client
-     * @param tenantId tenant id
-     * @param contractId access contract id
+     *
+     * @param accessClient         access client
+     * @param tenantId             tenant id
+     * @param contractId           access contract id
      * @param applicationSessionId application session id
-     * @param operationId logbook operation id
+     * @param operationId          logbook operation id
      * @return RequestResponse
      * @throws VitamClientException exception
      */
@@ -72,52 +72,58 @@ public class LogbookService {
 
     /**
      * check on logbook if the global status is OK (status of the last event, if last event is correct)
-     * 
-     * @param accessClient access client
-     * @param tenantId tenant id
-     * @param contractId access contract id
+     *
+     * @param accessClient         access client
+     * @param tenantId             tenant id
+     * @param contractId           access contract id
      * @param applicationSessionId application session id
-     * @param operationId logbook operation id
-     * @param status expected status
+     * @param operationId          logbook operation id
+     * @param status               expected status
      * @throws VitamClientException exception
      */
-    public void checkFinalStatusLogbook(AccessExternalClient accessClient, int tenantId, String contractId,
+    public LogbookEventOperation checkFinalStatusLogbook(AccessExternalClient accessClient, int tenantId,
+        String contractId,
         String applicationSessionId, String operationId, String status)
         throws VitamClientException {
         RequestResponse<LogbookOperation> requestResponse =
             getLogbookOperation(accessClient, tenantId, contractId, applicationSessionId, operationId);
-        if (requestResponse instanceof RequestResponseOK) {
-            RequestResponseOK<LogbookOperation> requestResponseOK =
-                (RequestResponseOK<LogbookOperation>) requestResponse;
 
-            LogbookOperation actual = requestResponseOK.getFirstResult();
-            LogbookEventOperation last = Iterables.getLast(actual.getEvents());
-
-            if (!StringUtils.equals("FATAL", status)) {                
-                assertThat(last.getEvType()).as("last event is type %s, but %s was expected.",
-                    last.getEvType(), actual.getEvType()).isEqualTo(actual.getEvType());
-            }
-            
-            if (status.contains("|")) {
-                String[] statuses = status.split("\\|");
-                boolean atLeastOneOK = false;
-                for (String currStatus : statuses) {
-                    atLeastOneOK = last.getOutcome().equals(currStatus);
-                    if (atLeastOneOK) {
-                        break;
-                    }
-                }
-                assertThat(atLeastOneOK).as("last event has status %s, but %s was expected. Event name is: %s",
-                    last.getOutcome(), status, last.getEvType()).isEqualTo(true);
-            } else {
-                assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
-                    last.getOutcome(), status, last.getEvType()).isEqualTo(status);
-            }
-
-        } else {
+        if (!(requestResponse instanceof RequestResponseOK)) {
             LOGGER.error(
                 String.format("logbook operation return a vitam error for operationId: %s", operationId));
             fail(String.format("logbook operation return a vitam error for operationId: %s", operationId));
         }
+
+        RequestResponseOK<LogbookOperation> requestResponseOK =
+            (RequestResponseOK<LogbookOperation>) requestResponse;
+
+        LogbookOperation actual = requestResponseOK.getFirstResult();
+        LogbookEventOperation last = Iterables.getLast(actual.getEvents());
+
+        if (!StringUtils.equals("FATAL", status)) {
+            assertThat(last.getEvType()).as("last event is type %s, but %s was expected.",
+                last.getEvType(), actual.getEvType()).isEqualTo(actual.getEvType());
+        }
+
+        if (!status.contains("|")) {
+            assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
+                last.getOutcome(), status, last.getEvType()).isEqualTo(status);
+            return last;
+        }
+        String[] statuses = status.split("\\|");
+        boolean atLeastOneOK = false;
+        for (String currStatus : statuses) {
+            atLeastOneOK = last.getOutcome().equals(currStatus);
+            if (atLeastOneOK) {
+                break;
+            }
+        }
+        assertThat(atLeastOneOK).as("last event has status %s, but %s was expected. Event name is: %s",
+            last.getOutcome(), status, last.getEvType()).isEqualTo(true);
+
+
+        return last;
     }
+
 }
+

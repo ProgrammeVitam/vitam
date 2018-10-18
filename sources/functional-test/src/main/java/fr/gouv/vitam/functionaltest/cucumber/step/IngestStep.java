@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import cucumber.api.java.After;
@@ -209,15 +210,17 @@ public class IngestStep {
             try {
                 a_sip_named(fileName);
                 upload_this_sip();
-                world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
-                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), "OK");
+                LogbookEventOperation lastEvent =
+                    world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
+                        world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), "OK");
+                world.setLogbookEvent(lastEvent);
                 World.setOperationId(fileName, world.getOperationId());
             } catch (VitamException | IOException e) {
                 fail("Could not load test set : ingest failure.", e);
             }
-        } else {
-            this.world.setOperationId(World.getOperationId(fileName));
+            return;
         }
+        this.world.setOperationId(World.getOperationId(fileName));
     }
 
     @After
