@@ -30,6 +30,7 @@ Dans le répertoire de déploiement, lancer le script :
 
 
 Ce script génère sous ``pki/ca`` les autorités de certification root et intermédiaires pour générer des certificats clients, serveurs, et de timestamping.
+Les mots de passe des clés privées des autorités de certification sont stockés dans le vault ansible environments/certs/vault-ca.yml
 
 .. warning:: Bien noter les dates de création et de fin de validité des CA. En cas d'utilisation de la PKI fournie, la CA root a une durée de validité de 10 ans ; la CA intermédiaire a une durée de 3 ans.
 
