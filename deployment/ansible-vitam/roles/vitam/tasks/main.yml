@@ -239,6 +239,9 @@
   notify:
    - reload consul configuration
 
+- name: flush_handlers
+  meta: flush_handlers
+
 - name: Ensure consul service is started
   service:
     name: "vitam-consul"
