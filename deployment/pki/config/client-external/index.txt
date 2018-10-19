@@ -96,3 +96,10 @@ V	210221163706Z		0121	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=gatling
 V	210221163707Z		0122	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=vitam-admin-int
 V	210221163709Z		0123	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
 V	210221163710Z		0124	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
+V	281016083058Z		0125	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-external
+V	281016083059Z		0126	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-external
+V	211018084102Z		0127	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo
+V	211018084104Z		0128	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=gatling
+V	211018084105Z		0129	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=vitam-admin-int
+V	211018084107Z		012A	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
+V	211018084108Z		012B	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
