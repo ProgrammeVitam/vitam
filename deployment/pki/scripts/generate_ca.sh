@@ -7,7 +7,6 @@ set -e
 
 . $(dirname $0)/lib/functions.sh
 
-
 ######################################################################
 ############################# Functions ##############################
 ######################################################################
@@ -48,7 +47,7 @@ function generate_ca_root {
         -batch
 }
 
-# Génration de la CA intermédiaire
+# Génération de la CA intermédiaire
 function generate_ca_interm {
     local MDP_CAINTERMEDIATE_KEY="${1}"
     local MDP_CAROOT_KEY="${2}"
@@ -85,7 +84,6 @@ function generate_ca_interm {
     -batch
 }
 
-
 ######################################################################
 #############################    Main    #############################
 ######################################################################
@@ -109,11 +107,18 @@ fi
 for ITEM in server client-external client-storage timestamping
 do
     mkdir -p ${REPERTOIRE_CA}/${ITEM}
+
     pki_logger "Création de CA root pour ${ITEM}..."
-    generate_ca_root carootkeypassword ${ITEM} ${ITEM} # FIXME : parameters for passwords
+    # Génération du CA_ROOT_PASSWORD & stockage dans le vault-ca
+    CA_ROOT_PASSWORD=$(generatePassphrase)
+    setComponentPassphrase ca "ca_root_${ITEM}" "${CA_ROOT_PASSWORD}"
+    generate_ca_root ${CA_ROOT_PASSWORD} ${ITEM} ${ITEM}
 
     pki_logger "Création de la CA intermediate pour ${ITEM}..."
-    generate_ca_interm caintermediatekeypassword carootkeypassword ${ITEM} ${ITEM} # FIXME : parameters for passwords
+    # Génération du CA_INTERMEDIATE_PASSWORD & stockage dans le vault-ca
+    CA_INTERMEDIATE_PASSWORD=$(generatePassphrase)
+    setComponentPassphrase ca "ca_intermediate_${ITEM}" "${CA_INTERMEDIATE_PASSWORD}"
+    generate_ca_interm ${CA_INTERMEDIATE_PASSWORD} ${CA_ROOT_PASSWORD} ${ITEM} ${ITEM}
 
     purge_directory "${REPERTOIRE_CONFIG}/${ITEM}"
     purge_directory "${REPERTOIRE_CA}/${ITEM}"
