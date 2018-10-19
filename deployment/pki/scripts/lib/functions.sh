@@ -7,7 +7,6 @@ REPERTOIRE_CA="${REPERTOIRE_ROOT}/pki/ca"
 REPERTOIRE_CONFIG="${REPERTOIRE_ROOT}/pki/config"
 TEMP_CERTS="${REPERTOIRE_ROOT}/pki/tempcerts"
 PARAM_KEY_CHIFFREMENT="rsa:4096"
-VAULT_CERTS="${REPERTOIRE_CERTIFICAT}/vault-certs.yml"
 VAULT_KEYSTORES="${REPERTOIRE_ROOT}/environments/group_vars/all/vault-keystores.yml"
 
 if [ -f "${REPERTOIRE_ROOT}/vault_pass.txt" ]; then
@@ -40,16 +39,19 @@ function normalize_key {
     echo "${KEY}" | sed 's/[\\/\.-]/_/g'
 }
 
-function getComponentCertPassphrase {
-    local KEY_FILE="${1}"
+function getComponentPassphrase {
+    local TYPE="${1}"
+    local KEY_FILE="${2}"
     local RETURN_CODE=0
 
-    if [ ! -f "${VAULT_CERTS}" ]; then
+    VAULT_FILE="${REPERTOIRE_CERTIFICAT}/vault-${TYPE}.yml"
+
+    if [ ! -f "${VAULT_FILE}" ]; then
         return 1
     fi
 
     # Decrypt vault file
-    ansible-vault decrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
+    ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
     # Try/catch/finally stuff with bash (to make sure the vault stay encrypted)
     {
         # Try
@@ -57,7 +59,7 @@ function getComponentCertPassphrase {
         #       $certKey_blah
         #       $certKey_blahblah
         #       $certKey_........
-        eval $(parse_yaml ${VAULT_CERTS} "certKey_") && \
+        eval $(parse_yaml ${VAULT_FILE} "certKey_") && \
         # Get the value of the variable we are interested in
         # And store it into another var: $CERT_KEY
         eval $(echo "CERT_KEY=\$certKey_$(normalize_key ${KEY_FILE})") && \
@@ -66,14 +68,14 @@ function getComponentCertPassphrase {
     } || {
         # Catch
         RETURN_CODE=1
-        pki_logger "ERROR" "Error while reading certificate passphrase for ${KEY_FILE} in certificates vault: ${VAULT_CERTS}"
+        pki_logger "ERROR" "Error while reading certificate passphrase for ${KEY_FILE} in certificates vault: ${VAULT_FILE}"
     } && {
         # Finally
         if [ "${CERT_KEY}" == "" ]; then
             pki_logger "ERROR" "Error while retrieving the key: ${KEY_FILE}"
             RETURN_CODE=1
         fi
-        ansible-vault encrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
         return ${RETURN_CODE}
     }
 }
@@ -81,10 +83,13 @@ function getComponentCertPassphrase {
 # KWA TODO: explain & comonize the sed usage ;
 # KWA TODO: change replacement string in sed : /_/ ==> /__/
 # TODO: produce an example cert vault
-function setComponentCertPassphrase {
-    local KEY_FILE="${1}"
-    local KEY="${2}"
+function setComponentPassphrase {
+    local TYPE="${1}"
+    local KEY_FILE="${2}"
+    local KEY="${3}"
     local RETURN_CODE=0
+
+    VAULT_FILE="${REPERTOIRE_CERTIFICAT}/vault-${TYPE}.yml"
 
     # if [ ! -f ${REPERTOIRE_CERTIFICAT}/${KEY_FILE} ]; then
     #     pki_logger "ERROR" "The certificate key file does exists: ${REPERTOIRE_CERTIFICAT}/${KEY_FILE}"
@@ -92,11 +97,11 @@ function setComponentCertPassphrase {
     # fi
 
     # Manage initial state (non-existing vault)
-    if [ -f "${VAULT_CERTS}" ]; then
-        ansible-vault decrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
+    if [ -f "${VAULT_FILE}" ]; then
+        ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
     else
-        if [ -f "${VAULT_CERTS}.example" ]; then
-            rm -f "${VAULT_CERTS}.example"
+        if [ -f "${VAULT_FILE}.example" ]; then
+            rm -f "${VAULT_FILE}.example"
         fi
     fi
 
@@ -104,16 +109,16 @@ function setComponentCertPassphrase {
     {
         # Try
         # Add key to example vault
-        normalize_key "${KEY_FILE}: changeme" >> "${VAULT_CERTS}.example" && \
+        normalize_key "${KEY_FILE}: changeme" >> "${VAULT_FILE}.example" && \
         # Add key to vault
-        normalize_key "${KEY_FILE}: ${KEY}" >> "${VAULT_CERTS}"
+        normalize_key "${KEY_FILE}: ${KEY}" >> "${VAULT_FILE}"
     } || {
         # Catch
         RETURN_CODE=1
-        pki_logger "ERROR" "Error while writing to vault file: ${VAULT_CERTS}"
+        pki_logger "ERROR" "Error while writing to vault file: ${VAULT_FILE}"
     } && {
         # Finally
-        ansible-vault encrypt ${VAULT_CERTS} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
         return ${RETURN_CODE}
     }
 }
