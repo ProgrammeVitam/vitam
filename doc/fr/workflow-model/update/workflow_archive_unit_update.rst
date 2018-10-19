@@ -301,7 +301,7 @@ Processus de mise à jour de règle de gestion des métadonnées de l'unité arc
 
     - FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur technique lors du processus de mise à jour des métadonnées de l'unité archivistique)
 
-Structue de workflow mise à jour des règles de gestions de l'unité archivistique
+Structure de workflow mise à jour des règles de gestions de l'unité archivistique
 =================================================================================
 
 .. image:: images/workflow-unit-rules-update.png
