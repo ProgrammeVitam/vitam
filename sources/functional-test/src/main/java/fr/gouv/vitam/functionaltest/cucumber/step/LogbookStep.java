@@ -165,7 +165,7 @@ public class LogbookStep {
         LogbookEvent logbookEvent = world.getLogbookEvent();
         assertThat(logbookEvent).isNotNull();
         JsonNode event = JsonHandler.toJsonNode(logbookEvent);
-        assertThat(event.get(field).textValue()).isEqualTo(message);
+        assertThat(event.get(field).textValue()).contains(message);
     }
 
     /**

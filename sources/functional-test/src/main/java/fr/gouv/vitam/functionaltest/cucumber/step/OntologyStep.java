@@ -36,8 +36,11 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +50,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OntologyStep {
 
@@ -58,9 +63,7 @@ public class OntologyStep {
     private World world;
     private Path fileName;
 
-
-
-
+    private OntologyModel ontologyModel;
 
     /**
      * define a ontology file
@@ -74,16 +77,8 @@ public class OntologyStep {
 
 
 
-
     @When("^j'importe l'ontologie$")
-    public void uploadOntology() throws Exception {
-        uploadOntology(true);
-
-    }
-
-    private void uploadOntology(boolean forceUpdate)
-        throws IOException, InvalidParseOperationException, AccessExternalClientException {
-
+    public void uploadOntology() throws InvalidParseOperationException, AccessExternalClientException, IOException {
 
         try (InputStream inputStream = Files.newInputStream(fileName, StandardOpenOption.READ)) {
 
@@ -91,7 +86,7 @@ public class OntologyStep {
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
             RequestResponse requestResponse =
-                world.getAdminClient().importOntologies(forceUpdate, vitamContext, inputStream);
+                world.getAdminClient().importOntologies(true, vitamContext, inputStream);
             final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
 
@@ -101,8 +96,23 @@ public class OntologyStep {
             List<JsonNode> result = new ArrayList<>();
             result.add(responseCode);
             world.setResults(result);
-
-
         }
+    }
+
+    @When("^je recherche le vocabulaire intitulé (.*)$")
+    public void searchOntologyByIdentifier(String identifer) throws VitamClientException {
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse requestResponse =
+            world.getAdminClient().findOntologyById(vitamContext,identifer);
+        assertThat(requestResponse.isOk()).isTrue();
+
+        ontologyModel = (OntologyModel) ((RequestResponseOK) requestResponse).getFirstResult();
+    }
+
+    @Then("^le type du vocabulaire est (.*)$")
+    public void ontology_type_is(String type){
+        assertThat(ontologyModel.getType().name()).isEqualTo(type);
+
     }
 }
