@@ -88,6 +88,11 @@ public class World {
     private String eliminationOperationId;
 
     /**
+     * Named operation ids
+     */
+    private Map<String, String> namedOperationIds = new HashMap();
+
+    /**
      * DSL query
      */
     private String query;
@@ -311,7 +316,13 @@ public class World {
         operationIdsByTestSet.put(testSet, operationId);
     }
 
+    public String getNamedOperationId(String name) {
+        return namedOperationIds.get(name);
+    }
 
+    public void setNamedOperationId(String name, String namedOperationId) {
+        this.namedOperationIds.put(name, namedOperationId);
+    }
 
     /**
      * @return unitId
