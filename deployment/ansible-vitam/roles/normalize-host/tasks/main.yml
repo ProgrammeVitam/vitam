@@ -35,3 +35,27 @@
     - log
     - script
     - tmp
+
+- include_tasks: epel.yml
+  when:
+    - vitam.ingestexternal.antivirus == 'clamav'
+    - ansible_hostname in groups['hosts-ingest-external']
+
+# No openjdk8 without jessie-backports with debian
+- include_tasks: epel.yml
+  when:
+    - ansible_os_family == "Debian"
+
+- name: Update yum cache
+  yum:
+    update_cache: yes
+  tags:
+    - update_package_vitam
+  when: ansible_os_family == "RedHat"
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  tags:
+    - update_package_vitam
+  when: ansible_os_family == "Debian"

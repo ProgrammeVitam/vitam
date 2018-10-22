@@ -18,8 +18,5 @@
   with_fileglob:
     - "{{inventory_dir}}/antivirus/*sh"
 
-- include_tasks: epel.yml
-  when: vitam_struct.antivirus == 'clamav'
-
 - include_tasks: clamav.yml
   when: vitam_struct.antivirus == 'clamav'

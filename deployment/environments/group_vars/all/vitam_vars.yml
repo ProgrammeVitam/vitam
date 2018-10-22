@@ -99,15 +99,6 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
         metrics_enabled: true
-    batchreport:
-        vitam_component: batch-report
-        host: "batch-report.service.{{ consul_domain }}"
-        port_service: 8015
-        port_admin: 18015
-        baseuri: "batch-report"
-        https_enabled: false
-        secret_platform: "false"
-        # log_level: "DEBUG"
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
