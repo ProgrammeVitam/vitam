@@ -7,6 +7,7 @@ set -e
 
 . "$(dirname $0)/lib/functions.sh"
 
+
 ######################################################################
 ############################# Functions ##############################
 ######################################################################
@@ -123,9 +124,6 @@ function generateHostCertAndStorePassphrase {
     local COMPONENT="${1}"
     local HOSTS_GROUP="${2}"
 
-    # Récupération du password de la CA_INTERMEDIATE dans le vault-ca
-    CA_INTERMEDIATE_PASSWORD=$(getComponentPassphrase ca "ca_intermediate_server")
-
     # sed "1 d" : remove the first line
     for SERVER in $(ansible -i ${ENVIRONNEMENT_FILE} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
         # Generate the key
@@ -133,13 +131,13 @@ function generateHostCertAndStorePassphrase {
         # Create the certificate
         generateHostCertificate ${COMPONENT} \
                                 ${CERT_KEY} \
-                                ${CA_INTERMEDIATE_PASSWORD} \
+                                caintermediatekeypassword \
                                 ${SERVER} \
                                 "server" \
                                 "${COMPONENT}.service.consul"
         # Store the key to the vault
-        setComponentPassphrase certs "server_${COMPONENT}_key" \
-                                     "${CERT_KEY}"
+        setComponentCertPassphrase  "server_${COMPONENT}_key" \
+                                    "${CERT_KEY}"
     done
 }
 
@@ -147,18 +145,15 @@ function generateHostCertAndStorePassphrase {
 function generateTimestampCertAndStorePassphrase {
     local USAGE="${1}"
 
-    # Récupération du password de la CA_INTERMEDIATE dans le vault-ca
-    CA_INTERMEDIATE_PASSWORD=$(getComponentPassphrase ca "ca_intermediate_timestamping")
-
     # Generate the key
     local CERT_KEY=$(generatePassphrase)
     # Create the certificate
-    generateTimestampCertificate ${USAGE} \
-                                 ${CERT_KEY} \
-                                 ${CA_INTERMEDIATE_PASSWORD}
+    generateTimestampCertificate    ${USAGE} \
+                                    ${CERT_KEY} \
+                                    caintermediatekeypassword
     # Store the key to the vault
-    setComponentPassphrase certs "timestamping_${USAGE}_key" \
-                                 "${CERT_KEY}"
+    setComponentCertPassphrase  "timestamping_${USAGE}_key" \
+                                "${CERT_KEY}"
 }
 
 # Génération du certificat client et stockage de la passphrase
@@ -166,19 +161,17 @@ function generateClientCertAndStorePassphrase {
     local COMPONENT="${1}"
     local CLIENT_TYPE="${2}"
 
-    # Récupération du password de la CA_INTERMEDIATE dans le vault-ca
-    CA_INTERMEDIATE_PASSWORD=$(getComponentPassphrase ca "ca_intermediate_${CLIENT_TYPE}")
-
     # Generate the key
     local CERT_KEY=$(generatePassphrase)
     # Create the certificate
-    generateClientCertificate ${COMPONENT} \
-                              ${CERT_KEY} \
-                              ${CA_INTERMEDIATE_PASSWORD} \
-                              ${CLIENT_TYPE}
+    generateClientCertificate \
+            ${COMPONENT} \
+            ${CERT_KEY} \
+            caintermediatekeypassword \
+            ${CLIENT_TYPE}
     # Store the key to the vault
-    setComponentPassphrase certs "client_${CLIENT_TYPE}_${COMPONENT}_key" \
-                                 "${CERT_KEY}"
+    setComponentCertPassphrase  "client_${CLIENT_TYPE}_${COMPONENT}_key" \
+                                "${CERT_KEY}"
 }
 
 # Recopie de la CA de pki/CA vers environments/cert/cert-type/CA
@@ -191,6 +184,7 @@ function copyCAFromPki {
         cp -f "${CA}" "${REPERTOIRE_CERTIFICAT}/${CERT_TYPE}/ca/$(basename ${CA})"
     done
 }
+
 
 ######################################################################
 #############################    Main    #############################
@@ -242,10 +236,6 @@ generateClientCertAndStorePassphrase        gatling                  client-exte
 generateClientCertAndStorePassphrase        vitam-admin-int          client-external
 generateClientCertAndStorePassphrase        ihm-recette              client-external
 generateClientCertAndStorePassphrase        reverse                  client-external
-
-# Generate storage certificates
-pki_logger "Génération des certificats storage"
-# Method                                    # Component name         # Client type
 generateClientCertAndStorePassphrase        storage                  client-storage
 
 pki_logger "Fin de script"
