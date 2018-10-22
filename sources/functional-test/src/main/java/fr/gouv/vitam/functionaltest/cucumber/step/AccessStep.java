@@ -121,6 +121,8 @@ public class AccessStep {
         "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
+    private static final String NAMED_OPERATION_ID_PREFIX = "Named-Operation-Id<";
+    private static final String NAMED_OPERATION_ID_SUFFIX = ">";
     private static final String ELIMINATION_OPERATION_ID = "Elimination-Operation-Id";
 
     private static final String UNIT_PREFIX = "unit:";
@@ -292,7 +294,7 @@ public class AccessStep {
 
         Matcher matcher = Pattern.compile(REGEX)
             .matcher(result);
-        String resultCopy = new String(result);
+        String resultCopy = result;
         Map<String, String> unitToGuid = new HashMap<>();
         while (matcher.find()) {
             String unit = matcher.group(1);
@@ -309,6 +311,27 @@ public class AccessStep {
         return resultCopy;
     }
 
+    private String transformLoadedUnitTitleToGuid(String result) throws Throwable {
+
+        Matcher matcher = Pattern.compile(REGEX)
+            .matcher(result);
+        String resultCopy = result;
+        Map<String, String> unitToGuid = new HashMap<>();
+        while (matcher.find()) {
+            String unit = matcher.group(1);
+            String unitTitle = unit.substring(2, unit.length() - 2).replace(UNIT_PREFIX, "").trim();
+            String unitGuid;
+            if (unitToGuid.get(unitTitle) != null) {
+                unitGuid = unitToGuid.get(unitTitle);
+            } else {
+                unitGuid = selectLoadedUnitGuidByTitle(unitTitle);
+                unitToGuid.put(unitTitle, unitGuid);
+            }
+            resultCopy = resultCopy.replace(unit, unitGuid);
+        }
+        return resultCopy;
+    }
+
     private String getUnitGuidByTitle(String unitTitle) throws InvalidCreateOperationException, VitamClientException {
         String unitGuid;
         unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
@@ -317,6 +340,16 @@ public class AccessStep {
         return unitGuid;
     }
 
+    private String selectLoadedUnitGuidByTitle(String unitTitle) {
+
+        for (JsonNode result : results) {
+            if (result.get("Title").asText().equals(unitTitle)) {
+                return result.get(VitamFieldsHelper.id()).asText();
+            }
+        }
+        Fail.fail("No such unit with title '" + unitTitle + "'");
+        throw new AssertionError("Never reached");
+    }
 
     /**
      * Get a specific field value from a result identified by its index
@@ -466,9 +499,21 @@ public class AccessStep {
         world.setQuery(queryTmp);
     }
 
+    @Then("^je nomme l'identifiant de l'opération (.*)$")
+    public void saveOperationId(String operationIdName) throws Throwable {
+        world.setNamedOperationId(operationIdName, world.getOperationId());
+    }
+
     private String replaceOperationIds(String query) {
         if (world.getEliminationOperationId() != null) {
             query = query.replace(ELIMINATION_OPERATION_ID, world.getEliminationOperationId());
+        }
+        while(query.contains(NAMED_OPERATION_ID_PREFIX)) {
+            int startIndex = query.indexOf(NAMED_OPERATION_ID_PREFIX);
+            int endIndex = query.indexOf(NAMED_OPERATION_ID_SUFFIX, startIndex);
+            String name = query.substring(startIndex +  + NAMED_OPERATION_ID_PREFIX.length(), endIndex);
+            query = query.replace(NAMED_OPERATION_ID_PREFIX + name + NAMED_OPERATION_ID_SUFFIX,
+                world.getNamedOperationId(name));
         }
         if (world.getOperationId() != null) {
             query = query.replace(OPERATION_ID, world.getOperationId());
@@ -669,7 +714,7 @@ public class AccessStep {
 
             String refJsonWithUnitTitles = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
-            String refJsonWithUnitGuids = transformUnitTitleToGuid(refJsonWithUnitTitles);
+            String refJsonWithUnitGuids = transformLoadedUnitTitleToGuid(refJsonWithUnitTitles);
 
             expectedJson = JsonHandler.getFromString(refJsonWithUnitGuids);
         }
@@ -692,12 +737,8 @@ public class AccessStep {
         }
     }
 
-    private JsonNode selectUnitInheritedRulesByTitle(String unitTitle)
-        throws InvalidCreateOperationException, VitamClientException {
-        String unitGuid = getUnitGuidByTitle(unitTitle);
-        if (unitGuid == null) {
-            Fail.fail("No such unit with title '" + unitTitle + "'");
-        }
+    private JsonNode selectUnitInheritedRulesByTitle(String unitTitle) {
+        String unitGuid = selectLoadedUnitGuidByTitle(unitTitle);
 
         JsonNode unitJson = null;
         for (JsonNode result : results) {
