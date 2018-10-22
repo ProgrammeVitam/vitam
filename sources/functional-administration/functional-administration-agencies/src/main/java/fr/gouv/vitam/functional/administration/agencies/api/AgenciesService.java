@@ -535,7 +535,6 @@ public class AgenciesService implements VitamAutoCloseable {
                 }
 
                 if (agencyToImport.getIdentifier().equals(agencyInDb.getIdentifier())) {
-
                     agenciesToInsert.remove(agencyToImport);
                 }
 

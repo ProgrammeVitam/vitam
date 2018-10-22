@@ -25,7 +25,7 @@ describe('ComputeRulesUtilsService', () => {
     // Given
     const archiveUnitProfile = 'Profile';
     const management = {NeedAuthorization: true, AccessRule: {Inheritance: {PreventRulesId: ['preventedId']}}};
-    const inheritedRules = {
+    const preventRulesId = {
       AccessRule: {
         Rules: [{ Rule: 'Rule', StartDate: 'StartDate', EndDate: 'EndDate', UnitId: 'id', OriginatingAgency: 'OA', Paths: [[]]}],
         Properties: []
@@ -37,7 +37,7 @@ describe('ComputeRulesUtilsService', () => {
     };
 
     // When
-    const response = service.computeEffectiveRules(management, inheritedRules, archiveUnitProfile);
+    const response = service.computeEffectiveRules(management, preventRulesId, archiveUnitProfile);
     const managementInfo = response.managementInfo;
     const properties = response.unitProperties;
 

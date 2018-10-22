@@ -2386,6 +2386,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     @GET
+    @Path("/distributionreport/{opId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "distributionreport:id:read",
+        description = "Récupérer le rapport pour une opération de mise à jour de masse distribuée")
+    public Response downloadDistributionReportAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.DISTRIBUTIONREPORTS);
+    }
+
+    @GET
     @Path("/rulesreferential/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "rulesreferential:id:read",
@@ -2404,6 +2413,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
+
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             return new VitamAsyncInputStreamResponse(response);

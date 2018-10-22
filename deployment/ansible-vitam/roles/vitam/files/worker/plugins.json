@@ -152,6 +152,10 @@
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.UnitMetadataUpdateCheckPermission",
     "propertiesFile": "check_update_request_permissions.properties"
   },
+  "CHECK_RULES_ID": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.UnitMetadataUpdateCheckRulesID",
+    "propertiesFile": "check_update_rules_id.properties"
+  },
   "CHECK_DISTRIBUTION_THRESHOLD": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold",
     "propertiesFile": "check_distribution_threshold.properties"

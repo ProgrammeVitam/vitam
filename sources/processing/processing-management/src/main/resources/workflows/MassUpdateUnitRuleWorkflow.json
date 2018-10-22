@@ -40,6 +40,12 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_RULES_ID",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
             "behavior": "BLOCKING"
           }

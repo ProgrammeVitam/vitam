@@ -82,10 +82,8 @@ public class QueryToMongodb {
      * @param field String
      * @param roots Set of String
      * @return the filter associated with the roots
-     * @throws InvalidParseOperationException if field is not in roots
      */
-    public static Bson getRoots(final String field, final Collection<String> roots)
-        throws InvalidParseOperationException {
+    public static Bson getRoots(final String field, final Collection<String> roots) {
         if (roots.size() == 1) {
             return eq(field, roots.iterator().next());
         }

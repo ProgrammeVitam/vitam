@@ -415,6 +415,8 @@ public enum VitamCode {
         "Unauthorized to update archive units"),
     UPDATE_UNIT_DESC_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "15", Status.UNAUTHORIZED,
         "Unauthorized to update other than descriptive metadata in archive units"),
+    UPDATE_UNIT_RULES_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "18", Status.UNAUTHORIZED,
+        "Unauthorized to update rules: Bad ID or wrong category"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

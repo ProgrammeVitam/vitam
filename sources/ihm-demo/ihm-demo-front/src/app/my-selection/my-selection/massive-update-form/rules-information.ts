@@ -13,6 +13,9 @@ export class RuleInformation {
 
 /* Rules category Types */
 export class RuleCategory {
+  PreventInheritance: boolean;
+  PreventRuleIds: string[] = [];
+  AllowRuleIds: string[] = [];
   Rules: RuleInformation[] = [];
 }
 

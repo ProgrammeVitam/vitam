@@ -935,7 +935,22 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalCreateContracts(vitamContext, accessContracts, AdminCollections.ACCESS_CONTRACTS);
     }
 
+    @Override
+    public Response downloadDistributionReport(VitamContext vitamContext, String opId)
+        throws VitamClientException {
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
 
+        Response response;
+        try {
+            response = performRequest(HttpMethod.GET, AccessExtAPI.DISTRIBUTION_REPORT_API + "/" + opId,
+                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        }
+        return response;
+    }
 
     @Override
     public Response downloadRulesReport(VitamContext vitamContext, String opId)

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.massupdate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Set;
 
 public class RuleCategoryAction {
 
@@ -37,6 +38,12 @@ public class RuleCategoryAction {
 
     @JsonProperty("FinalAction")
     private String finalAction;
+
+    @JsonProperty("PreventInheritance")
+    private Boolean preventInheritance;
+
+    @JsonProperty("PreventRulesId")
+    private Set<String> preventRulesId;
 
     public List<RuleAction> getRules() {
         return rules;
@@ -52,5 +59,21 @@ public class RuleCategoryAction {
 
     public void setFinalAction(String finalAction) {
         this.finalAction = finalAction;
+    }
+
+    public Boolean getPreventInheritance() {
+        return preventInheritance;
+    }
+
+    public void setPreventInheritance(Boolean preventInheritance) {
+        this.preventInheritance = preventInheritance;
+    }
+
+    public Set<String> getPreventRulesId() {
+        return preventRulesId;
+    }
+
+    public void setPreventRulesId(Set<String> preventRulesId) {
+        this.preventRulesId = preventRulesId;
     }
 }

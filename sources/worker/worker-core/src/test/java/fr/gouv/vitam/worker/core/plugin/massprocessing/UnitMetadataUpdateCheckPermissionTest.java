@@ -173,7 +173,7 @@ public class UnitMetadataUpdateCheckPermissionTest {
     @Test
     @RunWithCustomExecutor
     public void givingUpdateQueryWithoutWrittingPermissionKO()
-        throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
+        throws InvalidParseOperationException, ProcessingException,
         FileNotFoundException, ReferentialNotFoundException, AdminManagementClientServerException {
 
         // Given
@@ -194,15 +194,14 @@ public class UnitMetadataUpdateCheckPermissionTest {
         given(handlerIO.getInput(CHECK_CONTRACT_RANK)).willReturn(String.valueOf(true));
 
         // When /Then
-        assertThatThrownBy(() -> unitMetadataUpdateCheckPermission.execute(parameters, handlerIO))
-            .isInstanceOf(UpdatePermissionException.class)
-            .hasMessageContaining(VitamCode.UPDATE_UNIT_PERMISSION.name());
+        ItemStatus status = unitMetadataUpdateCheckPermission.execute(parameters, handlerIO);
+        assertThat(status.getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givingUpdateDataMgtQueryWithOnlyWrittingPermissionDescKO()
-        throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
+        throws InvalidParseOperationException, ProcessingException,
         FileNotFoundException, ReferentialNotFoundException, AdminManagementClientServerException {
 
         // Given
@@ -228,9 +227,8 @@ public class UnitMetadataUpdateCheckPermissionTest {
         given(handlerIO.getInput(CHECK_MANAGEMENT_RANK)).willReturn(String.valueOf(true));
 
         // When /Then
-        assertThatThrownBy(() -> unitMetadataUpdateCheckPermission.execute(parameters, handlerIO))
-            .isInstanceOf(UpdatePermissionException.class)
-            .hasMessageContaining(VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
+        ItemStatus status = unitMetadataUpdateCheckPermission.execute(parameters, handlerIO);
+        assertThat(status.getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 
     @Test

@@ -686,6 +686,17 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws AccessExternalClientException, InvalidParseOperationException, VitamClientException;
 
     /**
+     * Download distribution reports
+     *
+     * @param vitamContext the vitam context
+     * @param opId         the op (logbook) ID
+     * @return the rulesReport
+     * @throws VitamClientException
+     */
+    Response downloadDistributionReport(VitamContext vitamContext, String opId)
+        throws VitamClientException;
+
+    /**
      * Download rules report
      *
      * @param vitamContext the vitam context

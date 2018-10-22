@@ -191,6 +191,10 @@ public class AccessExtAPI {
      */
     public static final String RULES_REPORT_API = "/" + RULES_REPORT;
     /**
+     * Rules report uri
+     */
+    public static final String DISTRIBUTION_REPORT_API = "/distributionreport";
+    /**
      * referential base uri
      */
     public static final String RULES_REFERENTIAL = "rulesreferential";
