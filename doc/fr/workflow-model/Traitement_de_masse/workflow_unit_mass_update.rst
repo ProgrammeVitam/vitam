@@ -219,7 +219,7 @@ Vérification des droits de mise à jour des métadonnées descriptives des unit
 
 
 Vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques CHECK_RULES_ID
------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
 
 
 + **Règle** : Vérification des identifiants de règles de gestion demandées à la mise à jour des unités archivistiques 
