@@ -18,7 +18,7 @@
     dest: "/usr/lib/systemd/system/{{ item | basename | regex_replace('\\.j2$') }}"
   with_fileglob:
     - "{{ role_path }}/templates/systemd/*"
-  when: ansible_distribution == 'CentOS'
+  when: ansible_os_family == "RedHat"
 
 - name: copy the systemd unit & timer files for curator on Debian environment
   template:
@@ -26,7 +26,7 @@
     dest: "/lib/systemd/system/{{ item | basename | regex_replace('\\.j2$') }}"
   with_fileglob:
     - "{{ role_path }}/templates/systemd/*"
-  when: ansible_distribution == 'Debian'
+  when: ansible_os_family == "Debian"
 
 - name: Enable systemd timers
   systemd:

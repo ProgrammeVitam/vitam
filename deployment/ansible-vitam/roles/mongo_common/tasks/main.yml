@@ -22,13 +22,13 @@
   stat:
     path: /usr/lib/systemd/system/tuned.service
   register: tuned_service_status
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 - name: Check if tuned is installed
   stat:
     path: /lib/systemd/system/tuned.service
   register: tuned_service_status
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 - set_fact: status_tuned_present="{{ tuned_service_status.stat.exists }}"
   when: tuned_service_status.changed
@@ -65,7 +65,7 @@
     dest: /usr/lib/systemd/system/disable_transparent_hugepages.service
     owner: root
     mode: 0700
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 - name: add systemd service unit to disable THP
   copy:
@@ -73,7 +73,7 @@
     dest: /lib/systemd/system/disable_transparent_hugepages.service
     owner: root
     mode: 0700
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 - name: enable systemd service unit to disable THP
   service:
