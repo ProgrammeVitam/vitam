@@ -15,7 +15,7 @@
       group: root
       mode: 0640
 
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - block:
   - name: get repo for git lfs for Debian
@@ -42,7 +42,7 @@
   - name: update apt cache
     shell: apt-get update
 
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
 
 - name: install git-lfs
   package:

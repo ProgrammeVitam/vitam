@@ -7,7 +7,7 @@
     owner: root
     group: root
     mode: 0644
-  when: ansible_distribution=='CentOS'
+  when: ansible_os_family == "RedHat"
 
 - name: create VITAM repositories for Debian
   template:
@@ -16,4 +16,4 @@
     owner: root
     group: root
     mode: 0644
-  when: ansible_distribution=='Debian'
+  when: ansible_os_family == "Debian"

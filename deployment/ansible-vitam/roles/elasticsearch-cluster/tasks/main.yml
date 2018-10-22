@@ -43,13 +43,13 @@
     name: openjdk-8-jdk-headless
     state: latest
     default_release: jessie-backports
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 # - name: install java on CentOS
 #   yum:
 #     name: java-1.8.0-openjdk
 #     state: latest
-#   when: ansible_distribution == "CentOS"
+#   when: ansible_os_family == "RedHat"
 
 - name: install vitam-{{composant.cluster_name}} package
   package:
@@ -69,7 +69,7 @@
     insertafter: "that can be read by anyone"
     content: |
       permission javax.management.MBeanTrustPermission "register";
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 # OMA: to be tested
 - name: apply java MBean security on Debian
@@ -78,7 +78,7 @@
     marker: "// {mark} ANSIBLE MANAGED BLOCK"
     insertafter: "that can be read by anyone"
     content: "permission javax.management.MBeanTrustPermission \"register\";"
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 - name: ensure /var/run/{{ composant.cluster_name }} exists
   file:

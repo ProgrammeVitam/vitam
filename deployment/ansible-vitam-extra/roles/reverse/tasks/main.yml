@@ -6,7 +6,7 @@
     apache_conf_dir: "conf.d"
     apache_user: "apache"
     apache_group: "apache"
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 - name: Set apache service name for Debian
   set_fact:
@@ -14,7 +14,7 @@
     apache_conf_dir: "sites-available"
     apache_user: "root"
     apache_group: "root"
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 - name: install apache2
   package:
@@ -25,7 +25,7 @@
   package:
     name: mod_ssl
     state: present
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 # TODO: We could use apache2_module of ansible but it is currently flagged as preview
 - name: Enable mod_ssl & mod_proxy (Debian)
@@ -34,7 +34,7 @@
     dest: "/etc/{{ apache_service }}/mods-enabled/{{ item }}"
     owner: "root"
     state: link
-  when:  ansible_distribution == "Debian"
+  when:  ansible_os_family == "Debian"
   with_items:
     - ssl.conf
     - ssl.load
@@ -130,7 +130,7 @@
   file:
     path: /etc/{{ apache_service }}/sites-enabled/000-default.conf
     state: absent
-  when:  ansible_distribution == "Debian"
+  when:  ansible_os_family == "Debian"
   tags:
     - update_package_vitam
   notify:
@@ -142,7 +142,7 @@
     dest: /etc/{{ apache_service }}/sites-enabled/zz_{{ vitam_reverse_external_dns }}.conf
     owner: "root"
     state: link
-  when:  ansible_distribution == "Debian"
+  when:  ansible_os_family == "Debian"
   tags:
     - update_package_vitam
   notify:
