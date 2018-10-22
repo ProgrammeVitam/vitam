@@ -53,6 +53,8 @@ hosts-ihm-demo
 hosts-cerebro
 hosts-ihm-recette
 
+# If you don't need consul for ihm-demo, you can set this var:
+# consul_disabled=true
 [hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
 
