@@ -2,9 +2,9 @@
 
 - name: Update yum cache
   shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - name: run apt-update
   apt:
     update_cache: yes
-  when: ( ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
