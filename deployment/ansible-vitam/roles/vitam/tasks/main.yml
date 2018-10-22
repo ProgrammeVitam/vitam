@@ -218,37 +218,17 @@
   notify:
     - restart service
 
-#### Consul configuration ####
+- include_tasks: remove_metrics.yml
+  when: vitam_struct.metrics_enabled |lower != "true"
 
-- name: Ensure consul config dir is OK
-  file:
-    path: "{{ consul_folder_conf }}"
-    state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
+- include_tasks: consul.yml
+  when:  consul_disabled is not defined or consul_disabled |lower != "true"
 
-- name: Deploy consul agent service declaration for {{ package_name }} service
-  template:
-    src: "service-componentid.json.j2"
-    dest: "{{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - consul_conf
-  notify:
-   - reload consul configuration
+- include_tasks: ihm_demo.yml
+  when:  vitam_struct.vitam_component == "ihm-demo"
 
-- name: Ensure consul service is started
-  service:
-    name: "vitam-consul"
-    state: started
-
-- name: Check if consul is listening
-  wait_for:
-    host: "127.0.0.1"
-    port: "{{ consul.dns_port }}"
-    state: started
+- name: flush_handlers
+  meta: flush_handlers
 
 - name: Ensure {{ package_name }} service is started
   service:
@@ -257,7 +237,7 @@
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
 
-- name: Check if {{ package_name }} is listening
+- name: Check if {{ package_name }} is listening on service port {{ vitam_struct.port_service }}
   wait_for:
     host: "{{ ip_service }}"
     port: "{{ vitam_struct.port_service }}"
