@@ -23,13 +23,6 @@
   notify:
    - restart slapd
 
-
-- name: Copy the supporting files
-  copy: src=slapd_fedora dest=/etc/sysconfig/slapd mode=0755
-  when: openldap_server_enable_ssl and ansible_distribution == "Fedora"
-  notify:
-   - restart slapd
-
 - name: Copy the supporting files
   copy: src=slapd dest=/etc/default/slapd mode=0755
   when: openldap_server_enable_ssl and ansible_os_family == 'Debian'

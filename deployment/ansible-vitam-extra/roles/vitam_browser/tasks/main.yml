@@ -6,7 +6,7 @@
     apache_conf_dir: "conf.d"
     apache_user: "apache"
     apache_group: "apache"
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 - name: Set apache service name for Debian
   set_fact:
@@ -14,7 +14,7 @@
     apache_conf_dir: "sites-available"
     apache_user: "www-data"
     apache_group: "root"
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 - name: Install vitam user for /vitam browser access rights
   package:
@@ -53,7 +53,7 @@
     dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
     mode: 0500
     owner: root
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
   notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
@@ -65,7 +65,7 @@
     dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
     mode: 0500
     owner: root
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
   notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
@@ -76,7 +76,7 @@
     src: '/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}'
     dest: '/etc/{{ apache_service }}/sites-enabled/{{ item }}'
     state: link
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
   notify: restart apache
   with_items:
   - "httpd-offer-view.conf"

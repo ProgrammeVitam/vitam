@@ -17,7 +17,7 @@
     name: openjdk-8-jre-headless
     state: latest
     default_release: jessie-backports
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 
 # state: latest to handle snapshot versions

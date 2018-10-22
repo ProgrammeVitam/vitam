@@ -4,12 +4,12 @@
 - name: Set command for CentOS
   set_fact:
     check_es_version: "rpm -q vitam-{{composant.cluster_name}}"
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 - name: Set command for Debian
   set_fact:
     check_es_version: "dpkg-query -l  'vitam-{{ composant.cluster_name }}'"
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 - name: checking whether elasticsearch package is already installed
   shell : "{{ check_es_version }}"
@@ -24,14 +24,14 @@
     sysconfig_dir: "sysconfig"
     jvm_security_path: "/usr/lib/jvm/jre/lib/security"
     java_package: "java-1.8.0"
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 - name: Set default directory for Debian
   set_fact:
     sysconfig_dir: "default"
     jvm_security_path: "/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security"
     java_package: "openjdk-8-jdk-headless"
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
@@ -62,13 +62,13 @@
     name: "{{ java_package }}"
     state: latest
     default_release: jessie-backports
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
 
 - name: install openjdk when CentOS (prerequisite for elasticsearch package)
   package:
     name: "{{ java_package }}"
     state: latest
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 - name: install vitam-{{composant.cluster_name}} package
   package:

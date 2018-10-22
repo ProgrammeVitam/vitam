@@ -4,12 +4,12 @@
 - name: Set command for CentOS
   set_fact:
     check_kibana_version: "rpm -q kibana"
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
 
 - name: Set command for Debian
   set_fact:
     check_kibana_version: "dpkg-query -l  'kibana'"
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 - name: checking whether kibana is already installed
   shell : "{{ check_kibana_version }}"

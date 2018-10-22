@@ -65,7 +65,7 @@
       - docker
     when: http_proxy_environnement is not defined or http_proxy_environnement == ""
 
-  when: (ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
   # End docker debian
 
 # Begin docker centos
@@ -86,7 +86,7 @@
       sysctl_set: yes
       value: 1
 
-  when: (ansible_distribution == "CentOS")
+  when: ansible_os_family == "RedHat"
   # End docker centos
 
 

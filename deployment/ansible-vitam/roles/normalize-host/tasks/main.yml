@@ -47,7 +47,7 @@
     tags:
       - enable_vitam_repo
       - update_package_vitam
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 - block:
   - name: check jessie-backports repo are present
@@ -64,4 +64,4 @@
     tags:
       - update_package_vitam
 
-  when: ansible_distribution == "Debian"
+  when: ansible_os_family == "Debian"
