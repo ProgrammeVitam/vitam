@@ -87,12 +87,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.DatabaseCursor;
-import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.model.FacetResult;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -728,7 +723,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery)
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration)
             throws InvalidParseOperationException {
         Set<String> unitIds;
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -738,7 +733,7 @@ public class MetaDataImpl implements MetaData {
 
         List<JsonNode> collect = unitIds.stream().map(unitId -> {
             try {
-                RequestResponse<JsonNode> jsonNodeRequestResponse = updateUnitRulesbyId(updateQuery.get("actions"), unitId);
+                RequestResponse<JsonNode> jsonNodeRequestResponse = updateUnitRulesbyId(updateQuery.get("actions"), unitId, bindRuleToDuration);
                 List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
 
                 if (results != null && results.size() > 0) {
@@ -825,7 +820,7 @@ public class MetaDataImpl implements MetaData {
             .setHttpCode(Response.Status.OK.getStatusCode());
     }
 
-    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId)
+    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId, Map<String, DurationData> bindRuleToDuration)
             throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
             MetaDataDocumentSizeException, VitamDBException, SchemaValidationException {
         Result result;
@@ -840,7 +835,7 @@ public class MetaDataImpl implements MetaData {
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = DbRequestFactoryImpl.getInstance().create().execRuleRequest(unitId, ruleActions);
+            result = DbRequestFactoryImpl.getInstance().create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 

@@ -1,10 +1,7 @@
 package fr.gouv.vitam.metadata.client;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -19,6 +16,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -189,10 +187,9 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
-
 
     @Override
     public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,

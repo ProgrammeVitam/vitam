@@ -31,10 +31,7 @@ import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.OK;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -58,9 +55,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.GraphComputeResponse;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -765,11 +760,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions)
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData)
             throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
             MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
@@ -782,8 +776,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             ObjectNode requestContent = JsonHandler.createObjectNode();
             requestContent.set("query", query);
             requestContent.set("actions", actions);
-            response = performRequest(HttpMethod.POST, "/units/updaterulesbulk", null, requestContent, APPLICATION_JSON_TYPE,
-                    APPLICATION_JSON_TYPE);
+            BatchRulesUpdateInfo requestContext = new BatchRulesUpdateInfo(requestContent, rulesToDurationData);
+            response = performRequest(HttpMethod.POST, "/units/updaterulesbulk", null,
+                JsonHandler.toJsonNode(requestContext), APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

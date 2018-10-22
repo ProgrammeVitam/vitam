@@ -43,9 +43,7 @@ import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
@@ -69,6 +67,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -293,18 +292,23 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Update unit rules with json request
-     * @param updateQuery the update request in JsonNode format including query and rules' actions
+     * @param updateInfo the update request in JsonNode format including query and rules
      * @return Response
      */
     @Path("units/updaterulesbulk")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response updateUnitsRulesBulk(JsonNode updateQuery) {
+    public Response updateUnitsRulesBulk(JsonNode updateInfo) {
         Status status;
         RequestResponse<JsonNode> result;
+        RequestResponseOK responseOK;
         try {
-            result = metaData.updateUnitsRules(updateQuery);
+            BatchRulesUpdateInfo batchRulesUpdateInfo = JsonHandler.getFromJsonNode(updateInfo, BatchRulesUpdateInfo.class);
+            JsonNode updateQuery = batchRulesUpdateInfo.getQueryAction();
+            Map<String, DurationData> bindRuleToDuration = batchRulesUpdateInfo.getRulesToDurationData();
+            result = metaData.updateUnitsRules(updateQuery, bindRuleToDuration);
+            responseOK = new RequestResponseOK(updateQuery);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -316,7 +320,7 @@ public class MetadataResource extends ApplicationStatusResource {
                             .setDescription(e.getMessage()))
                     .build();
         }
-        RequestResponseOK responseOK = new RequestResponseOK(updateQuery);
+
         responseOK.setHits(1, 0, 1)
                 .setHttpCode(Status.OK.getStatusCode());
 
