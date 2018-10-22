@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -95,6 +96,7 @@ public class AccessInternalResourceTest {
         GUID request = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(request);
+        VitamThreadUtils.getVitamSession().setContract(new AccessContractModel().setEveryOriginatingAgency(true));
         
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
