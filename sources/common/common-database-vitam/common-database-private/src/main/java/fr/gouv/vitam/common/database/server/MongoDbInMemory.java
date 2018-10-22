@@ -281,6 +281,12 @@ public class MongoDbInMemory {
             RuleCategoryAction ruleCategoryAction = entry.getValue();
             ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
+            // set final action if any
+            String finalAction = ruleCategoryAction.getFinalAction();
+            if (finalAction != null) {
+                initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
+            }
+
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
                 Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
