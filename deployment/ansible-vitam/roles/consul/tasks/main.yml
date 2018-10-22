@@ -93,7 +93,7 @@
         enabled: yes
         state: started
 
-  when: ansible_distribution == "Debian" and ansible_virtualization_type != "docker"
+  when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
 
 - block:
 
@@ -112,7 +112,7 @@
         - vitam_dns_localhost_enforce.path
         - vitam_dns_localhost_enforce.service
 
-  when: ansible_distribution == "CentOS" and ansible_virtualization_type != "docker"
+  when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
 
 - meta: flush_handlers
 
