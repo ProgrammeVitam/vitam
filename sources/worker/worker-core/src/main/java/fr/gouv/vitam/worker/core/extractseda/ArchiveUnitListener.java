@@ -139,7 +139,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
 
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
-    public static final String SEPARATOR_LINK_BY_KEY_VALUE = ":";
 
     private ArchiveUnitMapper archiveUnitMapper;
 
@@ -590,9 +589,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     dataObjectIdWithoutObjectGroupId.put(objRefId, gotObj);
                 }
             } else {
-                final List<String> archiveUnitList = objectGroupIdToUnitId.get(objRefId);
-                archiveUnitList.add(archiveUnitId);
-                objectGroupIdToUnitId.put(objRefId, archiveUnitList);
+                objectGroupIdToUnitId.get(objRefId).add(archiveUnitId);
             }
 
             try {
@@ -672,7 +669,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 JsonHandler.createObjectNode();// information to save in LFC, if no ok or warn then we can rollback
             JsonNode ops = ogInDB.get(OPERATIONS.exactToken());
 
-            // prevent idempotence, if ObjectGroup have already the operation do not re-treat it
+            // prevent idempotent, if ObjectGroup have already the operation do not re-treat it
             if (null != ops && ops.toString().contains(containerId)) {
                 existingGOTs.put(groupId, null);
                 return groupId;

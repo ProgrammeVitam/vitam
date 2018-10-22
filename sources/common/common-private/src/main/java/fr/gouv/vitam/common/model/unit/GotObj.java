@@ -2,7 +2,7 @@ package fr.gouv.vitam.common.model.unit;
 
 /**
  * This object content the new technical object group guid and the an boolean. It is created when the BDO not
- * nontains an GO with isVisited=false. When the list of AU is browsed, if an AU referenced and the BDO not contains
+ * contains an GO with isVisited=false. When the list of AU is browsed, if an AU referenced and the BDO not contains
  * an GO, the boolean of this object change to true
  */
 public class GotObj {
