@@ -25,6 +25,7 @@ vitam:
         baseuri: "doc"
         https_enabled: false
         secret_platform: "false"
+        metrics_enabled: false
 
 # Period units in seconds
 metricbeat:
