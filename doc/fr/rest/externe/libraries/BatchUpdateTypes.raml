@@ -1,0 +1,102 @@
+#%RAML 1.0 Library
+
+usage: |
+  Utilisé pour définir les types pour la mise à jour de masse des métadonnées de gestion
+
+types:
+  RuleActions:
+    displayName: Actions de mise à jour
+    description: Définit les 3 actions possibles de la mise à jour des métadonnées (Ajout/Mise à jour/Suppression)
+    type: object
+    properties:
+      add:
+        description: Métadonnées de gestion à ajouter
+        type: RuleCategory[]
+      update:
+        description: Métadonnées de gestion à mettre à jour
+        type: RuleCategory[]
+      delete:
+        description: Métadonnées de gestion à supprimer
+        type: RuleCategory[]
+
+  RuleCategory:
+    displayName: Liste des catégories
+    description: Définit les catégories impactées par la modification. La liste peut être vide. Chaque élément de la liste doit contenir une catégorie (Voir exemples)
+    type: object
+    properties:
+      AccessRule?:
+        description: Modifications liées aux délais de communicabilité
+        type: CategoryMetadata
+      AppraisalRule?:
+        description: Modification liées aux durées d'utilité administrative'
+        type: CategoryMetadata
+      ClassificationRule?:
+        description: Modifications liées aux durées de classification
+        type: CategoryMetadata
+      DisseminationRule?:
+        description: Modifications liées aux délais de diffusion
+        type: CategoryMetadata
+      ReuseRule?:
+        description: Modifications liées aux durées de réutilisation
+        type: CategoryMetadata
+      StorageRule?:
+        description: Modifications liées aux durées d'utilité courante
+        type: CategoryMetadata
+
+  CategoryMetadata:
+    displayName: Métadonnées par catégories
+    description: Définit les métadonnées de gestion impactées par la modification.
+    type: object
+    properties:
+      Rules?:
+        description: Permet de définir les règles de gestion à modifier
+        type: RuleMetadata[]
+      FinalAction?:
+        description: |
+          Permet de définir un sort final.
+          Définit seulement pour les categories "StorageRule (RestrictAccess/Copy/Transfer)" et "AccessRule(Keep/Destroy)".
+        type: string
+      ClassificationLevel?:
+        description: |
+          Permet de définir le niveau de classification.
+          Définit seulement pour la catégorie "ClassificationRule" parmis des valeurs définies par l'administrateur de la plateforme (vitam.conf / ClassificationLevel)
+        type: string
+      ClassificationOwner?:
+        description: Permet de définir le propriétaire de la classification. Définit seulement pour la catégorie "ClassificationRule".
+        type: string
+      ClassificationAudience?:
+        description: Permet de définir le champ de diffusion. Définit seulement pour la catégorie "ClassificationRule".
+        type: string
+      ClassificationReassessingDate?:
+        description: Permet de définir la date de réévalusation. Définit seulement pour la catégorie "ClassificationRule".
+        type: datetime
+        example: 2018-11-14T00:00:00.000Z
+      NeedReassessingAuthorization?:
+        description: Permet de définir si les modifications sont soumises à validation. Définit seulement pour la catégorie "ClassificationRule".
+        type: boolean
+      PreventInheritance?:
+        description: Permet de définir si TOUTES les règles des unités archivistiques parentes sont bloquées(true) ou héritiées(false)
+        type: boolean
+      PreventRulesId?:
+        description: Permet de définir la liste des règles bloquées
+        type: string[]
+
+  RuleMetadata:
+    displayName: Métadonnées par règle
+    description: Définit les métadonnées de règles de gestion.
+    type: object
+    properties:
+      Rule:
+        description: Permet de définir l'identifiant à ajouter/supprimer ou le nouvel identifiant de règle lors d'une modification.
+        type: string
+        example: ACC-000001
+      OldRule?:
+        description: Permet de définir l'ancien identifiant de règle pour la modification d'une règle (changement d'ID et/ou de date)
+        type: string
+        example: ACC-000002
+      StartDate?:
+        description: Permet de définir la date de début d'une nouvelle règle ou de modifier la date de début lors d'une modification.
+        type: datetime
+        example: 2018-11-14T00:00:00.000Z
+
+

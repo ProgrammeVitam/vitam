@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -212,38 +213,9 @@ public class MongoDbInMemory {
 
             ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
-            // set final action if any
-            String finalAction = ruleCategoryAction.getFinalAction();
-            if (finalAction != null) {
-                initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
-            }
-
-            boolean updatedInheritance = false;
-            ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
-
-            if (inheritance == null) {
-                inheritance = JsonHandler.createObjectNode();
-            }
-
-            // add preventInheritance
-            Boolean preventInheritance = ruleCategoryAction.getPreventInheritance();
-            if (preventInheritance != null) {
-                updatedInheritance = true;
-                inheritance.put(PREVENT_INHERITANCE, preventInheritance);
-            }
-
-            // add preventRulesId
-            Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
-            if (preventRuleIds != null && preventRuleIds.size() > 0) {
-                JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
-                updatedInheritance = true;
-                ArrayNode newPreventRulesId = getComputedPreventedRulesAfterAddition(initialPreventRules, preventRuleIds);
-                inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
-            }
-
-            if (updatedInheritance) {
-                initialRuleCategory.set(INHERITANCE, inheritance);
-            }
+            initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
+            initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
+            initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
             // add rules
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
@@ -279,7 +251,12 @@ public class MongoDbInMemory {
         ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
             String category = entry.getKey();
             RuleCategoryAction ruleCategoryAction = entry.getValue();
+
             ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+
+            initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
+            initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
+            initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
                 Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
@@ -309,19 +286,8 @@ public class MongoDbInMemory {
             RuleCategoryAction ruleCategoryAction = entry.getValue();
             ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
-            ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
-            if (inheritance == null) {
-                inheritance = JsonHandler.createObjectNode();
-            }
-
-            // add preventRulesId
-            Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
-            if (preventRuleIds != null && preventRuleIds.size() > 0) {
-                JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
-                ArrayNode newPreventRulesId = getComputedPreventedRulesAfterDeletion(initialPreventRules, preventRuleIds);
-                inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
-                initialRuleCategory.set(INHERITANCE, inheritance);
-            }
+            initialRuleCategory = handleClassificationPropertiesDeletion(initialRuleCategory, ruleCategoryAction, category);
+            initialRuleCategory = handleInheritancePropertiesDeletion(initialRuleCategory, ruleCategoryAction);
 
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
                 List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(RuleAction::getRule).collect(Collectors.toList());
@@ -342,6 +308,134 @@ public class MongoDbInMemory {
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
         return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+    }
+
+    private ObjectNode handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
+        if (SedaConstants.TAG_RULE_APPRAISAL.equals(category) || SedaConstants.TAG_RULE_STORAGE.equals(category)) {
+            String finalAction = ruleCategoryAction.getFinalAction();
+            if (finalAction != null) {
+                initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
+            }
+        }
+
+        return initialRuleCategory;
+    }
+
+    private ObjectNode handleClassificationProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
+        if (!SedaConstants.TAG_RULE_CLASSIFICATION.equals(category)) {
+            return initialRuleCategory;
+        }
+
+        String classificationLevel = ruleCategoryAction.getClassificationLevel();
+        if (classificationLevel != null) {
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+        }
+
+        String classificationOwner = ruleCategoryAction.getClassificationOwner();
+        if (classificationOwner != null) {
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
+        }
+
+        String classificationReassessingDate = ruleCategoryAction.getClassificationReassessingDate();
+        if (classificationReassessingDate != null) {
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE, classificationReassessingDate);
+        }
+
+        String classificationAudience = ruleCategoryAction.getClassificationAudience();
+        if (classificationAudience != null) {
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE, classificationAudience);
+        }
+
+        Boolean needReassessingAuthorization = ruleCategoryAction.getNeedReassessingAuthorization();
+        if (needReassessingAuthorization != null) {
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION, needReassessingAuthorization);
+        }
+
+        return initialRuleCategory;
+    }
+
+    private ObjectNode handleInheritanceProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction) {
+        boolean updatedInheritance = false;
+        ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
+
+        if (inheritance == null) {
+            inheritance = JsonHandler.createObjectNode();
+        }
+
+        // add preventInheritance
+        Boolean preventInheritance = ruleCategoryAction.getPreventInheritance();
+        if (preventInheritance != null) {
+            updatedInheritance = true;
+            inheritance.put(PREVENT_INHERITANCE, preventInheritance);
+        }
+
+        // add preventRulesId
+        Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
+        if (preventRuleIds != null && preventRuleIds.size() > 0) {
+            JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
+            updatedInheritance = true;
+            ArrayNode newPreventRulesId = getComputedPreventedRulesAfterAddition(initialPreventRules, preventRuleIds);
+            inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
+        }
+
+        if (updatedInheritance) {
+            initialRuleCategory.set(INHERITANCE, inheritance);
+        }
+
+        return initialRuleCategory;
+    }
+
+    private ObjectNode handleClassificationPropertiesDeletion(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
+        if (!SedaConstants.TAG_RULE_CLASSIFICATION.equals(category)) {
+            return initialRuleCategory;
+        }
+
+        String classificationLevel = ruleCategoryAction.getClassificationLevel();
+        if (classificationLevel != null) {
+            // FIXME: Add a check-step in order to prevent classificationLevel/Owner deletion ?
+            throw new IllegalStateException("ClassificationLevel should not be deleted");
+        }
+
+        String classificationOwner = ruleCategoryAction.getClassificationOwner();
+        if (classificationOwner != null) {
+            // FIXME: Add a check-step in order to prevent classificationLevel/Owner deletion ?
+            throw new IllegalStateException("ClassificationOwner should not be deleted");
+        }
+
+        String classificationReassessingDate = ruleCategoryAction.getClassificationReassessingDate();
+        if (classificationReassessingDate != null) {
+            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE);
+        }
+
+        String classificationAudience = ruleCategoryAction.getClassificationAudience();
+        if (classificationAudience != null) {
+            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE);
+        }
+
+        Boolean needReassessingAuthorization = ruleCategoryAction.getNeedReassessingAuthorization();
+        if (needReassessingAuthorization != null) {
+            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
+        }
+
+        return initialRuleCategory;
+    }
+
+    private ObjectNode handleInheritancePropertiesDeletion(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction) {
+        ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
+        if (inheritance == null) {
+            inheritance = JsonHandler.createObjectNode();
+        }
+
+        // add preventRulesId
+        Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
+        if (preventRuleIds != null && preventRuleIds.size() > 0) {
+            JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
+            ArrayNode newPreventRulesId = getComputedPreventedRulesAfterDeletion(initialPreventRules, preventRuleIds);
+            inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
+            initialRuleCategory.set(INHERITANCE, inheritance);
+        }
+
+        return initialRuleCategory;
     }
 
     private ArrayNode getComputedPreventedRulesAfterAddition(JsonNode initialPreventRules, Set<String> preventRuleIdsToAdd) {

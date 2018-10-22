@@ -29,8 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.model.DataType;
-import fr.gouv.vitam.common.database.parser.query.helper.CheckSpecifiedFieldHelper;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -38,15 +37,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -54,8 +49,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,14 +56,14 @@ import java.util.stream.Collectors;
 /**
  * Check update permissions.
  */
-public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
+public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
     /**
-     * CHECK_RULES_ID
+     * UNIT_METADATA_CHECK_CONSISTENCY
      */
-    private static final String CHECK_RULES_ID = "CHECK_RULES_ID";
+    private static final String UNIT_METADATA_CHECK_CONSISTENCY = "UNIT_METADATA_CHECK_CONSISTENCY";
 
     /**
      * AdminManagementClientFactory
@@ -80,7 +73,7 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
     /**
      * Constructor.
      */
-    public UnitMetadataUpdateCheckRulesID() {
+    public UnitMetadataRulesUpdateCheckConsistency() {
         this(AdminManagementClientFactory.getInstance());
     }
 
@@ -89,7 +82,7 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
      * @param adminManagementClientFactory admin management client
      */
     @VisibleForTesting
-    public UnitMetadataUpdateCheckRulesID(
+    public UnitMetadataRulesUpdateCheckConsistency(
         AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
@@ -106,14 +99,14 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
         throws ProcessingException {
 
         checkMandatoryParameters(param);
-        final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_ID);
+        final ItemStatus itemStatus = new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY);
 
         // FIXME: Use in/out in order to transfer json from a step to another ?
         JsonNode queryActions = handler.getJsonFromWorkspace("actions.json");
         if (JsonHandler.isNullOrEmpty(queryActions)) {
             itemStatus.increment(StatusCode.OK);
-            return new ItemStatus(CHECK_RULES_ID)
-                .setItemsStatus(CHECK_RULES_ID, itemStatus);
+            return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
+                .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
         }
 
         try {
@@ -122,16 +115,16 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
                 itemStatus.increment(StatusCode.KO);
                 itemStatus.setMessage(VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorEvDetData));
-                return new ItemStatus(CHECK_RULES_ID)
-                    .setItemsStatus(CHECK_RULES_ID, itemStatus);
+                return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
+                    .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
             };
         } catch (final VitamException | IllegalStateException e) {
             throw new ProcessingException(e);
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(CHECK_RULES_ID)
-            .setItemsStatus(CHECK_RULES_ID, itemStatus);
+        return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
+            .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
     }
 
     private JsonNode getErrorFromActionQuery(JsonNode queryActions) throws InvalidParseOperationException {
@@ -139,27 +132,48 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
 
         Optional<JsonNode> checkError = ruleActions.getUpdate().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsInRuleForCategory)
+            .map(this::computeErrorsForCategory)
             .filter(Objects::nonNull)
             .findFirst();
         if(checkError.isPresent()) return checkError.get();
 
         checkError = ruleActions.getAdd().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsInRuleForCategory)
+            .map(this::computeErrorsForCategory)
             .filter(Objects::nonNull)
             .findFirst();
         if(checkError.isPresent()) return checkError.get();
 
         checkError = ruleActions.getDelete().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsInRuleForCategory)
+            .map(this::computeOnlyRulesID)
             .filter(Objects::nonNull)
             .findFirst();
         return checkError.orElse(null);
     }
 
-    private JsonNode computeErrorsInRuleForCategory(Map.Entry<String, RuleCategoryAction> entry) {
+    private JsonNode computeErrorsForCategory(Map.Entry<String, RuleCategoryAction> entry) {
+        JsonNode rulesIDErrors = computeOnlyRulesID(entry);
+        if (rulesIDErrors != null) { return rulesIDErrors; }
+
+        String categoryName = entry.getKey();
+        RuleCategoryAction category = entry.getValue();
+
+        if (SedaConstants.TAG_RULE_CLASSIFICATION.equals(categoryName)) {
+            String classificationLevel = category.getClassificationLevel();
+            if (classificationLevel != null && !ClassificationLevelUtil.checkClassificationLevel(classificationLevel)) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", classificationLevel + " is not a valid value for ClassificationLevel");
+                return errorInfo;
+            }
+        }
+
+        return null;
+    }
+
+    private JsonNode computeOnlyRulesID(Map.Entry<String, RuleCategoryAction> entry) {
         String categoryName = entry.getKey();
         RuleCategoryAction category = entry.getValue();
 
@@ -167,8 +181,8 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
         if (category.getRules() != null) {
             rulesToCheck.addAll(
                 category.getRules().stream()
-                .map(RuleAction::getRule)
-                .collect(Collectors.toSet())
+                    .map(RuleAction::getRule)
+                    .collect(Collectors.toSet())
             );
         }
         if (category.getPreventRulesId() != null) {

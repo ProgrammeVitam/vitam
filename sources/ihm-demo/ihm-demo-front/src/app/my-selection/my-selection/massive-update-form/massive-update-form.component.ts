@@ -86,6 +86,22 @@ export class MassiveUpdateFormComponent implements OnInit {
     this.internalSavedMetadata.splice(index, 1);
   }
 
+  getPreventInheritance(preventInheritance) {
+    if (preventInheritance === undefined || preventInheritance === null) {
+        return 'Aucune modification';
+    }
+
+    return preventInheritance ? 'Bloquer l\'héritage' : 'Hériter des parents';
+  }
+
+  getReassessingAuthorizationLabel(reassessingAuthorization) {
+    if (reassessingAuthorization === undefined || reassessingAuthorization === null) {
+      return 'Aucune modification';
+    }
+
+    return reassessingAuthorization ? 'Validation humaine nécessaire' : 'Non soumis à validation';
+  }
+
   checkAndPutInFormRuleUpdates(): boolean {
     let updates = {};
     let additions = {};
@@ -93,35 +109,76 @@ export class MassiveUpdateFormComponent implements OnInit {
     let nbErrors = 0;
     let nbUpdates = 0;
 
-    for (let categoryKey in this.internalSavedRules) {
-      let ruleCategory = this.internalSavedRules[categoryKey];
+    for (const categoryKey in this.internalSavedRules) {
+      const ruleCategory = this.internalSavedRules[categoryKey];
 
       // Check updates on FinalAction, ClassificationOwner and ClassificationLevel in the category
+      const categoryProperties: any = {};
+      let propertiesUpdated = false;
       if (ruleCategory.FinalAction != null) {
-        updates[categoryKey] = { FinalAction: ruleCategory.FinalAction };
+        propertiesUpdated = true;
+        categoryProperties.FinalAction = ruleCategory.FinalAction;
         nbUpdates++;
       }
-      if (ruleCategory.ClassificationOwner != null) {
-        updates[categoryKey] = { ClassificationOwner: ruleCategory.ClassificationOwner };
+      if (ruleCategory.ClassificationOwner != null && ruleCategory.ClassificationAudience !== '') {
+        propertiesUpdated = true;
+        categoryProperties.ClassificationOwner = ruleCategory.ClassificationOwner;
         nbUpdates++;
       }
-      if (ruleCategory.ClassificationLevel != null) {
-        updates[categoryKey] = { ClassificationLevel: ruleCategory.ClassificationLevel };
+      if (ruleCategory.ClassificationLevel != null && ruleCategory.ClassificationAudience !== '') {
+        propertiesUpdated = true;
+        categoryProperties.ClassificationLevel = ruleCategory.ClassificationLevel;
+        nbUpdates++;
+      }
+      if (ruleCategory.ClassificationAudience != null && ruleCategory.ClassificationAudience !== '') {
+        propertiesUpdated = true;
+        categoryProperties.ClassificationAudience = ruleCategory.ClassificationAudience;
+        nbUpdates++;
+      } else if (ruleCategory.removeClassificationAudience) {
+        if (!deletions[categoryKey]) {
+          deletions[categoryKey] = { ClassificationAudience: '' }
+        } else {
+          deletions[categoryKey].ClassificationAudience = '';
+        }
+        nbUpdates++;
+      }
+      if (ruleCategory.ClassificationReassessingDate != null && ruleCategory.ClassificationAudience !== '') {
+        propertiesUpdated = true;
+        categoryProperties.ClassificationReassessingDate = ruleCategory.ClassificationReassessingDate;
+        nbUpdates++;
+      } else if (ruleCategory.removeClassificationReassessingDate) {
+        if (!deletions[categoryKey]) {
+          deletions[categoryKey] = { ClassificationReassessingDate: '' }
+        } else {
+          deletions[categoryKey].ClassificationReassessingDate = '';
+        }
+        nbUpdates++;
+      }
+      if (ruleCategory.NeedReassessingAuthorization != null) {
+        propertiesUpdated = true;
+        categoryProperties.NeedReassessingAuthorization = ruleCategory.NeedReassessingAuthorization;
         nbUpdates++;
       }
 
       // Check for Inheritance properties in category
       if (ruleCategory.PreventInheritance != null) {
-        additions[categoryKey] = { PreventInheritance: ruleCategory.PreventInheritance };
+        propertiesUpdated = true;
+        categoryProperties.PreventInheritance = ruleCategory.PreventInheritance;
         nbUpdates++;
       }
       if (ruleCategory.PreventRuleIds != null && ruleCategory.PreventRuleIds.length > 0) {
-        additions[categoryKey] = { PreventRulesId: ruleCategory.PreventRuleIds };
+        propertiesUpdated = true;
+        categoryProperties.PreventRulesId = ruleCategory.PreventRuleIds;
         nbUpdates++;
       }
       if (ruleCategory.AllowRuleIds != null && ruleCategory.AllowRuleIds.length > 0) {
-        deletions[categoryKey] = { PreventRulesId: ruleCategory.AllowRuleIds };
+        propertiesUpdated = true;
+        categoryProperties.PreventRulesId = ruleCategory.AllowRuleIds;
         nbUpdates++;
+      }
+
+      if (propertiesUpdated) {
+        updates[categoryKey] = categoryProperties;
       }
 
       // Check for rules in category
@@ -131,7 +188,7 @@ export class MassiveUpdateFormComponent implements OnInit {
           switch(rule.Action) {
             case RuleAction.UPDATE:
               if (!rule.OriginRule || (!rule.Rule && !rule.StartDate)) {
-                console.log('Une règle ' + categoryKey + ' ajoutée ne renseigne pas d\'identifiant d\'origine ou ne renseigne pas de Date et d\'identifiant.');
+                console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas d\'identifiant d\'origine ou ne renseigne pas de Date et d\'identifiant.');
                 nbErrors++;
                 break;
               }
@@ -150,7 +207,7 @@ export class MassiveUpdateFormComponent implements OnInit {
             case RuleAction.ADD:
               // Check for ADD rules (RuleID + StartDate shouldn't be empty
               if (!rule.Rule || !rule.StartDate) {
-                console.log('Une règle ' + categoryKey + ' ajoutée ne renseigne pas de Date ou d\'identifiant.');
+                console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas de Date ou d\'identifiant.');
                 nbErrors++;
                 break;
               }
@@ -165,12 +222,14 @@ export class MassiveUpdateFormComponent implements OnInit {
               break;
             case RuleAction.DELETE:
               if (!rule.Rule) {
-                console.log('Une règle ' + categoryKey + ' supprimée ne renseigne pas d\'identifiant.');
+                console.warn('Une règle ' + categoryKey + ' supprimée ne renseigne pas d\'identifiant.');
                 nbErrors++;
                 break;
               }
-              if (!deletions[categoryKey] || !deletions[categoryKey].Rules) {
+              if (!deletions[categoryKey]) {
                 deletions[categoryKey] = {Rules: []};
+              } else if (!deletions[categoryKey].Rules) {
+                deletions[categoryKey].Rules = [];
               }
               deletions[categoryKey].Rules.push({
                 Rule: rule.Rule

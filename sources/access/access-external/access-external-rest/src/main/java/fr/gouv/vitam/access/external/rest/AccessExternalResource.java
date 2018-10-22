@@ -676,11 +676,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:rules:update", description = "Mise à jour en masse des règles de gestion")
-    public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) throws InvalidParseOperationException {
+    public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         Status status;
         // Manually schema validation of DSL Query
         try {
-            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator(); // BatchProcessingQuerySchemaValidator
+            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
             validator.validate(massUpdateUnitRuleRequest.getDslRequest());
         } catch (ValidationException e) {
             LOGGER.warn("Could not validate request", e);
@@ -692,7 +692,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     .entity(VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
                             "Can not read Dsl query").setHttpCode(status.getStatusCode())).build();
         }
-        
+
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> response = client.updateUnitsRules(massUpdateUnitRuleRequest);
 

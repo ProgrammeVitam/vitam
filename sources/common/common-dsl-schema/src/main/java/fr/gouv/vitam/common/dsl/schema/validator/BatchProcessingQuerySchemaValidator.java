@@ -54,10 +54,10 @@ public class BatchProcessingQuerySchemaValidator implements DslValidator {
     public BatchProcessingQuerySchemaValidator() throws IOException {
         // FIXME find a way to use JsonHandler's mapper if possible
         ObjectMapper objectMapper = new ObjectMapper();
-        LOGGER.debug("Loading schema {} from {}", DslSchema.ELIMINATION_QUERY.name(),
-            DslSchema.ELIMINATION_QUERY.getFilename());
+        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(),
+            DslSchema.BATCH_PROCESSING.getFilename());
         try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.ELIMINATION_QUERY.getFilename())) {
+            PropertiesUtils.getResourceAsStream(DslSchema.BATCH_PROCESSING.getFilename())) {
             schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
         }
     }

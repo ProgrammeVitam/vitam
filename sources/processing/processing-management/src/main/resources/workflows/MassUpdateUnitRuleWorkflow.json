@@ -40,7 +40,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_RULES_ID",
+            "actionKey": "UNIT_METADATA_CHECK_CONSISTENCY",
             "behavior": "BLOCKING"
           }
         },

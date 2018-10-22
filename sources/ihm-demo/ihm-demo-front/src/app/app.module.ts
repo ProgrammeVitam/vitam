@@ -11,9 +11,8 @@ import {
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule, DataGridModule, SliderModule
+  CheckboxModule, DataGridModule, SliderModule, TriStateCheckboxModule
 } from 'primeng/primeng';
-
 import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
 import { BreadcrumbComponent } from './common/breadcrumb/breadcrumb.component';
@@ -335,6 +334,7 @@ const appRoutes: Routes = [
     ConfirmDialogModule,
     InputSwitchModule,
     ChipsModule,
+    TriStateCheckboxModule,
     OverlayPanelModule,
     MultiSelectModule,
     CheckboxModule,

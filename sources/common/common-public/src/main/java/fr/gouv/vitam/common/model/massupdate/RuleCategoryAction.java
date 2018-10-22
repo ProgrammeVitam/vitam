@@ -36,12 +36,25 @@ public class RuleCategoryAction {
     @JsonProperty("Rules")
     private List<RuleAction> rules;
 
+    // Appraisal / Storage property
     @JsonProperty("FinalAction")
     private String finalAction;
 
+    // Classification properties
+    @JsonProperty("ClassificationLevel")
+    private String classificationLevel;
+    @JsonProperty("ClassificationOwner")
+    private String classificationOwner;
+    @JsonProperty("ClassificationAudience")
+    private String classificationAudience;
+    @JsonProperty("ClassificationReassessingDate")
+    private String classificationReassessingDate;
+    @JsonProperty("NeedReassessingAuthorization")
+    private Boolean needReassessingAuthorization;
+
+    // Inheritance properties
     @JsonProperty("PreventInheritance")
     private Boolean preventInheritance;
-
     @JsonProperty("PreventRulesId")
     private Set<String> preventRulesId;
 
@@ -75,5 +88,45 @@ public class RuleCategoryAction {
 
     public void setPreventRulesId(Set<String> preventRulesId) {
         this.preventRulesId = preventRulesId;
+    }
+
+    public String getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public void setClassificationLevel(String classificationLevel) {
+        this.classificationLevel = classificationLevel;
+    }
+
+    public String getClassificationOwner() {
+        return classificationOwner;
+    }
+
+    public void setClassificationOwner(String classificationOwner) {
+        this.classificationOwner = classificationOwner;
+    }
+
+    public String getClassificationAudience() {
+        return classificationAudience;
+    }
+
+    public void setClassificationAudience(String classificationAudience) {
+        this.classificationAudience = classificationAudience;
+    }
+
+    public String getClassificationReassessingDate() {
+        return classificationReassessingDate;
+    }
+
+    public void setClassificationReassessingDate(String classificationReassessingDate) {
+        this.classificationReassessingDate = classificationReassessingDate;
+    }
+
+    public Boolean getNeedReassessingAuthorization() {
+        return needReassessingAuthorization;
+    }
+
+    public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
+        this.needReassessingAuthorization = needReassessingAuthorization;
     }
 }

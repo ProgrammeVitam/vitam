@@ -5,6 +5,7 @@ usage: |
 
 uses:
     DslTypes: DslTypes.raml
+    BatchUpdateTypes: BatchUpdateTypes.raml
 
 types:
   AccessMultipleQuery:
@@ -50,6 +51,19 @@ types:
         {
            "httpCode" : 202
         }
+
+  UnitBatchUpdateRequest:
+    displayName: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU
+    description: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU
+    type: object
+    properties:
+      dslRequest:
+        description: Contient la requête de recherche
+        type: object
+      ruleActions:
+        description: Contient le POJO de mise à jour des métadonnées de gestion
+        type: object
+    example: !include examples/unitBatchUpdate.json
 
   AccessMultipleResponse:
     type: DslTypes.DslMultipeResponse

@@ -59,28 +59,26 @@
                 <ng-template ngFor let-category [ngForOf]="rulesCategories">
                     <p-fieldset [legend]="category.label" class="ui-g-12" [toggleable]="true" [collapsed]="true">
                         <div class="ui-g-12 ui-g-nopad">
-                             <div class="ui-g-12">
-                                 <label class="ui-g-3">Modification de l'héritage de ces règles</label>
-
-                                 <p-toggleButton class="ui-g-4" onLabel="Bloquer l'héritage" offLabel="Hériter des parents"
-                                                 [(ngModel)]="internalSavedRules[category.rule].PreventInheritance">
-                                 </p-toggleButton>
-                             </div>
-                             <div class="ui-g-12">
-                                 <div class="ui-g-6">
-                                     <label class="ui-g-5">Bloquer l'héritage des règles suivante:</label>
-                                     <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].PreventRuleIds"></p-chips>
-                                 </div>
-                                 <div class="ui-g-6">
-                                     <label class="ui-g-5">Annuler le blocage des règles suivantes: </label>
-                                     <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].AllowRuleIds"></p-chips>
-                                 </div>
-                                 <div class="ui-g-12">
-                                     <div class="ui-g-nopad ui-g-12">
-                                         <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
-                                     </div>
-                                 </div>
-                             </div>
+                            <div class="ui-g-12">
+                                <label class="ui-g-4">Blocage de l'héritage de ces règles:</label>
+                                <p-triStateCheckbox class="ui-g-1" [(ngModel)]="internalSavedRules[category.rule].PreventInheritance"></p-triStateCheckbox>
+                                <span class="ui-g-2">{{getPreventInheritance(internalSavedRules[category.rule].PreventInheritance)}}</span>
+                            </div>
+                            <div class="ui-g-12">
+                                <div class="ui-g-6">
+                                    <label class="ui-g-5">Bloquer l'héritage des règles suivante:</label>
+                                    <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].PreventRuleIds"></p-chips>
+                                </div>
+                                <div class="ui-g-6">
+                                    <label class="ui-g-5">Annuler le blocage des règles suivantes: </label>
+                                    <p-chips class="ui-g-7 ui-g-nopad" [(ngModel)]="internalSavedRules[category.rule].AllowRuleIds"></p-chips>
+                                </div>
+                                <div class="ui-g-12">
+                                    <div class="ui-g-nopad ui-g-12">
+                                        <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+                                    </div>
+                                </div>
+                            </div>
 
                             <button pButton class="ui-button secondaryButton ui-g-3 ui-g-nopad" (click)="addNewRule(RULE_ACTIONS.ADD, category.rule)" label="Ajouter une règle"
                                     icon="fa-plus" iconPos="left"></button>
@@ -127,7 +125,7 @@
                         </div>
 
                         <div class="ui-g-12" *ngIf="(category.rule === 'StorageRule' || category.rule === 'AppraisalRule')">
-                            <span class="ui-g-8">Sort Final: </span>
+                            <span class="ui-g-7">Sort Final: </span>
                             <div class="ui-g-4" >
                                 <select [(ngModel)]="internalSavedRules[category.rule].FinalAction" style="width: 100%">
                                     <option *ngFor="let action of finalActions[category.rule] | keys"
@@ -139,16 +137,69 @@
                         </div>
 
                         <div class="ui-g-12" *ngIf="category.rule === 'ClassificationRule'">
-                            <span class="ui-g-8" >Niveau de la classification: </span>
-                            <div class="ui-g-4">
+                            <span class="ui-g-5" >Niveau de la classification: </span>
+                            <div class="ui-g-3">
                                 <input pInputText [(ngModel)]="internalSavedRules[category.rule].ClassificationLevel"
                                        style="width: 100%"/>
                             </div>
-                            <span class="ui-g-8" >Propriétaire de la classification: </span>
-                            <div class="ui-g-4">
+
+                            <span class="ui-g-5" >Propriétaire de la classification: </span>
+                            <div class="ui-g-3">
                                 <input pInputText [(ngModel)]="internalSavedRules[category.rule].ClassificationOwner"
                                        style="width: 100%"/>
                             </div>
+
+                            <div class="ui-g-12">
+                                <span class="ui-g-5" >Champ de diffusion: </span>
+                                <div class="ui-g-3">
+                                    <input pInputText [(ngModel)]="internalSavedRules[category.rule].ClassificationAudience"
+                                           style="width: 100%"/>
+                                </div>
+                                <button pButton class="ui-button secondaryButton ui-g-2 ui-g-nopad"
+                                        (click)="internalSavedRules[category.rule].ClassificationAudience = null;
+                                        internalSavedRules[category.rule].removeClassificationAudience = true"
+                                        *ngIf="!internalSavedRules[category.rule].removeClassificationAudience"
+                                        title="Supprimer le champ de diffusion"
+                                        label="Supprimer" icon="fa-times" iconPos="left"></button>
+                                <button pButton class="ui-button secondaryButton ui-g-2 ui-g-nopad"
+                                        (click)="internalSavedRules[category.rule].ClassificationAudience = null;
+                                        internalSavedRules[category.rule].removeClassificationAudience = false"
+                                        *ngIf="internalSavedRules[category.rule].removeClassificationAudience"
+                                        title="Ne pas modifier le champ de diffusion"
+                                        label="Annuler" icon="fa-refresh" iconPos="left"></button>
+                            </div>
+                            <span class="ui-g-12" *ngIf="internalSavedRules[category.rule].ClassificationAudience === null && internalSavedRules[category.rule].removeClassificationAudience">
+                                Ce champ sera supprimé sur toute les unité archivistiques sélectionnées pour le traitement de masse
+                            </span>
+
+                            <div class="ui-g-12">
+                                <span class="ui-g-5" >Date de réévaluation: </span>
+                                <div class="ui-g-3">
+                                    <p-calendar [(ngModel)]="internalSavedRules[category.rule].ClassificationReassessingDate"
+                                                [inputStyle]="{'width':'100%'}" [dateFormat]="'dd/mm/yy'"
+                                                [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale">
+                                    </p-calendar>
+                                </div>
+                                <button pButton class="ui-button secondaryButton ui-g-2 ui-g-nopad"
+                                        (click)="internalSavedRules[category.rule].ClassificationReassessingDate = null;
+                                        internalSavedRules[category.rule].removeClassificationReassessingDate = true"
+                                        *ngIf="!internalSavedRules[category.rule].removeClassificationReassessingDate"
+                                        title="Supprimer la date de réévaluation"
+                                        label="Supprimer" icon="fa-times" iconPos="left"></button>
+                                <button pButton class="ui-button secondaryButton ui-g-2 ui-g-nopad"
+                                        (click)="internalSavedRules[category.rule].ClassificationReassessingDate = null;
+                                        internalSavedRules[category.rule].removeClassificationReassessingDate = false"
+                                        *ngIf="internalSavedRules[category.rule].removeClassificationReassessingDate"
+                                        title="Ne pas modifier la date de réévaluation"
+                                        label="Annuler" icon="fa-refresh" iconPos="left"></button>
+                            </div>
+                            <span class="ui-g-12" *ngIf="internalSavedRules[category.rule].ClassificationReassessingDate === null && internalSavedRules[category.rule].removeClassificationReassessingDate">
+                                Ce champ sera supprimé sur toute les unité archivistiques sélectionnées pour le traitement de masse
+                            </span>
+
+                            <span class="ui-g-5" >Modifications soumises à validation: </span>
+                            <p-triStateCheckbox class="ui-g-1" [(ngModel)]="internalSavedRules[category.rule].NeedReassessingAuthorization"></p-triStateCheckbox>
+                            <span class="ui-g-3">{{getReassessingAuthorizationLabel(internalSavedRules[category.rule].NeedReassessingAuthorization)}}</span>
                         </div>
                     </p-fieldset>
                 </ng-template>

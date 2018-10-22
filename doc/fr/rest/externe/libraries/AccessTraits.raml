@@ -218,3 +218,22 @@ traits:
         body:
           application/json:
             description: Rapport final de l'opération d'élimination
+
+  UnitBatchUpdateResponse:
+      description: Requête de mise à jour de masse des métadonnées de gestion des unitiés archivistiques
+      is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+      body:
+        application/json:
+          type: AccessTypes.UnitBatchUpdateRequest
+      responses:
+        202:
+          description: |
+            Renvoie le statut de l'opération de mise à jour
+          body:
+            application/json:
+              description: Operation de mise à jour acceptée
+        500:
+          description: Renvoie le statut final de l'opération en KO
+          body:
+            application/json:
+              description: informations sur l'echec du lancement de l'opération
