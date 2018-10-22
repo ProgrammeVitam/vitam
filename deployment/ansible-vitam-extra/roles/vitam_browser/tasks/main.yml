@@ -7,12 +7,12 @@
 - name: Install Apache package for displaying data content
   package:
     name: httpd
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - name: Install Apache package for displaying data content
   package:
     name: apache2
-  when: ( ansible_distribution == "Debian")
+  when: ansible_os_family == "Debian"
 
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
 
@@ -21,26 +21,26 @@
     name: httpd
     enabled: yes
     state: started
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - name: Ensure  Apache autostart && Apache is started on Debian
   service: 
     name: apache2
     enabled: yes
     state: started
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
 
 - name: add vitam group to apache user on Centos
   user:
     name: apache
     groups: vitam
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - name: add vitam group to apache user on Centos
   user:
     name: www-data
     groups: vitam
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
 
 - name: copy theme files
   copy:
@@ -55,7 +55,7 @@
     dest: "/etc/httpd/conf.d/{{ item }}"
     mode: 0500
     owner: root
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
   notify: restart apache
   with_items:
   - "httpd-offer-view.conf"
@@ -66,7 +66,7 @@
     dest: "/etc/apache2/sites-available/{{ item }}"
     mode: 0500
     owner: root
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
   notify: restart apache2
   with_items:
   - "httpd-offer-view.conf"
@@ -76,7 +76,7 @@
     src: '/etc/apache2/sites-available/{{ item }}'
     dest: '/etc/apache2/sites-enabled/{{ item }}'
     state: link
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
   notify: restart apache2
   with_items:
   - "httpd-offer-view.conf"

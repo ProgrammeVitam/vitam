@@ -4,12 +4,12 @@
   package:
     name: libpcap
     state: latest
-  when: (ansible_distribution == "CentOS" )
+  when: ansible_os_family == "RedHat"
 
 - name: install libpcap (prerequisite for Packetbeat)
   package:
     name: libpcap0.8
-  when: (ansible_distribution == "Debian" )
+  when: ansible_os_family == "Debian"
 
 # TODO Run packetbeat as a non-root user, using a specific user with full restrictions
 - name: install Packetbeat
