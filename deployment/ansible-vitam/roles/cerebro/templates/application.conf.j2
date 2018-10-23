@@ -27,12 +27,21 @@ auth = {
       #method  = "simple"
       #user-domain = "domain.com"
     #}
+  {% if cerebro_user is defined %}
+  # Simple username/password authentication
+  type: basic
+    settings: {
+      username = "{{ cerebro_user.login }}"
+      password = "{{ cerebro_user.password }}"
+    }
+  {% else %}
   # Example of simple username/password authentication
   #type: basic
     #settings: {
       #username = "admin"
       #password = "1234"
     #}
+  {% endif %}
 }
 
 # A list of known hosts

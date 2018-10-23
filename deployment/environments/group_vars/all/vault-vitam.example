@@ -1,4 +1,4 @@
-
+---
 # Vitam platform secret key
 plateforme_secret: vitamsecret
 
@@ -68,6 +68,9 @@ mongodb:
       user: offer
       password: azerty5
 
+#cerebro_user:
+#  login: aadmin
+#  password: aadmin1234
 
 vitam_users:
   - vitam_aadmin:
@@ -86,6 +89,7 @@ vitam_users:
     login: techadmin
     password: techadmin1234
     role: admin
+
 ldap_authentification:
     ldap_pwd: "admin"
 
