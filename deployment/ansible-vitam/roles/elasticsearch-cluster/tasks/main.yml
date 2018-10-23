@@ -39,23 +39,12 @@
 
 # Only prerequisite for Debian : install openjdk from jessie-backports
 
-- block:
-
-    - name: check jessie-backports repo are present
-      apt_repository:
-        repo: "{{ item }}"
-        state: present
-      with_items:
-        - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-        - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-
-    - name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
-      apt:
-        name: "{{ java_package }}, openjdk-8-jre-headless"
-        update_cache: yes
-        state: latest
-        default_release: jessie-backports
-
+- name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
+  apt:
+    name: "openjdk-8-jre-headless"
+    update_cache: yes
+    state: latest
+    default_release: jessie-backports
   when: ansible_os_family == "Debian"
 
 - name: install vitam-{{composant.cluster_name}} package
