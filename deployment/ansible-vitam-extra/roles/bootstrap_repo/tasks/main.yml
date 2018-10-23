@@ -1,19 +1,34 @@
 ---
-# tasks file for bootstrap_repo
-- name: create VITAM repositories for CentOS
-  template:
-    src: vitam.repo.j2
-    dest: /etc/yum.repos.d/vitam-repositories.repo
-    owner: root
-    group: root
-    mode: 0644
-  when: ansible_distribution=='CentOS'
 
-- name: create VITAM repositories for Debian
-  template:
-    src: vitam-source-list.j2
-    dest: /etc/apt/sources.list.d/vitam-repositories.list
-    owner: root
-    group: root
-    mode: 0644
-  when: ansible_distribution=='Debian'
+- block:
+
+  - name: create VITAM repositories for CentOS
+    template:
+      src: vitam.repo.j2
+      dest: /etc/yum.repos.d/vitam-repositories.repo
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Update yum cache
+    yum:
+      update_cache: yes
+
+  when: ansible_os_family == "RedHat"
+
+
+- block:
+
+  - name: create VITAM repositories for Debian
+    template:
+      src: vitam-source-list.j2
+      dest: /etc/apt/sources.list.d/vitam-repositories.list
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+
+  when: ansible_os_family == "Debian"
