@@ -51,7 +51,6 @@
 #     state: latest
 #   when: ansible_os_family == "RedHat"
 
-
 - name: install vitam-{{composant.cluster_name}} package
   package:
     name: vitam-{{composant.cluster_name}}
