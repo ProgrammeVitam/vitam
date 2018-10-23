@@ -98,7 +98,7 @@ vitam:
         secret_platform: "false"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
-	metrics_enabled: true
+        metrics_enabled: true
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
