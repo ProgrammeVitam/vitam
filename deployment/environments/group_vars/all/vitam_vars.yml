@@ -84,7 +84,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
-	metrics_enabled: true
+        metrics_enabled: true
         # log_level: "DEBUG"
     ingestexternal:
         vitam_component: ingest-external
