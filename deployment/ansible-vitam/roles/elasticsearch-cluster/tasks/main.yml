@@ -45,6 +45,13 @@
     default_release: jessie-backports
   when: ansible_os_family == "Debian"
 
+# - name: install java on CentOS
+#   yum:
+#     name: java-1.8.0-openjdk
+#     state: latest
+#   when: ansible_os_family == "RedHat"
+
+
 - name: install vitam-{{composant.cluster_name}} package
   package:
     name: vitam-{{composant.cluster_name}}
@@ -203,8 +210,6 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - consul_conf
   notify:
    - reload consul configuration
 
