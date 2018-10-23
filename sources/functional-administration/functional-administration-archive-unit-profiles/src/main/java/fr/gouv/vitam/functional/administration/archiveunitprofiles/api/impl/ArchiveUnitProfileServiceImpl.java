@@ -126,8 +126,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
+     * @param mongoAccess             MongoDB client
+     * @param vitamCounterService     the vitam counter service
      * @param functionalBackupService the functional backup service
      */
     public ArchiveUnitProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess,
@@ -143,10 +143,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
+     * @param mongoAccess             MongoDB client
+     * @param vitamCounterService     the vitam counter service
      * @param functionalBackupService the functional backup service
-     * @param checkOntology true or false to determine if ontology check is required
+     * @param checkOntology           true or false to determine if ontology check is required
      */
     @VisibleForTesting
     public ArchiveUnitProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess,
@@ -228,23 +228,39 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // Json schema validation of profile ControlSchema property
                 final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                     manager.createJsonSchemaValidator().validate(aupm);
-                checkSchema.ifPresent(t -> error
-                    .addToErrors(
-                        new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+
+
+
+                checkSchema.ifPresent(t -> {
+                        VitamError vitamError = new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                             .setDescription(checkSchema.get().getReason())
-                            .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA)));
+                            .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA)
+                            .setState(StatusCode.KO.name());
+
+                        vitamError.setContext("FunctionalModule-ArchiveUnitProfile");
+                        error.addToErrors(vitamError);
+
+                    }
+                );
 
 
 
                 if (slaveMode) {
                     final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
                         manager.checkEmptyIdentifierSlaveModeValidator().validate(aupm);
-                    result.ifPresent(t -> error
-                        .addToErrors(
+
+
+                    result.ifPresent(t -> {
+
+                        VitamError vitamError =
                             new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                                 .setMessage(ArchiveUnitProfileManager.DUPLICATE_IN_DATABASE)
                                 .setDescription(result.get().getReason())
-                                .setState(StatusCode.KO.name())));
+                                .setState(StatusCode.KO.name());
+                        vitamError.setContext("FunctionalModule-ArchiveUnitProfile");
+                        error
+                            .addToErrors(vitamError);
+                    });
                 }
             }
 
@@ -266,7 +282,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 setIdentifier(slaveMode, aupm);
 
                 if (aupm.getControlSchema() != null) {
-                    List<String> schemaFields = new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
+                    List<String> schemaFields =
+                        new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
                     if (checkOntology) {
                         schemaFields.forEach((k) -> {
                             validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
@@ -394,7 +411,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 }
 
                 ((ObjectNode) fieldName).remove(ArchiveUnitProfileModel.CREATION_DATE);
-                ((ObjectNode) fieldName).put(ArchiveUnitProfileModel.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                ((ObjectNode) fieldName).put(ArchiveUnitProfileModel.LAST_UPDATE,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
@@ -521,9 +539,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
      * Validate dsl action
      *
      * @param profileModel
-     * @param error thrown errors
-     * @param field the field to check
-     * @param value the calue to check
+     * @param error        thrown errors
+     * @param field        the field to check
+     * @param value        the calue to check
      */
     private void validateUpdateAction(ArchiveUnitProfileModel profileModel, final VitamError error, final String field,
         final JsonNode value, ArchiveUnitProfileManager manager) {

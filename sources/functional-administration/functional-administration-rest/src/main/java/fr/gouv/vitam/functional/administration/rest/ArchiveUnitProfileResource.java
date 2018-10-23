@@ -78,7 +78,7 @@ public class ArchiveUnitProfileResource {
         "The json input of archvie unit profile type is mandatory";
     private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
         "The dsl query is mandatory";
-    
+
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
@@ -108,7 +108,7 @@ public class ArchiveUnitProfileResource {
      * </ul>
      *
      * @param archiveUnitProfileModelList as InputStream
-     * @param uri the uri info
+     * @param uri                         the uri info
      * @return Response jersey response
      */
     @Path(ARCHIVE_UNIT_PROFILE_URI)
@@ -120,13 +120,15 @@ public class ArchiveUnitProfileResource {
 
         try (ArchiveUnitProfileService archiveUnitProfileService =
             new ArchiveUnitProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-            RequestResponse requestResponse = archiveUnitProfileService.createArchiveUnitProfiles(archiveUnitProfileModelList);
+            RequestResponse requestResponse =
+                archiveUnitProfileService.createArchiveUnitProfiles(archiveUnitProfileModelList);
 
             if (!requestResponse.isOk()) {
-                return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
-            } else {
-                return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
+                 requestResponse.setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             }
+
+            return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
 
         } catch (VitamException exp) {
             LOGGER.error(exp);
@@ -138,12 +140,12 @@ public class ArchiveUnitProfileResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
-    
+
     /**
      * Update metadata of the archive unit profile
-     * 
+     *
      * @param profileMetadataId profile ID to update
-     * @param queryDsl update query
+     * @param queryDsl          update query
      * @return Response
      */
     @Path(ARCHIVE_UNIT_PROFILE_URI + "/{id}")
@@ -173,7 +175,7 @@ public class ArchiveUnitProfileResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        }  catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Unexpected server error {}", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
@@ -208,13 +210,13 @@ public class ArchiveUnitProfileResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
-    
+
     /**
      * Construct the error following input
      *
-     * @param status Http error status
+     * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
