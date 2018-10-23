@@ -7,6 +7,7 @@ set -e
 
 . $(dirname $0)/pki/scripts/lib/functions.sh
 
+
 ######################################################################
 ############################# Functions ##############################
 ######################################################################
@@ -169,6 +170,7 @@ function generateTrustStore {
                     ${CRT_FILE} \
                     ${ALIAS}
     done
+
 }
 
 function generateHostKeystore {
@@ -202,6 +204,7 @@ function generateHostKeystore {
     fi
 }
 
+
 ######################################################################
 #############################    Main    #############################
 ######################################################################
@@ -228,7 +231,7 @@ for SERVER in $(ls ${REPERTOIRE_CERTIFICAT}/server/hosts/); do
         pki_logger "Creation du keystore de ${COMPONENT} pour le serveur ${SERVER}"
         JKS_KEYSTORE=${REPERTOIRE_KEYSTORES}/server/${SERVER}/keystore_${COMPONENT}.jks
         P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/server/hosts/${SERVER}/${COMPONENT}.p12
-        CRT_KEY_PASSWORD=$(getComponentPassphrase certs "server_${COMPONENT}_key")
+        CRT_KEY_PASSWORD=$(getComponentCertPassphrase "server_${COMPONENT}_key")
         JKS_PASSWORD=$(getKeystorePassphrase "keystores_server_${COMPONENT}")
 
         generateHostKeystore    ${COMPONENT} \
@@ -251,7 +254,7 @@ for USAGE in $( ls ${REPERTOIRE_CERTIFICAT}/timestamping/vitam/ 2>/dev/null | aw
     pki_logger "Creation du keystore timestamp de ${USAGE}"
     P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/timestamping/keystore_${USAGE}.p12
     TMP_P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/timestamping/vitam/${USAGE}.p12
-    CRT_KEY_PASSWORD=$(getComponentPassphrase certs "timestamping_${USAGE}_key")
+    CRT_KEY_PASSWORD=$(getComponentCertPassphrase "timestamping_${USAGE}_key")
     P12_PASSWORD=$(getKeystorePassphrase "keystores_timestamping_${USAGE}")
 
     # KWA FIXME : simplify (we only use TMP_P12_KEYSTORE to do this dirname...)
@@ -283,7 +286,7 @@ for CLIENT_TYPE in external storage; do
         pki_logger "-------------------------------------------"
         pki_logger "Creation du keystore client de ${COMPONENT}"
         CERT_DIRECTORY=${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/${COMPONENT}
-        CRT_KEY_PASSWORD=$(getComponentPassphrase certs "client_client-${CLIENT_TYPE}_${COMPONENT}_key")
+        CRT_KEY_PASSWORD=$(getComponentCertPassphrase "client_client-${CLIENT_TYPE}_${COMPONENT}_key")
         P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/keystore_${COMPONENT}.p12
         P12_PASSWORD=$(getKeystorePassphrase "keystores_client_${CLIENT_TYPE}_${COMPONENT}")
 
