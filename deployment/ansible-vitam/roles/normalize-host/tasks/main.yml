@@ -47,9 +47,9 @@
     - ansible_os_family == "Debian"
 
 - name: Update yum cache
-  yum:
-    update_cache: yes
+  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
   tags:
+    - enable_vitam_repo
     - update_package_vitam
   when: ansible_os_family == "RedHat"
 
@@ -57,5 +57,6 @@
   apt:
     update_cache: yes
   tags:
+    - enable_vitam_repo
     - update_package_vitam
   when: ansible_os_family == "Debian"
