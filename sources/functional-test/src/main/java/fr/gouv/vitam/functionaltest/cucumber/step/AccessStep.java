@@ -340,6 +340,7 @@ public class AccessStep {
     }
 
     private String selectLoadedUnitGuidByTitle(String unitTitle) {
+        List<JsonNode> results = world.getResults();
 
         for (JsonNode result : results) {
             if (result.get("Title").asText().equals(unitTitle)) {
