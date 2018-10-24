@@ -2,7 +2,7 @@ http.port={{ cerebro.port }}
 http.address= {{ ip_admin }}
 # Secret will be used to sign session cookies, CSRF tokens and for other encryption utilities.
 # It is highly recommended to change this value before running cerebro in production.
-secret = "{{ cerebro_secret_key }}"
+secret = "{{ cerebro.secret_key }}"
 
 # Application base path
 basePath = "/{{ cerebro.baseuri }}/"
@@ -27,12 +27,21 @@ auth = {
       #method  = "simple"
       #user-domain = "domain.com"
     #}
+{% if cerebro.basicauth is defined %}
+  # Simple username/password authentication
+  type: basic
+    settings: {
+      username = "{{ cerebro.basicauth.username }}"
+      password = "{{ cerebro.basicauth.password }}"
+    }
+{% else %}
   # Example of simple username/password authentication
   #type: basic
     #settings: {
       #username = "admin"
       #password = "1234"
     #}
+{% endif %}
 }
 
 # A list of known hosts
