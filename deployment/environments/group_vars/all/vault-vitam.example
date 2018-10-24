@@ -2,9 +2,6 @@
 # Vitam platform secret key
 plateforme_secret: vitamsecret
 
-# Cerebro key
-cerebro_secret_key: tGz28hJkiW[p@a34G
-
 # The consul key must be 16-bytes, Base64 encoded: https://www.consul.io/docs/agent/encryption.html
 # You can generate it with the "consul keygen" command
 # Or you can use this script: deployment/pki/scripts/generate_consul_key.sh
@@ -67,10 +64,6 @@ mongodb:
     offer:
       user: offer
       password: azerty5
-
-#cerebro_user:
-#  login: aadmin
-#  password: aadmin1234
 
 vitam_users:
   - vitam_aadmin:
