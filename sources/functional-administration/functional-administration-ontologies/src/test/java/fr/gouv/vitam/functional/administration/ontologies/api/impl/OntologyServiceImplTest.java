@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
+import static fr.gouv.vitam.common.guid.GUIDFactory.newRequestIdGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
 
@@ -51,6 +52,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,6 +103,13 @@ public class OntologyServiceImplTest {
     static OntologyServiceImpl ontologyService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static int mongoPort;
+
+    @Before
+    public void setUp() throws Exception {
+        String operationId = newRequestIdGUID(TENANT_ID).toString();
+
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

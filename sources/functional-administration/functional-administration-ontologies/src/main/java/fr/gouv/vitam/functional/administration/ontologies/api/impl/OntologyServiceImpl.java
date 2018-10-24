@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReportOntologies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
@@ -184,8 +186,9 @@ public class OntologyServiceImpl implements OntologyService {
         if (ontologyModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        GUID eip= GUIDReader.getGUID(operationId);
 
         Map<String, List<ErrorReportOntologies>> errors = new HashMap<>();
         OntologyManager manager = new OntologyManager(logbookClient, eip, errors);
@@ -614,7 +617,6 @@ public class OntologyServiceImpl implements OntologyService {
         guidmasterNode.put(OUT_MESSG, VitamErrorMessages.getFromKey(ONTOLOGY_IMPORT_EVENT + "." + status));
 
         for (String identifier : errors.keySet()) {
-            Object o = errors.get(identifier);
             List<ErrorReportOntologies> errorsReports = errors.get(identifier);
             ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
             for (ErrorReportOntologies error : errorsReports) {

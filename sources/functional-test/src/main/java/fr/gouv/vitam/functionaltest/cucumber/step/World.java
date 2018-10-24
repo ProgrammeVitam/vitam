@@ -29,13 +29,14 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
-import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.functionaltest.cucumber.service.AccessService;
@@ -76,7 +78,8 @@ public class World {
     private String unitId;
     private String objectGroupId;
     private String applicationSessionId;
-
+    private List<JsonNode> results;
+    private LogbookEvent logbookEvent;
     /**
      * id of the operation
      */
@@ -448,5 +451,21 @@ public class World {
         File confFile = PropertiesUtils.findFile("logbook-client.conf");
         ClientConfigurationImpl conf = PropertiesUtils.readYaml(confFile, ClientConfigurationImpl.class);
         LogbookOperationsClientFactory.changeMode(conf);
+    }
+
+    List<JsonNode> getResults() {
+        return results;
+    }
+
+    void setResults(List<JsonNode> results) {
+        this.results = results;
+    }
+
+    LogbookEvent getLogbookEvent() {
+        return logbookEvent;
+    }
+
+    void setLogbookEvent(LogbookEvent logbookEvent) {
+        this.logbookEvent = logbookEvent;
     }
 }

@@ -35,12 +35,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
@@ -104,14 +107,17 @@ public class ArchiveUnitProfileStep {
                 .createArchiveUnitProfile(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(profil, StandardOpenOption.READ));
-        assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
         if (response.isOk()) {
             RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
             Object o = (res.getResults().stream().findFirst()).get();
             this.model = (JsonNode) o;
-        } else {
-            fail("Fail to import archive unit profile :" + response.toString());
         }
+        String httpCode = String.valueOf(response.getHttpCode());
+        ObjectNode responseCode = JsonHandler.createObjectNode();
+        responseCode.put("Code", httpCode);
+        List<JsonNode> result = new ArrayList<>();
+        result.add(responseCode);
+        world.setResults(result);
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
     }
