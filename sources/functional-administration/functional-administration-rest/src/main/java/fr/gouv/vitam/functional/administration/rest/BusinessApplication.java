@@ -103,7 +103,7 @@ public class BusinessApplication extends Application {
                     adminManagementClient));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
-            singletons.add(new EvidenceResource());
+            singletons.add(new EvidenceResource(mongoDbAccess, vitamCounterService));
             singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
             singletons.add(new ProbativeValueResource());
 

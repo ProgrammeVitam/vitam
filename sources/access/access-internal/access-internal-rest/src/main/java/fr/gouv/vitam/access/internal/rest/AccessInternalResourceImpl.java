@@ -64,7 +64,6 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -362,6 +361,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
 
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
+
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
@@ -405,6 +407,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
+    }
+
+    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier
+                .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString());
     }
 
     @Override
@@ -463,6 +473,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         VitamLogbookMessages.getLabelOp("RECLASSIFICATION.STARTED") + " : " +
                             GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
+
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
 
                 logbookOperationsClient.create(initParameters);
 
@@ -558,6 +571,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                             " : " +
                             GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
+
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
 
                 logbookOperationsClient.create(initParameters);
 
@@ -991,11 +1007,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         GUIDReader.getGUID(operationId));
 
                 // Add access contract rights
-                ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-                rightsStatementIdentifier
-                    .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
-                initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                    rightsStatementIdentifier.toString());
+                addRightsStatementIdentifier(initParameters);
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
@@ -1068,11 +1080,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                                 GUIDReader.getGUID(operationId));
 
                 // Add access contract rights
-                ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-                rightsStatementIdentifier
-                        .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
-                initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                        rightsStatementIdentifier.toString());
+                addRightsStatementIdentifier(initParameters);
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
