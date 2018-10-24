@@ -32,6 +32,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
 
     private static final String CHECK_INTEGRITY_ID = "AUDIT_FILE_INTEGRITY";
     public static final String QUALIFIERS = "#qualifiers";
+    public static final String UNITS_UPS = "#unitups";
     private static final int OG_NODE_RANK = 0;
 
     /**
@@ -53,6 +54,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
+            JsonNode unitsUpsList = ogNode.get(UNITS_UPS);
             evDetData.set("OriginatingAgency", ogNode.get("#originating_agency"));
 
             for (JsonNode qualifier : qualifiersList) {
@@ -100,6 +102,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                         ObjectNode objectError = JsonHandler.createObjectNode();
                         objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
+                        objectError.putArray("IdAU").addAll((ArrayNode) unitsUpsList);
                         errors.add(objectError);
                     }
                 }

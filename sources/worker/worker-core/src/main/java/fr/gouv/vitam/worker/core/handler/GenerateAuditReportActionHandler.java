@@ -79,6 +79,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String USAGE = "Usage";
 
+    private static final String UNITS_UPS = "IdAU";
+
     private static final String HASH_TENANT = "#tenant";
 
     private static final String ID_OBJ = "IdObj";
@@ -279,22 +281,26 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
                         if (evDetData.get("errors") != null) {
                             for (JsonNode error : evDetData.get("errors")) {
-                                reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
-                                    .put(ID_GOT, event.get("obId").asText())
-                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                    .put(USAGE, error.get(USAGE).asText())
-                                    .put(ORIGINATING_AGENCY, originatingAgency)
-                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
+                                ObjectNode objectKO = JsonHandler.createObjectNode().put("IdOp", idOp)
+                                        .put(ID_GOT, event.get("obId").asText())
+                                        .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                        .put(USAGE, error.get(USAGE).asText())
+                                        .put(ORIGINATING_AGENCY, originatingAgency)
+                                        .put(OUT_DETAIL, event.get("outDetail").asText());
+                                objectKO.putArray(UNITS_UPS).addAll((ArrayNode) error.get(UNITS_UPS));
+                                reportKO.add(objectKO);
                             }
                         }
                         if (evDetData.get("errorsPhysical") != null) {
                             for (JsonNode error : evDetData.get("errorsPhysical")) {
-                                reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
-                                    .put(ID_GOT, event.get("obId").asText())
-                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                    .put(USAGE, error.get(USAGE).asText())
-                                    .put(ORIGINATING_AGENCY, originatingAgency)
-                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
+                                ObjectNode objectKO = JsonHandler.createObjectNode().put("IdOp", idOp)
+                                        .put(ID_GOT, event.get("obId").asText())
+                                        .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                        .put(USAGE, error.get(USAGE).asText())
+                                        .put(ORIGINATING_AGENCY, originatingAgency)
+                                        .put(OUT_DETAIL, event.get("outDetail").asText());
+                                objectKO.putArray(UNITS_UPS).addAll((ArrayNode) error.get(UNITS_UPS));
+                                reportKO.add(objectKO);
                             }
                         }
 

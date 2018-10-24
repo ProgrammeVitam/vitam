@@ -60,6 +60,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     private static final String CHECK_PHYSICAL_EXISTING = "AUDIT_FILE_EXISTING.PHYSICAL_OBJECT";
     private static final int OG_NODE_RANK = 0;
     private static final String QUALIFIERS = "#qualifiers";
+    public static final String UNITS_UPS = "#unitups";
     private static final String PHYSICAL_MASTER = "PhysicalMaster";
 
     /**
@@ -82,6 +83,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
+            JsonNode unitsUpsList = ogNode.get(UNITS_UPS);
             evDetData.set("OriginatingAgency", ogNode.get("#originating_agency"));
 
             for (JsonNode qualifier : qualifiersList) {
@@ -104,6 +106,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                             ObjectNode objectError = JsonHandler.createObjectNode();
                             objectError.put("IdObj", version.get("#id").textValue());
                             objectError.put("Usage", version.get("DataObjectVersion").textValue());
+                            objectError.putArray("IdAU").addAll((ArrayNode) unitsUpsList);
                             errors.add(objectError);
                             evDetData.set("errorsPhysical", errors);
                         } else {
@@ -125,6 +128,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         ObjectNode objectError = JsonHandler.createObjectNode();
                         objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
+                        objectError.putArray("IdAU").addAll((ArrayNode) unitsUpsList);
                         errors.add(objectError);                        
                     } else {
                         nbObjectOK += 1;
