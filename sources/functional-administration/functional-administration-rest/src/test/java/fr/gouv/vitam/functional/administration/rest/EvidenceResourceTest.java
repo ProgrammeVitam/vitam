@@ -1,10 +1,21 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -17,9 +28,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -33,17 +44,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
 
 /**
  * EvidenceResource Test
@@ -61,8 +61,10 @@ public class EvidenceResourceTest {
     @Mock WorkspaceClient workspaceClient;
     @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
     @Mock LogbookOperationsClient logbookOperationsClient;
-    @Mock AdminManagementClientFactory adminManagementClientFactory;
-    @Mock AdminManagementClient adminManagementClient;
+    @Mock MongoDbAccessAdminImpl mongoDbAccess;
+    @Mock DbRequestResult dbRequestResult;
+    @Mock VitamCounterService vitamCounterService;
+
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -70,16 +72,17 @@ public class EvidenceResourceTest {
     private static final int TENANT_ID = 0;
 
     @Before
-    public void setUp() throws InvalidParseOperationException, AdminManagementClientServerException {
+    public void setUp() throws InvalidParseOperationException, ReferentialException {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        when(adminManagementClient.findAccessContracts(any()))
-                .thenReturn(new RequestResponseOK<AccessContractModel>()
-                        .addAllResults(Arrays.asList(new AccessContractModel()
-                                .setEveryOriginatingAgency(true)
-                                .setEveryDataObjectVersion(true))));
+
+        AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true)
+                .setEveryDataObjectVersion(true);
+        accessContract.setIdentifier("fakeContract");
+        when(dbRequestResult.getDocuments(any(), any())).thenReturn(Arrays.asList(accessContract));
+        when(mongoDbAccess.findDocuments(any(), any())).thenReturn(dbRequestResult);
+
         VitamThreadUtils.getVitamSession().setContractId("fakeContract");
     }
 
@@ -94,7 +97,7 @@ public class EvidenceResourceTest {
 
         EvidenceResource evidenceResource =
             new EvidenceResource(processingManagementClientFactory, logbookOperationsClientFactory,
-                workspaceClientFactory);
+                workspaceClientFactory, mongoDbAccess, vitamCounterService);
 
         Response audit = evidenceResource.audit(new Select().getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
