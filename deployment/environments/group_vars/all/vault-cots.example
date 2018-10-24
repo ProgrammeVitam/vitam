@@ -1,0 +1,8 @@
+---
+
+cerebro:
+  secret_key: tGz28hJkiW[p@a34G
+  # Uncomment the following lines to activate the basic authentication on Cerebro UI
+#  basicauth:
+#    username: aadmin
+#    password: aadmin1234

@@ -1,9 +1,6 @@
-
+---
 # Vitam platform secret key
 plateforme_secret: vitamsecret
-
-# Cerebro key
-cerebro_secret_key: tGz28hJkiW[p@a34G
 
 # The consul key must be 16-bytes, Base64 encoded: https://www.consul.io/docs/agent/encryption.html
 # You can generate it with the "consul keygen" command
@@ -68,7 +65,6 @@ mongodb:
       user: offer
       password: azerty5
 
-
 vitam_users:
   - vitam_aadmin:
     login: aadmin
@@ -86,6 +82,7 @@ vitam_users:
     login: techadmin
     password: techadmin1234
     role: admin
+
 ldap_authentification:
     ldap_pwd: "admin"
 
