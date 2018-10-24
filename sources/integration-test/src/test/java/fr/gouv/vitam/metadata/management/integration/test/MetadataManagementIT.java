@@ -26,6 +26,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.rest.AccessInternalResourceImpl;
+import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -211,6 +213,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         MongoDbAccess mongoDbAccess =
             new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
+
+        new DataLoader("integration-ingest-internal").prepareData();
 
     }
 
@@ -942,7 +946,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
         try {
             StorageClientFactory.changeMode(null); // If test storage needed uncomment
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            VitamThreadUtils.getVitamSession().setContractId("FakeContract");
+            VitamThreadUtils.getVitamSession().setContractId("aName5");
+            AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true);
+            accessContract.setIdentifier("aName5");
+            VitamThreadUtils.getVitamSession().setContract(accessContract);
             VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
             // Given initial unit data
