@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -3589,8 +3590,6 @@ public class ProcessingIT {
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
 
-
-
         // 2. Test multiple usages with only one version for each one
         String containerName = createOperationContainer();
 
@@ -3618,9 +3617,9 @@ public class ProcessingIT {
 
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
         ObjectGroup got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
-        assertThat(got.get( ObjectGroup.OPS, List.class)).hasSize(1);
-        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple(SedaConstants.TAG_BINARY_MASTER, 1), tuple(SedaConstants.TAG_PHYSICAL_MASTER, 1));
+        assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(1);
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple("BinaryMaster", 1), tuple("PhysicalMaster", 1));
 
         // 2. Add objects to existing got
         String containerName2 = createOperationContainer();
@@ -3649,14 +3648,21 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
+        // Check fix bug_5178 bug_5117
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
         got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
-        assertThat(got.get( ObjectGroup.OPS, List.class)).hasSize(2);
-        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get( ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple(SedaConstants.TAG_BINARY_MASTER, 3), tuple(SedaConstants.TAG_PHYSICAL_MASTER, 1));
+        assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(2);
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple("BinaryMaster", 3), tuple("PhysicalMaster", 1));
 
+        // Fix check bug 5199. Assert that all versions of all qualifiers have DataObjectGroupId equals to got id
+        String gotId = got.getString(ObjectGroup.ID);
+        Stream<String> stream = ((List<Document>) got.get(ObjectGroup.QUALIFIERS, List.class))
+                .stream()
+                .flatMap(o -> ((List<Document>) o.get("versions", List.class)).stream())
+                .map(o -> o.getString(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID));
+
+        assertThat(stream).hasSize(4).allMatch(o -> gotId.equals(o));
     }
-
-
 
 }
