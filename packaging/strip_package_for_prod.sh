@@ -65,6 +65,6 @@ TARGET_TAR=${SRC_TAR}.prod.tgz
 
 echo "Building result archive..."
 tar cvzf ${TARGET_TAR} ${TARGET_DIR}/*
-/usr/bin/shasum -a 256 ${TARGET_TAR} > ${TARGET_TAR}.sha256
+shasum -a 256 ${TARGET_TAR} > ${TARGET_TAR}.sha256
 
 echo "DONE ! Result file : ${TARGET_TAR}"
