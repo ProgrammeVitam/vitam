@@ -35,6 +35,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -71,11 +72,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -96,13 +95,11 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.SchemaValidationUtils.AVAILABLE_MANAGEMENT_ATTRIBUTES;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -294,7 +291,6 @@ public class AccessInternalModuleImplTest {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
         accessModuleImpl =
             new AccessInternalModuleImpl(storageClient, logbookOperationClient, logbookLifeCycleClient,
                 workspaceClient);
@@ -1205,59 +1201,60 @@ public class AccessInternalModuleImplTest {
 
     @Test
     public void givenCorrectDslWhenSelectObjectsThenOK()
-            throws Exception {
+        throws Exception {
         when(metaDataClient.selectObjectGroups(anyObject())).thenReturn(JsonHandler.createObjectNode());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenEmptyDslWhenSelectObjectsThenTrowsIllegalArgumentException()
-            throws Exception {
+        throws Exception {
         accessModuleImpl.selectObjects(fromStringToJson(""));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenSelectObjectsTestAccessExecutionException()
-            throws Exception {
+        throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenEmptyDSLWhenSelectObjectsThenThrowsInvalidParseOperationException()
-            throws Exception {
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        throws Exception {
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+            .selectObjectGroups(anyObject());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetadataInvalidSelectException()
-            throws Exception {
+        throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetaDataDocumentSizeException()
-            throws Exception {
+        throws Exception {
         Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(anyObject());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenClientProblemWhenSelectObjectsThenThrowsAccessExecutionException()
-            throws Exception {
+        throws Exception {
         Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(anyObject());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenEmptyDSLWhenSlectObjectsThenThrowsInvalidParseOperationException()
-            throws Exception {
+        throws Exception {
         final JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-                .selectObjectGroups(jsonQuery);
+            .selectObjectGroups(jsonQuery);
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
@@ -1293,11 +1290,13 @@ public class AccessInternalModuleImplTest {
             List<JsonNode> nodes = nodeList;
             Integer actualSize = 0;
 
-            @Override public boolean hasNext() {
+            @Override
+            public boolean hasNext() {
                 return actualSize < 3;
             }
 
-            @Override public JsonNode next() {
+            @Override
+            public JsonNode next() {
                 JsonNode next = nodes.get(actualSize);
                 actualSize++;
                 return next;
@@ -1307,7 +1306,8 @@ public class AccessInternalModuleImplTest {
 
     private void initMocksForAccessLog() throws Exception {
         when(storageClient.listContainer(anyString(), anyObject())).thenReturn(getMockedResponseForListContainer());
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject())).thenReturn(Response.ok(null).build());
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+            .thenReturn(Response.ok(null).build());
         when(workspaceClient.isExistingContainer(anyString())).thenReturn(true);
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
         doNothing().when(workspaceClient).compress(anyString(), anyObject());
@@ -1357,4 +1357,5 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.getAccessLog(params);
         verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
     }
+
 }

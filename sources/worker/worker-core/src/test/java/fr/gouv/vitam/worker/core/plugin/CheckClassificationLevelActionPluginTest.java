@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -38,7 +40,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.worker.core.service.ClassificationLevelService;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -67,7 +69,7 @@ import static org.mockito.Mockito.when;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class})
 public class CheckClassificationLevelActionPluginTest {
-    CheckClassificationLevelActionPlugin plugin = new CheckClassificationLevelActionPlugin();
+    CheckClassificationLevelActionPlugin plugin;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -80,11 +82,13 @@ public class CheckClassificationLevelActionPluginTest {
     private GUID guid = GUIDFactory.newGUID();
 
     private final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                    .setUrlMetadata("http://localhost:8083")
-                    .setObjectNameList(Lists.newArrayList("archiveUnit.json"))
-                    .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
-                    .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("archiveUnit.json"))
+            .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
+            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+    private ClassificationLevel classificationLevel;
+
 
     public CheckClassificationLevelActionPluginTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
@@ -92,9 +96,12 @@ public class CheckClassificationLevelActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
+
+        plugin = new CheckClassificationLevelActionPlugin();
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
+
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
@@ -111,11 +118,16 @@ public class CheckClassificationLevelActionPluginTest {
 
     @Test
     public void givenClassificationLevelNotAutorizedWhenExecuteThenReturnResponseKO() throws Exception {
-        List<String> list = new ArrayList<>();
-        ClassificationLevelService.setConfiguration(list, true);
+
+        List<String> allowList = new ArrayList<>();
+        allowList.add("Secret");
+        classificationLevel = new ClassificationLevel();
+        classificationLevel.setAllowList(allowList);
+        classificationLevel.setAuthorizeNotDefined(true);
+        VitamConfiguration.setClassificationLevel(classificationLevel);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
-                .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
+            .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -123,12 +135,15 @@ public class CheckClassificationLevelActionPluginTest {
 
     @Test
     public void givenClassificationLevelAutorizedWhenExecuteThenReturnResponseOK() throws Exception {
-        List<String> list = new ArrayList<>();
-        list.add("ClassificationLevel");
-        ClassificationLevelService.setConfiguration(list, true);
 
+        List<String> allowList = new ArrayList<>();
+        allowList.add("Secret Défense");
+        classificationLevel = new ClassificationLevel();
+        classificationLevel.setAllowList(allowList);
+        classificationLevel.setAuthorizeNotDefined(true);
+        VitamConfiguration.setClassificationLevel(classificationLevel);
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
-                .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
+            .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);

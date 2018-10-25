@@ -64,7 +64,6 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -189,6 +188,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     /**
      * @param configuration to associate with AccessResourceImpl
+     *
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
         this(new AccessInternalModuleImpl(), LogbookOperationsClientFactory.getInstance(),
@@ -200,7 +200,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * Mock constructor
      *
-     * @param accessModule
+     * @param accessModule accessModule
      */
     AccessInternalResourceImpl(AccessInternalModule accessModule) {
         this(accessModule, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance(),
@@ -209,11 +209,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     /**
      * Test constructor
-     *
      * @param accessModule accessModule
      * @param logbookOperationsClientFactory logbookOperationsClientFactory
      * @param workspaceClientFactory workspaceClientFactory
-     * @param processingManagementClientFactory
+     * @param processingManagementClientFactory processingManagementClientFactory
      */
     @VisibleForTesting
     AccessInternalResourceImpl(AccessInternalModule accessModule,
@@ -689,7 +688,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
-
+            accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);

@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -2061,7 +2062,12 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Test With originating agencies restriction
         try {
+            List<String> allowList = new ArrayList<>();
+            allowList.add("Secret Défense");
 
+            ClassificationLevel classificationLevel = new ClassificationLevel();
+            classificationLevel.setAllowList(allowList);
+            classificationLevel.setAuthorizeNotDefined(true);
             AccessInternalModuleImpl accessInternalModule = new AccessInternalModuleImpl();
 
             CompareQuery query_1 =

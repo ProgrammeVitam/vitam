@@ -15,6 +15,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.serve.filter.AccessContractIdContainerFilter;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
@@ -28,11 +29,10 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     static AccessInternalModule mock = null;
-    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -49,7 +49,9 @@ public class BusinessApplication extends Application {
             if (mock != null) {
                 singletons.add(new AccessInternalResourceImpl(mock));
             } else {
-                singletons.add(new AccessInternalResourceImpl(accessInternalConfiguration));
+
+                singletons.add(new AccessInternalResourceImpl(accessInternalConfiguration
+                ));
                 singletons.add(new LogbookInternalResourceImpl());
             }
             singletons.add(new AccessContractIdContainerFilter());

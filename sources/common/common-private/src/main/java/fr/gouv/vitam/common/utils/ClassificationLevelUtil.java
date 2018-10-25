@@ -24,69 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.service;
+package fr.gouv.vitam.common.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.json.JsonHandler;
-
-import java.util.List;
 
 /**
  * classification level service
  */
-public class ClassificationLevelService {
+public class ClassificationLevelUtil {
 
     private static final String PATH_CLASSIFICATION_LEVEL_1
-            = SedaConstants.TAG_ARCHIVE_UNIT + "."
-            + SedaConstants.TAG_MANAGEMENT + "."
-            + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-            + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+        = SedaConstants.TAG_ARCHIVE_UNIT + "."
+        + SedaConstants.TAG_MANAGEMENT + "."
+        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
+        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
 
     private static final String PATH_CLASSIFICATION_LEVEL_2
-            = SedaConstants.TAG_ARCHIVE_UNIT
-            + ".#management."
-            + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-            + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+        = SedaConstants.TAG_ARCHIVE_UNIT
+        + ".#management."
+        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
+        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
 
 
-    private static List<String> listClassificationLevels;
-    private static boolean authorizeNotDefined;
-
-    private ClassificationLevelService() {
-    }
-
-    /**
-     * @return listClassificationLevels
-     */
-    public static List<String> getListClassificationLevels() {
-        return listClassificationLevels;
-    }
-
-    /**
-     * @return authorizeNotDefined
-     */
-    public static boolean authorizeNotDefined() {
-        return authorizeNotDefined;
-    }
-
-    /**
-     * @param listClassificationLevels
-     */
-    public static void setListClassificationLevels(List<String> listClassificationLevels) {
-        ClassificationLevelService.listClassificationLevels = listClassificationLevels;
-    }
-
-    /**
-     * @param authorizeNotDefined
-     */
-    public static void setAuthorizeNotDefined(boolean authorizeNotDefined) {
-        ClassificationLevelService.authorizeNotDefined = authorizeNotDefined;
-    }
-
-    public static void setConfiguration(List<String> listClassificationLevels, boolean authorizeNotDefined) {
-        setListClassificationLevels(listClassificationLevels);
-        setAuthorizeNotDefined(authorizeNotDefined);
+    private ClassificationLevelUtil() {
     }
 
     public static boolean checkClassificationLevel(JsonNode archiveUnit) {
@@ -100,14 +64,16 @@ public class ClassificationLevelService {
             classificationLevelValue = classificationLevel.asText();
         }
 
+        return checkClassificationLevel(classificationLevelValue);
+    }
+
+    public static boolean checkClassificationLevel(String classificationLevelValue) {
         if (classificationLevelValue != null) {
-            if (!ClassificationLevelService.getListClassificationLevels().contains(classificationLevelValue)) {
+            if (!VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue)) {
                 return false;
             }
         } else {
-            if (!ClassificationLevelService.authorizeNotDefined()) {
-                return false;
-            }
+            return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
         }
         return true;
     }

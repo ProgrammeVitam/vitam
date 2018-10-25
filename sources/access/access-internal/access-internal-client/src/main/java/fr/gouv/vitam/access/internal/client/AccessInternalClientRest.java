@@ -170,7 +170,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException,
         AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
-        ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 

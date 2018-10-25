@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
-import fr.gouv.vitam.worker.core.service.ClassificationLevelService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -84,10 +83,6 @@ public class BusinessApplication extends Application {
                 singletons.add(new WorkerResource(pluginLoader));
             }
 
-            if (configuration.getClassificationLevel() != null) {
-                ClassificationLevelService.setConfiguration(configuration.getClassificationLevel().getAllowList(),
-                        configuration.getClassificationLevel().authorizeNotDefined());
-            }
         } catch (PluginException | IOException | InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
@@ -104,7 +99,7 @@ public class BusinessApplication extends Application {
         return singletons;
     }
 
-    private void checkPluginsCreation() throws FileNotFoundException, InvalidParseOperationException, PluginException {
+    private void checkPluginsCreation() throws PluginException {
         pluginLoader.loadAllPlugins();
     }
 }

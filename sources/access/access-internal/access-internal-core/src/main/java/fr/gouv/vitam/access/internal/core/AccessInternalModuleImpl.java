@@ -79,6 +79,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
@@ -205,7 +206,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     /**
      * AccessModuleImpl constructor
-     *
      */
     // constructor
     public AccessInternalModuleImpl() {
@@ -235,7 +235,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -278,7 +278,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param jsonQuery as String { $query : query}
      * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
+     * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -422,7 +422,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             }
             if (finalversionsResponse.getFileInfoModel() != null &&
-                    !Strings.isNullOrEmpty(finalversionsResponse.getFileInfoModel().getFilename())) {
+                !Strings.isNullOrEmpty(finalversionsResponse.getFileInfoModel().getFilename())) {
                 filename = finalversionsResponse.getFileInfoModel().getFilename();
             }
             objectId = finalversionsResponse.getId();
@@ -438,7 +438,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         AccessLogInfoModel
-            logInfo = AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
+            logInfo =
+            AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
 
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
@@ -461,13 +462,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getAccessLog(JsonNode params) throws AccessInternalExecutionException, StorageNotFoundException, ParseException {
+    public Response getAccessLog(JsonNode params)
+        throws AccessInternalExecutionException, StorageNotFoundException, ParseException {
 
         Date startDate = null;
         JsonNode startNode = params.get("StartDate");
         if (startNode != null) {
             String startString = startNode.textValue();
-            if(startString != null) {
+            if (startString != null) {
                 startDate = LocalDateUtil.getDate(startString);
             }
         }
@@ -476,14 +478,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode endNode = params.get("EndDate");
         if (endNode != null) {
             String endString = endNode.textValue();
-            if(endString != null) {
+            if (endString != null) {
                 endDate = LocalDateUtil.getDate(endString);
             }
         }
 
-        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
-        WorkspaceClient workspaceClient = workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
-        String containerName = DataCategory.STORAGEACCESSLOG.getCollectionName() + "_" + VitamThreadUtils.getVitamSession().getRequestId();
+        final StorageClient storageClient =
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+        WorkspaceClient workspaceClient =
+            workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
+        String containerName =
+            DataCategory.STORAGEACCESSLOG.getCollectionName() + "_" + VitamThreadUtils.getVitamSession().getRequestId();
 
         String outFileName = "accessLog";
         if (startDate != null) {
@@ -498,7 +503,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         try {
             // Get Files in accessLog
-            Iterator<JsonNode> filesInfo = storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
+            Iterator<JsonNode> filesInfo =
+                storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
             if (filesInfo.hasNext()) {
                 workspaceClient.createContainer(containerName);
             }
@@ -507,7 +513,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // Check matching files that would be exported and put them on workspace
             while (filesInfo.hasNext()) {
                 String fileName = filesInfo.next().get("objectId").asText();
-                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate)) continue;
+                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate))
+                    continue;
 
                 Response fileResponse = getAccessLogFile(fileName);
 
@@ -519,7 +526,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // Zip all matching files in workspace and return zipFile
             zipWorkspace(workspaceClient, outFileName, containerName, fileNames);
             Response response2 = workspaceClient.getObject(containerName, outFileName);
-            StreamingOutput so = new WorkspaceAutoCleanableStreamingOutput((InputStream)response2.getEntity(), workspaceClient, containerName);
+            StreamingOutput so =
+                new WorkspaceAutoCleanableStreamingOutput((InputStream) response2.getEntity(), workspaceClient,
+                    containerName);
             return Response.ok(so).build();
         } catch (final StorageServerClientException | ContentAddressableStorageException e) {
             throw new AccessInternalExecutionException(e);
@@ -531,7 +540,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    private void zipWorkspace(WorkspaceClient workspaceClient, String outputFile, String containerName, List<String> inputFiles)
+    private void zipWorkspace(WorkspaceClient workspaceClient, String outputFile, String containerName,
+        List<String> inputFiles)
         throws ContentAddressableStorageException {
 
         if (workspaceClient.isExistingContainer(containerName)) {
@@ -545,8 +555,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    private Response getAccessLogFile(String accessLogId) throws StorageNotFoundException, AccessInternalExecutionException {
-        final StorageClient storageClient = storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+    private Response getAccessLogFile(String accessLogId)
+        throws StorageNotFoundException, AccessInternalExecutionException {
+        final StorageClient storageClient =
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
 
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, accessLogId,
@@ -564,6 +576,42 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         }
     }
+
+    public void checkClassificationLevel(JsonNode query)
+        throws IllegalArgumentException, InvalidParseOperationException {
+        UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+        updateParserMultiple.parse(query);
+        List<Action> actions = updateParserMultiple.getRequest().getActions();
+
+       for (Action action : actions) {
+
+            ObjectNode currentAction = action.getCurrentAction();
+            JsonNode setAction = currentAction.get(UPDATEACTION.SET.exactToken());
+
+            handleClassificationValidation(setAction);
+        }
+    }
+
+    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException{
+        if (setAction == null) {
+            return;
+        }
+        JsonNode classificationRule =
+            setAction.get(VitamFieldsHelper.management() + "." + VitamConstants.TAG_RULE_CLASSIFICATION);
+        if (classificationRule == null) {
+            return;
+        }
+        JsonNode classificationLevel = classificationRule.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+        String classificationLevelValue = null;
+        if (classificationLevel != null) {
+            classificationLevelValue = classificationLevel.asText();
+        }
+        if (!ClassificationLevelUtil.checkClassificationLevel(classificationLevelValue)) {
+            throw new IllegalArgumentException("Classification Level is not in the list of allowed values");
+        }
+
+    }
+
 
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
@@ -956,7 +1004,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException when error in execution
+     * @throws ProcessingException                 when error in execution
      */
     private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1249,7 +1297,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             JsonNode categoryNode = management.get(category);
             JsonNode fullupdatedInheritanceNode;
             JsonNode updatedPreventInheritanceNode;
-            JsonNode updatedPreventRulesNode ;
+            JsonNode updatedPreventRulesNode;
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -1272,7 +1320,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     JsonNode classificationReassessingDate =
                         updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE);
                     JsonNode classificationNeedReassessingAuthorization =
-                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
+                        updatedCategoryRules.get(category)
+                            .get(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
 
                     fullupdatedInheritanceNode = updatedCategoryRules.get(category).get(INHERITANCE_KEY);
                     updatedPreventInheritanceNode =
@@ -1350,11 +1399,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             classificationAudience);
                     }
                     if (classificationNeedReassessingAuthorization != null) {
-                        action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
+                        action.put(MANAGEMENT_PREFIX + category + "." +
+                                SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
                             classificationNeedReassessingAuthorization);
                     }
                     if (classificationReassessingDate != null) {
-                        action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE,
+                        action.put(
+                            MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE,
                             classificationReassessingDate);
                     }
 
@@ -1481,7 +1532,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 String mainAtt = params[0];
                                 String subAtt = params[params.length - 1];
                                 if (!AVAILABLE_MANAGEMENT_ATTRIBUTES.contains(subAtt)) {
-                                    throw new AccessInternalRuleExecutionException(ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT);
+                                    throw new AccessInternalRuleExecutionException(
+                                        ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT);
                                 }
                                 objectToPut = JsonHandler.createObjectNode();
                                 objectToPut.set(subAtt, object.get(field));
@@ -1861,7 +1913,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Object
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Object to database
      */
     @Override
@@ -1913,27 +1965,27 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             return metaDataClient.selectUnitsWithInheritedRules(jsonQuery);
         } catch (MetaDataDocumentSizeException |
-            ProcessingException | MetaDataClientServerException | MetaDataExecutionException  e) {
+            ProcessingException | MetaDataClientServerException | MetaDataExecutionException e) {
             throw new AccessInternalExecutionException(e);
         }
     }
 
     private void removeFileName(JsonNode rootNode) {
         JsonNode results = rootNode.get("$results");
-        if(results != null) {
+        if (results != null) {
             for (JsonNode result : results) {
                 JsonNode globalFileInfo = result.get("FileInfo");
-                if(globalFileInfo != null) {
+                if (globalFileInfo != null) {
                     ((ObjectNode) globalFileInfo).remove("Filename");
                 }
                 JsonNode qualifiers = result.get("#qualifiers");
-                if(qualifiers != null) {
-                    for(JsonNode qualifier : qualifiers) {
+                if (qualifiers != null) {
+                    for (JsonNode qualifier : qualifiers) {
                         JsonNode versions = qualifier.get("versions");
-                        if(versions != null) {
-                            for(JsonNode version : versions) {
+                        if (versions != null) {
+                            for (JsonNode version : versions) {
                                 JsonNode fileInfo = version.get("FileInfo");
-                                if(fileInfo != null) {
+                                if (fileInfo != null) {
                                     ((ObjectNode) fileInfo).remove("Filename");
                                 }
                             }
