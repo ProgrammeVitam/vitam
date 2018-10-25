@@ -55,6 +55,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -198,7 +199,7 @@ public class StorageTraceabilityAdministrationTest {
             eq(DigestType.SHA512), eq(null))).willReturn(hash);
 
         List<OfferLog> logs = new ArrayList<>();
-        logs.add(new OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, "Action"));
+        logs.add(new OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, OfferLogAction.WRITE));
         StorageTraceabilityIterator iterator = new StorageTraceabilityIterator(logs);
         given(traceabilityLogbookService
             .getLastSavedStorageLogs(STRATEGY_ID, LogbookTraceabilityHelper.INITIAL_START_DATE))
@@ -248,7 +249,7 @@ public class StorageTraceabilityAdministrationTest {
         List<OfferLog> traceabilities = new ArrayList<>();
         traceabilities.add(new
 
-            OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, "Action"));
+            OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, OfferLogAction.WRITE));
         StorageTraceabilityIterator iterator2 = new StorageTraceabilityIterator(traceabilities);
 
         given(traceabilityLogbookService.getLastSavedStorageLogs(eq(STRATEGY_ID), any(LocalDateTime.class)))

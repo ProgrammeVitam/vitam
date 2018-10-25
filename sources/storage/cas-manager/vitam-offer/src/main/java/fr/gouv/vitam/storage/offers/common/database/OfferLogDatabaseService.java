@@ -35,6 +35,7 @@ import static com.mongodb.client.model.Filters.lte;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -86,7 +87,7 @@ public class OfferLogDatabaseService {
      * @throws ContentAddressableStorageServerException parsing error
      * @throws ContentAddressableStorageDatabaseException database error
      */
-    public void save(String containerName, String fileName, String action)
+    public void save(String containerName, String fileName, OfferLogAction action)
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         try {
             OfferLog offerLog = new OfferLog(containerName, fileName, action);

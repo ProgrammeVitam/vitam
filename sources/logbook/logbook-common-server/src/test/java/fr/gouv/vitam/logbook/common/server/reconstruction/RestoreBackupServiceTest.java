@@ -38,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -241,7 +242,7 @@ public class RestoreBackupServiceTest {
         RequestResponseOK<OfferLog> listing = new RequestResponseOK<>();
         listing.setHttpCode(Status.OK.getStatusCode());
         LongStream.range(offset, offset + limit).forEach(i -> {
-            OfferLog offerLog = new OfferLog("container", String.valueOf(i), "write");
+            OfferLog offerLog = new OfferLog("container", String.valueOf(i), OfferLogAction.WRITE);
             listing.addResult(offerLog);
         });
         return listing;

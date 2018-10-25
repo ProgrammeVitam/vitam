@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Before;
@@ -87,8 +88,8 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(1L)
             .thenReturn(2L);
         // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
         // then
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -115,8 +116,8 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(1L)
             .thenReturn(2L);
         // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
         // then
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -144,7 +145,7 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(longSequence);
         // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
         // then
         verify(offerSequenceDatabaseService, Mockito.times(1))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -169,7 +170,7 @@ public class OfferLogDatabaseServiceTest {
 
         // when + then
         assertThatCode(() -> {
-            offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+            offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
         }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 
@@ -180,11 +181,11 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(1L)
             .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", OfferLogAction.WRITE);
         // when
         List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 1L, 2, Order.ASC);
         // then
@@ -204,11 +205,11 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(1L)
             .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", OfferLogAction.WRITE);
         // when
         List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 2L, 2, Order.DESC);
         // then
@@ -232,11 +233,11 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(4L)
             .thenReturn(5L);
 
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", OfferLogAction.WRITE);
 
         // then
         verify(offerSequenceDatabaseService, Mockito.times(5))
@@ -267,13 +268,13 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(7L);
 
         // saving offerLog objects
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_0.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_0.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", OfferLogAction.WRITE);
 
         // when
         List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, null, 1, Order.DESC);

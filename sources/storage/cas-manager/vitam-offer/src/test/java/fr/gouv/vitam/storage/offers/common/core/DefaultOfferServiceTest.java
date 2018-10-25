@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
@@ -478,7 +479,7 @@ public class DefaultOfferServiceTest {
     private List<OfferLog> getOfferLogs(String containerName, long offset, int limit, Order order) {
         List<OfferLog> offerLogs = new ArrayList<>();
         LongStream.range(offset + 1, offset + 1 + limit).forEach(l -> {
-            OfferLog offerLog = new OfferLog(containerName, OBJECT + l, "write");
+            OfferLog offerLog = new OfferLog(containerName, OBJECT + l, OfferLogAction.WRITE);
             offerLog.setSequence(l);
             offerLog.setTime(LocalDateTime.now());
             offerLogs.add(offerLog);

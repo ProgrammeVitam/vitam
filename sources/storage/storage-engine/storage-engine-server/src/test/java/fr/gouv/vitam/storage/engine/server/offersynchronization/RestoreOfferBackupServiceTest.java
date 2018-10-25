@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Rule;
@@ -72,8 +73,6 @@ public class RestoreOfferBackupServiceTest {
     private static final String OFFER_ID = "default";
     private static final Integer TENANT_ID_0 = 0;
     private static final String FILE_NAME = "fileName_";
-    private static final String WRITE = "write";
-    private static final String UPDATE = "update";
     public static final String OBJECT_NAME_1 = "object_name_1";
 
     @Rule
@@ -93,7 +92,7 @@ public class RestoreOfferBackupServiceTest {
     @Test
     public void getLatestOffsetByContainerTest() throws Exception {
 
-        OfferLog offerLogInstance = new OfferLog(DataCategory.UNIT.getFolder(), OBJECT_NAME_1, WRITE);
+        OfferLog offerLogInstance = new OfferLog(DataCategory.UNIT.getFolder(), OBJECT_NAME_1, OfferLogAction.WRITE);
         RequestResponseOK<OfferLog> offerLogRequestResponseOK = new RequestResponseOK<>();
         offerLogRequestResponseOK.setHttpCode(Response.Status.OK.getStatusCode());
         offerLogRequestResponseOK.addResult(offerLogInstance);
@@ -113,10 +112,10 @@ public class RestoreOfferBackupServiceTest {
         assertThat(offerLog).isNotEmpty();
         assertThat(offerLog.get().getContainer()).isEqualTo(DataCategory.UNIT.getFolder());
         assertThat(offerLog.get().getFileName()).isEqualTo(OBJECT_NAME_1);
-        assertThat(offerLog.get().getAction()).isEqualTo(WRITE);
+        assertThat(offerLog.get().getAction()).isEqualTo(OfferLogAction.WRITE);
 
         // given
-        offerLogInstance = new OfferLog(DataCategory.LOGBOOK.getFolder(), OBJECT_NAME_1, UPDATE);
+        offerLogInstance = new OfferLog(DataCategory.LOGBOOK.getFolder(), OBJECT_NAME_1, OfferLogAction.DELETE);
         offerLogRequestResponseOK = new RequestResponseOK<>();
         offerLogRequestResponseOK.setHttpCode(Response.Status.OK.getStatusCode());
         offerLogRequestResponseOK.addResult(offerLogInstance);
@@ -135,7 +134,7 @@ public class RestoreOfferBackupServiceTest {
         assertThat(offerLog).isNotEmpty();
         assertThat(offerLog.get().getContainer()).isEqualTo(DataCategory.LOGBOOK.getFolder());
         assertThat(offerLog.get().getFileName()).isEqualTo(OBJECT_NAME_1);
-        assertThat(offerLog.get().getAction()).isEqualTo(UPDATE);
+        assertThat(offerLog.get().getAction()).isEqualTo(OfferLogAction.DELETE);
 
     }
 
@@ -152,7 +151,8 @@ public class RestoreOfferBackupServiceTest {
 
         // when
         List<List<OfferLog>> offerLogListing =
-            restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.BACKUP_OPERATION, 10L, 2, Order.ASC);
+            restoreOfferBackupService
+                .getListing(STRATEGY_ID, OFFER_ID, DataCategory.BACKUP_OPERATION, 10L, 2, Order.ASC);
 
         // then
         assertThat(offerLogListing).isNotNull().isNotEmpty();
@@ -172,7 +172,7 @@ public class RestoreOfferBackupServiceTest {
 
         // when
         offerLogListing =
-            restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECTGROUP, 100L,3,  Order.DESC);
+            restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECTGROUP, 100L, 3, Order.DESC);
 
         // then
         assertThat(offerLogListing).isNotNull().isNotEmpty();
@@ -195,7 +195,7 @@ public class RestoreOfferBackupServiceTest {
 
         // when
         List<List<OfferLog>> offerLogListing =
-            restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L, 1,  Order.ASC);
+            restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L, 1, Order.ASC);
 
         // then
         assertThat(offerLogListing).isNotNull().isEmpty();
@@ -212,7 +212,7 @@ public class RestoreOfferBackupServiceTest {
             .thenThrow(new StorageException("ERROR: Storage exception has been thrown."));
 
         assertThatCode(
-            () -> restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L,  1, Order.DESC))
+            () -> restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L, 1, Order.DESC))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -227,7 +227,7 @@ public class RestoreOfferBackupServiceTest {
         RequestResponseOK<OfferLog> listing = new RequestResponseOK<>();
         listing.setHttpCode(Response.Status.OK.getStatusCode());
         LongStream.range(offset, offset + limit).forEach(i -> {
-            OfferLog offerLog = new OfferLog(container, FILE_NAME + String.valueOf(i), "write");
+            OfferLog offerLog = new OfferLog(container, FILE_NAME + String.valueOf(i), OfferLogAction.WRITE);
             listing.addResult(offerLog);
         });
         return listing;
