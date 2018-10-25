@@ -55,12 +55,12 @@ bootstrap.memory_lock: true
 # Set the bind address to a specific IP (IPv4 or IPv6):
 #
 # Note : if installing to localhost, notably a docker container, we need to bind larger than localhost
-network.host: 0.0.0.0  # KWA : For now, keep 0.0.0.0 as vitam component use the service interface, but cerebro uses the admin interface
 {% if inventory_hostname == "localhost" %}
+network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
-## network.host: {{ ip_service }}
+network.host: {{ ip_service }}
 {% endif %}
 #
 # Set a custom port for HTTP:
@@ -76,7 +76,7 @@ transport.tcp.port: {{ composant.port_tcp }}
 # Pass an initial list of hosts to perform discovery when new node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-data'] %}"{{ hostvars[host]['ip_admin'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
+discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-data'] %}"{{ hostvars[host]['ip_service'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #
