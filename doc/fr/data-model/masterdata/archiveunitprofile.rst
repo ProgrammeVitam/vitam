@@ -4,19 +4,19 @@ Collection ArchiveUnitProfile
 Utilisation de la collection
 ============================
 
-La collection ArchiveUnitProfile permet de référencer et décrire unitairement les documents type.
+La collection ArchiveUnitProfile permet de référencer et décrire unitairement les profils d'unité archivistique.
 
 
-Exemple d'un fichier d''import de document type
-===============================================
+Exemple d'un fichier d'import de profils d'unité archivistique
+==============================================================
 
-Les documents type sont importés dans la solution logicielle Vitam sous la forme d'un fichier JSON.
+Les profils d'unité archivistique sont importés dans la solution logicielle Vitam sous la forme d'un fichier JSON.
 
 ::
 
-    {   
+    {
         "Name":"Facture",
-        "Description":"Document type d''une facture associée à un dossier de marché",
+        "Description":"profil d'unité archivistique d''une facture associée à un dossier de marché",
         "Identifier":"AUP_IDENTIFIER_0",
         "Status":"ACTIVE",
         "ControlSchema":"{}",
@@ -27,16 +27,16 @@ Les documents type sont importés dans la solution logicielle Vitam sous la form
     }
 
 
-Les champs à renseigner obligatoirement à l'import d''un document type sont :
+Les champs à renseigner obligatoirement à l'import d'un profil d'unité archivistique sont :
 
 * Name
 * Description
-* ControlSchema ( même si le champ est vide ) 
+* ControlSchema (même si le champ est vide)
 
-Un fichier JSON peut décrire plusieurs documents type.
+Un fichier JSON peut décrire plusieurs profils d'unité archivistique.
 
 
-Exemple de JSON stocké en base comprenant l''exhaustivité des champs de la collection ArchiveUnitProfile
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection ArchiveUnitProfile
 ========================================================================================================
 
 ::
@@ -45,7 +45,7 @@ Exemple de JSON stocké en base comprenant l''exhaustivité des champs de la col
    "_id": "aegaaaaabmhdh434aapnqalcd7mufiyaaaaq",
    "Identifier": "AUP_IDENTIFIER_0",
    "Name":"Facture",
-   "Description":"Document type d''une facture associée à un dossier de marché",
+   "Description":"profil d'unité archivistique d''une facture associée à un dossier de marché",
    "Status":"ACTIVE",
    "ControlSchema":"{}",
    "Fields":[],
@@ -60,41 +60,41 @@ Exemple de JSON stocké en base comprenant l''exhaustivité des champs de la col
 Détail des champs de la collection ArchiveUnitProfile
 =====================================================
 
-**"_id":** identifiant unique du Document type.
+**"_id":** identifiant unique du profil d'unité archivistique.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Name":** Nom du Document type.
-  
+**"Name":** Nom du profil d'unité archivistique.
+
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Identifier":** Identifiant signifiant donné au Document type.
+**"Identifier":** identifiant signifiant donné au profil d'unité archivistique.
 
-  * Il est constitué du préfixe "IC-" suivi d'une suite de 6 chiffres dans le cas ou la solution logicielle Vitam peuple l'identifiant. Par exemple : IC-007485. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du Document type.
+  * Il est constitué du préfixe "AUP-" suivi d'une suite de 6 chiffres dans le cas où la solution logicielle Vitam peuple l'identifiant. Par exemple : AUP-007485. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du profil d'unité archivistique.
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Description":** description du Document type.
-  
+**"Description":** description du profil d'unité archivistique.
+
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Status":** statut du Document type.
+**"Status":** statut du profil d'unité archivistique.
 
   * Il s'agit d'une chaîne de caractères.
   * Peut être ACTIVE ou INACTIVE
   * Cardinalité : 1-1
 
-**"ControlSchema":** Schema de contrôle du document type 
+**"ControlSchema":** schéma de contrôle du profil d'unité archivistique
 
   * Il s'agit d'un bloc JSON.
   * Peut être vide
   * Cardinalité : 1-1
 
-:: 
+::
 
  {
  "$schema": "http://vitam-json-schema.org/draft-04/schema#",
@@ -102,7 +102,7 @@ Détail des champs de la collection ArchiveUnitProfile
  "type": "object",
  "additionalProperties": true,
  "properties": {
- 
+
    "DescriptionLevel": {
      "type": "string",
      "enum": [
@@ -111,7 +111,7 @@ Détail des champs de la collection ArchiveUnitProfile
        "File"
      ]
  }
- 
+
 
 **"Fields"** : liste des champs contrôlés
 
@@ -120,7 +120,7 @@ Détail des champs de la collection ArchiveUnitProfile
     * Renseigné automatiquement par la solution logicielle Vitam
     * Cardinalité 0-1
 
-**"CreationDate":** date de création du Document type.
+**"CreationDate":** date de création du profil d'unité archivistique.
 
   * La date est au format ISO 8601
 
@@ -128,7 +128,7 @@ Détail des champs de la collection ArchiveUnitProfile
 
   * Cardinalité : 1-1
 
-**"LastUpdate":** date de dernière mise à jour du Document type dans la collection ArchiveUnitProfile.
+**"LastUpdate":** date de dernière mise à jour du profil d'unité archivistique dans la collection ArchiveUnitProfile.
 
   * La date est au format ISO 8601
 
@@ -136,7 +136,7 @@ Détail des champs de la collection ArchiveUnitProfile
 
   * Cardinalité : 1-1
 
-**"ActivationDate":** date d'activation du Document type.
+**"ActivationDate":** date d'activation du profil d'unité archivistique.
 
   * La date est au format ISO 8601
 
@@ -144,7 +144,7 @@ Détail des champs de la collection ArchiveUnitProfile
 
   * Cardinalité : 0-1
 
-**"DeactivationDate":** date de désactivation du Document type.
+**"DeactivationDate":** date de désactivation du profil d'unité archivistique.
 
   * La date est au format ISO 8601
 
@@ -157,7 +157,7 @@ Détail des champs de la collection ArchiveUnitProfile
 
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1 
+  * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit.
 
