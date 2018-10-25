@@ -11,6 +11,7 @@
    logbook/_toc_logbook.rst
    metadata/_toc_metadata.rst
    masterdata/_toc_masterdata.rst
+   report/_toc_report.rst
    annexes.rst
 
 .. only:: latex

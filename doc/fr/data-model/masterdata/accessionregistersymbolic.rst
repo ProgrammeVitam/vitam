@@ -56,19 +56,19 @@ Détail des champs
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 **"BinaryObject":** nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 **"BinaryObjectSize":** Volume actualisé en octet des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 **"_v":** version de l'enregistrement décrit.
 
