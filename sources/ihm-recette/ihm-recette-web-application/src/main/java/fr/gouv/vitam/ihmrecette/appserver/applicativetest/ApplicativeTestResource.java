@@ -192,6 +192,8 @@ public class ApplicativeTestResource {
     @POST
     @Path("/syncTnrPieces")
     public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
+        LOGGER.debug("synchronise tnr_master");
+
         return synchronizeGit("tnr_master");
     }
 

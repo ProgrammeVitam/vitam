@@ -28,6 +28,8 @@ package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  * service to manage cucumber test
  */
 public class ApplicativeTestService {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ApplicativeTestResource.class);
 
     /**
      * custom formatter
@@ -163,10 +166,14 @@ public class ApplicativeTestService {
     }
 
     public int synchronizedTestDirectory(Path featurePath) throws IOException, InterruptedException {
+        LOGGER.debug("git pull rebase on " + featurePath);
+
         ProcessBuilder pb = new ProcessBuilder("git", "pull", "--rebase");
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
+        LOGGER.debug("process exit status " + p.exitValue());
+
         return p.exitValue();
     }
 
@@ -178,10 +185,15 @@ public class ApplicativeTestService {
      * @throws InterruptedException
      */
     int checkouk(Path featurePath, String branche) throws IOException, InterruptedException {
+        LOGGER.debug("git checkout" + branche);
+
+
         ProcessBuilder pb = new ProcessBuilder("git", "checkout", branche);
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
+        LOGGER.debug("process exit status " + p.exitValue());
+
         return synchronizedTestDirectory(featurePath);
     }
 
