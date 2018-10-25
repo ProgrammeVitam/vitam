@@ -1,5 +1,5 @@
-http.port={{ cerebro.port }}
-http.address= {{ ip_admin }}
+http.port = {{ cerebro.port }}
+http.address = {{ ip_admin }}
 # Secret will be used to sign session cookies, CSRF tokens and for other encryption utilities.
 # It is highly recommended to change this value before running cerebro in production.
 secret = "{{ cerebro.secret_key }}"
@@ -46,6 +46,18 @@ auth = {
 
 # A list of known hosts
 hosts = [
+{% if groups['hosts-elasticsearch-log']|length > 0 %}
+  {
+    host = "http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}"
+    name = "{{ elasticsearch.log.cluster_name }}"
+  },
+{% endif %}
+{% if groups['hosts-elasticsearch-data']|length > 0 %}
+  {
+    host = "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}"
+    name = "{{ elasticsearch.data.cluster_name }}"
+  },
+{% endif %}
   #{
   #  host = "http://localhost:9200"
   #  name = "Some Cluster"
