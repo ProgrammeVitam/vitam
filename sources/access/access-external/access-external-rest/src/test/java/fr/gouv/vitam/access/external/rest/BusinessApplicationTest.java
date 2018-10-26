@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.google.common.base.Throwables;
+import fr.gouv.vitam.access.external.rest.v2.rest.AccessExternalResourceV2;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -37,6 +38,8 @@ public class BusinessApplicationTest extends Application {
 
             final AccessExternalResource accessExternalResource =
                 new AccessExternalResource(secureEndpointRegistry);
+            final AccessExternalResourceV2 accessExternalResourceV2 =
+                    new AccessExternalResourceV2(secureEndpointRegistry);
             final LogbookExternalResource logbookExternalResource = new LogbookExternalResource();
             final AdminManagementExternalResource adminManagementExternalResource =
                 new AdminManagementExternalResource(secureEndpointRegistry);
@@ -44,6 +47,7 @@ public class BusinessApplicationTest extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(accessExternalResource);
+            singletons.add(accessExternalResourceV2);
             singletons.add(logbookExternalResource);
             singletons.add(adminManagementExternalResource);
             singletons.add(new SanityCheckerCommonFilter());

@@ -182,7 +182,12 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        public Response exportDIP(DipExportRequest dipExportRequest) {
+        public Response exportDIP(JsonNode dslRequest) {
+            return null;
+        }
+
+        @Override
+        public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
             return null;
         }
 

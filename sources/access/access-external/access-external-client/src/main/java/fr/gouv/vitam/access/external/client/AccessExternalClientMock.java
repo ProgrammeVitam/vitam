@@ -87,8 +87,8 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-                                               DipExportRequest dipExportRequest) throws VitamClientException {
-        return ClientMockResultHelper.getDIPSimpleResult(dipExportRequest);
+                                               JsonNode dslRequest) throws VitamClientException {
+        return ClientMockResultHelper.getDIPSimpleResult(dslRequest);
     }
 
     @Override

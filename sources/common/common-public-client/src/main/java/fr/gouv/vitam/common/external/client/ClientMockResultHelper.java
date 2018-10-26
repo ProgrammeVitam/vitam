@@ -838,6 +838,15 @@ public class ClientMockResultHelper {
 	            .setHttpCode(Status.OK.getStatusCode());
 	}
 
+
+    public static RequestResponse<JsonNode> getDIPSimpleResult(
+            JsonNode dslRequest) {
+        // TODO Mock for real for DIP !
+        return new RequestResponseOK<JsonNode>(dslRequest).addResult(getUnitSimpleItem())
+                .setHttpCode(Status.OK.getStatusCode());
+    }
+
+
     public static RequestResponse<ProfileModel> getEvidenceAudit(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
