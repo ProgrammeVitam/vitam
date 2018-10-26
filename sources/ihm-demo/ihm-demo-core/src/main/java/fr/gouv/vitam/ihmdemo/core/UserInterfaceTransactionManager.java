@@ -33,6 +33,8 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -539,8 +541,8 @@ public class UserInterfaceTransactionManager {
      * @throws VitamClientException access client exception
      */
     public static RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
-        throws InvalidParseOperationException, VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        throws VitamClientException {
+        try (AccessExternalClientV2 client = AccessExternalClientV2Factory.getInstance().getClient()) {
             return client.exportDIP(context, dipExportRequest);
         }
     }

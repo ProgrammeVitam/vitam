@@ -285,8 +285,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Path("/dipexport")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response exportDIP(DipExportRequest dipExportRequest)
-            throws InvalidParseOperationException {
+        public Response exportDIP(JsonNode queryJson) {
             return expectedResponse.post();
         }
 
@@ -716,18 +715,16 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
-        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            dipExportRequest)).isNotNull();
+                JsonHandler.getFromString(queryDsql))).isNotNull();
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenExportDIPNotFoundThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client
-            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), dipExportRequest)
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
             .getHttpCode())
             .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
@@ -744,9 +741,8 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenExportDIPBadQueryThenPreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        DipExportRequest dipExportRequest = new DipExportRequest(JsonHandler.getFromString(queryDsql));
         assertThat(client
-            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), dipExportRequest)
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
             .getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }

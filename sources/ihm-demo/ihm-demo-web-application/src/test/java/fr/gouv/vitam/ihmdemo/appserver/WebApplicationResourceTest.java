@@ -1669,11 +1669,11 @@ public class WebApplicationResourceTest {
     public void testCreateDipBadRequest() throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.exportDIP(anyObject(), any()))
-            .thenThrow(new InvalidParseOperationException(""));
+            .thenThrow(new VitamClientException(""));
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .contentType(ContentType.JSON).body(OPTIONS).expect()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveunit/dipexport");
     }
 

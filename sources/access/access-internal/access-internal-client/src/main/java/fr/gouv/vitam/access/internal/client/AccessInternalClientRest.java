@@ -88,6 +88,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
+    private static final String DIPEXPORT_BY_USAGE_FILTER = "dipexport/usagefilter";
     private static final String UNITS = "units/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
@@ -622,14 +623,31 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest)
+    public RequestResponse<JsonNode> exportDIP(JsonNode dslRequest)
         throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter(BLANK_DSL, dslRequest);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, DIPEXPORT, null, dslRequest,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> exportDIPByUsageFilter(DipExportRequest dipExportRequest)
+            throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, dipExportRequest.getDslRequest());
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, DIPEXPORT, null, dipExportRequest,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, DIPEXPORT_BY_USAGE_FILTER, null, dipExportRequest,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
