@@ -60,17 +60,17 @@ Détail des champs de la collection Ontology
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Identifier":** Identifiant unique du champ de l'ontologie.
+**"Identifier":** identifiant unique du champ de l'ontologie.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"SedaField":** Identifiant dans la nomenclature SEDA du champ de l'ontologie
+**"SedaField":** identifiant dans la nomenclature SEDA du champ de l'ontologie
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"ApiField":** Identifiant du champ de l'ontologie qui sera retourné via le DSL
+**"ApiField":** identifiant du champ de l'ontologie qui sera retourné via le DSL
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
@@ -86,17 +86,17 @@ Détail des champs de la collection Ontology
   * Peut avoir comme valeur : DATE, TEXT, KEYWORD, BOOLEAN, LONG, DOUBLE, ENUM, GEO_POINT.
   * Cardinalité : 1-1
 
-**"Origin":** Origine du champ de l'ontologie
+**"Origin":** origine du champ de l'ontologie
 
   * Peut avoir comme valeur : INTERNAL ou EXTERNAL
   * Cardinalité : 1-1
 
-**"ShortName":** Identifiant technique pour traduction
+**"ShortName":** identifiant technique pour traduction
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Collections":** Collections concernées par le champ de l'ontologie
+**"Collections":** collections concernées par le champ de l'ontologie
 
   * Il s'agit d'une liste de chaînes de caractères.
   * Cardinalité : 1-n

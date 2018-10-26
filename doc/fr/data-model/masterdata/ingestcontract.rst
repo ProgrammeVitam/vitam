@@ -76,12 +76,12 @@ Détail des champs de la collection IngestContract
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Name":** Nom du contrat d'entrée.
+**"Name":** nom du contrat d'entrée.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Identifier":** Identifiant signifiant donné au contrat.
+**"Identifier":** identifiant signifiant donné au contrat.
 
   * Il est constitué du préfixe "IC-" suivi d'une suite de 6 chiffres dans le cas ou la solution logicielle Vitam peuple l'identifiant. Par exemple : IC-007485. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat.
   * Il s'agit d'une chaîne de caractères.
@@ -131,29 +131,30 @@ Détail des champs de la collection IngestContract
   * Cardinalité : 0-1
 
 
-**MasterMandatory:** Option qui rend obligatoire la présence d'un objet dont l'usage est de type Master (Physical ou Binary)
+**MasterMandatory:** option qui rend obligatoire la présence d'un objet dont l'usage est de type Master (Physical ou Binary)
 
   * True ou false
-  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur true en BDD lors de l'import.
+  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur true en base de données lors de l'import.
   * Cardinalité : 1-1
 
-**EveryDataObjectVersion:** Option qui permet de préciser que tous les types d'usages sont autorisés lors des imports.
+**EveryDataObjectVersion:** option qui permet de préciser que tous les types d'usages sont autorisés lors d'un versement d'un SIP procédant à des rattachement d'objets à des groupes d'objets techniques déjà existant.
 
   * Liste des valeurs autorisées : true, false
-  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur "INACTIVE" en BDD lors de l'import.
+  * Si le champ est à false, alors le champ DataObjectVersion sera utilisé. S'il est à true, "DataObjectVersion" sera ignoré.
+  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur "INACTIVE" en base de données lors de l'import.
   * Cardinalité : 1-1
 
-**DataObjectVersion:** Option qui permet de préciser les types d'usages autorisés lors des versement de SIP procédant à des rattachements.
+**DataObjectVersion:** liste les types d'usages autorisés lors des versement de SIP procédant à des rattachements d'objets à des groupes d'objets techniques déjà existant. Les usages des objets rattachés n'étant pas dans cette liste provoqueront une entrée en KO des SIP.
 
   * Liste des valeurs autorisées : Dissemination, TextContent, PhysicalMaster, BinaryMaster, Thumbnail
-  * Peut être vide
+  * Peut être vide. Si la variable EveryDataObjectVersion est à true, ce champ sera ignoré.
   * Cardinalité : 0-1
 
-**"CheckParentLink":**
+**"CheckParentLink":** option permettant d'activer un contrôle sur les noeuds de rattachements. Le noeud déclaré dans un SIP utilisant un contrat ayant cette variable à true doit impérativement être un fils du noeud déclaré dans ce paramètre.
 
   * Il s'agit d'une chaîne de caractères.
   * Liste des valeurs autorisées : "ACTIVE", "INACTIVE"
-  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en BDD lors de l'import.
+  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en base de données lors de l'import.
   * Cardinalité : 1-1
 
 **"LinkParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'identifiant d’une unité archivistique d'un plan de classement ou d'un arbre de positionnement.
@@ -163,24 +164,18 @@ Détail des champs de la collection IngestContract
 
 **L'unité archivistique concernée doit être de type FILING_UNIT ou HOLDING afin que l'opération aboutisse**
 
-**"CheckParentLink":**
 
-  * Il s'agit d'une chaîne de caractères.
-  * Liste des valeurs autorisées : "ACTIVE", "INACTIVE"
-  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur "INACTIVE" en BDD lors de l'import.
-  * Cardinalité : 1-1
-
-**FormatUnidentifiedAuthorized:** Option autorisant ou non le versement d'objets n'étant pas identifiés par la solution logicielle Vitam
+**FormatUnidentifiedAuthorized:** option autorisant ou non le versement d'objets n'étant pas identifiés par la solution logicielle Vitam
 
   * Liste des valeurs autorisées : true, false
-  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en BDD lors de l'import.
+  * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en base de données lors de l'import.
   * Cardinalité : 1-1
 
-**EveryFormatType:** Option autorisant ou non le versement d'objets sans restriction de formats.
+**EveryFormatType:** option autorisant ou non le versement d'objets sans restriction de formats.
 
     * Liste des valeurs autorisées : true, false
-    * Si ce champ est à false, alors le champ "FormatType" sera utilisé. Si il est à true, "FormatType" sera ignoré
-    * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en BDD lors de l'import.
+    * Si ce champ est à false, alors le champ "FormatType" sera utilisé. Si il est à true, "FormatType" sera ignoré.
+    * Dans le fichier JSON du contrat à importer, ce champ peut être absent. Dans ce cas, il sera enregistré avec la valeur false en base de données lors de l'import.
     * Cardinalité : 1-1
 
 **FormatType:** liste de PUID de format autorisés lors du versement d'objet. Les objets n'étant pas dans cette liste de format provoqueront une entrée KO de leurs SIP

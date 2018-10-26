@@ -4,7 +4,7 @@ Collection Context
 Utilisation de la collection
 ============================
 
-La collection Context permet de stocker unitairement les contextes applicatifs.
+La collection Context permet de référencer et décrire unitairement les contextes applicatifs.
 
 Exemple d'un fichier d'import de contexte applicatif
 ====================================================
@@ -52,6 +52,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
       "_id": "aegqaaaaaaevq6lcaamxsak7psqdcmqaaaaq",
       "Name": "admin-context",
       "Status": "ACTIVE",
+      "EnableControl": false,
       "Identifier": "CT-000001",
       "SecurityProfile": "admin-security-profile",
       "Permissions": [
@@ -108,8 +109,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
       ],
       "CreationDate": "2017-11-02T12:06:34.034",
       "LastUpdate": "2017-11-02T12:06:34.036",
-      "_v": 0,
-      "EnableControl": false
+      "_v": 0
   }
 
 Il est possible de mettre plusieurs contextes applicatifs dans un même fichier, sur le même modèle que les contrats d'entrée ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et définit chaque tenant de manière indépendante. Il doit être enregistré dans le tenant d'administration.
@@ -129,36 +129,36 @@ Détail des champs
   * Cardinalité : 1-1
 
 **"Name":** nom du contexte applicatif.
-  
+
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"Status":** statut du contexte applicatif. 
+**"Status":** statut du contexte applicatif.
 
   * Il s'agit d'une chaîne de caractères.
   * Peut être ACTIVE ou INACTIVE
   * Cardinalité : 1-1
 
 **"Identifier":** identifiant signifiant donné au contexte applicatif.
-  
+
   * Il est constitué du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
-  * Il s'agit d'une chaîne de caractères. 
+  * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"SecurityProfile":** Nom du profil de sécurité utilisé par le contexte applicatif. 
+**"SecurityProfile":** nom du profil de sécurité utilisé par le contexte applicatif.
 
   * Ce nom doit correspondre à celui d'un profil de sécurité enregistré dans la collection SecurityProfile.
   * Il s'agit d'une chaîne de caractères
   * Cardinalité : 1-1
 
-**"Permissions":** début du bloc appliquant les permissions à chaque tenant. 
+**"Permissions":** début du bloc appliquant les permissions à chaque tenant.
 
   * C'est un mot clé qui n'a pas de valeur associée.
-  * Il s'agit d'un tableau. 
+  * Il s'agit d'un tableau.
   * Peut être vide.
   * Cardinalité : 1-1
-  
-**"tenant":** tenant sur lequel sont appliquées les permissions 
+
+**"tenant":** tenant sur lequel sont appliquées les permissions
 
   * Il s'agit d'un entier.
   * Cardinalité : 1-1
@@ -175,21 +175,21 @@ Détail des champs
   * Peut être vide
   * Cardinalité : 0-1
 
-**"CreationDate":** "CreationDate": date de création du contexte applicatif. 
-  
+**"CreationDate":** "CreationDate": date de création du contexte applicatif.
+
   * Il s'agit d'une date au format ISO 8601
 
   ``"CreationDate": "2017-04-10T11:30:33.798",``
 
-  * Cardinalité : 1-1 
+  * Cardinalité : 1-1
 
-**"LastUpdate":** date de dernière modification du contexte applicatif. 
-  
+**"LastUpdate":** date de dernière modification du contexte applicatif.
+
   * Il s'agit d'une date au format ISO 8601
 
   ``"LastUpdate": "2017-04-10T11:30:33.798",``
 
-  * Cardinalité : 1-1 
+  * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contexte applicatif.
 
@@ -214,7 +214,7 @@ Détail des champs
   * Cardinalité : 1-1
   * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
-**"EnableControl":** activation des contrôles sur les tenants. 
+**"EnableControl":** activation des contrôles sur les tenants.
 
   * Il peut avoir pour valeur "true" ou "false" et a la valeur par défaut : "false".
   * Il s'agit d'un booléen

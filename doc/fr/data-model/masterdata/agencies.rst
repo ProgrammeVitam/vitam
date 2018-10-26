@@ -42,17 +42,17 @@ Détail des champs
   * Cardinalité : 1-1
 
 **"Description":** description du service agent.
-  
+
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 0-1
 
 **"Identifier":**  identifiant signifiant donné au service agent.
-  
-  * Le contenu de ce champs est obligatoirement renseignée dans le fichier CSV permettant de créer le service agent. En aucun cas la solution logicielle Vitam peut être maître sur la création de cet identifiant comme cela peut être le cas pour d'autres données référentielles.
-  * Il s'agit d'une chaîne de caractères. 
+
+  * Le contenu de ce champ est obligatoirement renseigné dans le fichier CSV permettant de créer le service agent. En aucun cas la solution logicielle Vitam ne peut être maître sur la création de cet identifiant comme cela peut être le cas pour d'autres données référentielles.
+  * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
-**"_tenant":** information sur le tenant. 
+**"_tenant":** information sur le tenant.
 
   * Il s'agit de l'identifiant du tenant utilisant l'enregistrement
   * Il s'agit d'un entier.
