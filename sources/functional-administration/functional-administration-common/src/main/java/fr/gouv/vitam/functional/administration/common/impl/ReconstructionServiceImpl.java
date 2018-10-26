@@ -281,7 +281,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            // get the list of datas to backup.
+            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
+            // get the list of data to backup.
             List<OfferLog> listing = recoverBuckupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC);
             List<List<OfferLog>> partition = Lists.partition(listing, VitamConfiguration.getRestoreBulkSize());
             Set<String> originatingAgencies = new HashSet<String>();
