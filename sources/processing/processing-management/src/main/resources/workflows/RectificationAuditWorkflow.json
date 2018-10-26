@@ -100,7 +100,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "CORRECTIVE_AUDIT",
+      "stepName": "STP_CORRECTIVE_AUDIT",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
@@ -114,7 +114,8 @@
           }
         }
       ]
-    }, {
+    },
+    {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_CORRECTION_FINALIZE",
       "behavior": "BLOCKING",

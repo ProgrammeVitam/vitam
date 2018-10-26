@@ -28,6 +28,8 @@ package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  * service to manage cucumber test
  */
 public class ApplicativeTestService {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ApplicativeTestResource.class);
 
     /**
      * custom formatter
@@ -163,12 +166,18 @@ public class ApplicativeTestService {
     }
 
     public int synchronizedTestDirectory(Path featurePath) throws IOException, InterruptedException {
+        LOGGER.debug("git pull rebase on " + featurePath);
+
         ProcessBuilder pb = new ProcessBuilder("git", "pull", "--rebase");
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
+        LOGGER.debug("process exit status " + p.exitValue());
+
         return p.exitValue();
     }
+
+
 
     /**
      * @param featurePath
@@ -177,12 +186,36 @@ public class ApplicativeTestService {
      * @throws IOException
      * @throws InterruptedException
      */
-    int checkouk(Path featurePath, String branche) throws IOException, InterruptedException {
+    void checkout(Path featurePath, String branche) throws IOException, InterruptedException {
+        LOGGER.debug("git checkout" + branche);
+
         ProcessBuilder pb = new ProcessBuilder("git", "checkout", branche);
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
-        return synchronizedTestDirectory(featurePath);
+        LOGGER.debug("process exit status " + p.exitValue());
+
+        synchronizedTestDirectory(featurePath);
+    }
+
+    int resetTnrMaster(Path featurePath) throws InterruptedException, IOException {
+        LOGGER.debug("git reset ");
+
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "reset", "--hard", "origin/tnr_master");
+        processBuilder.directory(featurePath.toFile());
+        Process process = processBuilder.start();
+        process.waitFor();
+        LOGGER.debug("process exit status " + process.exitValue());
+        return process.exitValue();
+    }
+
+    void fetch(Path featurePath) throws InterruptedException, IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
+        processBuilder.directory(featurePath.toFile());
+        Process process = processBuilder.start();
+        process.waitFor();
+        LOGGER.debug("process exit status " + process.exitValue());
+        process.exitValue();
     }
 
     public void setIsTnrMasterActived(AtomicBoolean isTnrMasterActived) {

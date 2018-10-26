@@ -35,12 +35,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -108,6 +111,7 @@ public class ProfileStep {
     @When("^j'importe le profile d'archivage sans échec$")
     public void create_profile_without_failure()
         throws AccessExternalClientException, IOException, InvalidParseOperationException {
+
         create_profile(true);
     }
 
@@ -120,6 +124,12 @@ public class ProfileStep {
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(profil, StandardOpenOption.READ));
 
+        String httpCode = String.valueOf(response.getHttpCode());
+        ObjectNode responseCode = JsonHandler.createObjectNode();
+        responseCode.put("Code", httpCode);
+        List<JsonNode> result = new ArrayList<>();
+        result.add(responseCode);
+        world.setResults(result);
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         if (!withoutFailure) {
@@ -161,8 +171,9 @@ public class ProfileStep {
                     Files.newInputStream(profile, StandardOpenOption.READ));
         }
         if (withoutFailure) {
+
             assertThat(response).isNotNull();
-            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(response.isOk()).isTrue();
         }
     }
 

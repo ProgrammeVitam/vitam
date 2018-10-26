@@ -87,9 +87,7 @@ public class AgenciesStep {
      */
     private JsonNode model;
 
-    /**
-     * type de agency
-     */
+
 
     /**
      * define a sip
@@ -101,23 +99,25 @@ public class AgenciesStep {
         this.fileName = fileName;
     }
 
-    /**
-     * Upload a agency that will lead to an error
-     *
-     * @param type the type of contract
-     * @throws IOException
-     * @throws IngestExternalException
-     */
-    @Then("^j'importe les services producteurs(.*)")
-    public void upload_agency(String type) {
+
+    @Then("^j'importe les services producteurs$")
+    public void uploadAgency() {
+        uploadAgency(false);
+    }
+    @Then("^j'importe les services producteurs sans échec$")
+    public void uploadAgency_without_failure() {
+        uploadAgency(true);
+    }
+    private void uploadAgency(boolean withoutFailure) {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response =
                 world.getAdminClient()
                     .createAgencies(new VitamContext(world.getTenantId()), inputStream,
                         fileName);
-            assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
-
+            if (!withoutFailure) {
+                assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
+            }
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
         } catch (Exception e) {
