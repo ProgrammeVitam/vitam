@@ -86,7 +86,7 @@ public class ApplicativeTestResource {
 
                 applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(false));
                 applicativeTestService.setTnrBranch("master");
-                applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "master");
+                applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "master");
             }
             String fileName = applicativeTestService.launchCucumberTest(Paths.get(testSystemSipDirectory));
             return Response.status(Response.Status.ACCEPTED).entity(fileName).build();
@@ -112,7 +112,7 @@ public class ApplicativeTestResource {
         try {
 
             if (!applicativeTestService.getIsTnrMasterActived().get()) {
-                applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), "tnr_master");
+                applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
                 applicativeTestService.setTnrBranch("tnr_master");
                 applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(true));
             }
@@ -194,11 +194,17 @@ public class ApplicativeTestResource {
     public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
         LOGGER.debug("synchronise tnr_master");
 
-        return synchronizeGit("tnr_master");
+        applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
+
+        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
+
+        int status = applicativeTestService.resetTnrMaster(Paths.get(testSystemSipDirectory));
+
+        return Response.ok().entity(status).build();
     }
 
     private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {
-        applicativeTestService.checkouk(Paths.get(testSystemSipDirectory), tnr_master);
+        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), tnr_master);
         int status = applicativeTestService.synchronizedTestDirectory(Paths.get(testSystemSipDirectory));
         return Response.ok().entity(status).build();
     }

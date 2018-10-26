@@ -177,6 +177,19 @@ public class ApplicativeTestService {
         return p.exitValue();
     }
 
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        // LOGGER.debug("git reset on  branch " + featurePath + " on " + branch);
+
+        ProcessBuilder pb = new ProcessBuilder("git", "reset", "--hard", "origin/tnr_master");
+        pb.directory(Paths.get("/home/idman/vitam-itests").toFile());
+        Process p = pb.start();
+        p.waitFor();
+        LOGGER.debug("process exit status " + p.exitValue());
+
+        System.out.println(p.exitValue());
+    }
+
     /**
      * @param featurePath
      * @param branche
@@ -184,9 +197,8 @@ public class ApplicativeTestService {
      * @throws IOException
      * @throws InterruptedException
      */
-    int checkouk(Path featurePath, String branche) throws IOException, InterruptedException {
+    void checkout(Path featurePath, String branche) throws IOException, InterruptedException {
         LOGGER.debug("git checkout" + branche);
-
 
         ProcessBuilder pb = new ProcessBuilder("git", "checkout", branche);
         pb.directory(featurePath.toFile());
@@ -194,7 +206,27 @@ public class ApplicativeTestService {
         p.waitFor();
         LOGGER.debug("process exit status " + p.exitValue());
 
-        return synchronizedTestDirectory(featurePath);
+        synchronizedTestDirectory(featurePath);
+    }
+
+    int resetTnrMaster(Path featurePath) throws InterruptedException, IOException {
+        LOGGER.debug("git reset ");
+
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "reset", "--hard", "origin/tnr_master");
+        processBuilder.directory(featurePath.toFile());
+        Process process = processBuilder.start();
+        process.waitFor();
+        LOGGER.debug("process exit status " + process.exitValue());
+        return process.exitValue();
+    }
+
+    void fetch (Path featurePath) throws InterruptedException, IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
+        processBuilder.directory(featurePath.toFile());
+        Process process = processBuilder.start();
+        process.waitFor();
+        LOGGER.debug("process exit status " + process.exitValue());
+        process.exitValue();
     }
 
     public void setIsTnrMasterActived(AtomicBoolean isTnrMasterActived) {
