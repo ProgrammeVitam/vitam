@@ -178,17 +178,6 @@ public class ApplicativeTestService {
     }
 
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        // LOGGER.debug("git reset on  branch " + featurePath + " on " + branch);
-
-        ProcessBuilder pb = new ProcessBuilder("git", "reset", "--hard", "origin/tnr_master");
-        pb.directory(Paths.get("/home/idman/vitam-itests").toFile());
-        Process p = pb.start();
-        p.waitFor();
-        LOGGER.debug("process exit status " + p.exitValue());
-
-        System.out.println(p.exitValue());
-    }
 
     /**
      * @param featurePath
@@ -220,7 +209,7 @@ public class ApplicativeTestService {
         return process.exitValue();
     }
 
-    void fetch (Path featurePath) throws InterruptedException, IOException {
+    void fetch(Path featurePath) throws InterruptedException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
         processBuilder.directory(featurePath.toFile());
         Process process = processBuilder.start();

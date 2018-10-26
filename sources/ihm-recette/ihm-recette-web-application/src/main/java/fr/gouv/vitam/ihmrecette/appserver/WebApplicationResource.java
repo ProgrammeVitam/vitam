@@ -255,7 +255,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * launch Rectification audit from recette
-     * @param xTenantId xTenantId
+     *
+     * @param xTenantId   xTenantId
      * @param operationId operationId
      * @return
      */
@@ -322,7 +323,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private Response asyncDowloadObject(DataCategory dataCategory, String uid) {
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
             // Should we log it ?
-            Response response = client.getContainerAsync(DEFAULT, uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
+            Response response =
+                client.getContainerAsync(DEFAULT, uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response);
         } catch (StorageServerClientException | StorageNotFoundException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -588,8 +590,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 RequestResponse response =
                     accessExternalClient.reclassification(getVitamContext(request), query);
                 if (response != null && response instanceof RequestResponseOK) {
-                	return Response.status(Status.OK).entity(response)
-                    		.header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID)).build();
+                    return Response.status(Status.OK).entity(response)
+                        .header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID)).build();
                 }
                 if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());
@@ -785,7 +787,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
-            final Response response = storageClient.getContainerAsync("default", fileName, documentType, AccessLogUtils.getNoLogAccessLog());
+            final Response response =
+                storageClient.getContainerAsync("default", fileName, documentType, AccessLogUtils.getNoLogAccessLog());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response
@@ -914,9 +917,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             result = client
                                                 .updateUnitbyId(getVitamContext(request),
                                                     criteria, objectID);
-                                        } else if(criteria.get(RULE_ACTIONS) != null){
+                                        } else if (criteria.get(RULE_ACTIONS) != null) {
                                             result = client.massUpdateUnitsRules(getVitamContext(request), criteria);
-                                        }else{
+                                        } else {
                                             result = client.massUpdateUnits(getVitamContext(request), criteria);
                                         }
                                         break;
