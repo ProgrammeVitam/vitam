@@ -36,7 +36,6 @@ public class StorageCollectionTypeTest {
 
     @Test
     public void collectionNameTest() {
-        assertEquals("", DataCategory.CONTAINER.getCollectionName());
         assertEquals("logbooks", DataCategory.LOGBOOK.getCollectionName());
         assertEquals("units", DataCategory.UNIT.getCollectionName());
         assertEquals("objects", DataCategory.OBJECT.getCollectionName());
