@@ -93,8 +93,8 @@ Création du rapport pour chaque unité archivistique ou objet ou groupe d'objet
 	- WARNING : Avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objets (EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.WARNING=Avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objets)
 
 
-Processus de correction des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante (CORRECTIVE_AUDIT.STARTED)
-==================================================================================================================================
+Processus de correction des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante (STP_CORRECTIVE_AUDIT)
+=============================================================================================================================
 
 Correction des signatures pour chaque objet, groupe d'objets ou unité auditée, défaillante (CORRECTIVE_AUDIT)
 ---------------------------------------------------------------------------------------------------------------
@@ -121,10 +121,10 @@ Finalisation des corrections des signatures pour chaque objet, groupe d'objets o
 * **Type** : bloquant
 * **Statuts** : 
 
-	- OK : La finalisation des corrections des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue a bien été effectuée (CORRECTIVE_AUDIT.OK=Succès de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue)
-	- KO : La finalisation des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue n'a pas été effectuée (CORRECTIVE_AUDIT.KO=Échec de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue) 		
-	- FATAL : une erreur technique est survenue lors de la finalisation de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompu (CORRECTIVE_AUDIT.FATAL=Erreur technique lors de la finalisation de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue) 
-	- WARNING : Avertissement lors de la finalisation de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompu (CORRECTIVE_AUDIT.WARNING=Avertissement lors de la finalisation de la correction des signatures de chaque unité archivistique ou objet ou groupe d'objets corrompue)
+	- OK : La finalisation des corrections des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante a bien été effectuée (CORRECTION_FINALIZE.OK = Succès du processus de finalisation des corrections des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante)
+	- KO : La finalisation des corrections des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante n'a pas été effectuée (CORRECTION_FINALIZE.KO = Échec du processus de finalisation des corrections des signatures pour chaque objet, groupe d’objets ou unité auditée défaillante) 		
+	- FATAL : une erreur technique est survenue lors de la finalisation des corrections des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante (CORRECTION_FINALIZE.FATAL = une Erreur technique est survenue lors du processus de finalisation des corrections des signatures pour chaque objet, groupe d’objets ou unité auditée défaillante) 
+	- WARNING : Avertissement lors de la finalisation des corrections des signatures pour chaque objet, groupe d'objets ou unité auditée défaillante (CORRECTION_FINALIZE.WARNING = Avertissement lors du processus de finalisation des corrections des signatures pour chaque objet, groupe d’'objets ou unité auditée défaillante)
 
 
 

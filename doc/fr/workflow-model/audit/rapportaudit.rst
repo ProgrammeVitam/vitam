@@ -1,5 +1,5 @@
 Rapport d'audit
-####################
+################
 
 Le rapport d'audit est un fichier JSON généré par la solution logicielle Vitam lorsqu'une opération d'audit se termine. Cette section décrit la manière dont ce rapport est structuré.
 
@@ -102,7 +102,7 @@ La partie "master", c'est à dire le bloc à la racine du rapport (sans indentat
     * Warning (l'audit a détecté quelque chose de singulier qui n'a pas été considéré comme une anomalie)
     * KO (l'audit a détecté une anomalie)
 - "outMessage": message final de l'audit, repris du journal des opérations
-- "LastEvent": clé correspondant au type d'audit. Par exemple pour l'audit de l'existence et de l'intégrité des fichiers il s'agit de "AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT"
+- "LastEvent": clé correspondant au type d'audit. Par exemple pour l'audit de l'existence et de l'intégrité des fichiers il s'agit de "AUDIT_FILE_INTEGRITY"
 - "source": liste des opérations auditées
 - "auditKO": liste des anomalies détectées qui ont provoqué le KO de l'audit
 - "auditWarning": liste des éléments singuliers détectés qui ont provoqué un warning de l'audit
