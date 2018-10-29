@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -137,7 +136,7 @@ public class CheckDistributionThreshold extends ActionHandler {
                 return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.OK, null);
             }
 
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             LOGGER.error(e);
             return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.FATAL, null);
         }

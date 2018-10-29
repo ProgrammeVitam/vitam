@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -92,8 +91,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String UNITS = "units/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
-    private static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
-        "[Consistency ERROR] : An internal data consistency error has been detected !";
     private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
@@ -103,7 +100,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        fr.gouv.vitam.common.exception.BadRequestException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -113,8 +110,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             response = performRequest(HttpMethod.GET, UNITS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamDBException(
-                    CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -362,14 +358,14 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException, VitamDBException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamDBException(CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);
+                throw new LogbookClientServerException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -677,7 +673,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        fr.gouv.vitam.common.exception.BadRequestException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -687,8 +683,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             response = performRequest(HttpMethod.GET, OBJECTS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamDBException(
-                    CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
@@ -711,7 +706,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        fr.gouv.vitam.common.exception.BadRequestException, VitamDBException {
+        fr.gouv.vitam.common.exception.BadRequestException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -722,8 +717,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new VitamDBException(
-                    CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);// access-common
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {

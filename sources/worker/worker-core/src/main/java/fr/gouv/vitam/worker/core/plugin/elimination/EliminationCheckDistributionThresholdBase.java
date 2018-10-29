@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -104,7 +103,7 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
                 return buildItemStatus(action, StatusCode.OK, null);
             }
 
-        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException e) {
+        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             LOGGER.error(e);
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError("An error occurred during elimination distribution check");

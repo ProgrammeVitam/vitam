@@ -1525,7 +1525,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             resultUnitsArray = (ArrayNode) unitsResultNode.get(RESULTS);
 
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-            VitamDBException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
         }
