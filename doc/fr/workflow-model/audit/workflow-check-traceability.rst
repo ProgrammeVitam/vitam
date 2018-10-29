@@ -107,11 +107,11 @@ Validation du tampon d'horodatage (VALIDATE_TOKEN_TIMESTAMP)
 
 	* OK : le tampon est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d'horodatage)
 	* KO : le tampon est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d'horodatage)
-	* FATAL : erreur technique lors de la validation du tampon d'horodatage (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.FATAL=Erreur technique lors de la validation du tampon d''horodatage)
+	* FATAL : erreur technique lors de la validation du tampon d'horodatage (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.FATAL=Erreur technique lors de la validation du tampon d'horodatage)
 
 
 Structure du workflow de contrôle d'intégrité d'un journal sécurisé
-####################################################################
+====================================================================
 D'une façon synthétique, le workflow est décrit de cette façon :
 
 .. figure:: images/workflow_traceability.png
