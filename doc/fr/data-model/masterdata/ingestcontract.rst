@@ -101,34 +101,29 @@ Détail des champs de la collection IngestContract
 **"CreationDate":** date de création du contrat.
 
   * La date est au format ISO 8601
-
+  * Cardinalité : 1-1
   ``Exemple : "CreationDate": "2017-04-10T11:30:33.798"``
 
-  * Cardinalité : 1-1
 
 **"LastUpdate":** date de dernière mise à jour du contrat dans la collection IngestContract.
 
   * La date est au format ISO 8601
-
+  * Cardinalité : 1-1
   ``Exemple : "LastUpdate": "2017-04-10T11:30:33.798"``
 
-  * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contrat.
 
   * La date est au format ISO 8601
-
+  * Cardinalité : 0-1
   ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
 
-  * Cardinalité : 0-1
 
 **DeactivationDate:** date de désactivation du contrat.
 
   * La date est au format ISO 8601
-
-  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
-
   * Cardinalité : 0-1
+  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
 
 
 **MasterMandatory:** option qui rend obligatoire la présence d'un objet dont l'usage est de type Master (Physical ou Binary)

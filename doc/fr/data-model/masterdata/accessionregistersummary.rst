@@ -56,9 +56,9 @@ Détail des champs
 
 **"TotalObjects":** Contient la répartition du nombre d'objets du service producteur par état
 
-    - "ingested": nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
+  - "ingested": nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
@@ -66,9 +66,9 @@ Détail des champs
 
 **"TotalObjectGroups":** Contient la répartition du nombre de groupes d'objets du service producteur par état
 
-    - "ingested": nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
+  - "ingested": nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
@@ -76,9 +76,9 @@ Détail des champs
 
 **"TotalUnits":** Contient la répartition du nombre d'unités archivistiques du service producteur par état
 
-    - "ingested": nombre total d'unités archivistiques prises en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
+  - "ingested": nombre total d'unités archivistiques prises en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
@@ -86,9 +86,9 @@ Détail des champs
 
 **"ObjectSize":** Contient la répartition du volume total des fichiers du service producteur par état
 
-    - "ingested": volume total en octet des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
-    - "deleted": volume total en octet des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
-    - "remained": volume actualisé en octet des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
+  - "ingested": volume total en octet des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+  - "deleted": volume total en octet des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
+  - "remained": volume actualisé en octet des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
@@ -97,10 +97,9 @@ Détail des champs
 **"CreationDate":**  Date du dernier calcul de ce document dans la collection.
 
   * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
   ``"CreationDate": "2017-04-10T11:30:33.798"``
-
-  * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit.
 

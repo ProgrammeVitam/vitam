@@ -123,35 +123,26 @@ Détail des champs de la collection ArchiveUnitProfile
 **"CreationDate":** date de création du profil d'unité archivistique.
 
   * La date est au format ISO 8601
-
-  ``Exemple : "CreationDate": "2017-04-10T11:30:33.798"``
-
   * Cardinalité : 1-1
+  ``Exemple : "CreationDate": "2017-04-10T11:30:33.798"``
 
 **"LastUpdate":** date de dernière mise à jour du profil d'unité archivistique dans la collection ArchiveUnitProfile.
 
   * La date est au format ISO 8601
-
-  ``Exemple : "LastUpdate": "2017-04-10T11:30:33.798"``
-
   * Cardinalité : 1-1
+  ``Exemple : "LastUpdate": "2017-04-10T11:30:33.798"``
 
 **"ActivationDate":** date d'activation du profil d'unité archivistique.
 
   * La date est au format ISO 8601
-
-  ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
-
   * Cardinalité : 0-1
+  ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
 
 **"DeactivationDate":** date de désactivation du profil d'unité archivistique.
 
   * La date est au format ISO 8601
-
-  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
-
   * Cardinalité : 0-1
-
+  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
 
 **"_tenant":** identifiant du tenant.
 
