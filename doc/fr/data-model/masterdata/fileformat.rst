@@ -57,10 +57,9 @@ Détail des champs du JSON stocké en base
 **"CreatedDate":** date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
 
   * Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm.
-
+  * Cardinalité : 1-1
   ``Exemple : "2016-08-19T16:36:07.942+02:00"``
 
-  * Cardinalité : 1-1
 
 **"VersionPronom":** numéro de version du fichier de signatures PRONOM utilisé pour créer l'enregistrement.
 
