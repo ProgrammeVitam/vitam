@@ -196,9 +196,10 @@ public class ApplicativeTestResource {
 
         applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
 
+        int status = applicativeTestService.resetTnrMaster(Paths.get(testSystemSipDirectory));
+
         applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
 
-        int status = applicativeTestService.resetTnrMaster(Paths.get(testSystemSipDirectory));
 
         return Response.ok().entity(status).build();
     }
