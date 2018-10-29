@@ -31,6 +31,8 @@ La recherche d'un format dans le référentiel des formats s'effectue depuis l'�
 
 
 .. image:: images/menu_formats.png
+   :scale: 80
+   :align: center
 
 Par défaut, les formats sont affichés sous le formulaire de recherche.
 
@@ -45,6 +47,7 @@ La recherche par intitulé peut être approximative : chaîne de caractères ave
 
 
 .. image:: images/rechch_formats.png
+   :align: center
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, les résultats sont affichés dans un tableau comportant les informations suivantes :
 
@@ -57,6 +60,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 |
 
 .. image:: images/res_formats.png
+   :align: center
 
 Détail d'un format
 --------------------
@@ -65,7 +69,8 @@ Pour accéder au détail d'un format, l'utilisateur clique sur la ligne souhait�
 
 |
 
-    .. image:: images/detail_format.png
+ .. image:: images/detail_format.png
+   :align: center
 
 
 Le détail d'un format est composé des informations suivantes :
@@ -95,6 +100,8 @@ Pour accéder à la page d'import, l'utilisateur clique sur le menu "Administrat
 
 
 .. image:: images/menu_imports.png
+   :scale: 80
+   :align: center
 
 L'utilisateur doit au préalable créer le référentiel des règles de gestion au format CSV afin de l'importer dans Vitam. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du référentiel des règles de gestion :
 
@@ -122,6 +129,7 @@ Pour importer un référentiel de règles de gestion, l'administrateur :
 |
 
 .. image:: images/import_rg.png
+   :align: center
    :scale: 50
 
 
@@ -142,7 +150,8 @@ Pour rechercher et consulter les règles de gestion, l'utilisateur clique sur le
 |
 
 .. image:: images/menu_rg.png
-
+   :scale: 80
+   :align: center
 
 Par défaut, les règles de gestion sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
 
@@ -153,6 +162,8 @@ Pour effectuer une recherche précise, on utilise le champ "Intitulé" ou le cha
 |
 
 .. image:: images/rechch_rg.png
+   :align: center
+
 
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, les résultats sont affichés dans un tableau comportant les informations suivantes :
@@ -165,15 +176,19 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 
 .. image:: images/res_rg.png
+   :align: center
+   :scale: 80
 
 
 Détail d'une règle de gestion
 -------------------------------
 
+
 Pour accéder au détail de chaque règle de gestion, l'utilisateur clique sur la ligne souhaitée.
 
 
 .. image:: images/detail_rg.png
+   :align: center
 
 Le détail d'une règle de gestion est composé des informations suivantes :
 
@@ -198,7 +213,7 @@ Il est ensuite possible de modifier ou mettre à jour ce référentiel, en impor
 NOTE: le dernier fichier enregistré est disponible à l'export en format CSV via le bouton "Exporter le référentiel"
 
 .. image:: images/reglesgestion_export.png
-
+   :align: center
 
 Référentiel des services agents
 ===============================
@@ -215,6 +230,8 @@ Pour accéder à la page d'import, l’utilisateur clique sur le menu « Adminis
 
 
 .. image:: images/menu_services_agents.png
+   :align: center
+   :scale: 80
 
 
 L’utilisateur doit au préalable créer le référentiel des services agents au format CSV afin de l’importer dans Vitam.
@@ -247,6 +264,7 @@ Pour consulter et rechercher les services agents, l’utilisateur clique sur le 
 
 
 .. image:: images/menu_services_agents_3.png
+   :align: center
 
 
 Par défaut, les  services agents sont affichés sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
@@ -256,6 +274,7 @@ Pour effectuer une recherche précise, on utilise les champs « Intitulé », �
 
 
 .. image:: images/menu_services_agents_4.png
+   :align: center
 
 
 Pour initier la recherche, l’utilisateur saisit ses critères de recherche et clique sur le bouton « Rechercher ». La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, les résultats sont affichés dans un tableau comportant les informations suivantes :
@@ -263,6 +282,7 @@ Pour initier la recherche, l’utilisateur saisit ses critères de recherche et 
 
 
 .. image:: images/menu_services_agents_5.png
+   :align: center
 
 Détail d’un service agent
 --------------------------
@@ -271,6 +291,8 @@ Pour accéder au détail de chaque service agent, l’utilisateur clique sur la 
 
 
 .. image:: images/menu_services_agents_6.png
+   :align: center
+   :scale: 80
 
 
 Le détail d’un service agent est composé des informations suivantes : « Identifiant », « Intitulé », « Description »
@@ -282,6 +304,7 @@ Pour plus de détail sur le registre des fonds, se référer à la parte "Consul
 NOTE: la dernière version du référentiel est disponible à l'export au format CSV via le bouton "Exporter le référentiel"
 
 .. image:: images/serviceagent_export.png
+   :align: center
 
 Modification d'un service agent
 -----------------------------------
@@ -307,7 +330,8 @@ Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administra
 
 
 .. image:: images/menu_import_entree.png
-   :scale: 40
+   :align: center
+   :scale: 80
 
 Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
@@ -318,7 +342,8 @@ Plusieurs critères doivent être respectés pour s'assurer de la bonne construc
 L'utilisateur sélectionne le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 .. image:: images/import_ce.png
-   :scale: 40
+   :align: center
+   :scale: 50
 
 
 Une fenêtre modale s'ouvre alors pour indiquer soit :
@@ -335,6 +360,8 @@ Pour consulter et rechercher les contrats d'entrée, l'utilisateur clique sur le
 
 
 .. image:: images/menu_ce.png
+   :align: center
+   :scale: 80
 
 
 Par défaut, les contrats d'entrée sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
@@ -348,6 +375,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 
 .. image:: images/rechch_ce.png
+   :align: center
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
@@ -360,6 +388,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 
 .. image:: images/res_ce.png
+   :align: center
 
 Détail d'un contrat d'entrée
 -----------------------------
@@ -386,6 +415,7 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 |
 
 .. image:: images/detail_ce.png
+   :align: center
 
 
 Modifier un contrat d'entrée
@@ -396,6 +426,7 @@ Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modi
 |
 
 .. image:: images/detail_ce_modif.png
+   :align: center
 
 
 * Statut
@@ -460,6 +491,8 @@ Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administrat
 
 
 .. image:: images/menu_import_acces.png
+   :align: center
+   :scale: 80
 
 
 
@@ -467,7 +500,9 @@ L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant su
 
 
 .. image:: images/import_ca.png
+   :align: center
    :scale: 50
+
 
 Une fenêtre modale s'ouvre alors pour indiquer soit :
 
@@ -484,6 +519,8 @@ Pour consulter et rechercher les contrats d'accès, l'utilisateur clique sur sur
 
 
 .. image:: images/menu_ca.png
+   :align: center
+   :scale: 80
 
 Par défaut, les contrats d'accès sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
 
@@ -497,6 +534,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 |
 
 .. image:: images/rechch_ca.png
+   :align: center
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
@@ -510,6 +548,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 |
 
 .. image:: images/res_ca.png
+   :align: center
 
 Détail d'un contrat d'accès
 ---------------------------
@@ -534,6 +573,7 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 
 
 .. image:: images/detail_ca.png
+   :align: center
 
 
 Modifier un contrat d'accès
@@ -551,6 +591,7 @@ Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modif
 
 
  .. image:: images/ca_update.png
+    :align: center
 
 
 * Activation / désactivation
@@ -607,6 +648,8 @@ Pour consulter et rechercher les contextes applicatifs, l'utilisateur clique sur
 
 
 .. image:: images/menu_contextes.png
+   :align: center
+   :scale: 80
 
 Par défaut, les contextes applicatifs sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
 
@@ -619,6 +662,7 @@ Note: la recherche croisée intitulé et identifiant n'est pas possible, lorsque
 
 
 .. image:: images/rechch_contextes.png
+   :align: center
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des contextes applicatifs est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
@@ -636,6 +680,7 @@ Le bouton "Informations supplémentaires" permet d'afficher des informations sup
 
 
 .. image:: images/res_contextes.png
+   :align: center
 
 
 Détail d'un contexte
@@ -661,6 +706,7 @@ Les tenants sont affichés par bloc. Chaque bloc contenant les informations suiv
 |
 
     .. image:: images/detail_contexte.png
+       :align: center
 
 Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution. Tout comme l'import, elle ne peut être effectuée que sur le tenant d'administration.
 
@@ -695,11 +741,14 @@ Pour importer une notice descriptive de profil d'archivage, l'utilisateur clique
 
 
 .. image:: images/menu_import_profil.png
+   :align: center
+   :scale: 80
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 
 .. image:: images/import_profils.png
+   :align: center
    :scale: 50
 
 Une fenêtre modale s'ouvre alors pour indiquer soit :
@@ -719,6 +768,8 @@ Pour consulter et rechercher les notices de profils d'archivage, l'utilisateur c
 
 
 .. image:: images/menu_profil.png
+   :align: center
+   :scale: 80
 
 Par défaut, les notices descriptives de profils d'archivage sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
 
@@ -731,6 +782,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 
 .. image:: images/rechch_profil.png
+   :align: center
 
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des notices est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -746,6 +798,7 @@ Lorsqu'un profil SEDA a été associé à la notice du profil, une flèche indiq
 
 
 .. image:: images/res_profil.png
+   :align: center
 
 Détail d'une notice descriptive d'un profil d'archivage
 -------------------------------------------------------
@@ -765,6 +818,7 @@ Pour accéder au détail d'une notice de profil d'archivage, l'utilisateur cliqu
 |
 
 .. image:: images/detail_profil.png
+   :align: center
 
 **Modifier une notice descriptive de profil d'archivage**
 
@@ -801,7 +855,7 @@ Importer une notice de profil d'unité archivistique (document type)
 
 L'import de notice détaillant les profils d'unité archivistiques est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
 
-L'utilisateur construit au prélable la notice descriptive du profil d'unité archivistique au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
+L'utilisateur construit au préalable la notice descriptive du profil d'unité archivistique au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
     - Nom : intitulé (obligatoire)
     - Description : description (facultative)
@@ -817,12 +871,16 @@ Pour importer une notice descriptive, l'utilisateur survole le menu "Administrat
 
 
 .. image:: images/menu_import_doctype.png
+   :align: center
+   :scale: 50
 
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 
 .. image:: images/import_doctype.png
+   :align: center
+   :scale: 50
 
 A la fin de l'opération d'import, une fenêtre modale indique l'un des deux messages suivants :
 
@@ -842,6 +900,7 @@ Ajout d'un schéma de contrôle
 
 
 .. image:: images/ref_json.png
+   :align: center
 
 
 Note: Pour que le contrôle supplémentaire sur les données soit pris en compte, l'intitulé du référentiel devra être présent dans le bordereau de versement.
@@ -863,6 +922,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 
 .. image:: images/recherche_doctype.png
+   :align: center
 
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des notices est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -913,6 +973,8 @@ Pour importer un arbre de positionnement, l'utilisateur clique sur le menu "Admi
 
 
 .. image:: images/menu_import_arbre.png
+   :align: center
+   :scale: 80
 
 L'utilisateur sélectionne ensuite le dossier à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement.
 
@@ -943,6 +1005,8 @@ Une barre de progression affiche l’avancement du téléchargement de l'arbre d
 
 
 .. image:: images/import_arbre.png
+   :align: center
+   :scale: 50
 
 Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
@@ -986,6 +1050,8 @@ Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Adm
 
 
 .. image:: images/menu_jdo.png
+   :align: center
+   :scale: 80
 
 Il permet à l'utilisateur d'accéder à toutes les opérations effectuées dans la solution logicielle Vitam, par catégorie d'opération.
 
@@ -1021,6 +1087,7 @@ Pour initier la recherche, l'utilisateur saisit un critère de recherche et cliq
 
 
 .. image:: images/rechch_jdo.png
+   :align: center
 
 
 Consultation des résultats
@@ -1036,6 +1103,7 @@ Suite à la recherche, le résultat est affiché sous forme de tableau, comporta
 
 
 .. image:: images/res_jdo.png
+   :align: center
 
 
 Le bouton "Informations supplémentaires" permet d'afficher les autres informations du journal des opérations. Il suffit pour cela de cocher dans la liste les informations voulues.
@@ -1071,6 +1139,7 @@ Le détail est composé de deux parties, le descriptif global de l'opération qu
 
 
 .. image:: images/desc_jdo.png
+   :align: center
 
 Puis le processus constituant le détail de l'opération présenté sous forme de liste comportant, pour chaque événement, les éléments suivants :
 
@@ -1083,6 +1152,7 @@ Un clic sur la flèche située à côté du message permet d'afficher davantage 
 
 
 .. image:: images/detail_jdo.png
+   :align: center
 
 
 Gestion des opérations
@@ -1098,6 +1168,8 @@ Pour consulter et rechercher une opération, l'utilisateur clique sur le menu "A
 
 
 .. image:: images/menu_gestion.png
+   :align: center
+   :scale: 80
 
 Par défaut, les opérations sont affichées sous le formulaire de recherche et sont classées par ordre ante chronologique et seules les opérations en cours de traitement, en pause ou en statut fatal sont affichées sur cet écran.
 
@@ -1115,6 +1187,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 
 .. image:: images/rechch_gestion.png
+   :align: center
 
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -1142,6 +1215,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 |
 
 .. image:: images/res_gestion.png
+   :align: center
 
 Utilisation du mode pas à pas pour les entrées
 ----------------------------------------------
@@ -1177,6 +1251,8 @@ Pour accéder à la page des "Opérations de sécurisation", l'utilisateur cliqu
 
 
 .. image:: images/menu_secu.png
+   :align: center
+   :scale: 80
 
 Par défaut, les journaux sont affichés sous le formulaire de recherche et sont classés par ordre ante chronologique.
 La page affiche un formulaire de recherche composé des champs suivants :
@@ -1192,6 +1268,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 |
 
 .. image:: images/rechch_secu.png
+   :align: center
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
@@ -1202,7 +1279,8 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 |
 
-    .. image:: images/res_secu.png
+.. image:: images/res_secu.png
+   :align: center
 
 
 Détail d'un journal sécurisé
@@ -1227,6 +1305,7 @@ Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la li
 |
 
 .. image:: images/detail_secu.png
+   :align: center
 
 
 Vérification d'un journal sécurisé
@@ -1274,6 +1353,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 
 .. image:: images/recherche_ontologie.png
+   :align: center
 
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des vocabulaires est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche le résultat est affiché sous forme de tableau, aux colonnes triables, comportant les informations suivantes :
@@ -1321,6 +1401,8 @@ Pour accéder à l'écran d'import du référentiel, l'utilisateur clique sur le
 
 
 .. image:: images/menu_formats.png
+   :align: center
+   :scale: 80
 
 Le référentiel à importer est le fichier PRONOM que l'utilisateur peut récupérer dans sa version la plus récente sur le site des Archives nationales britanniques :
 
@@ -1337,6 +1419,7 @@ Pour importer un référentiel des formats dans la solution logicielle Vitam, l'
 |
 
     .. image:: images/import_formats.png
+       :align: center
        :scale: 50
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
@@ -1347,6 +1430,7 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 
 
 .. image:: images/import_ko.png
+   :align: center
    :scale: 50
 
 
@@ -1403,11 +1487,14 @@ Pour importer un contexte, l'utilisateur clique sur  le menu "Administration", p
 |
 
 .. image:: images/menu_import_contexte.png
+   :align: center
+   :scale: 80
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 
 .. image:: images/import_contextes.png
+   :align: center
    :scale: 50
 
 Une fenêtre modale s'ouvre alors pour indiquer soit :
@@ -1448,6 +1535,7 @@ Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des cont
 |
 
 .. image:: images/contexte_update.png
+   :align: center
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contexte.
 
@@ -1474,10 +1562,13 @@ L'utilisateur construit au prélable le fichier au format JSON. Pour plus de dé
 Pour importer un fichier JSON, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des ontologies" dans le tenant d'administration.
 
 .. image:: images/menu_import_ontologie.png
+   :align: center
+   :scale: 80
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 .. image:: images/import_ontologie.png
+   :align: center
 
 Une fenêtre modale s'ouvre alors pour indiquer soit :
 
