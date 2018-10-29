@@ -194,8 +194,6 @@ public class ApplicativeTestService {
         Process p = pb.start();
         p.waitFor();
         LOGGER.debug("process exit status " + p.exitValue());
-
-        synchronizedTestDirectory(featurePath);
     }
 
     int resetTnrMaster(Path featurePath) throws InterruptedException, IOException {
