@@ -7,19 +7,19 @@ Dans l’univers numérique, peuvent être transférées à un service d’archi
 
 Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver.
 
-Avertissement : le bordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des Submissions Information Package (SIP)".
+Avertissement : le bordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des Submission Information Package (SIP)".
 
 Transfert d'un SIP
 ===================
 
-Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran de "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder depuis le menu "Entrée" en sélectionnant le sous-menu "Transfert de SIP et plan de classement".
+Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran de "Transfert de SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder depuis le menu "Entrée" en sélectionnant le sous-menu "Transfert de SIP et plan de classement".
 
 .. image:: images/menu_transfert.png
 
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert du SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" ainsi que le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert de SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" ainsi que le nom du fichier, sa taille et un champ statut pour l'instant vide.
 
 Les informations visibles à l'écran sont :
 
@@ -37,13 +37,14 @@ Plusieurs options sont présentes sur l'écran :
 
 - Destination :
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'opération est journalisée.
-	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP, l'opération est journalisée mais les objets ne sont pas enregistrés. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée en production.
+	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP, l'opération est journalisée mais les objets et métadonnées ne sont pas enregistrés. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée en production.
 
-Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "continu" et la destination "en production" sont sélectionnés.
+Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "en continu" et la destination "en production" sont sélectionnés.
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
 Les informations visibles à l'écran sont: 
+
 - Une barre de progression affichant l’avancement du téléchargement du SIP dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
 - Une roue animée symbolisant l'avancement du traitement du SIP par la solution logicielle Vitam.
@@ -69,15 +70,15 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
-- ArchivalAgreement : Identifiant ou nom du contrat d'entrée
+- ArchivalAgreement : identifiant ou nom du contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
 - La liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
-- MessageRequestIdentifier : Identifiant de la demande
+- MessageRequestIdentifier : identifiant de la demande
 - GrantDate : date de prise en charge du SIP
-- ArchivalAgency : l'identifiant du service d'archives
-- TransferringAgency : l'identifiant service producteur
+- ArchivalAgency : identifiant du service d'archives
+- TransferringAgency : identifiant du service de transfert d'archives
 
 Lors d'une entrée en avertissement ou en KO, l'ATR contient les mêmes informations que l'ATR d'une entrée en succès et le statut final de l'entrée (ou ReplyCode) est "WARNING" ou "KO". 
 
@@ -89,10 +90,11 @@ Les blocs <event> sont composés des balises suivantes :
 - EventType : l'intitulé de l'étape ou de la tâche
 - EventDateTime : date de l'évènement.
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur ou un avertissement
-- OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur ou à l' avertissement rencontré
+- OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur ou à l'avertissement rencontré
 - OutcomeDetailMessage : message d'erreur ou d'avertissement
+- EventDetailData : détail de l'événement 
 
-La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
+.. note :: Si l'import de SIP rencontre une erreur de type "FATAL" lié à une erreur technique, cette dernière est consultable via la page "Gestion des opérations"
 
 
 Transfert d'un SIP de plan de classement
@@ -121,7 +123,7 @@ Plusieurs options sont présentes sur l'écran :
 
 - Destination : actuellement, seule l'option "production" est disponible pour transférer directement le plan.
 
-Le mode d'exécution et la destination sont obligatoires. Par défaut le mode exécution "continu" et la destination "en production" sont sélectionnés.
+Le mode d'exécution et la destination sont obligatoires. Par défaut le mode exécution "En continu" et la destination "En production" sont sélectionnés.
 
 Pour lancer le transfert du plan, l’utilisateur clique sur le bouton « Importer ».
 
@@ -145,18 +147,18 @@ Lors d'une entrée de plan de classement en succès dans la solution logicielle 
 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Correspondant à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
-- ArchivalAgreement : l'identifiant du contrat d'entrée
-- CodeListVersion : la liste des référentiels utilisés
+- ArchivalAgreement : identifiant du nom du contrat d'entrée
+- CodeListVersion : liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - MessagerequestIdentifier: identifiant de la demande
 - GrantDate : date de prise en charge du plan
 - ArchivalAgency : service d'archives
-- TransferringAgency : l'identifiant du service de transfert d'archives
+- TransferringAgency : identifiant du service de transfert d'archives
 
 Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING" ainsi que les détails de l'avertissement.
 
-En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès, mais le ReplyCode est KO. La notification comprend ensuite la liste des erreurs rencontrées sous la forme de blocs <event>, tout d'abord au niveau des blocs <Operation>, puis au niveau des unités archivistiques comme au niveau des groupes d'objets.
+En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès, mais le ReplyCode est KO. La notification comprend ensuite la liste des erreurs rencontrées sous la forme de blocs <event>, tout d'abord au niveau des blocs <Operation>, puis au niveau des unités archivistiques.
 
 Les blocs <event> sont composés des balises suivantes :
 
@@ -166,11 +168,6 @@ Les blocs <event> sont composés des balises suivantes :
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
-
-La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques, sous la forme de blocs <event>.
-
-
-NOTE : si l'import du SIP rencontre une erreur de type "FATAL" liée à une erreur technique, cette dernière est consultable via la page " Gestion des opérations" 
 
 
 Journal des opérations d'entrée
