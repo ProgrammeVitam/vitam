@@ -26,30 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.extractseda;
 
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCIES;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,10 +40,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
@@ -133,6 +107,29 @@ import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
 import fr.gouv.vitam.worker.core.mapping.RuleMapper;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
+
 /**
  * listener to unmarshall seda
  */
@@ -175,6 +172,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private final Map<String, JsonNode> existingGOTs;
     private String ingestContract;
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
+    private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
 
     /**
      * @param handlerIO
@@ -211,7 +209,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
         List<String> originatingAgencies, Map<String, JsonNode> existingGOTs,
         Map<String, String> existingUnitIdWithExistingObjectGroup,
-        Map<String, Boolean> isThereManifestRelatedReferenceRemained) {
+        Map<String, Boolean> isThereManifestRelatedReferenceRemained,
+        Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -234,6 +233,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.objectMapper = getObjectMapper();
         this.existingUnitIdWithExistingObjectGroup = existingUnitIdWithExistingObjectGroup;
         this.isThereManifestRelatedReferenceRemained = isThereManifestRelatedReferenceRemained;
+        this.existingGOTGUIDToNewGotGUIDInAttachment = existingGOTGUIDToNewGotGUIDInAttachment;
 
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         RuleMapper ruleMapper = new RuleMapper();
@@ -293,7 +293,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             List<Object> archiveUnitOrDataObjectReferenceOrAny =
                 archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup();
 
-            String groupId = buildGraph(archiveUnitId, archiveUnitOrDataObjectReferenceOrAny);
+            String groupId = buildGraph(archiveUnitId, elementGUID, archiveUnitOrDataObjectReferenceOrAny);
 
             ObjectNode archiveUnitNode = (ObjectNode) archiveUnitTree.get(archiveUnitId);
             if (archiveUnitNode == null) {
@@ -549,8 +549,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         unitIdToSetOfRuleId.get(archiveUnitId).addAll(rulesId);
     }
 
-    private String buildGraph(String archiveUnitId, List<Object> archiveUnitOrDataObjectReferenceOrAny) {
-        String groupId = null;
+    private String buildGraph(String archiveUnitId, String archiveUnitGUID, List<Object> archiveUnitOrDataObjectReferenceOrAny) {
+        String groupGUID = null;
 
         for (Object o : archiveUnitOrDataObjectReferenceOrAny) {
             if (o instanceof JAXBElement) {
@@ -559,13 +559,18 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 if (element.getDeclaredType().isAssignableFrom(ArchiveUnitType.class)) {
                     fillArchiveUnitTree(archiveUnitId, (ArchiveUnitType) element.getValue());
                 } else if (element.getDeclaredType().isAssignableFrom(DataObjectRefType.class)) {
-                    groupId = fillDataObjectGroup(archiveUnitId, element);
+                    groupGUID = fillDataObjectGroup(archiveUnitId, element);
+
+                    if (existingUnitIdWithExistingObjectGroup.containsKey(archiveUnitGUID)) {
+                        existingGOTGUIDToNewGotGUIDInAttachment
+                            .put(existingUnitIdWithExistingObjectGroup.get(archiveUnitGUID), groupGUID);
+                    }
                 } else if (element.getDeclaredType().isAssignableFrom(ObjectGroupRefType.class)) {
-                    groupId = fillObjectGroup(archiveUnitId, element);
+                    groupGUID = fillObjectGroup(archiveUnitId, element);
                 }
             }
         }
-        return groupId;
+        return groupGUID;
     }
 
     private String fillDataObjectGroup(String archiveUnitId, JAXBElement element) {
@@ -573,7 +578,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         if (dataObjectRefType.getDataObjectReferenceId() != null) {
             String objRefId = dataObjectRefType.getDataObjectReferenceId();
-            unitIdToGroupId.put(archiveUnitId, objRefId);
             unitIdToGroupId.put(archiveUnitId, objRefId);
             if (objectGroupIdToUnitId.get(objRefId) == null) {
                 final List<String> archiveUnitList = new ArrayList<>();
