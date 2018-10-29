@@ -140,6 +140,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     private static final String unit_with_graph_0 = "integration-metadata-management/data/unit_with_graph_0.json";
     private static final String unit_with_graph_1 = "integration-metadata-management/data/unit_with_graph_1.json";
     private static final String unit_with_graph_2 = "integration-metadata-management/data/unit_with_graph_2.json";
+    private static final String unit_with_graph_2_v2 = "integration-metadata-management/data/unit_with_graph_2_v2.json";
     private static final String unit_with_graph_3 = "integration-metadata-management/data/unit_with_graph_3.json";
 
 
@@ -152,6 +153,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     private static final String got_with_graph_0 = "integration-metadata-management/data/got_0.json";
     private static final String got_with_graph_1 = "integration-metadata-management/data/got_1.json";
     private static final String got_with_graph_2 = "integration-metadata-management/data/got_2.json";
+    private static final String got_with_graph_2_v2 = "integration-metadata-management/data/got_2_v2.json";
 
 
     private static final String got_with_graph_0_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrpqaaaaq";
@@ -318,6 +320,66 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, DataCategory.MANIFEST.name())).isEqualTo(0L);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReconstructionOfMetadataWithDeletedEntriesThenOK() throws Exception {
+        // Clean offerLog
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        LogbookLifeCyclesClient lifecycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+
+        // 0. Prepare data set
+        String container = GUIDFactory.newGUID().getId();
+        workspaceClient.createContainer(container);
+
+        storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        deleteFileFromOffer(unit_with_graph_0_guid, JSON_EXTENTION, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+
+        storeFileToOffer(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        deleteFileFromOffer(got_with_graph_0_guid, JSON_EXTENTION, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+
+        checkOfferLogSize(DataCategory.UNIT, 4);
+        checkOfferLogSize(DataCategory.OBJECTGROUP, 4);
+
+        // 1. Reconstruct units
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0, 4L);
+        ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_0_guid);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_1_guid, 0, 4);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 0, 5);
+
+        // 2. Reconstruct object groups
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0, 8L);
+        ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_0_guid);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_1_guid, 0, 8);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 0, 8);
+
+        // 3. New data set
+        deleteFileFromOffer(unit_with_graph_1_guid, JSON_EXTENTION, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2_v2, DataCategory.UNIT);
+
+        deleteFileFromOffer(got_with_graph_1_guid, JSON_EXTENTION, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2_v2, DataCategory.OBJECTGROUP);
+
+        checkOfferLogSize(DataCategory.UNIT, 6);
+        checkOfferLogSize(DataCategory.OBJECTGROUP, 6);
+
+        // 4. Reconstruct units
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0, 10L);
+        ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_0_guid);
+        ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_1_guid);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 1, 6);
+
+        // 5. Reconstruct object groups
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0, 12L);
+        ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_0_guid);
+        ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_1_guid);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 1, 9);
     }
 
     private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
@@ -1381,6 +1443,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
             workspaceClient.putObject(container, fileName + extension, stream);
         }
         storageClient.storeFileFromWorkspace("default", type, fileName, objectDescription);
+    }
+
+    private void deleteFileFromOffer(String fileName, String extension, DataCategory type)
+        throws StorageServerClientException {
+        storageClient.delete("default", type, fileName + extension);
     }
 
     public interface MetadataManagementResource {
