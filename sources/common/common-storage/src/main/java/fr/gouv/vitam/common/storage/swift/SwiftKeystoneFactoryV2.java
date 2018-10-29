@@ -36,6 +36,7 @@ import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.identity.v2.Access;
 import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.openstack.internal.OSClientSession;
 
 /**
  * SwiftKeystoneFactoryV2
@@ -63,12 +64,17 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         if (access == null || access.getToken().getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
             LOGGER.info("No access or token expired, let's get authenticate again");
             osClientV2 = OSFactory.builderV2().endpoint(configuration.getSwiftKeystoneAuthUrl()).tenantName(configuration
-                .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())
-                .withConfig(configOS4J)
-                .authenticate();
+                    .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())
+                    .withConfig(configOS4J)
+                    .authenticate();
             access = osClientV2.getAccess();
         } else {
-            osClientV2 = OSFactory.clientFromAccess(access, configOS4J);
+            OSClient.OSClientV2 current = (OSClient.OSClientV2) OSClientSession.getCurrent();
+            if (null == current) {
+                osClientV2 = OSFactory.clientFromAccess(access, configOS4J);
+            } else {
+                osClientV2 = current;
+            }
         }
         return osClientV2;
     }

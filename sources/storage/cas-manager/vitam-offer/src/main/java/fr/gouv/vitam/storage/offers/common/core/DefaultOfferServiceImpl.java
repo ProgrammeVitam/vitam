@@ -37,11 +37,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -49,6 +51,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -85,15 +88,16 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private OfferLogDatabaseService offerDatabaseService;
     private final boolean recomputeDigest;
 
+    private StorageConfiguration configuration;
+
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
     public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService)
-        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
+            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         this.offerDatabaseService = offerDatabaseService;
-        StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                StorageConfiguration.class);
+                    StorageConfiguration.class);
         } catch (final IOException exc) {
             LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);
@@ -107,37 +111,53 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @VisibleForTesting
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
-        return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "COMPUTE_DIGEST", times.elapsed(TimeUnit.MILLISECONDS));
+        }
     }
 
     @Override
     public ObjectContent getObject(String containerName, String objectId)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            return defaultStorage.getObject(containerName, objectId);
+        } finally {
+            PerformanceLogger.getInstance().log("OfferType_" + configuration.getProvider(), "GET_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
 
-        return defaultStorage.getObject(containerName, objectId);
+        }
     }
 
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        if (!defaultStorage.isExistingContainer(containerName)) {
+            throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        Stopwatch times = Stopwatch.createStarted();
+        boolean existsContainer = defaultStorage.isExistingContainer(containerName);
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "CHECK_EXISTS_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
+        if (!existsContainer) {
             try {
+                times = Stopwatch.createStarted();
                 defaultStorage.createContainer(containerName);
+                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "CREATE_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
             } catch (ContentAddressableStorageAlreadyExistException ex) {
                 LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
             }
         }
 
         objectInit.setId(objectGUID);
-
+        times = Stopwatch.createStarted();
         offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "SAVE_IN_DB" , times.elapsed(TimeUnit.MILLISECONDS));
         return objectInit;
     }
 
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type, Long size, DigestType digestType) throws IOException, ContentAddressableStorageException {
+                               DataCategory type, Long size, DigestType digestType) throws IOException, ContentAddressableStorageException {
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
@@ -156,26 +176,37 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-        Long size, DigestType digestType)
-        throws ContentAddressableStorageException {
+                             Long size, DigestType digestType)
+            throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
-        if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
-            throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
-                "and cannot be updated");
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
+                throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
+                        "and cannot be updated");
+            }
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "CREATE_OBJECT", "CHECK_EXISTS_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
-        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, recomputeDigest);
+        times = Stopwatch.createStarted();
+        try {
+            return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, recomputeDigest);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "CREATE_OBJECT", "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+        }
     }
 
     @Override
     public boolean isObjectExist(String containerName, String objectId)
-        throws ContentAddressableStorageServerException {
+            throws ContentAddressableStorageServerException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
     @Override
     public JsonNode getCapacity(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
+        Stopwatch times = Stopwatch.createStarted();
         ContainerInformation containerInformation;
         try {
             containerInformation = defaultStorage.getContainerInformation(containerName);
@@ -188,26 +219,35 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
         result.put("usableSpace", containerInformation.getUsableSpace());
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),"CHECK_CAPACITY", "CHECK_CAPACITY", times.elapsed(TimeUnit.MILLISECONDS));
         return result;
     }
 
     @Override
     public void deleteObject(String containerName, String objectId, DataCategory type)
-        throws  ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
+        Stopwatch times = Stopwatch.createStarted();
         if (!type.canDelete()) {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
 
         // Log in offer
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "SAVE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
 
         defaultStorage.deleteObject(containerName, objectId);
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "DELETE_FILE", times.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override
     public StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException {
-        return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "GET_METADATA", times.elapsed(TimeUnit.MILLISECONDS));
+        }
     }
 
     public String createCursor(String containerName) throws ContentAddressableStorageServerException {
@@ -228,7 +268,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public List<JsonNode> next(String containerName, String cursorId)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         String keyMap = getKeyMap(containerName, cursorId);
         if (mapXCusor.containsKey(keyMap)) {
             VitamPageSet<? extends VitamStorageMetadata> pageSet;
@@ -258,8 +298,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
-        throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
-        return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
+            throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "getOfferLogs_", times.elapsed(TimeUnit.MILLISECONDS));
+
+        }
     }
 
     private List<JsonNode> getListFromPageSet(VitamPageSet<? extends VitamStorageMetadata> pageSet) {

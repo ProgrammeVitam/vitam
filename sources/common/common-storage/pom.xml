@@ -45,7 +45,8 @@
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j-core</artifactId>
         </dependency>
-        <dependency> <!-- httpclient connector for openstack4j -->
+        <!-- httpclient connector for openstack4j -->
+        <dependency>
             <groupId>org.pacesys.openstack4j.connectors</groupId>
             <artifactId>openstack4j-httpclient</artifactId>
         </dependency>

@@ -28,7 +28,9 @@ package fr.gouv.vitam.storage.offers.common.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -48,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -298,10 +301,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
             final String containerName = buildContainerName(type, xTenantId);
             ObjectContent objectContent = defaultOfferService.getObject(containerName, objectId);
-            return Response.ok(objectContent.getInputStream())
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM)
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), objectContent.getSize())
-                .build();
+
+            Map<String, String> responseHeader = new HashMap<>();
+            responseHeader.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            responseHeader.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), String.valueOf(objectContent.getSize()));
+
+            return  new VitamAsyncInputStreamResponse(objectContent.getInputStream(),
+                    Status.OK, responseHeader);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);

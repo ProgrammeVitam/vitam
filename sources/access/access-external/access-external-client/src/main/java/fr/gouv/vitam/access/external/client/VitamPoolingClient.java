@@ -71,10 +71,12 @@ public class VitamPoolingClient {
      * @return true if completed false else
      */
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
-        throws VitamException {
-        for (int i = 0; i < nbTry; i++) {
+            throws VitamException {
+
+        boolean unknownRetry = false;
+        do {
             final RequestResponse<ItemStatus> requestResponse = this.operationStatusClient.getOperationProcessStatus(
-                new VitamContext(tenantId), processId);
+                    new VitamContext(tenantId), processId);
             if (requestResponse.isOk()) {
                 ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
                 final ProcessState processState = itemStatus.getGlobalState();
@@ -89,11 +91,28 @@ public class VitamPoolingClient {
                          * With statusCode == UNKNOWN and State = PAUSE means that processWorkflow is not started
                          * In this case logically we should also return true
                          * But checking status in parallel with ingest we may wait until processWorkflow starts
-                         * The problem si calling wait on not started process return false after nbTry
+                         * The problem is calling wait on not started process return false after nbTry
                          * Should we add a params to say if not yet started return true?
                          */
                         if (StatusCode.STARTED.compareTo(statusCode) <= 0) {
                             return true;
+                        } else {
+                            // If StatusCode UNKNOWN
+                            // Wait 1 minutes and retry. If the status code not changed then return false (fail)
+                            if (!unknownRetry) {
+                                try {
+                                    Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+                                } catch (InterruptedException e) {
+                                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                                } finally {
+                                    unknownRetry = true;
+                                }
+                            } else {
+                                return false;
+                            }
+
+
+
                         }
                         break;
                     case RUNNING:
@@ -103,15 +122,20 @@ public class VitamPoolingClient {
                 if (null != timeUnit) {
                     timeWait = timeUnit.toMillis(timeWait);
                 }
-                try {
-                    Thread.sleep(timeWait);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                nbTry--;
+
+                if (nbTry > 0) {
+                    try {
+                        Thread.sleep(timeWait);
+                    } catch (InterruptedException e) {
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    }
                 }
             } else {
                 throw new VitamException((VitamError) requestResponse);
             }
-        }
+
+        } while (nbTry > 0);
         return false;
 
     }
@@ -127,7 +151,7 @@ public class VitamPoolingClient {
      * @throws VitamException
      */
     public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
-        throws VitamException {
+            throws VitamException {
         return wait(tenantId, processId, ProcessState.COMPLETED, nbTry, timeout, timeUnit);
     }
 
