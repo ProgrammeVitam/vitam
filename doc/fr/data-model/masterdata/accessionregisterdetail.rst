@@ -163,20 +163,18 @@ On récupère la valeur IC-000001.
 **"EndDate":** date de la dernière opération d'entrée pour l'enregistrement concerné.
 
   * La date est au format ISO 8601
-
-  ``"EndDate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"EndDate": "2017-04-10T11:30:33.798"``
 
 **"StartDate":** date de la première opération d'entrée pour l'enregistrement concerné.
 
   * La date est au format ISO 8601
-
-  ``"StartDate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+  ``"StartDate": "2017-04-10T11:30:33.798"``
 
 **"Status":** Indication sur l'état des archives concernées par l'enregistrement.
 
@@ -187,43 +185,46 @@ On récupère la valeur IC-000001.
 **"LastUpdate":** Date de la dernière mise à jour pour l'enregistrement concerné.
 
   * La date est au format ISO 8601
-
-  ``"LastUpdate": "2017-04-10T11:30:33.798"``
-
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
+    ``"LastUpdate": "2017-04-10T11:30:33.798"``
+
 **"TotalObjectGroups":** Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (ingested, deleted et remained) :
-    - "ingested": nombre de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+
+  - "ingested": nombre de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"TotalUnits":** Il contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée :
-    - "ingested": nombre d'unités archivistiques prises en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre d'unités archivistiques supprimées ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+
+  - "ingested": nombre d'unités archivistiques prises en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre d'unités archivistiques supprimées ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"TotalObjects":** Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée :
-    - "ingested": nombre  d'objets priss en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": nombre d'objets supprimés ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+
+  - "ingested": nombre  d'objets priss en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+  - "deleted": nombre d'objets supprimés ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+  - "remained": nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"ObjectSize":** Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (ingested, deleted etremained) :
-    - "ingested": volume en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "deleted": volume en octet des fichiers supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "remained": volume en octet des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+
+  - "ingested": volume en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+  - "deleted": volume en octet des fichiers supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+  - "remained": volume en octet des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
   * Il s'agit d'un JSON
   * Champ peuplé par la solution logicielle Vitam.

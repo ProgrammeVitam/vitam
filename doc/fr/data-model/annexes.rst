@@ -194,7 +194,7 @@ Type d'indexation des chaînes de caractères dans ElasticSearch par collection 
   "FormatType", "Non analysé"
 
 
-**Collection IngestContract**
+**Collection LogbookOperation**
 
 .. csv-table::
   :header: "Champ", "Type d'indexation"
@@ -235,8 +235,6 @@ Type d'indexation des chaînes de caractères dans ElasticSearch par collection 
   "outMessg","Analysé"
   "LegalStatus","Non analysé"
   "obId","Analysé"
-
-
 
 **Collection Profile**
 

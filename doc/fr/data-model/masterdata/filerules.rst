@@ -93,27 +93,25 @@ Par exemple :
 
     * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
 
-      * MONTH
-      * DAY
-      * YEAR
+      - MONTH
+      - DAY
+      - YEAR
 
   * Cardinalité : 1-1
 
 **"CreationDate":** date de création de la règle dans la collection FileRule.
 
   * La date est au format ISO 8601
-
+  * Cardinalité : 1-1
   ``Exemple : "2017-11-02T13:50:28.922"``
 
-  * Cardinalité : 1-1
 
 **"UpdateDate":** Date de dernière mise à jour de la règle dans la collection FileRules.
 
   * La date est au format ISO 8601
-
+  * Cardinalité : 1-1
   ``Exemple : "2017-11-02T13:50:28.922"``
 
-  * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit
 
