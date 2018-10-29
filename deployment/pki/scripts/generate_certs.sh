@@ -212,6 +212,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
     exit 1
 fi
 
+# Cleaning or creating vault file for certs
+initVault certs
+
 # Copy CA
 pki_logger "Recopie des clés publiques des CA"
 copyCAFromPki client-external

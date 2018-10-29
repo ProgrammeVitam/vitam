@@ -44,6 +44,26 @@ function normalize_key {
     echo "${KEY}" | sed 's/[\\/\.-]/_/g'
 }
 
+function initVault {
+    local TYPE="${1}"
+
+    VAULT_FILE="${REPERTOIRE_CERTIFICAT}/vault-${TYPE}.yml"
+
+    if [ -f "${VAULT_FILE}" ]; then
+        pki_logger "Réinitialisation du fichier ${VAULT_FILE}"
+        ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+        echo '---' > ${VAULT_FILE}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+    else
+        pki_logger "Création du fichier ${VAULT_FILE}"
+        ansible-vault create ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+    fi
+
+    if [ -f "${VAULT_FILE}.example" ]; then
+        rm -f "${VAULT_FILE}.example"
+    fi
+}
+
 function getComponentPassphrase {
     local TYPE="${1}"
     local KEY_FILE="${2}"
