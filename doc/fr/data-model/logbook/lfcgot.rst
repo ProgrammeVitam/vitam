@@ -120,12 +120,11 @@ Détail des champs du JSON stocké en base
 **"evDateTime" (event DateTime):** date de l'événement.
 
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
-
-      ``Exemple : "2016-08-17T08:26:04.227"``.
-
     * Ce champ est positionné par le client LogBook.
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
+``Exemple : "2016-08-17T08:26:04.227"``.
+
 
 **"evIdProc" (event Identifier Process):** identifiant du processus.
 
@@ -172,11 +171,9 @@ Détail des champs du JSON stocké en base
 **"agId" (agent Identifier):** identifiant de l'agent réalisant l'évènement.
 
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
-
-    ``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
-
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
+    ``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
 
 **"obId" (object Identifier):** identifiant de la solution logicielle Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
