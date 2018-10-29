@@ -3,8 +3,8 @@ Rapport d'audit de cohérence
 
 Le rapport d'audit de cohérence est un fichier JSON généré par la solution logicielle Vitam lorsqu'une opération d'audit se termine. En cas de succès (EVIDENCE_AUDIT.OK) ou en warning (EVIDENCE_AUDIT.WARNING) le rapport est vide. il n'y pas d'information spécifié. Dans les cas de KO le rapport retourne les informations suivantes.
 
-Exemple de JSON : rapport d'audit de cohérence
-===============================================
+Exemple de JSON : rapport d'audit de cohérence d'une unité archivistique
+========================================================================
 
 .. code::
 
