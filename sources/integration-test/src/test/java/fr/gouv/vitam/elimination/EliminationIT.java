@@ -61,7 +61,11 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteService;
@@ -73,11 +77,14 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.MetadataStorageHelper.getGotWithLFC;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_UNIT;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECTGROUP;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static java.util.Collections.singletonList;
@@ -191,6 +198,8 @@ public class EliminationIT extends VitamRuleRunner {
         assertThatThrownBy(() -> getStorageInfo(UNIT, id_2)).hasMessage("Not found");
         assertThatThrownBy(() -> getStorageInfo(UNIT, id_3)).hasMessage("Not found");
 
+        // Check offer log
+        checkDeletedFilesInOfferLogs(UNIT, id_1 + ".json", id_2 + ".json", id_3 + ".json");
     }
 
 
@@ -272,6 +281,22 @@ public class EliminationIT extends VitamRuleRunner {
         assertThatThrownBy(() -> getStorageInfo(OBJECTGROUP, id_2)).hasMessage("Not found");
         assertThatThrownBy(() -> getStorageInfo(OBJECTGROUP, id_3)).hasMessage("Not found");
 
+        // Check offer log
+        checkDeletedFilesInOfferLogs(OBJECTGROUP, id_1 + ".json", id_2 + ".json", id_3 + ".json");
+    }
+
+    private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames) throws StorageServerClientException {
+        RequestResponse<OfferLog> offerLogRequestResponse =
+            storageClient.getOfferLogs("default", dataCategory, null, 100000, Order.ASC);
+        assertThat(offerLogRequestResponse.isOk()).isTrue();
+        List<OfferLog> offerLogs = ((RequestResponseOK<OfferLog>) offerLogRequestResponse).getResults();
+
+        List<String> deletedFileNamesInOfferLogs = offerLogs.stream()
+            .filter(offerLog -> offerLog.getAction() == OfferLogAction.DELETE)
+            .map(OfferLog::getFileName)
+            .collect(Collectors.toList());
+
+        assertThat(deletedFileNamesInOfferLogs).containsExactlyInAnyOrder(fileNames);
     }
 
     private void saveInVitam(String id, JsonNode vitamDocument, JsonNode lfc, DataCategory category) {

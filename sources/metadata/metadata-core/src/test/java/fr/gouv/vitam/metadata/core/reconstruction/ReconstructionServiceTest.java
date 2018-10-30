@@ -69,6 +69,7 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
@@ -571,7 +572,7 @@ public class ReconstructionServiceTest {
         if (null == fileName) {
             fileName = "" + sequence;
         }
-        OfferLog offerLog = new OfferLog("container", fileName, "write");
+        OfferLog offerLog = new OfferLog("container", fileName, OfferLogAction.WRITE);
         offerLog.setSequence(sequence);
         return offerLog;
     }

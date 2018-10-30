@@ -189,9 +189,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        if (DataCategory.CONTAINER.equals(type)) {
-            throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
-        }
         Response response = null;
         MultivaluedHashMap<String, Object> headers = getDefaultHeaders(tenantId, strategyId, null, null);
         for (String offerId : offerIds) {
@@ -255,10 +252,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
 
-        if (DataCategory.CONTAINER.equals(type)) {
-            throw new IllegalArgumentException(
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
-        }
         Response response = null;
         try {
 

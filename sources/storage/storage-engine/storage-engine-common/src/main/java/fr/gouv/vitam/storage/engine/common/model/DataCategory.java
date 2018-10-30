@@ -27,19 +27,11 @@
 
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
  * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
  */
 public enum DataCategory {
 
-    /**
-     * Container TODO is this right ?
-     */
-    CONTAINER("", "", true, true),
     /**
      * Archive Unit
      */
@@ -76,7 +68,7 @@ public enum DataCategory {
     STORAGELOG("storagelog", "storagelog", false, false),
 
     /**
-     *Storage AccessLog (log)
+     * Storage AccessLog (log)
      */
     STORAGEACCESSLOG("storageaccesslog", "storageaccesslog", false, false),
 
@@ -171,9 +163,9 @@ public enum DataCategory {
      * Default constructor
      *
      * @param collectionName the collection name
-     * @param folder         the folder name for storage
-     * @param udpatable      true if this kind of object is updatable, false otherwise
-     * @param deletable      true if this kind of object is deletable, false otherwise
+     * @param folder the folder name for storage
+     * @param udpatable true if this kind of object is updatable, false otherwise
+     * @param deletable true if this kind of object is deletable, false otherwise
      */
     DataCategory(String collectionName, String folder, boolean udpatable, boolean deletable) {
         this.collectionName = collectionName;
@@ -249,8 +241,4 @@ public enum DataCategory {
         }
         throw new IllegalArgumentException(collectionName + " is not a collectionName in DataCategory entry");
     }
-
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
 }

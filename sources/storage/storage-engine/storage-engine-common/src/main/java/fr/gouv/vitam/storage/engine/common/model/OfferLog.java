@@ -63,7 +63,7 @@ public class OfferLog {
      * Action
      */
     @JsonProperty("Action")
-    private String action;
+    private OfferLogAction action;
 
     /**
      * Constructor,jackson usage only
@@ -77,7 +77,7 @@ public class OfferLog {
      * @param fileName fileName
      * @param action action
      */
-    public OfferLog(String container, String fileName, String action) {
+    public OfferLog(String container, String fileName, OfferLogAction action) {
         this.time = LocalDateTime.now();
         this.container = container;
         this.fileName = fileName;
@@ -151,7 +151,7 @@ public class OfferLog {
     /**
      * @return the action
      */
-    public String getAction() {
+    public OfferLogAction getAction() {
         return action;
     }
 
@@ -160,7 +160,7 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setAction(String action) {
+    public void setAction(OfferLogAction action) {
         this.action = action;
     }
 

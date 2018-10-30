@@ -24,21 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.client;
+package fr.gouv.vitam.storage.engine.common.model;
 
-import static org.junit.Assert.assertEquals;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.junit.Test;
+public enum OfferLogAction {
 
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+    @JsonProperty("write")
+    WRITE,
 
-public class StorageCollectionTypeTest {
-
-    @Test
-    public void collectionNameTest() {
-        assertEquals("logbooks", DataCategory.LOGBOOK.getCollectionName());
-        assertEquals("units", DataCategory.UNIT.getCollectionName());
-        assertEquals("objects", DataCategory.OBJECT.getCollectionName());
-        assertEquals("objectgroups", DataCategory.OBJECTGROUP.getCollectionName());
-    }
+    @JsonProperty("delete")
+    DELETE
 }

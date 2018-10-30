@@ -468,14 +468,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
-    public void existsWorkspaceWithObjectTypeIllegalArgumentException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.CONTAINER, "0", SingletonUtils.singletonList());
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
     public void existsWithObjectIdIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
@@ -528,13 +520,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
-    public void deleteContainerWithIllegalArgumentException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.delete("idStrategy", DataCategory.CONTAINER, "guid", null);
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
     public void deleteWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
@@ -547,14 +532,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
-    public void deleteWorkspaceWithObjectTypeIllegalArgumentException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.CONTAINER, "0", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
