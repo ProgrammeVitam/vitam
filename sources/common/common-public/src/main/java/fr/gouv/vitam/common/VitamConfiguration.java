@@ -35,6 +35,7 @@ import java.util.Map;
 
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
@@ -408,6 +409,12 @@ public class VitamConfiguration {
      * List of TENANTS
      */
     private static List<Integer> TENANTS = new ArrayList<>();
+
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private static ClassificationLevel classificationLevel;
+
 
     /*
      * Admin Tenant
@@ -801,6 +808,11 @@ public class VitamConfiguration {
         if (null != parameters.isForceChunkModeInputStream()) {
             setForceChunkModeInputStream(parameters.isForceChunkModeInputStream());
         }
+
+        if(null != parameters.getClassificationLevel()){
+            setClassificationLevel(parameters.getClassificationLevel());
+        }
+
     }
 
     /**
@@ -1782,11 +1794,20 @@ public class VitamConfiguration {
     /**
      * Setter for default OriginatingAgency for DIP export OriginatingAgency conflict
      *
-     * @param default originatingAgency for export
+     * @param defaultOriginatingAgencyForExport for export
      */
     public static void setDefaultOriginatingAgencyByTenant(Map<Integer, String> defaultOriginatingAgencyForExport) {
         VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;
     }
+
+    public static ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public static void setClassificationLevel(ClassificationLevel classificationLevel) {
+        VitamConfiguration.classificationLevel = classificationLevel;
+    }
+
 
     /**
      * Get the maxResultWindow

@@ -429,6 +429,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
+            accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);

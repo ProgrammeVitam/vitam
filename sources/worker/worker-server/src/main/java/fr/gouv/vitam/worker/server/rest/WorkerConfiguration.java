@@ -27,9 +27,8 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-
-import java.util.List;
 
 /**
  * Worker configuration class mapping

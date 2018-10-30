@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
 
 /**
@@ -250,6 +251,12 @@ public class VitamConfigurationParameters {
      * default originatingAgency for DIP export when multiple originatingAgencies are in conflict in exported AU
      */
     private Map<Integer, String> defaultOriginatingAgencyForExport;
+
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private ClassificationLevel classificationLevel;
+
 
     /**
      * Setter for vitamCleanPeriod;
@@ -1108,5 +1115,12 @@ public class VitamConfigurationParameters {
         this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
     }
 
+    public ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public void setClassificationLevel(ClassificationLevel classificationLevel) {
+        this.classificationLevel = classificationLevel;
+    }
 
 }
