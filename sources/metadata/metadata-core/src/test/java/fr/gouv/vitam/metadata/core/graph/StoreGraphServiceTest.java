@@ -24,6 +24,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -135,7 +136,7 @@ public class StoreGraphServiceTest {
             .thenReturn(
                 Lists.newArrayList(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
+                        OfferLogAction.WRITE)));
 
 
         LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
@@ -163,7 +164,7 @@ public class StoreGraphServiceTest {
             .thenReturn(
                 Lists.newArrayList(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
+                        OfferLogAction.WRITE)));
 
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
@@ -195,7 +196,7 @@ public class StoreGraphServiceTest {
             .thenReturn(
                 Lists.newArrayList(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
+                        OfferLogAction.WRITE)));
 
 
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);

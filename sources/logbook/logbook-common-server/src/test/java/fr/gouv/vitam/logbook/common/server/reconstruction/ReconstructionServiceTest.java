@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -318,7 +319,7 @@ public class ReconstructionServiceTest {
     }
 
     private OfferLog getOfferLog(long sequence) {
-        OfferLog offerLog = new OfferLog("container", "" + sequence, "write");
+        OfferLog offerLog = new OfferLog("container", "" + sequence, OfferLogAction.WRITE);
         offerLog.setSequence(sequence);
         return offerLog;
     }
