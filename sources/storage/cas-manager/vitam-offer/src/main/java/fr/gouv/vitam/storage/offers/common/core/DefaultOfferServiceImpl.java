@@ -64,6 +64,7 @@ import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -138,7 +139,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         objectInit.setId(objectGUID);
 
-        offerDatabaseService.save(containerName, objectInit.getId(), "write");
+        offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
         return objectInit;
     }
 
@@ -237,8 +238,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (!type.canDelete()) {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
-            defaultStorage.deleteObject(containerName, objectId);
 
+        // Log in offer
+        offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
+
+        defaultStorage.deleteObject(containerName, objectId);
     }
 
     @Override
