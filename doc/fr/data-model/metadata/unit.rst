@@ -538,12 +538,10 @@ Le mapping est le suivant :
 
 **"_elimination":** tableau contenant les résultats pour l'unité archivistique d'une opération d'analyse d'élimination
 
-
   * Champ peuplé par la solution logicielle Vitam au moment d’une indexation lors d'une phase d'analyse d'élimination.
   * Cardinalité : 1-1
 
   Ce bloc contient les clés suivantes :
-
 
   * "OperationId": GUID de l'opération d'élimination
 
