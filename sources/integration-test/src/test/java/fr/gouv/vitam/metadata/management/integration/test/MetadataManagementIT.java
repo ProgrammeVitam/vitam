@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -982,6 +983,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
             accessInternalConfiguration.setUrlMetaData(METADATA_URL);
             accessInternalConfiguration.setUrlProcessing(runner.PROCESSING_URL);
             accessInternalConfiguration.setUrlWorkspace(runner.WORKSPACE_URL);
+            List<String> allowList = new ArrayList<>();
+            allowList.add("Secret Défense");
+            ClassificationLevel classificationLevel = new ClassificationLevel();
+            classificationLevel.setAllowList(allowList);
+            classificationLevel.setAuthorizeNotDefined(true);
             AccessInternalResourceImpl accessInternalResource =
                 new AccessInternalResourceImpl(accessInternalConfiguration);
 

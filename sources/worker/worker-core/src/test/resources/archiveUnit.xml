@@ -21,7 +21,7 @@
 		<ClassificationRule>
 			<Rule id="ID024">Rule10</Rule>
 			<Rule id="ID025">Rule11</Rule>
-			<ClassificationLevel>ClassificationLevel0</ClassificationLevel>
+			<ClassificationLevel>Secret Défense</ClassificationLevel>
 			<ClassificationOwner>ClassificationOwner0</ClassificationOwner>
 		</ClassificationRule>
 		<NeedAuthorization>false</NeedAuthorization>

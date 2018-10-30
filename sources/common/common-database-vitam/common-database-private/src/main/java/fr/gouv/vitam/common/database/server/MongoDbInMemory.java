@@ -324,7 +324,7 @@ public class MongoDbInMemory {
             }
 
             if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
-                List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(rule -> rule.getRule()).collect(Collectors.toList());
+                List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(RuleAction::getRule).collect(Collectors.toList());
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ArrayNode filteredRules = JsonHandler.createArrayNode();
                 initialRules.forEach(node -> {

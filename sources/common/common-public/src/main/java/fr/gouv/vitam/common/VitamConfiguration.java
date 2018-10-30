@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
@@ -460,6 +461,11 @@ public class VitamConfiguration {
      */
     private static int reclassificationMaxGuildListSizeInLogbookOperation = 1000;
 
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private static ClassificationLevel classificationLevel;
+
     static {
         getConfiguration().setDefault();
     }
@@ -884,6 +890,10 @@ public class VitamConfiguration {
 
         if (null != parameters.getTextMaxLength()) {
             setTextMaxLength(parameters.getTextMaxLength());
+        }
+
+        if(null != parameters.getClassificationLevel()){
+            setClassificationLevel(parameters.getClassificationLevel());
         }
     }
 
@@ -2061,6 +2071,8 @@ public class VitamConfiguration {
         VitamConfiguration.textMaxLength = textMaxLength;
     }
 
+
+
     /**
      * Get defaultOffset
      *
@@ -2151,5 +2163,13 @@ public class VitamConfiguration {
         int reclassificationMaxGuildListSizeInLogbookOperation) {
         VitamConfiguration.reclassificationMaxGuildListSizeInLogbookOperation =
             reclassificationMaxGuildListSizeInLogbookOperation;
+    }
+
+    public static ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public static void setClassificationLevel(ClassificationLevel classificationLevel) {
+        VitamConfiguration.classificationLevel = classificationLevel;
     }
 }
