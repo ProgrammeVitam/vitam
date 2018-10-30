@@ -311,7 +311,11 @@ public abstract class BuilderToken {
          * Selects a node by its exact path (succession of ids) <br>
          * $path : [ id1, id2, ... ]
          */
-        PATH("path");
+        PATH("path"),
+        /**
+         * Allows nested search on _qualifiers.versions
+         */
+        SUBOBJECT("subobject");
 
 
         private final String exactToken;

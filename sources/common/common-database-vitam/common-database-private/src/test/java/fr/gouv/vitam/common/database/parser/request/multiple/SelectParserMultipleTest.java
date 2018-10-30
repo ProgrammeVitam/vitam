@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -92,6 +94,8 @@ public class SelectParserMultipleTest {
     private static JsonNode exampleBothEsMd;
 
     private static JsonNode exampleMd;
+
+    private static JsonNode nestedSearchQuery;
 
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
@@ -149,6 +153,42 @@ public class SelectParserMultipleTest {
             "    }" +
             "}" +
             "] }");
+
+        nestedSearchQuery = JsonHandler.getFromString(
+                "{\n" +
+                        "  \"$query\": [\n" +
+                        "    {\n" +
+                        "      \"$and\": [\n" +
+                        "        {\n" +
+                        "          \"$match\": {\n" +
+                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                        "          }\n" +
+                        "        },\n" +
+                        "        {\n" +
+                        "          \"$subobject\": {\n" +
+                        "            \"#qualifiers.versions\": {\n" +
+                        "              \"$and\": [\n" +
+                        "                {\n" +
+                        "                  \"$eq\": {\n" +
+                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                        "                  }\n" +
+                        "                },\n" +
+                        "                {\n" +
+                        "                  \"$lte\": {\n" +
+                        "                    \"version.size\": 20000\n" +
+                        "                  }\n" +
+                        "                }\n" +
+                        "              ]\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  ],\n" +
+                        "  \"$projection\": {},\n" +
+                        "  \"$filters\": {}\n" +
+                        "}"
+        );
     }
 
     private static String createLongString(int size) {
@@ -174,6 +214,18 @@ public class SelectParserMultipleTest {
             // nothing
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
+        }
+    }
+
+    @Test
+    public void testParseNestedQuery() {
+        final SelectParserMultiple request1 = new SelectParserMultiple();
+        try {
+            request1.parse(nestedSearchQuery.deepCopy());
+            assertNotNull(request1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
         }
     }
 

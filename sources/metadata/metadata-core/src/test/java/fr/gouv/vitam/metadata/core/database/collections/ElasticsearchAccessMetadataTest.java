@@ -172,7 +172,7 @@ public class ElasticsearchAccessMetadataTest {
             sortBuilder.order(SortOrder.DESC);
             sorts.add(sortBuilder);
             BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
-                .must(QueryToElasticsearch.getCommand(elasticQuery));
+                .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter()));
             // When
             Result result = elasticsearchAccessMetadata
                 .search(MetadataCollections.UNIT, TENANT_ID, VitamCollection.getTypeunique(), queryBuilder, sorts, 0,

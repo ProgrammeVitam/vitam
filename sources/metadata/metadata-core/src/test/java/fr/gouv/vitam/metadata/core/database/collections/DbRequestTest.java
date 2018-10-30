@@ -1928,4 +1928,65 @@ public class DbRequestTest {
 
         return insertQuery.getFinalInsert();
     }
+
+
+    /**
+     * Test method for execRequest
+     * .
+     *
+     * @throws InvalidParseOperationException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataExecutionException
+     */
+    @Test(expected = MetaDataExecutionException.class)
+    @RunWithCustomExecutor
+    public void testExecRequestThroughAllCommandsForNested()
+            throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        // input data
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+        try {
+            final DbRequest dbRequest = new DbRequest();
+            RequestParserMultiple requestParser = null;
+            // INSERT
+            final JsonNode insertRequest = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("insert_request_with_nested.json"));
+            // Now considering insert request and parsing it as in Data Server (POST command)
+            /*InsertParserMultiple insertParserMultiple =
+                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("InsertParser: {}", insertParserMultiple);
+            // Now execute the request
+            dbRequest.execInsertUnitRequest(insertParserMultiple);*/
+
+            // SELECT
+            JsonNode selectRequest = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("select_request_with_nested.json"));;
+            // Now considering select request and parsing it as in Data Server (GET command)
+            requestParser =
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("SelectParser: {}", requestParser);
+            // Now execute the request
+            executeRequest(dbRequest, requestParser);
+
+            // UPDATE
+            final JsonNode updateRequest = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("update_request_with_nested.json"));
+            // Now considering update request and parsing it as in Data Server (PATCH command)
+            requestParser =
+                    RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("UpdateParser: {}", requestParser);
+            // Now execute the request
+            executeRequest(dbRequest, requestParser);
+
+            // DELETE
+            final JsonNode deleteRequest = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("delete_request_with_nested.json"));
+            // Now considering delete request and parsing it as in Data Server (DELETE command)
+            requestParser =
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("DeleteParser: " + requestParser.toString());
+            // Now execute the request
+            executeRequest(dbRequest, requestParser);
+        } finally {
+            // clean
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+        }
+    }
 }

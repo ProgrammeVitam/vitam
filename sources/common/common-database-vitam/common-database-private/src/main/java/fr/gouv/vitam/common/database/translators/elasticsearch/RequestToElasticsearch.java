@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.translators.elasticsearch;
 import java.util.List;
 import java.util.Set;
 
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import org.elasticsearch.index.query.QueryBuilder;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -97,14 +98,14 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      * @throws IllegalAccessError if nth exceed the size of list
      * @throws InvalidParseOperationException if could not get command by query
      */
-    public QueryBuilder getNthQueries(final int nth) throws IllegalAccessError, InvalidParseOperationException {
+    public QueryBuilder getNthQueries(final int nth, VarNameAdapter adapter) throws IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
             throw new IllegalAccessError(
                 "This Query has not enough item to get the position: " + nth);
         }
         final Query query = list.get(nth);
-        return QueryToElasticsearch.getCommand(query);
+        return QueryToElasticsearch.getCommand(query, adapter);
     }
 }
 

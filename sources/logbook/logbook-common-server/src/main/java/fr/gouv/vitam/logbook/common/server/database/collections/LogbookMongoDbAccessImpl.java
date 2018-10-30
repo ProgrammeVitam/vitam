@@ -1519,7 +1519,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore());
         SearchResponse elasticSearchResponse =
-            collection.getEsClient().search(collection, tenantId, requestToEs.getNthQueries(0), null,
+            collection.getEsClient().search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter()), null,
                 sorts, requestToEs.getFinalOffset(),
                 requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {

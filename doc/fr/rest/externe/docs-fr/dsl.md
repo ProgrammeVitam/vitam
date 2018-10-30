@@ -345,6 +345,7 @@ Les commandes de la Query peuvent être :
 
 | Catégorie          | Opérateurs                                              | Arguments                                  | Utilisable sur champs analysés ? | Utilisable sur champs non analysés ? | Commentaire                                                                   |
 |--------------------|---------------------------------------------------------|--------------------------------------------|----------------------------------|--------------------------------------|-------------------------------------------------------------------------------|
+| Objet           | $subobject                                         | Opérateurs                                 | NA                               | NA                                   | Sous-requête de recherche "nested" sur les objets techniques                                              |
 | Booléens           | $and, $or, $not                                         | Opérateurs                                 | NA                               | NA                                   | Combinaison logique d'opérateurs                                              |
 | Comparaison        | $eq, $ne, $lt, $lte, $gt, $gte                          | Champ et valeur                            | Non                              | **Oui**                              | Comparaison de la valeur d'un champ et la valeur passée en argument           |
 |                    | $range                                                  | Champ, $lt, $lte, $gt, $gte et valeurs     | Non                              | **Oui**                              | Comparaison de la valeur d'un champ avec l'intervalle passé en argument       |
@@ -355,6 +356,45 @@ Les commandes de la Query peuvent être :
 |                    | $match, $match_all, $match_phrase, $match_phrase_prefix | Champ, phrase                              | **Oui**                          | Non                                  | Recherche plein texte soit sur des mots, expressions, ou débuts d'expressions |
 |                    | $search                                                 | Champ, string avec opérateur du $search    | **Oui**                          | Non                                  | Recherche du type moteur de recherche                                         |
 | Parcours de graphe | $depth                                                  | entier positif ou nul                      | NA                               | NA                                   | Recherche jusqu'à un niveau de profondeur                                     |
+### Opérateur $subobject : Sous-requête de recherche "nested" sur les objets techniques
+
+**Format :**
+- `{ $subobject : { expression1, expression2, ... } }` où chaque expression est une commande utilisant l'un des autres opérateurs supportés par VITAM
+
+**Exemple :**
+
+```json
+{
+  "$query": [
+    {
+      "$subobject": {
+        "#qualifiers.versions": {
+          "$and": [
+            {
+              "$eq": {
+                "#qualifiers.versions.FormatIdentification.MimeType": "text/plain"
+              }
+            },
+            {
+              "$lte": {
+                "#qualifiers.versions.Size": 20000
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "$filter": {},
+  "$projection": {}
+}
+```
+Sur la collection ObjectGroup, cette requête demande tous les objets de type "text/plain" et dont la taille est inférieure à 20000 octets
+
+**Notes :**
+- Cet opérateur n'est utilisable que sur des documents ElasticSearch indexés en tant que "Nested"
+- Actuellement seuls les documents #qualifiers.versions de la collection ObjectGroup sont indexés en "Nested"
+- L'indexation "Nested" nous permet de rechercher avec précision dans des listes/tableaux d'objets. Sans le "Nested", l'exemple ci-dessus retournerait tous les groupes d'objets qui ont à la fois au moins un objet de type "text/plain" et au moins un objet de taille inférieure à 20000 octets même si cela n'est pas le même objet
 
 ### Opérateurs $and, $or, $not : combinaison logique d'opérateurs
 

@@ -68,7 +68,12 @@ public class KeyChoiceFormat extends Format {
             String name = entry.getKey();
             Format subProperty = entry.getValue();
 
-            JsonNode value = node.get(name);
+            JsonNode value = null;
+            if(name.equals("$subobject") && node.get(name) != null && node.get(name).fields().hasNext()) {
+                value = node.get(name).fields().next().getValue();
+            } else {
+                value = node.get(name);
+            }
             if (value != null) {
                 fieldReport.accept(name);
                 validator.pushContext(name);

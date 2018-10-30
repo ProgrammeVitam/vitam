@@ -85,6 +85,7 @@ public class ElasticsearchMappingParseTest {
                         .isTrue();
                     break;
                 case "object":
+                case "nested":
                     assertThat(ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName + ".Any")).isFalse();
                     break;
                 default:
@@ -159,6 +160,9 @@ public class ElasticsearchMappingParseTest {
                 break;
             case "object":
                 typeStr = "object";
+                break;
+            case "nested":
+                typeStr = "nested";
                 break;
             default:
                 throw new IllegalStateException("Unexpected type " + type.asText());

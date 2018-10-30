@@ -234,6 +234,18 @@ public class ValidatorTest {
     }
 
     @Test
+    public void should_retrieve_errors_when_send_subobject_request_with_invalid_field() throws Exception {
+        JsonNode test1Json =
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_subobject_invalid_request.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+                .hasMessageContaining(
+                        "Validating $roots: guid[] ~ MANDATORY ~ hint: Tableau d'identifiants d'AU racines ~ found json: {\\\"$query\\\":[{\\\"$and\\\":[{\\\"$match\\\":{\\\"FileInfo.FileName\\\":\\\"Montparnasse.txt\\\"}},{\\\"$subobject\\\":{}}]}],\\\"$projection\\\":{},\\\"$filter\\\":{}} ~ path: [$roots]\\nValidating NESTED_QUERY")
+                .hasMessageContaining(
+                        "ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $and, $subobject]");
+    }
+
+    @Test
     public void should_retrieve_errors_when_send_wildcard_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_wildcard_invalid_request.json"));

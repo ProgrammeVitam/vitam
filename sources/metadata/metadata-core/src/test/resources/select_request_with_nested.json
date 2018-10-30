@@ -1,0 +1,33 @@
+{
+  "$query": [
+    {
+      "$and": [
+        {
+          "$match": {
+            "FileInfo.FileName": "Montparnasse.txt"
+          }
+        },
+        {
+          "$subobject": {
+            "#qualifiers.versions": {
+              "$and": [
+                {
+                  "$eq": {
+                    "#qualifiers.versions.FormatIdentification.MimeType": "text/plain"
+                  }
+                },
+                {
+                  "$lte": {
+                    "#qualifiers.versions.Size": 20000
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "$projection": {},
+  "$filter": {}
+}
