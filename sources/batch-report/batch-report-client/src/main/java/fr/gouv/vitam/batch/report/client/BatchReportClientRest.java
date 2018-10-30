@@ -51,6 +51,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String APPEND = "append";
     private static final String CLEANUP = "cleanup";
     private static final String EXPORT_ELIMINATION_ACTION_UNIT = "elimination_action_unit/unit_export/";
+    private static final String EXPORT_PRESERVATION_REPORT = "/preservation/export/";
     private static final String EXPORT_ELIMINATION_ACTION_OBJECTGROUP =
         "elimination_action_objectgroup/objectgroup_export/";
     private static final String EXPORT_ELIMINATION_ACTION_UNIT_DISTINCT_OBJECTGROUPS =
@@ -86,6 +87,17 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
             reportExportRequest);
 
         return httpPost(EXPORT_ELIMINATION_ACTION_OBJECTGROUP + processId, reportExportRequest);
+    }
+
+    @Override
+    public RequestResponse<JsonNode> generatePreservationReport(String processId,
+        ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException {
+
+        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
+            reportExportRequest);
+
+        return httpPost(EXPORT_PRESERVATION_REPORT + processId, reportExportRequest);
     }
 
     @Override

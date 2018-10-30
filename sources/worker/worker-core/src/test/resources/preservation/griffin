@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+echo '{"requestId":"REQUEST_ID","id":"batch-reference","outputs":{"TEST_ID":[{"input":{"name":"TEST_ID","formatId":"fmt/41"},"status":"OK","analyseResult":"NOT_VALID","action":"ANALYSE"}]}}' > "$1/result.json"

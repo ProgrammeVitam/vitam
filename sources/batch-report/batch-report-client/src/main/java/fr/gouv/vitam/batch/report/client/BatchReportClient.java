@@ -96,6 +96,17 @@ public interface BatchReportClient extends BasicClient {
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
+     * Generate preservation report
+     *
+     * @param processId processId
+     * @param reportExportRequest reportExportRequest
+     * @return report in workspace
+     * @throws VitamClientInternalException
+     */
+    RequestResponse<JsonNode> generatePreservationReport(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException;
+
+    /**
      * Clean all entries with the given process Id tenant and reportType
      *
      * @param processId the given process Id

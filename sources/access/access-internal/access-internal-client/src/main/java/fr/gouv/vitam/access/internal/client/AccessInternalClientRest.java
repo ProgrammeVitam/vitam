@@ -55,8 +55,14 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 /**
  * Access client <br>
@@ -108,8 +114,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         LOGGER.debug("DEBUG: start selectUnits {}", selectQuery);
         try {
-            response = performRequest(HttpMethod.GET, UNITS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, UNITS, null, selectQuery, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -141,7 +147,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, UNITS + idUnit, null, selectQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
@@ -173,7 +179,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, null, updateQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -208,7 +214,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, UNITS, null, updateQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
@@ -250,7 +256,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, UNITS_RULES, null, massUpdateUnitRuleRequest,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
@@ -285,7 +291,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             response = performRequest(HttpMethod.GET, OBJECTS + objectId, headers, selectObjectQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
@@ -324,7 +330,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
             response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId + "/" + unitId, headers, null,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:
@@ -363,7 +369,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new LogbookClientServerException(INTERNAL_SERVER_ERROR);
@@ -393,7 +399,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
-                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                select, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -422,7 +428,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -451,7 +457,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -481,7 +487,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, null,
-                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -508,8 +514,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -548,7 +554,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Status status = Status.BAD_REQUEST;
         try {
             response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", null, null,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                null, APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:
@@ -585,7 +591,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         try {
             return performRequest(HttpMethod.GET, UNITS + idUnit, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -602,7 +608,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             return performRequest(HttpMethod.GET, OBJECTS + objectId, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -616,7 +622,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         try {
             return performRequest(HttpMethod.GET, OBJECTS + unitId, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
+                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -630,7 +636,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, DIPEXPORT, null, dslRequest,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -647,7 +653,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, DIPEXPORT_BY_USAGE_FILTER, null, dipExportRequest,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -662,7 +668,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         try {
             return performRequest(HttpMethod.GET, DIPEXPORT + id + "/dip", null,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -679,7 +685,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             response =
                 performRequest(HttpMethod.POST, "/reclassification", null, reclassificationRequest,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -698,8 +704,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         LOGGER.debug("DEBUG: start selectObjects {}", selectQuery);
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS, null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, OBJECTS, null, selectQuery, APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -732,8 +738,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         LOGGER.debug("DEBUG: start selectUnitsWithInheritedRules {}", selectQuery);
         try {
             response = performRequest(HttpMethod.GET, UNITS_WITH_INHERITED_RULES, null, selectQuery,
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE,
+                APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);// access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -764,7 +770,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, DataCategory.STORAGEACCESSLOG.getCollectionName(), null, params,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:
@@ -802,7 +808,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "/elimination/analysis", null, eliminationRequestBody,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -820,10 +826,30 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "/elimination/action", null, eliminationRequestBody,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> startPreservation(InputStream distributionFile)
+        throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter("Missing distribution file", distributionFile);
+
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/preservation", headers, distributionFile, APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

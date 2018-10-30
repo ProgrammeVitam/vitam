@@ -26,10 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.List;
 
 /**
  * ReportBody
@@ -47,6 +47,12 @@ public class ReportBody {
 
     public ReportBody() {
         // Empty constructor for deserialization
+    }
+
+    public ReportBody(String processId, ReportType reportType, List<JsonNode> entries) {
+        this.processId = processId;
+        this.reportType = reportType;
+        this.entries = entries;
     }
 
     public String getProcessId() {

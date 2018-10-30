@@ -87,7 +87,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCo
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_UNIT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECTGROUP;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -384,7 +383,7 @@ public class EliminationIT extends VitamRuleRunner {
         }
         throw new VitamException("Not found");
     }
-    
+
     private void checkFileInStorage(DataCategory dataCategory, String filename, boolean shouldExist)
         throws StorageNotFoundClientException, StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {

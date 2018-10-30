@@ -1,0 +1,64 @@
+{
+  "id": "PreservationWorkflow",
+  "name": "preservation workflow",
+  "identifier": "PRESERVATION",
+  "typeProc": "PRESERVATION",
+  "comment": "Default preservation action workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PRESERVATION_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PRESERVATION_PREPARATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PRESERVATION_ACTION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "distributionFile.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+
+            "actionKey": "PRESERVATION_ACTION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PRESERVATION_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PRESERVATION_FINALIZATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    }
+  ]
+}

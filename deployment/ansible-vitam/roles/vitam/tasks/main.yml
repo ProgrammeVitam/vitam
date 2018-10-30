@@ -69,6 +69,28 @@
   notify:
     - restart service
 
+- name: Check that the directories exist (must be removed when the RPM plugin will be patched)
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/tmp/griffins"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  when: vitam_struct.vitam_component == 'worker'
+  notify:
+    - restart service
+
+- name: Check that the directories exist (must be removed when the RPM plugin will be patched)
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/bin/worker/griffins"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  when: vitam_struct.vitam_component == 'worker'
+  notify:
+    - restart service
+
 - name: Ensure that the sysconfig sub-directory exists
   file:
     path: "{{ vitam_folder_conf }}/sysconfig"

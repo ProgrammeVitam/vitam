@@ -1,0 +1,1 @@
+{"id": "TEST_ID", "distribGroup":1, "params": {"formatId": "fmt/43", "griffinId": "griffinId", "actions":[{"type":"ANALYSE", "values":null}], "unitId":"Bobi", "objectId": "bobiObject", "debug":true, "timeout":45 } }

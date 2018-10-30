@@ -28,13 +28,6 @@
 package fr.gouv.vitam.common.server.benchmark;
 
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -42,6 +35,12 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 /**
  * Benchmark client
@@ -125,8 +124,7 @@ public class BenchmarkClientRest extends DefaultClient {
      * Make protected method available
      */
     @Override
-    public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept) throws VitamClientInternalException {
+    public Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers, MediaType accept) throws VitamClientInternalException {
         return super.performRequest(httpMethod, path, headers, accept);
     }
 

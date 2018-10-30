@@ -31,6 +31,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.resource.BatchReportResource;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -82,11 +83,13 @@ public class BusinessApplication extends ConfigurationApplication {
                 new EliminationActionUnitRepository(mongoDbAccess);
             EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository =
                 new EliminationActionObjectGroupRepository(mongoDbAccess);
+            PreservationReportRepository preservationReportRepository =
+                new PreservationReportRepository(mongoDbAccess);
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(eliminationActionUnitRepository, eliminationActionObjectGroupRepository,
-                    workspaceClientFactory);
+                    workspaceClientFactory, preservationReportRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());

@@ -30,13 +30,14 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 
 public class FileSystemTest extends ContentAddressableStorageTestAbstract{
-
+    /*                                         ⬆
+     *                                  Tests are there
+     */
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -47,6 +48,5 @@ public class FileSystemTest extends ContentAddressableStorageTestAbstract{
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new FileSystem(configuration);
     }
-
 
 }

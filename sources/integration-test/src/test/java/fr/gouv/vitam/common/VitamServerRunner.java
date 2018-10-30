@@ -696,23 +696,8 @@ public class VitamServerRunner extends ExternalResource {
     @Override
     protected void after() {
         try {
-        /*
-            stopAccessInternalServer(true);
-            stopIngestInternalServer(true);
-            stopProcessManagementServer(true);
-            stopWorkerServer();
-            stopLogbookServer(true);
-            stopMetadataServer(true);
-            stopAdminManagementServer(true);
-            stopOfferServer(true);
-            stopStorageServer(true);
-            stopWorkspaceServer();
-            */
             cleanOffers();
-
-            // waitServerStartOrStop(false);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
             LOGGER.warn(
