@@ -38,10 +38,10 @@ Par défaut, les formats sont affichés sous le formulaire de recherche.
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
--Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam
+- Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam
 La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
--PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
+- PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
 
 .. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé
 
@@ -507,8 +507,7 @@ L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant su
 Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 - Que le contrat a bien été importé
-- Un échec de l'import du fichier, pouvant être causé par :
-	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
+- Un échec de l'import du fichier, pouvant être causé par le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
