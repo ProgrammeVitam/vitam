@@ -146,20 +146,6 @@ public class DriverManager {
         persistAddOffers(offersIds, driver.getClass().getName());
     }
 
-
-    /**
-     *
-     * @param driverName
-     * @return the driver from the factory
-     * @throws IllegalArgumentException if the driver does not exist
-     */
-    public static Driver getDriver(String driverName) {
-        if (drivers.containsKey(driverName)) {
-            return drivers.get(driverName);
-        }
-        throw new IllegalArgumentException("Driver does not exist");
-    }
-
     /**
      * Add a driver from the DriverManager
      *
@@ -174,24 +160,6 @@ public class DriverManager {
         }
         return drivers.put(driver.getClass().getName(), driver);
     }
-
-    /**
-     * Remove a Driver from the DriverManager and shutdown all Offers Factory attached to it
-     *
-     * @param driverName
-     * @return this
-     */
-    public static Driver removeDriver(String driverName) {
-        if (!drivers.containsKey(driverName)) {
-            return null;
-        }
-        final Driver driver = drivers.remove(driverName);
-
-        driver.close();
-
-        return driver;
-    }
-
 
     private static URLClassLoader getUrlClassLoader() {
         File conf = null;
