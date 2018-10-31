@@ -32,8 +32,6 @@ import java.io.InputStream;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -182,19 +180,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      */
     ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * Retrieves information about an object at location containerName/objectName
-     *
-     * @param containerName container where the object is.
-     * @param objectName fully qualified name relative to the container.
-     * @return the object informations as a JsonNode object
-     *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     */
-    JsonNode getObjectInformation(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Check object

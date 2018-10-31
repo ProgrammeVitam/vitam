@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
@@ -313,32 +310,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         final ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(usableSpace);
         return containerInformation;
-    }
-
-    // FIXME : Copié/collé du FS v1
-    @Override
-    public JsonNode getObjectInformation(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        ObjectNode jsonNodeObjectInformation;
-        Long size;
-        File file = fsHelper.getPathObject(containerName, objectName).toFile();
-        if (!file.exists()) {
-            throw new ContentAddressableStorageNotFoundException(
-                "object + " + objectName + " of container " + containerName + " not found");
-        }
-        try {
-            size = Files.size(Paths.get(file.getPath()));
-        } catch (IOException e) {
-            throw new ContentAddressableStorageServerException(
-                "I/O Error on determining size of object " + objectName + " of container " + containerName, e);
-        }
-        jsonNodeObjectInformation = JsonHandler.createObjectNode();
-        jsonNodeObjectInformation.put("size", size);
-        jsonNodeObjectInformation.put("object_name", objectName);
-        jsonNodeObjectInformation.put("container_name", containerName);
-        return jsonNodeObjectInformation;
     }
 
     // FIXME : <Copié/collé du FS v1

@@ -37,14 +37,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
@@ -79,7 +76,6 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Swift.class);
 
-    private static final String X_CONTAINER_OBJECT_COUNT = "X-Container-Object-Count";
     private static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
     private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
     private static final String X_CONTAINER_BYTES_USED = "X-Container-Bytes-Used";
@@ -265,26 +261,6 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
         return containerInformation;
-    }
-
-    @Override
-    public JsonNode getObjectInformation(String containerName, String objectName) throws
-        ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
-        // there is no object size in object metadata (weird)... So get the object directly
-        // TODO: is there another way ?
-        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
-        if (object == null) {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            throw new ContentAddressableStorageNotFoundException(
-                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-        }
-        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
-        jsonNodeObjectInformation.put("size", object.getSizeInBytes());
-        jsonNodeObjectInformation.put("object_name", objectName);
-        jsonNodeObjectInformation.put("container_name", containerName);
-        return jsonNodeObjectInformation;
     }
 
     @Override
