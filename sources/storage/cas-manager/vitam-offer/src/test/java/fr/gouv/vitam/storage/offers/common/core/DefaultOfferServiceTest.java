@@ -313,7 +313,6 @@ public class DefaultOfferServiceTest {
         final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("usableSpace"));
-        assertNotNull(jsonNode.get("usedSpace"));
     }
 
     @Test
@@ -323,7 +322,6 @@ public class DefaultOfferServiceTest {
         final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("usableSpace"));
-        assertNotNull(jsonNode.get("usedSpace"));
     }
 
     @Test

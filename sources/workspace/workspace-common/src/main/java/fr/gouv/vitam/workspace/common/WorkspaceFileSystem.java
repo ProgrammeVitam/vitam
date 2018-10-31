@@ -426,11 +426,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
         Path containerPath = getContainerPath(containerName);
         try {
-            final long usedSpace = Files.size(containerPath);
             final long usableSpace = Files.getFileStore(containerPath).getUsableSpace();
             final ContainerInformation containerInformation = new ContainerInformation();
             containerInformation.setUsableSpace(usableSpace);
-            containerInformation.setUsedSpace(usedSpace);
             return containerInformation;
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);

@@ -35,8 +35,6 @@ public class StorageCapacityResult extends StorageResult {
 
     private long usableSpace;
 
-    private long usedSpace;
-
     /**
      * Empty constructor, needed for response parsing
      */
@@ -51,14 +49,11 @@ public class StorageCapacityResult extends StorageResult {
      *            The request tenantId
      * @param usableSpace
      *            The usable space in offer
-     * @param usedSpace
-     *            The used space in offer
      */
-    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
+    public StorageCapacityResult(Integer tenantId, long usableSpace) {
         // TODO : replace null with type (since a container is type_tenant)
         super(tenantId, null);
         this.usableSpace = usableSpace;
-        this.usedSpace = usedSpace;
     }
 
     /**
@@ -66,12 +61,5 @@ public class StorageCapacityResult extends StorageResult {
      */
     public long getUsableSpace() {
         return usableSpace;
-    }
-
-    /**
-     * @return The offer used space
-     */
-    public long getUsedSpace() {
-        return usedSpace;
     }
 }

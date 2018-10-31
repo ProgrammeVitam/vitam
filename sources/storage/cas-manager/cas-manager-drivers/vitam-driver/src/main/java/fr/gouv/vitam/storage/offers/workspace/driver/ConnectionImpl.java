@@ -55,7 +55,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableExc
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -65,7 +64,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -76,8 +74,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
  * Workspace Connection Implementation
  */
 public class ConnectionImpl extends AbstractConnection {
-
-    private static final String X_USED_SPACE = "X-Used-Space";
 
     private static final String X_USABLE_SPACE = "X-Usable-Space";
     private static final long DEFAULT_MAX_AVAILABILITY = 100000000000L;
@@ -137,15 +133,7 @@ public class ConnectionImpl extends AbstractConnection {
                             LOGGER.info("Not a number", e);
                         }
                     }
-                    long used = 0;
-                    if (response.getHeaderString(X_USED_SPACE) != null) {
-                        try {
-                            used = Long.parseLong(response.getHeaderString(X_USED_SPACE));
-                        } catch (NumberFormatException e) {
-                            LOGGER.info("Not a number", e);
-                        }
-                    }
-                    return new StorageCapacityResult(tenantId, available, used);
+                    return new StorageCapacityResult(tenantId, available);
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
                         tenantId + "_" + DataCategory.OBJECT));

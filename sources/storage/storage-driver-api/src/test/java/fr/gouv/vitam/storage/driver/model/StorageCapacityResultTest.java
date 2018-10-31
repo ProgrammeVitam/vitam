@@ -41,7 +41,7 @@ public class StorageCapacityResultTest {
 
     @BeforeClass
     public static void init() {
-        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
+        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000);
     }
 
     @Test
@@ -57,11 +57,6 @@ public class StorageCapacityResultTest {
     @Test
     public void testGetUsableSpace() {
         assertEquals(1000, storageCapacityResult.getUsableSpace());
-    }
-
-    @Test
-    public void testGetUsedSpace() {
-        assertEquals(100, storageCapacityResult.getUsedSpace());
     }
 
 }

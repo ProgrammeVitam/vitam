@@ -49,7 +49,6 @@ import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -84,7 +83,6 @@ public class FakeDriverImplTest {
         assertNotNull(connect);
         StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
-        assertEquals(storageCapacityResult.getUsedSpace(), 99999);
 
         assertThatCode(() -> {
             connect.getStorageCapacity(-1);

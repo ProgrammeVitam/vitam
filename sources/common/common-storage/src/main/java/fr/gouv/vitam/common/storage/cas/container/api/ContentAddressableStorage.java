@@ -176,7 +176,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * Get container information like capacity
      *
      * @param containerName the container name
-     * @return container information like usableSpace and usedSpace
+     * @return container information like usableSpace
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */

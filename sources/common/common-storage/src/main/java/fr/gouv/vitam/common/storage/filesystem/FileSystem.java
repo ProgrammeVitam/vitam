@@ -78,24 +78,9 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
         ParametersChecker.checkParameter("Container name may not be null", containerName);
         final File baseDirFile = getBaseDir(containerName);
         final long usableSpace = baseDirFile.getUsableSpace();
-        final long usedSpace = getFolderUsedSize(baseDirFile);
         final ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(usableSpace);
-        containerInformation.setUsedSpace(usedSpace);
         return containerInformation;
-    }
-
-    // TODO： manage the cycle in filesystem (ex: symlink)
-    private long getFolderUsedSize(File directory) {
-        long usedSpace = 0;
-        for (final File file : directory.listFiles()) {
-            if (file.isFile()) {
-                usedSpace += file.length();
-            } else if (file.isDirectory()) {
-                usedSpace += getFolderUsedSize(file);
-            }
-        }
-        return usedSpace;
     }
 
     private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
@@ -176,7 +161,6 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                 result.setObjectName(containerName);
                 // TODO calculer l'empreint de répertoire
                 result.setDigest(null);
-                result.setFileSize(getFolderUsedSize(file));
             }
             // TODO store vitam metadatas
             if (containerName != null) {
@@ -185,15 +169,6 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             }
             result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             closeContext();
         }

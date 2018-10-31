@@ -261,7 +261,6 @@ public class Swift extends ContentAddressableStorageAbstract {
         Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         if (metadata.size() > 2) {
             containerInformation.setUsableSpace(-1);
-            containerInformation.setUsedSpace(Long.valueOf(metadata.get(X_CONTAINER_BYTES_USED)));
         } else {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }

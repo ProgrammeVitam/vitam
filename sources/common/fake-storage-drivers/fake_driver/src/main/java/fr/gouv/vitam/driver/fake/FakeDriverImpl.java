@@ -211,7 +211,7 @@ public class FakeDriverImpl extends AbstractDriver {
                     "ExceptionTest");
             }
 
-            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
+            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000);
             return result;
         }
 

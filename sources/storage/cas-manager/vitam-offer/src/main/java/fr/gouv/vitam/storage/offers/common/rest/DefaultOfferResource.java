@@ -135,7 +135,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             ObjectNode result = (ObjectNode) defaultOfferService.getCapacity(containerName);
             Response.ResponseBuilder response = Response.status(Status.OK);
             response.header("X-Usable-Space", result.get("usableSpace"));
-            response.header("X-Used-Space", result.get("usedSpace"));
             response.header(GlobalDataRest.X_TENANT_ID, xTenantId);
             return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -442,7 +441,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * Delete an Object
      *
      * @param xTenantId the tenantId
-     * @param xDigest the digest of the object to delete
      * @param xDigestAlgorithm the digest algorithm
      * @param type Object type to delete
      * @param idObject the id of the object to be tested

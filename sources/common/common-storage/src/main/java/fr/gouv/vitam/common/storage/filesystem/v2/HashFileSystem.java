@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.container.HashContainerMetadata;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -75,9 +74,7 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * FileSystem implements a Content Addressable Storage that stores objects on the file system with a hierarchical vision
@@ -87,10 +84,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystem.class);
     private final String storagePath;
     private HashFileSystemHelper fsHelper;
-    // It is not needed to have a concurrent structure (eg: ConcurrentHashMap) as long as the put is only in the
-    // unmarshall (which is static synchronized)
-    private static Map<String, HashContainerMetadata> containerMetadata = new HashMap<>();
-
 
     /**
      * @param configuration
@@ -106,16 +99,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         } else if (!f.isDirectory()) {
             throw new IllegalArgumentException("The storage path is not a directory");
         }
-        HashFileSystem.unmarshall(fsHelper);
-    }
-
-    // It must be synchronized to prevent simultaneous put on the HashMap
-    private static synchronized void unmarshall(HashFileSystemHelper fsHelper) {
-        if (containerMetadata.size() == 0) { // Prevent to redo the serialization more than once
-            for (String containerName : fsHelper.getListContainers()) {
-                containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper, true));
-            }
-        }
     }
 
     @Override
@@ -129,7 +112,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                     ErrorMessage.CONTAINER_ALREADY_EXIST + containerName);
             }
             fsHelper.createContainer(containerName);
-            containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper));
         }
     }
 
@@ -154,23 +136,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         Path parentPath = filePath.getParent();
         // Create the chain of directories
         fsHelper.createDirectories(parentPath);
-        long beforeSize = 0L;
-        long beforeObj = 0L;
-        // Update case
-        if (filePath.toFile().exists()) {
-            try {
-                beforeObj = 1L;
-                beforeSize = Files.size(filePath);
-            } catch (IOException e) {
-                LOGGER.warn("Can't calculate the real size of the file " + filePath, e);
-            }
-        }
         try {
             // Create the file from the inputstream
             Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
             String digest = super.computeObjectDigest(containerName, objectName, digestType);
             storeDigest(containerName, objectName, digestType, digest);
-            containerMetadata.get(containerName).updateAndMarshall(1L - beforeObj, Files.size(filePath) - beforeSize);
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
                 e);
@@ -220,7 +190,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         try {
             long size = Files.size(filePath);
             Files.delete(filePath);
-            containerMetadata.get(containerName).updateAndMarshall(-1L, -size);
         } catch (NoSuchFileException e) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName, e);
         } catch (IOException e) {
@@ -343,7 +312,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         final long usableSpace = containerDir.getUsableSpace();
         final ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(usableSpace);
-        containerInformation.setUsedSpace(containerMetadata.get(containerName).getUsedBytes());
         return containerInformation;
     }
 
@@ -381,35 +349,24 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
                 objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        try {
-            File file = fsHelper.getPathObject(containerName, objectId).toFile();
-            BasicFileAttributes basicAttribs = getFileAttributes(file);
-            long size = Files.size(Paths.get(file.getPath()));
-            if (objectId != null) {
-                result.setObjectName(objectId);
-                // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-                result.setDigest(
-                    computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-                result.setFileSize(size);
-            } else {
-                result.setObjectName(containerName);
-                result.setDigest(null);
-            }
-            // TODO see how to retrieve metadatas
-            result.setType(containerName.split("_")[1]);
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-            result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
-            result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+        File file = fsHelper.getPathObject(containerName, objectId).toFile();
+        BasicFileAttributes basicAttribs = getFileAttributes(file);
+        long size = Files.size(Paths.get(file.getPath()));
+        if (objectId != null) {
+            result.setObjectName(objectId);
+            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+            result.setDigest(
+                computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            result.setFileSize(size);
+        } else {
+            result.setObjectName(containerName);
+            result.setDigest(null);
         }
+        // TODO see how to retrieve metadatas
+        result.setType(containerName.split("_")[1]);
+        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
+        result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         return result;
     }
 

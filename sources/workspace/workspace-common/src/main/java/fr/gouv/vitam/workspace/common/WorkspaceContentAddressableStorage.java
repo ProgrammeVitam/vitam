@@ -256,7 +256,7 @@ public interface WorkspaceContentAddressableStorage {
      *
      * @param containerName
      *            the container name
-     * @return container information like usableSpace and usedSpace
+     * @return container information like usableSpace
      * @throws ContentAddressableStorageNotFoundException
      *             thrown when storage is not available or container does not
      *             exist

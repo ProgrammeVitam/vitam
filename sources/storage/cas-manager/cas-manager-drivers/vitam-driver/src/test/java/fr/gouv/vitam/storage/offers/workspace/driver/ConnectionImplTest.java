@@ -245,7 +245,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Path("/objects/{type}/{guid:.+}")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response putObject(@PathParam("id") String objectId, InputStream input) {
+        public Response putObject(@PathParam("guid") String objectId, InputStream input) {
             return expectedResponse.put();
         }
 
@@ -487,7 +487,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
         assertNotNull(result);
         assertEquals(Integer.valueOf(tenant), result.getTenantId());
         assertNotNull(result.getUsableSpace());
-        assertNotNull(result.getUsedSpace());
     }
 
     @Test(expected = StorageDriverException.class)
@@ -759,7 +758,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private JsonNode getStorageCapacityResult() throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         return mapper
-            .readTree("{\"tenantId\":\"1" + "\",\"usableSpace\":\"100000\"," + "\"usedSpace\":\"100000\"}");
+            .readTree("{\"tenantId\":\"1" + "\",\"usableSpace\":\"100000\"}");
     }
 
     private JsonNode getCheckObjectResult() throws IOException {
