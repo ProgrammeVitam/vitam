@@ -172,7 +172,8 @@ public class ReconstructionService {
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-            // get the list of datas to backup.
+            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
+            // get the list of data to backup.
             List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, offset, limit);
 
             for (List<OfferLog> listingBulk : listing) {

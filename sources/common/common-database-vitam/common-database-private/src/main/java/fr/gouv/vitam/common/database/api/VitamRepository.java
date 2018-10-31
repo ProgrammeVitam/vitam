@@ -210,4 +210,11 @@ public interface VitamRepository {
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(Bson query, int mongoBatchSize);
+
+    /**
+     * Deleted all documents by ids
+     * @param ids
+     * @param tenant
+     */
+    void delete(List<String> ids, int tenant) throws DatabaseException;
 }

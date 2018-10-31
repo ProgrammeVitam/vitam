@@ -173,6 +173,7 @@ public class OfferSyncServiceImpl implements OfferSyncService {
                         newOffset = lastOfferLog.get().getSequence();
                     }
 
+                    // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
                     // get the data to synchronize
                     List<List<OfferLog>> listing = restoreOfferBackupService
                         .getListing(STRATEGY_ID, sourceOffer, category, newOffset,
