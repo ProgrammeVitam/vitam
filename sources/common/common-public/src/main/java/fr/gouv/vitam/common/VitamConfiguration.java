@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
@@ -373,6 +374,12 @@ public class VitamConfiguration {
      * List of TENANTS
      */
     private static List<Integer> TENANTS = new ArrayList<>();
+
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private static ClassificationLevel classificationLevel;
+
 
     /*
      * Admin Tenant
@@ -769,6 +776,11 @@ public class VitamConfiguration {
         if (null != parameters.isForceChunkModeInputStream()) {
             setForceChunkModeInputStream(parameters.isForceChunkModeInputStream());
         }
+        if(null != parameters.getClassificationLevel()){
+            setClassificationLevel(parameters.getClassificationLevel());
+        }
+
+
     }
 
     /**
@@ -1327,6 +1339,15 @@ public class VitamConfiguration {
     private static void setNoValidationAfterInactivity(int noValidationAfterInactivity) {
         VitamConfiguration.noValidationAfterInactivity = noValidationAfterInactivity;
     }
+
+    public static ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public static void setClassificationLevel(ClassificationLevel classificationLevel) {
+        VitamConfiguration.classificationLevel = classificationLevel;
+    }
+
 
     /**
      * setter for delayGetClient

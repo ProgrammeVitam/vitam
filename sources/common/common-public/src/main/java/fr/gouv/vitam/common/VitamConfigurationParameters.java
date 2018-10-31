@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import java.util.List;
 
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
 
 /**
@@ -218,6 +219,12 @@ public class VitamConfigurationParameters {
      * Allow client and Server Encoding request or response in GZIP format
      */
     private Boolean forceChunkModeInputStream;
+
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private ClassificationLevel classificationLevel;
+
 
     /**
      * Setter for vitamCleanPeriod;
@@ -965,4 +972,13 @@ public class VitamConfigurationParameters {
     public void setTenants(List<Integer> tenants) {
         this.tenants = tenants;
     }
+
+    public ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public void setClassificationLevel(ClassificationLevel classificationLevel) {
+        this.classificationLevel = classificationLevel;
+    }
+
 }
