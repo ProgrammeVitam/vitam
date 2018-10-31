@@ -106,6 +106,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -136,7 +137,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     private static final String UNITS = "units";
     private static final String RESULTS = "$results";
-
+    private static final String ACCESS_CONTRACT = "AccessContract";
     // DIP
     private DipService unitDipService;
     private DipService objectDipService;
@@ -284,6 +285,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
 
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
+
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
@@ -312,6 +316,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
+    }
+
+    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier
+                .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString());
     }
 
     @Override
