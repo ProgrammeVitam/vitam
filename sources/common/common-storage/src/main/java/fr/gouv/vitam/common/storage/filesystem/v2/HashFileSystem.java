@@ -211,7 +211,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        Path filePath = null;
+        Path filePath;
         try {
             filePath = fsHelper.getPathObject(containerName, objectName);
         } catch (ContentAddressableStorageNotFoundException e) {// NOSONAR : not found => false

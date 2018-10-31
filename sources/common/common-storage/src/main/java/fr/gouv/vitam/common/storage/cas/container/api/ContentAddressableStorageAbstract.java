@@ -77,13 +77,4 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
-
-    @Override
-    public boolean checkObject(String containerName, String objectId, String digest,
-        DigestType digestAlgorithm) throws ContentAddressableStorageException {
-        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
-        return offerDigest.equals(digest);
-    }
-
-
 }

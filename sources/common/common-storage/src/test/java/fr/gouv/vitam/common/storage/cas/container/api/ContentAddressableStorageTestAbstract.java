@@ -253,28 +253,6 @@ public abstract class ContentAddressableStorageTestAbstract {
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
-        storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
-        final Digest digest = new Digest(ALGO);
-        digest.update(getInputStream("file1.pdf"));
-        assertTrue(storage.checkObject(CONTAINER_NAME, OBJECT_NAME, digest.toString(), ALGO));
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotExistingWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
-        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", DigestType.MD5);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckObjectThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
-    }
-
-    @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
         String containerName = TENANT_ID + "_" + TYPE;
         storage.createContainer(containerName);
