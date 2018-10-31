@@ -45,6 +45,10 @@ public class AbstractContractModel {
 
     public static final String TAG_STATUS = "Status";
 
+    public static final String TAG_CREATION_DATE = "CreationDate";
+
+    public static final String TAG_LAST_UPDATE = "LastUpdate";
+
     /**
      * unique id
      */
@@ -75,10 +79,10 @@ public class AbstractContractModel {
     @JsonProperty(TAG_STATUS)
     private ActivationStatus status;
 
-    @JsonProperty("CreationDate")
+    @JsonProperty(TAG_CREATION_DATE)
     private String creationdate;
 
-    @JsonProperty("LastUpdate")
+    @JsonProperty(TAG_LAST_UPDATE)
     private String lastupdate;
 
     @JsonProperty("ActivationDate")
