@@ -168,7 +168,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         Long size, DigestType digestType)
         throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
-        if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
+        if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
