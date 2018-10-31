@@ -185,7 +185,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         // Delete file
         try {
-            long size = Files.size(filePath);
             Files.delete(filePath);
         } catch (NoSuchFileException e) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName, e);
