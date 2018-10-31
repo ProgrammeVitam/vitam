@@ -352,7 +352,7 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_mongo_exception()
+    public void should_return_ko_when_mongo_exception()
         throws DatabaseException, LogbookClientBadRequestException, LogbookClientServerException {
         // Given
         when(offsetRepository.findOffsetBy(10, MetadataCollections.UNIT.getName())).thenReturn(100L);
@@ -390,7 +390,6 @@ public class ReconstructionServiceTest {
         // Then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, MetadataCollections.UNIT.getName(), 100L);
         verify(mongoRepository, times(2)).update(anyList());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
@@ -399,7 +398,7 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_es_exception()
+    public void should_return_ko_when_es_exception()
         throws DatabaseException, LogbookClientBadRequestException, LogbookClientServerException {
         // Given
         when(offsetRepository.findOffsetBy(10, MetadataCollections.UNIT.getName())).thenReturn(100L);
@@ -429,14 +428,13 @@ public class ReconstructionServiceTest {
         // Then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, MetadataCollections.UNIT.getName(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_logbook_exception() throws LogbookClientBadRequestException,
+    public void should_return_ko_when_logbook_exception() throws LogbookClientBadRequestException,
         LogbookClientServerException {
         // Given
         when(offsetRepository.findOffsetBy(10, MetadataCollections.UNIT.getName())).thenReturn(100L);
@@ -468,7 +466,6 @@ public class ReconstructionServiceTest {
         // Then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, MetadataCollections.UNIT.getName(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
@@ -532,16 +529,25 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_loading_data_return_null()
-        throws DatabaseException, LogbookClientBadRequestException, LogbookClientServerException {
+    public void should_return_new_offset_when_loading_missing_data()
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, MetadataCollections.UNIT.getName())).thenReturn(100L);
         when(restoreBackupService.getListing("default", DataCategory.UNIT, 100l,
-            requestItem.getLimit(), Order.ASC)).thenReturn(Arrays.asList(getOfferLog(100), getOfferLog(101)));
+            requestItem.getLimit(), Order.ASC)).thenReturn(
+            Lists.newArrayList(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData("default", MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
         when(restoreBackupService.loadData("default", MetadataCollections.UNIT, "101", 101L)).thenReturn(null);
         doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
+
+        FindIterable findIterable = mock(FindIterable.class);
+        final MongoCursor<String> iterator = mock(MongoCursor.class);
+        final Bson projection = include(getComputedGraphUnitFields());
+
+        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(findIterable.iterator()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(Boolean.FALSE);
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
@@ -551,9 +557,9 @@ public class ReconstructionServiceTest {
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, MetadataCollections.UNIT.getName(), 100L);
+        verify(offsetRepository).createOrUpdateOffset(10, MetadataCollections.UNIT.getName(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
 
     private MetadataBackupModel getUnitMetadataBackupModel(String id, Long offset) {
