@@ -410,10 +410,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 try {
                     inputStreamSize = Long.valueOf(size);
                 } catch (NumberFormatException e) {
-                    //Default size for the inputStream
-                    inputStreamSize = 100_000L;
+                    LOGGER.error("Bad or missing size '" + size + "'");
+                    return Response.status(Response.Status.BAD_REQUEST).build();
                 }
-                DigestType digestType = null;
+                DigestType digestType;
                 String xDigestAlgorithm = headers.getHeaderString(GlobalDataRest.X_DIGEST_ALGORITHM);
                 if (StringUtils.isEmpty(xDigestAlgorithm)) {
                 	digestType = VitamConfiguration.getDefaultDigestType();
