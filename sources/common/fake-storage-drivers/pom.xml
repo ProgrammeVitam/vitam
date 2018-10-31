@@ -13,9 +13,6 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>mockDriver</module>
-		<module>theDriver</module>
-		<module>monDriver</module>
 		<module>fake_driver</module>
 	</modules>
 </project>
