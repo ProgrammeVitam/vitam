@@ -108,6 +108,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
@@ -1711,4 +1712,41 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw e;
         }
     }
+
+
+    public void checkClassificationLevel(JsonNode query)
+        throws IllegalArgumentException, InvalidParseOperationException {
+        UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+        updateParserMultiple.parse(query);
+        List<Action> actions = updateParserMultiple.getRequest().getActions();
+
+        for (Action action : actions) {
+
+            ObjectNode currentAction = action.getCurrentAction();
+            JsonNode setAction = currentAction.get(UPDATEACTION.SET.exactToken());
+
+            handleClassificationValidation(setAction);
+        }
+    }
+
+    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException{
+        if (setAction == null) {
+            return;
+        }
+        JsonNode classificationRule =
+            setAction.get(VitamFieldsHelper.management() + "." + VitamConstants.TAG_RULE_CLASSIFICATION);
+        if (classificationRule == null) {
+            return;
+        }
+        JsonNode classificationLevel = classificationRule.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+        String classificationLevelValue = null;
+        if (classificationLevel != null) {
+            classificationLevelValue = classificationLevel.asText();
+        }
+        if (!ClassificationLevelUtil.checkClassificationLevel(classificationLevelValue)) {
+            throw new IllegalArgumentException("Classification Level is not in the list of allowed values");
+        }
+
+    }
+
 }

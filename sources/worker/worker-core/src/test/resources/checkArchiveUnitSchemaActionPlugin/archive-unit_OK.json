@@ -64,7 +64,7 @@
 						"ClassificationReassessingDate": "2016-05-02",
 						"NeedReassessingAuthorization": false
 					}
-				],"ClassificationLevel":"ClassificationLevel"
+				],"ClassificationLevel":"Secret Défense"
 				,"ClassificationOwner":"ClassificationOwner",
 				"Inheritance": {
 					"PreventRulesId": [
