@@ -691,47 +691,6 @@ public class DefaultOfferResourceTest {
     }
 
     @Test
-    public void countObjectsTestKOBadRequest() {
-        // test
-        given().contentType(MediaType.APPLICATION_JSON).when()
-            .get("/count" + OBJECTS_URI + "/" + DataCategory.UNIT.name()).then()
-            .statusCode(400);
-    }
-
-    @Test
-    public void countObjectsTestKONotFound() {
-        // test
-        given().header(GlobalDataRest.X_TENANT_ID, "0").contentType(MediaType.APPLICATION_JSON).when()
-            .get("/count" + OBJECTS_URI + "/" + DataCategory.UNIT.name()).then().statusCode(404);
-    }
-
-    @Test
-    public void countObjectsTestOK() throws IOException {
-
-        checkOfferDatabaseEmptiness();
-
-        final ObjectInit objectInit = new ObjectInit();
-        objectInit.setType(DataCategory.UNIT);
-        with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
-            .contentType(MediaType.APPLICATION_JSON).content(objectInit).when()
-            .post(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/id1");
-
-        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            assertNotNull(in);
-            with().header(GlobalDataRest.X_TENANT_ID, "1")
-                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
-                .put(OBJECTS_URI + "/" + DataCategory.UNIT.name() + OBJECT_ID_URI, "id1");
-        }
-
-        checkOfferDatabaseExistingDocument("1_unit", "id1");
-
-        // test
-        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).when()
-            .get("/count" + OBJECTS_URI + "/" + DataCategory.UNIT.name()).then().statusCode(200);
-    }
-
-    @Test
     public void getObjectMetadataOK() throws IOException {
 
         final ObjectInit objectInit = new ObjectInit();

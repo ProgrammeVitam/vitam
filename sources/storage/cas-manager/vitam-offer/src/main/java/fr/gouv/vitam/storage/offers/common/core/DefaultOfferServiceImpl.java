@@ -205,15 +205,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        final ObjectNode result = JsonHandler.createObjectNode();
-        final long objectNumber = defaultStorage.countObjects(containerName);
-        result.put("objectNumber", objectNumber);
-        return result;
-    }
-
-    @Override
     public boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
