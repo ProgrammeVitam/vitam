@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -73,7 +74,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException         thrown when a server error occurs
      */
-    Response getObject(String containerName, String objectId)
+    ObjectContent getObject(String containerName, String objectId)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**

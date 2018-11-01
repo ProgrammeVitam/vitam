@@ -46,6 +46,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -288,7 +290,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
-        @Context HttpHeaders headers) throws ContentAddressableStorageNotFoundException {
+        @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             SanityChecker.checkParameter(objectId);
@@ -297,7 +299,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
             final String containerName = buildContainerName(type, xTenantId);
-            return defaultOfferService.getObject(containerName, objectId);
+            ObjectContent objectContent = defaultOfferService.getObject(containerName, objectId);
+            return Response.ok(objectContent.getInputStream())
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), objectContent.getSize())
+                .build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);

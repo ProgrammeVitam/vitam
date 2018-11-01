@@ -27,12 +27,10 @@
 package fr.gouv.vitam.common.storage.cas.container.api;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.jcloud.VitamJcloudsPageSetImpl;
@@ -47,14 +45,8 @@ import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Abstract class of CAS that contains common methods for a Jclouds backend
@@ -68,15 +60,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     // as a HttpClient. For now (Filesystem),
     // that's fine.
     protected final BlobStoreContext context;
-
-    /**
-     * maximum list size of the blob store. In S3, Azure, and Swift, this is
-     * 1000, 5000, and 10000 respectively
-     *
-     * @see <a href="https://jclouds.apache.org/start/blobstore/">Large
-     * lists</a>
-     */
-    private int maxResults = 51000;
 
     private StorageConfiguration configuration;
 
@@ -164,7 +147,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         try {
@@ -178,71 +161,18 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             }
 
             final Blob blob = blobStore.getBlob(containerName, objectName);
-            if (null != blob) {
-                return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(blob));
-            } else {
-                LOGGER.error(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+            if (null == blob) {
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
+            long size = blob.getMetadata().getSize();
+            InputStream is = blob.getPayload().openStream();
+            return new ObjectContent(is, size);
         } catch (final ContainerNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
+            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
             throw e;
         } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            closeContext();
-        }
-    }
-
-    private MultivaluedHashMap<String, Object> getXContentLengthHeader(Blob blob) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        List<Object> headersList = new ArrayList<>();
-        headersList.add(blob.getMetadata().getSize().toString());
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
-        return headers;
-    }
-
-    @Override
-    // TODO P1 : asyncResponse not used !
-    public Response getObjectAsync(String containerName, String objectName)
-        throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-
-            final Blob blob = blobStore.getBlob(containerName, objectName);
-            if (null != blob) {
-                return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(blob));
-            } else {
-                LOGGER.error(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-        } catch (final ContainerNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {
             closeContext();
@@ -303,13 +233,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     public ContentAddressableStorageJcloudsAbstract setConfiguration(StorageConfiguration configuration) {
         this.configuration = configuration;
         return this;
-    }
-
-    /**
-     * @return the maxResults
-     */
-    public int getMaxResults() {
-        return maxResults;
     }
 
 

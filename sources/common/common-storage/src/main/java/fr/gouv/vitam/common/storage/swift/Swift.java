@@ -33,14 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -50,6 +48,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -210,7 +209,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
@@ -220,14 +219,10 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
-        // Size in bytes ???
-        return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, object.download().getInputStream(),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(object));
-    }
 
-    @Override
-    public Response getObjectAsync(String containerName, String objectName) throws ContentAddressableStorageException {
-        return getObject(containerName, objectName);
+        long size = object.getSizeInBytes();
+        InputStream inputStream = object.download().getInputStream();
+        return new ObjectContent(inputStream, size);
     }
 
     @Override

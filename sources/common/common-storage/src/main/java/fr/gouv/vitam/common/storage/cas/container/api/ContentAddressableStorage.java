@@ -94,10 +94,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
     /**
      * Retrieves an object representing the data at location containerName/objectName
      * <p>
-     * <b>WARNING</b> : use this method only if the response has to be consumed right away. If the response has to be
-     * forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync}
-     * instead
-     * </p>
      *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
@@ -107,25 +103,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    Response getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-
-    // TODO P1 : getObjectAsync should replace getObject in the future. and
-    // getObject uses should be reviewed
-    // TODO P1 : asyncResponse not used !
-
-    /**
-     * Retrieves an object representing the data at location containerName/objectName
-     *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
-     * @return the object you intended to receive
-     *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
-     */
-    Response getObjectAsync(String containerName, String objectName)
+    ObjectContent getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**

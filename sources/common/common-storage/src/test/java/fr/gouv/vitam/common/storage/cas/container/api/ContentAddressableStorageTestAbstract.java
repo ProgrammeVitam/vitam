@@ -126,8 +126,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, null);
         assertEquals(getInputStream("file2.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
-
+            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -167,7 +166,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
         assertEquals(getInputStream("file1.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
+            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
 
     @Test

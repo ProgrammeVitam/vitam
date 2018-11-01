@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -148,7 +149,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
@@ -158,24 +159,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         try {
             SafeFileChecker.checkSafeFilePath(fsHelper.getPathContainer(containerName).toString(), objectName);
+            long size = Files.size(filePath);
             InputStream inputStream = Files.newInputStream(filePath);
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, inputStream,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                getXContentLengthHeader(filePath));
+            return new ObjectContent(inputStream, size);
         } catch (IOException e) {
             throw new ContentAddressableStorageException(
                 "I/O error on retrieving object " + objectName + " in the container " + containerName, e);
         }
-    }
-
-    // TODO : To be modified when there will be a real method in ContentAddressableStorageJcloudsAbstract
-    // TODO P1 : asyncResponse not used !
-    @Override
-    public Response getObjectAsync(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        return getObject(containerName, objectName);
     }
 
     @Override

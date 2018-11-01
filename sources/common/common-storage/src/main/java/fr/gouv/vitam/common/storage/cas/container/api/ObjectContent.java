@@ -26,45 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-
-import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
+public class ObjectContent {
 
-/**
- * Abstract class of CAS that contains common methos
- */
-public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
+    private final InputStream inputStream;
+    private final long size;
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
+    public ObjectContent(InputStream inputStream, long size) {
+        this.inputStream = inputStream;
+        this.size = size;
+    }
 
-    /**
-     * Max result for listing option TODO: have to be configurable ?
-     */
-    public static final int LISTING_MAX_RESULTS = 100;
+    public InputStream getInputStream() {
+        return inputStream;
+    }
 
-    @Override
-    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
-
-        try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
-            final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return digest.toString();
-        } catch (final IOException e) {
-            throw new ContentAddressableStorageException(e);
-        }
+    public long getSize() {
+        return size;
     }
 }
