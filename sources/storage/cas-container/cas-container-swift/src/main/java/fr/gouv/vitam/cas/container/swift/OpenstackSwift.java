@@ -35,7 +35,6 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties;
 import org.jclouds.openstack.swift.v1.SwiftApi;
 import org.jclouds.openstack.swift.v1.domain.Account;
-import org.jclouds.openstack.swift.v1.domain.Container;
 import org.jclouds.openstack.swift.v1.domain.SwiftObject;
 import org.jclouds.openstack.swift.v1.features.AccountApi;
 import org.jclouds.openstack.swift.v1.features.ContainerApi;
@@ -228,22 +227,14 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         result.setFileOwner("Vitam_" + containerName.split("_")[0]);
         result.setType(containerName.split("_")[1]);
         result.setLastAccessDate(null);
-        if (objectId != null) {
-            SwiftObject swiftobject = getSwiftAPi().getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)
-                    .get(objectId);
+        SwiftObject swiftobject = getSwiftAPi().getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)
+                .get(objectId);
 
-            result.setObjectName(objectId);
-            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-            result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
-            result.setLastModifiedDate(swiftobject.getLastModified().toString());
-        } else {
-            Container container = getContainerApi().get(containerName);
-            result.setObjectName(containerName);
-            result.setDigest(null);
-            result.setFileSize(container.getBytesUsed());
-            result.setLastModifiedDate(null);
-        }
+        result.setObjectName(objectId);
+        // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+        result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+        result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
+        result.setLastModifiedDate(swiftobject.getLastModified().toString());
 
         return result;
     }

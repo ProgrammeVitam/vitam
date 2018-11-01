@@ -269,24 +269,14 @@ public class Swift extends ContentAddressableStorageAbstract {
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
-        if (object == null) {
-            Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
-            if (metadata.size() > 2) {
-                result.setObjectName(containerName);
-                result.setDigest(null);
-                result.setFileSize(Long.valueOf(metadata.get(X_CONTAINER_BYTES_USED)));
-                result.setLastModifiedDate(null);
-            }
-        } else {
-            // ugly
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-            // ugly
-            result.setType(containerName.split("_")[1]);
-            result.setObjectName(objectId);
-            result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
-            result.setFileSize(object.getSizeInBytes());
-            result.setLastModifiedDate(object.getLastModified().toString());
-        }
+        // ugly
+        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        // ugly
+        result.setType(containerName.split("_")[1]);
+        result.setObjectName(objectId);
+        result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
+        result.setFileSize(object.getSizeInBytes());
+        result.setLastModifiedDate(object.getLastModified().toString());
         return result;
     }
 

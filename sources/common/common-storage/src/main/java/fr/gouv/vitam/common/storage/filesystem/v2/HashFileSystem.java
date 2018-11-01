@@ -322,16 +322,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         File file = fsHelper.getPathObject(containerName, objectId).toFile();
         BasicFileAttributes basicAttribs = getFileAttributes(file);
         long size = Files.size(Paths.get(file.getPath()));
-        if (objectId != null) {
-            result.setObjectName(objectId);
-            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-            result.setDigest(
-                computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-            result.setFileSize(size);
-        } else {
-            result.setObjectName(containerName);
-            result.setDigest(null);
-        }
+        result.setObjectName(objectId);
+        // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+        result.setDigest(
+            computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+        result.setFileSize(size);
         // TODO see how to retrieve metadatas
         result.setType(containerName.split("_")[1]);
         result.setFileOwner("Vitam_" + containerName.split("_")[0]);

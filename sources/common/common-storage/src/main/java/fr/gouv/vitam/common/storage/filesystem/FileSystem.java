@@ -151,22 +151,14 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
-            if (objectId != null) {
-                result.setObjectName(objectId);
-                // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-                result
-                    .setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-                result.setFileSize(size);
-            } else {
-                result.setObjectName(containerName);
-                // TODO calculer l'empreint de répertoire
-                result.setDigest(null);
-            }
+            result.setObjectName(objectId);
+            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+            result
+                .setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            result.setFileSize(size);
             // TODO store vitam metadatas
-            if (containerName != null) {
-                result.setType(containerName.split("_")[1]);
-                result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-            }
+            result.setType(containerName.split("_")[1]);
+            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
             result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         } finally {
