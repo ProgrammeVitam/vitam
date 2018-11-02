@@ -428,7 +428,7 @@ public class ArchiveUnitProfileManager {
                     if (jsonNode != null && jsonNode.get("$results").size() > 0) {
                         return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));
                     }
-                } catch (InvalidCreateOperationException | VitamDBException | InvalidParseOperationException |
+                } catch (InvalidCreateOperationException | InvalidParseOperationException |
                     MetaDataExecutionException |
                     MetaDataDocumentSizeException | MetaDataClientServerException e) {
                     return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));

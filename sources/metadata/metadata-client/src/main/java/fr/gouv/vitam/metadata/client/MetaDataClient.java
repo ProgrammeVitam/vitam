@@ -93,7 +93,7 @@ public interface MetaDataClient extends BasicClient {
      */
     JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException,
-        InvalidParseOperationException, MetaDataClientServerException, VitamDBException;
+        InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * Search units by query (DSL) and path unit id

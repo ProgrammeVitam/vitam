@@ -101,20 +101,8 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = null;
-            try {
-                result = client.selectOperation(query);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(LOGBOOK)
-                        .setState(VITAM_CODE)
-                        .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase()))
-                    .build();
-            }
+            RequestResponse<JsonNode> result = client.selectOperation(query);
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {

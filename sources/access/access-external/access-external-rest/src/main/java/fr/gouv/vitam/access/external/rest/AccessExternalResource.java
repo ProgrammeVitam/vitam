@@ -45,8 +45,10 @@ import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.*;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -148,20 +150,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = null;
-            try {
-                result = client.selectUnits(queryJson);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(UNITS)
-                        .setState(CODE_VITAM)
-                        .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase()))
-                    .build();
-            }
+            RequestResponse<JsonNode>  result = client.selectUnits(queryJson);
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
@@ -760,16 +750,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = client.selectUnitsWithInheritedRules(queryJson);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
-        } catch (final VitamDBException ve) {
-            LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(UNITS)
-                    .setState(CODE_VITAM)
-                    .setMessage(ve.getMessage())
-                    .setDescription(status.getReasonPhrase()))
-                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -948,20 +928,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = null;
-            try {
-                result = client.selectObjects(queryJson);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(OBJECTS)
-                        .setState(CODE_VITAM)
-                        .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase()))
-                    .build();
-            }
+            RequestResponse<JsonNode> result = client.selectObjects(queryJson);
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
