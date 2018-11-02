@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -63,7 +62,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
 
     /**
      * select Unit By Id
@@ -168,7 +167,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException, VitamDBException;
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectOperationbyId
@@ -313,7 +312,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
 
     /**
      * Select units with inherited rules by select query (DSL)
@@ -328,7 +327,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
 
     /**
      * Get Zipped AccessLog files as Stream
