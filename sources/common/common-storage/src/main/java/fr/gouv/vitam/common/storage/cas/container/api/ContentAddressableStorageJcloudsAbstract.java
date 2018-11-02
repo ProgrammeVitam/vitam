@@ -133,7 +133,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     }
 
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
         Long size)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -159,6 +159,8 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             closeContext();
             StreamUtils.closeSilently(stream);
         }
+
+        return this.computeObjectDigest(containerName, objectName, digestType);
     }
 
     @Override

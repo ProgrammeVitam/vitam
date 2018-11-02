@@ -172,10 +172,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
-        // Check digest AFTER writing in order to ensure correctness
-        final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
-        return digest;
+        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
     }
 
     @Override

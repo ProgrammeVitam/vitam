@@ -133,7 +133,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
         Long size) throws
         ContentAddressableStorageException {
 
@@ -150,7 +150,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         } else {
             smallFile(containerName, objectName, stream);
         }
-        computeAndStoreDigestInMetadata(containerName, objectName, digestType);
+        return computeAndStoreDigestInMetadata(containerName, objectName, digestType);
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
@@ -191,7 +191,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
     }
 
-    private void computeAndStoreDigestInMetadata(String containerName, String objectName, DigestType digestType)
+    private String computeAndStoreDigestInMetadata(String containerName, String objectName, DigestType digestType)
         throws ContentAddressableStorageException {
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
@@ -206,6 +206,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
+        return digest;
     }
 
     @Override

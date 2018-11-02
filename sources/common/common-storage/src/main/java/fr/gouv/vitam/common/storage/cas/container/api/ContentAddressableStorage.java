@@ -87,7 +87,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void putObject(String containerName, String objectName, InputStream stream,
+    String putObject(String containerName, String objectName, InputStream stream,
         DigestType digestType, Long size)
         throws ContentAddressableStorageException;
 
