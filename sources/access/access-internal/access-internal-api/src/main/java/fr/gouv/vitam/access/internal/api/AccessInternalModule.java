@@ -161,4 +161,13 @@ public interface AccessInternalModule {
      */
     JsonNode selectUnitsWithInheritedRules(JsonNode jsonQuery)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException;
+
+    /**
+     * check ClassificationLevel in update Unit
+     * @param query query
+     * @throws IllegalArgumentException IllegalArgumentException
+     * @throws InvalidParseOperationException InvalidParseOperationException
+     */
+    void checkClassificationLevel(JsonNode query) throws IllegalArgumentException, InvalidParseOperationException;
+
 }

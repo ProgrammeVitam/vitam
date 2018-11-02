@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
 import java.util.List;
 import java.util.Map;
@@ -307,6 +308,12 @@ public class VitamConfigurationParameters {
      * Max units to update per reclassification request
      */
     private Integer reclassificationMaxUnitsThreshold;
+
+    /**
+     * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
+     */
+    private ClassificationLevel classificationLevel;
+
     /**
      * Max dsl queries per reclassification request
      */
@@ -1262,4 +1269,13 @@ public class VitamConfigurationParameters {
         Integer reclassificationMaxGuildListSizeInLogbookOperation) {
         this.reclassificationMaxGuildListSizeInLogbookOperation = reclassificationMaxGuildListSizeInLogbookOperation;
     }
+
+    public ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public void setClassificationLevel(ClassificationLevel classificationLevel) {
+        this.classificationLevel = classificationLevel;
+    }
+
 }

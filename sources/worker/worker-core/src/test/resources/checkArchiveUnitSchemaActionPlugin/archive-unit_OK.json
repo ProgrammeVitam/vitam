@@ -60,7 +60,7 @@
 					],
 					"PreventInheritance": "ID"
 				},
-				"ClassificationLevel": "ClassificationLevel",
+				"ClassificationLevel": "Secret Défense",
 				"ClassificationOwner": "ClassificationOwner",
 				"ClassificationReassessingDate": "2016-05-02",
 				"NeedReassessingAuthorization": true,

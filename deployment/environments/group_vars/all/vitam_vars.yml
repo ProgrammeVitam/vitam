@@ -32,6 +32,11 @@ vitam_defaults:
     # syslog_facility
     syslog_facility: local0
 
+# Used in ingest, unitary update, mass-update
+classificationList: ["Secret Défense", "Confidentiel Défense"]
+# Used in ingest, unitary update, mass-update
+classificationLevelOptional: true
+
 
 ### consul ###
 # FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml

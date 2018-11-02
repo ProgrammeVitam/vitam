@@ -706,6 +706,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
 
+            accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
