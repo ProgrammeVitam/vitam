@@ -17,29 +17,7 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
-import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIOException;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -67,6 +45,7 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
@@ -79,21 +58,46 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 
 @RunWith(PowerMockRunner.class)
@@ -111,7 +115,8 @@ public class ProcessDistributorImplTest {
     private static final String FILE_WITH_GUIDS = "file_with_guids.jsonl";
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
-
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -535,6 +540,98 @@ public class ProcessDistributorImplTest {
         assertThat(item).isNotEmpty();
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldDistributeOnStream() throws Exception {
+
+        AtomicInteger actualLevel = new AtomicInteger(0);
+
+        File file = createRandomDataSetInfo();
+
+        Response response =
+            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
+
+        when(workspaceClient.getObject("FakeOperationId", file.getAbsolutePath())).thenReturn(response);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
+
+
+        when(workerClient.submitStep(anyObject()))
+            .thenAnswer(invocation -> {
+
+                Map<WorkerParameterName, String> mapParameters =
+                    ((DescriptionStep) invocation.getArguments()[0])
+                        .getWorkParams().getMapParameters();
+
+                JsonNode objectMetadataList =
+                    JsonHandler.getFromString(mapParameters.get(WorkerParameterName.objectMetadataList));
+
+                String level = objectMetadataList.get(0).get("distributionNumber").textValue();
+
+                synchronized (this) {
+
+                    if (!String.valueOf(actualLevel.get()).equals(level)) {
+
+                        int newLevel = actualLevel.incrementAndGet();
+
+                        assertThat(level).isEqualTo(String.valueOf(newLevel));
+                    }
+                }
+
+                return getMockedItemStatus(StatusCode.OK);
+
+            });
+
+
+        ItemStatus itemStatus = processDistributor
+            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, file.getAbsolutePath()),
+                operationId,
+                PauseRecover.NO_RECOVER);
+
+        verify(workerClient, times(750)).submitStep(anyObject());
+
+        assertThat(itemStatus).isNotNull();
+
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        Map<String, ItemStatus> item = itemStatus.getItemsStatus();
+
+        assertThat(item).isNotNull();
+
+        assertThat(item).isNotEmpty();
+
+    }
+
+    private File createRandomDataSetInfo() throws IOException {
+
+        File file = testFolder.newFile();
+
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
+
+            for (int distributionLevel = 1; distributionLevel <= 100; distributionLevel++) {
+
+                int nbEntriesPerLevel = distributionLevel % 2 == 0 ? 5 : 10;
+
+                for (int entry = 0; entry < nbEntriesPerLevel; entry++) {
+
+                    writer.append("{ \"id\": \"")
+                        .append(String.valueOf(UUID.randomUUID()))
+                        .append("\", \"distribGroup\": ")
+                        .append(String.valueOf(distributionLevel))
+                        .append(",\"params\":{\"name\":\"someData\",\"distributionNumber\":\"")
+                        .append(String.valueOf(distributionLevel))
+                        .append("\"}}");
+                    writer.append("\n");
+                }
+
+            }
+            writer.flush();
+        }
+
+        return file;
+    }
+
+
     @Test
     @RunWithCustomExecutor
     public void whenDistributeKindFullLargeFileResumptionAfterPauseOK() throws WorkerAlreadyExistsException,
@@ -936,4 +1033,5 @@ public class ProcessDistributorImplTest {
         assertThat(is.getStatusMeter()).isNotNull();
         assertThat(is.getStatusMeter().get(0)).isGreaterThan(0); // statusCode UNkNWON
     }
+
 }
