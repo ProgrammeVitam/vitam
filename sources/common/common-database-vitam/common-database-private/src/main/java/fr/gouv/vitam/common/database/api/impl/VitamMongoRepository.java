@@ -27,22 +27,12 @@
 package fr.gouv.vitam.common.database.api.impl;
 
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -58,6 +48,17 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 /**
  * Implementation for MongoDB
@@ -253,8 +254,8 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error(String
-                .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
-                    identifier, tenant),
+                    .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                        identifier, tenant),
                 e);
             throw new DatabaseException(String
                 .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
@@ -275,8 +276,8 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error(String
-                .format("Error while findByIdentifierAndTenant > identifier : %s",
-                    identifier),
+                    .format("Error while findByIdentifierAndTenant > identifier : %s",
+                        identifier),
                 e);
             throw new DatabaseException(String
                 .format("Error while findByIdentifierAndTenant > identifier : %s",
@@ -324,5 +325,14 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
         return collection.find(query).batchSize(mongoBatchSize);
+    }
+
+    @Override
+    public void delete(List<String> ids, int tenant) {
+        collection.deleteMany(
+            Filters.and(
+                Filters.in(VitamDocument.ID, ids),
+                Filters.eq(VitamDocument.TENANT_ID, tenant)
+            ));
     }
 }

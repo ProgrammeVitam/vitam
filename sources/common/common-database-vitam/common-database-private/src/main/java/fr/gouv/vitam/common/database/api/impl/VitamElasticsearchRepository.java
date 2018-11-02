@@ -31,11 +31,15 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.iterables.BulkIterator;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -564,5 +568,36 @@ public class VitamElasticsearchRepository implements VitamRepository {
     public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
         // Not implement yet
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
+    }
+
+    @Override
+    public void delete(List<String> ids, int tenant) throws DatabaseException {
+
+        String index = indexName;
+        if (indexByTenant) {
+            index = index + "_" + tenant;
+        }
+
+        Iterator<List<String>> idIterator = new BulkIterator<>(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+
+        while(idIterator.hasNext()) {
+
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            for (String id : idIterator.next()) {
+                bulkRequest.add(client.prepareDelete(index,
+                    VitamCollection.getTypeunique(), id));
+            }
+
+            WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?
+                WriteRequest.RefreshPolicy.NONE :
+                WriteRequest.RefreshPolicy.IMMEDIATE;
+
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(refreshPolicy).execute().actionGet();
+
+            if (bulkResponse.hasFailures()) {
+                throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
+            }
+        }
     }
 }
