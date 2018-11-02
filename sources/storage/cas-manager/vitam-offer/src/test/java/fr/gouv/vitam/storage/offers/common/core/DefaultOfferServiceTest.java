@@ -328,22 +328,6 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
-    public void checkObjectTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
-        assertNotNull(offerService);
-
-        final ObjectInit objectInit = getObjectInit(true);
-        objectInit.setType(DataCategory.UNIT);
-        offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID_3);
-
-        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
-
-        assertTrue(
-            offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
-    }
-
-    @Test
     public void deleteObjectTest() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);

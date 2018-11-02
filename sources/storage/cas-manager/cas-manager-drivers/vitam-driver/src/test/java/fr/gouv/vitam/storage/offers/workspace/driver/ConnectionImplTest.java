@@ -90,8 +90,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -618,74 +616,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
     }
 
-    @Test
-    public void checkObjectTestOK() throws Exception {
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        StorageCheckResult storageCheckResult =
-            connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
-        assertNotNull(storageCheckResult);
-        assertEquals(true, storageCheckResult.isDigestMatch());
-    }
-
-
-    @Test
-    public void checkObjectTestIllegalArgument() throws Exception {
-        try {
-            connection.checkObject(null);
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.checkObject(getStorageCheckRequest(false, true, true, true, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.checkObject(getStorageCheckRequest(true, false, true, true, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.checkObject(getStorageCheckRequest(true, true, false, true, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.checkObject(getStorageCheckRequest(true, true, true, false, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try {
-            connection.checkObject(getStorageCheckRequest(true, true, true, true, false));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-    }
-
-    @Test(expected = StorageDriverException.class)
-    public void checkObjectTestNotFound() throws Exception {
-        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
-    }
-
-    @Test(expected = StorageDriverException.class)
-    public void checkObjectTestPreconditionFailed() throws Exception {
-        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
-    }
-
-    @Test(expected = StorageDriverException.class)
-    public void checkObjectTestInternalServerError() throws Exception {
-        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
-    }
-
     private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
         boolean putTenantId,
         boolean putType)
@@ -712,33 +642,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
             type = DataCategory.OBJECT.getFolder();
         }
         return new StoragePutRequest(tenantId, type, guid, digest, stream);
-    }
-
-    private StorageCheckRequest getStorageCheckRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
-        boolean putTenantId, boolean putType)
-        throws Exception {
-        DigestType digestType = null;
-        String digest = null;
-        String guid = null;
-        Integer tenantId = null;
-        String type = null;
-
-        if (putDigestType) {
-            digestType = VitamConfiguration.getDefaultDigestType();
-        }
-        if (putDigestA) {
-            digest = "digest";
-        }
-        if (putGuid) {
-            guid = "GUID";
-        }
-        if (putTenantId) {
-            tenantId = tenant;
-        }
-        if (putType) {
-            type = DataCategory.OBJECT.getFolder();
-        }
-        return new StorageCheckRequest(tenantId, type, guid, digestType, digest);
     }
 
     private ObjectInit getPostObjectResult(int uniqueId) {

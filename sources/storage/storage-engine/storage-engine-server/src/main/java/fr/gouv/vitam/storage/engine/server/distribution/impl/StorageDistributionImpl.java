@@ -56,7 +56,6 @@ import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
@@ -69,6 +68,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -522,7 +522,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                         setLogbookStorageParameters(parameters, offerId, null, dataContext.getRequester(), attempt,
                             status, dataContext.getCategory().getFolder());
                     if (e.getCause() instanceof StorageDriverException ||
-                        e.getCause() instanceof StorageDriverPreconditionFailedException) {
+                        e.getCause() instanceof StorageDriverPreconditionFailedException ||
+                        e.getCause() instanceof StorageInconsistentStateException) {
                         LOGGER.error(
                             StorageDistributionImpl.ERROR_ENCOUNTERED_IS + e.getCause().getClass() + NO_NEED_TO_RETRY);
                         needToRetry.set(false);
@@ -1201,9 +1202,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             final Driver driver = retrieveDriverInternal(offerId);
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
             try (Connection connection = driver.connect(offer.getId())) {
-                final StorageCheckRequest request =
-                    new StorageCheckRequest(tenantId, category.getFolder(),
-                        objectId, null, null);
+                final StorageObjectRequest request =
+                    new StorageObjectRequest(tenantId, category.getFolder(),
+                        objectId);
                 if (!connection.objectExistsInOffer(request)) {
                     return false;
                 }

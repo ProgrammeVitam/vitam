@@ -53,8 +53,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -94,7 +92,6 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
-    private static final String DIGEST_IS_A_MANDATORY_PARAMETER = "Digest is a mandatory parameter";
 
     @SuppressWarnings("unused")
     private final Properties parameters;
@@ -407,53 +404,6 @@ public class ConnectionImpl extends AbstractConnection {
             consumeAnyEntityAndClose(response);
         }
         return finalResult;
-    }
-
-    @Override
-    public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
-        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
-        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
-        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
-        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
-        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.HEAD,
-                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null,
-                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName(), null),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                case CONFLICT:
-                    return new StorageCheckResult(request.getTenantId(), request.getType(),
-                        request.getGuid(), request.getDigestAlgorithm(), request.getDigestHashBase16(),
-                        status.equals(Status.OK));
-                case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
-                    throw new StorageDriverException(getDriverName(),
-                        "Object " + "not found");
-                case PRECONDITION_FAILED:
-                    LOGGER.error("Precondition failed");
-                    throw new StorageDriverException(getDriverName(),
-                        "Precondition failed");
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(),
-                        INTERNAL_SERVER_ERROR);
-            }
-        } catch (final VitamClientInternalException e1) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(),
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
     }
 
     @Override
