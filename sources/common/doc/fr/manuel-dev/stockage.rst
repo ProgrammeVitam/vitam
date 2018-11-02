@@ -82,17 +82,6 @@ Dans le cas echéant la method retourne une immuatable empty list.
 
 Dans le cas echéant (uncompress KO) la methode génère une exception avec un message internal server.
 
-
-    - getObjectInformation :cette méthode retourne des informations utils sur un objet
-
-        - Paramètres :
-        - containerName::String (le nom de contenaire à consulter)
-        - objectName::String
-        - Retourner :
-        - JsonNode
-
-     La méthode retourne un Json contenant des informations sur un objet présent dans un contenaire prédéfinit (et des exceptions en cas d'erreur : objet non existant, erreur server).
-
 2 - Configuration
 ------------------
 

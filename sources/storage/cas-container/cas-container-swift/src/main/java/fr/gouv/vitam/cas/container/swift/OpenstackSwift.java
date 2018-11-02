@@ -99,7 +99,6 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         Account account = getAccountApi().get();
         if (account != null) {
             containerInformation.setUsableSpace(-1);
-            containerInformation.setUsedSpace(account.getBytesUsed());
         }
         return containerInformation;
     }

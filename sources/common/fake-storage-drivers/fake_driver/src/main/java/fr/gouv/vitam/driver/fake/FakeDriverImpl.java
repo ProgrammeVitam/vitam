@@ -66,7 +66,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -75,7 +74,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -213,13 +211,8 @@ public class FakeDriverImpl extends AbstractDriver {
                     "ExceptionTest");
             }
 
-            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
+            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000);
             return result;
-        }
-
-        @Override
-        public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
-            return new StorageCountResult(request.getTenantId(), request.getType(), 1);
         }
 
         @Override

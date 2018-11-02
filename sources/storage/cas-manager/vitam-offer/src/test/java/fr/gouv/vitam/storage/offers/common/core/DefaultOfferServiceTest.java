@@ -170,20 +170,6 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
-    public void countObjectsTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
-        assertNotNull(offerService);
-
-        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
-        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
-
-        JsonNode result = offerService.countObjects(CONTAINER_PATH);
-        assertEquals(1, result.get("objectNumber").longValue());
-
-    }
-
-    @Test
     public void createObjectTest() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
@@ -327,7 +313,6 @@ public class DefaultOfferServiceTest {
         final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("usableSpace"));
-        assertNotNull(jsonNode.get("usedSpace"));
     }
 
     @Test
@@ -337,7 +322,6 @@ public class DefaultOfferServiceTest {
         final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("usableSpace"));
-        assertNotNull(jsonNode.get("usedSpace"));
     }
 
     @Test

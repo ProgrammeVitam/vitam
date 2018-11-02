@@ -200,16 +200,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
         result.put("usableSpace", containerInformation.getUsableSpace());
-        result.put("usedSpace", containerInformation.getUsedSpace());
-        return result;
-    }
-
-    @Override
-    public JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        final ObjectNode result = JsonHandler.createObjectNode();
-        final long objectNumber = defaultStorage.countObjects(containerName);
-        result.put("objectNumber", objectNumber);
         return result;
     }
 

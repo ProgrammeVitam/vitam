@@ -135,7 +135,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             ObjectNode result = (ObjectNode) defaultOfferService.getCapacity(containerName);
             Response.ResponseBuilder response = Response.status(Status.OK);
             response.header("X-Usable-Space", result.get("usableSpace"));
-            response.header("X-Used-Space", result.get("usedSpace"));
             response.header(GlobalDataRest.X_TENANT_ID, xTenantId);
             return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -269,39 +268,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
-        }
-    }
-
-
-    /**
-     * Count the number of objects on the offer objects defined container (exlude directories)
-     *
-     * @param xTenantId
-     * @param type
-     * @return number of binary objects in the container
-     */
-    @GET
-    // FIXME Later we should count in a standard get request (no /count in path)
-    // with a DSL that specify a count
-    // operation (aggregate)
-    @Path("/count/objects/{type}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("type") DataCategory type) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        final String containerName = buildContainerName(type, xTenantId);
-        try {
-            final JsonNode result = defaultOfferService.countObjects(containerName);
-            return Response.status(Response.Status.OK).entity(result).build();
-        } catch (final ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (final ContentAddressableStorageServerException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -475,7 +441,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * Delete an Object
      *
      * @param xTenantId the tenantId
-     * @param xDigest the digest of the object to delete
      * @param xDigestAlgorithm the digest algorithm
      * @param type Object type to delete
      * @param idObject the id of the object to be tested

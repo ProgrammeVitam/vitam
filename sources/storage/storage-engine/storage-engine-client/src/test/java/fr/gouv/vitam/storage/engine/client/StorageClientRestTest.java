@@ -102,10 +102,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
     protected StorageClientRest client;
     private static final Integer TENANT_ID = 0;
 
-    private static final String OFFER_METADATA =
-        "{\"offer1\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
-            "\"offer2\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"}";
-
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
@@ -180,12 +176,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
         @Path("/")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getContainer() {
-            return expectedResponse.get();
-        }
-
-        @GET
-        @Path("/info/{type}/{id_object}")
-        public Response getInformation(@PathParam("id_object") String idObject) {
             return expectedResponse.get();
         }
 
@@ -616,15 +606,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void successGetObjectInformation() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(OFFER_METADATA).build());
-        JsonNode metadata = client.getInformation("idStrategy", DataCategory.OBJECT, "guid", SingletonUtils.singletonList());
-        assertEquals(metadata.toString(), OFFER_METADATA);
     }
 
     @RunWithCustomExecutor

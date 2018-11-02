@@ -230,7 +230,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * Get container information like capacity
      *
      * @param containerName the container name
-     * @return a Json with usableSpace and usedSpace information
+     * @return a Json with usableSpace information
      */
     @Path("/container/{containerName}")
     @GET

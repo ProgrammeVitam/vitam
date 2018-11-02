@@ -92,24 +92,6 @@ public class HashFileSystemHelper {
     }
 
     /**
-     * @return a list of current containers
-     */
-    public List<String> getListContainers() {
-        Path rootContainer = fs.getPath(rootPath, CONTAINER_SUBDIRECTORY);
-        List<String> listContainers = new ArrayList<>();
-        try (DirectoryStream<Path> dsp = Files.newDirectoryStream(rootContainer)) {
-            for (Path p : dsp) {
-                if (p.toFile().isDirectory()) {
-                    listContainers.add(p.toFile().getName());
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Can't correctly list the containers of the offer", e);
-        }
-        return listContainers;
-    }
-
-    /**
      * Split objectId without extension
      *
      * @param objectId

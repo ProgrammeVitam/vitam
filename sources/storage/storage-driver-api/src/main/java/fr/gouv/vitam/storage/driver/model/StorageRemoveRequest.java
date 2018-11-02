@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import fr.gouv.vitam.common.digest.DigestType;
-
 /**
  * Holds every needed parameters that may be needed to remove an object on the
  * distant storage offer.

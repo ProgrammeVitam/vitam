@@ -55,7 +55,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableExc
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -65,7 +64,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -77,8 +75,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
  */
 public class ConnectionImpl extends AbstractConnection {
 
-    private static final String X_USED_SPACE = "X-Used-Space";
-
     private static final String X_USABLE_SPACE = "X-Usable-Space";
     private static final long DEFAULT_MAX_AVAILABILITY = 100000000000L;
 
@@ -86,7 +82,6 @@ public class ConnectionImpl extends AbstractConnection {
 
     private static final String OBJECTS_PATH = "/objects";
     private static final String LOGS_PATH = "/logs";
-    private static final String COUNT_PATH = "/count";
     private static final String METADATAS = "/metadatas";
 
     private static final String REQUEST_IS_A_MANDATORY_PARAMETER = "Request is a mandatory parameter";
@@ -138,15 +133,7 @@ public class ConnectionImpl extends AbstractConnection {
                             LOGGER.info("Not a number", e);
                         }
                     }
-                    long used = 0;
-                    if (response.getHeaderString(X_USED_SPACE) != null) {
-                        try {
-                            used = Long.parseLong(response.getHeaderString(X_USED_SPACE));
-                        } catch (NumberFormatException e) {
-                            LOGGER.info("Not a number", e);
-                        }
-                    }
-                    return new StorageCapacityResult(tenantId, available, used);
+                    return new StorageCapacityResult(tenantId, available);
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
                         tenantId + "_" + DataCategory.OBJECT));
@@ -164,44 +151,6 @@ public class ConnectionImpl extends AbstractConnection {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR.getMessage(),
                 e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
-        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, COUNT_PATH + OBJECTS_PATH + "/" + request.getType(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-
-            switch (status) {
-                case OK:
-                    JsonNode result = handleResponseStatus(response, JsonNode.class);
-                    return new StorageCountResult(request.getTenantId(), request.getType(),
-                        result.get("numberObjects").longValue());
-                case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                        request.getTenantId() + "_" + request.getType()));
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                            request.getTenantId() + "_" + request.getType()));
-                case BAD_REQUEST:
-                    LOGGER.error("Bad request");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
-                default:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase());
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }

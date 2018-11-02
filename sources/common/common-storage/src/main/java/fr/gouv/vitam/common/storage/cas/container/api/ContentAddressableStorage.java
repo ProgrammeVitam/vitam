@@ -32,8 +32,6 @@ import java.io.InputStream;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -73,17 +71,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
-
-    /**
-     * Determines if a container exists
-     *
-     * @param containerName name of container
-     * @return long number of binary objects (excluding directory markers)
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     */
-    long countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     // Object
 
@@ -187,25 +174,12 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * Get container information like capacity
      *
      * @param containerName the container name
-     * @return container information like usableSpace and usedSpace
+     * @return container information like usableSpace
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * Retrieves information about an object at location containerName/objectName
-     *
-     * @param containerName container where the object is.
-     * @param objectName fully qualified name relative to the container.
-     * @return the object informations as a JsonNode object
-     *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     */
-    JsonNode getObjectInformation(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Check object

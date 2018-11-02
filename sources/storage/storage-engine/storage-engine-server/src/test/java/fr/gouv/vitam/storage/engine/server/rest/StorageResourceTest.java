@@ -113,7 +113,6 @@ public class StorageResourceTest {
     private static int serverPort;
 
     private static final String REST_URI = "/storage/v1";
-    private static final String INFO_URI = "/info";
     private static final String DELETE_URI = "/delete";
     private static final String OBJECTS_URI = "/objects";
     private static final String REPORTS_URI = "/reports";
@@ -184,21 +183,6 @@ public class StorageResourceTest {
     @Test
     public final void testGetStatus() {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }
-
-    @Test
-    public final void testGetObjectInformation() {
-
-        given().contentType(ContentType.JSON).accept(MediaType.APPLICATION_JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().get(INFO_URI + OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given().contentType(ContentType.JSON).accept(MediaType.APPLICATION_JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
-            .body("").when().get(INFO_URI + OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test

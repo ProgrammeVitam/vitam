@@ -26,12 +26,9 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
@@ -130,23 +127,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     public boolean isExistingContainer(String containerName) {
         try {
             return context.getBlobStore().containerExists(containerName);
-        } finally {
-            closeContext();
-        }
-    }
-
-    @Override
-    public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            }
-            return blobStore.countBlobs(containerName);
         } finally {
             closeContext();
         }
@@ -306,43 +286,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     @Override
     public abstract ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException;
-
-    @Override
-    public JsonNode getObjectInformation(String containerName, String objectName)
-        throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
-        ObjectNode jsonNodeObjectInformation = null;
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-            final Blob blob = blobStore.getBlob(containerName, objectName);
-            if (null != blob && null != blob.getMetadata()) {
-                final Long size = blob.getMetadata().getSize();
-                jsonNodeObjectInformation = JsonHandler.createObjectNode();
-                jsonNodeObjectInformation.put("size", size);
-                jsonNodeObjectInformation.put("object_name", objectName);
-                jsonNodeObjectInformation.put("container_name", containerName);
-            }
-        } catch (final ContainerNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            closeContext();
-        }
-        return jsonNodeObjectInformation;
-    }
 
     /**
      * @return the configuration

@@ -150,17 +150,6 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageException;
 
     /**
-     * Count the number of objects in a container defined by the tenant and the type
-     *
-     * @param containerName the container name
-     * @return Json with number of objects (objectNumber)
-     * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
-     * @throws ContentAddressableStorageServerException
-     */
-    JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
      * Deletes a object representing the data at location containerName/objectName
      *
      * @param containerName   container where this exists.

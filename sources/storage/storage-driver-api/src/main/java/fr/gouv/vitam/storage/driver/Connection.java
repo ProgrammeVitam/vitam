@@ -36,7 +36,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedExc
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -46,7 +45,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
@@ -77,15 +75,6 @@ public interface Connection extends AutoCloseable {
         throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException;
 
     /**
-     * Count the number of binary objects ine the container
-     *
-     * @param request the request to send. It contains informations of the container.
-     * @return the number of binary objects and a remind of the given tenantId and type
-     * @throws StorageDriverException if any problem occurs during request
-     */
-    StorageCountResult countObjects(StorageRequest request) throws StorageDriverException;
-
-    /**
      * Retrieve an object from the storage offer based on criterias defined in request argument.
      *
      * @param request the request to send. It contains informations needed to retrieve a given object.
@@ -103,6 +92,7 @@ public interface Connection extends AutoCloseable {
      * @return a result that may contains metadatas or statistics about the object put operation.
      * @throws StorageDriverException if any problem occurs during request
      */
+
     StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException;
 
     /**

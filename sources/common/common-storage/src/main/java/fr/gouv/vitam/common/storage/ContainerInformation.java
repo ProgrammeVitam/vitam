@@ -38,11 +38,6 @@ public class ContainerInformation {
     private long usableSpace;
 
     /**
-     * Used space
-     */
-    private long usedSpace;
-
-    /**
      * 
      * Get usable space
      *
@@ -60,24 +55,5 @@ public class ContainerInformation {
      */
     public void setUsableSpace(long usableSpace) {
         this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
-
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
     }
 }

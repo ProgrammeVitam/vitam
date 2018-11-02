@@ -40,8 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
@@ -129,32 +127,6 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, null);
         assertEquals(getInputStream("file2.pdf").available(),
             ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
-
-    }
-
-    @Test
-    public void givenObjectAlreadyExistsWhenGetObjectInformationThenNotRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
-        storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
-        final JsonNode jsonNode = storage.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
-        assertNotNull(jsonNode);
-        assertNotNull(jsonNode.get("size"));
-        assertNotNull(jsonNode.get("object_name"));
-        assertNotNull(jsonNode.get("container_name"));
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenGetObjectInformationThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
-        assertNotNull(storage.getObjectInformation("FAKE" + CONTAINER_NAME, OBJECT_NAME));
-
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenGetObjectInformationThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
-        assertNotNull(storage.getObjectInformation(CONTAINER_NAME, OBJECT_NAME));
 
     }
 
@@ -278,20 +250,6 @@ public abstract class ContentAddressableStorageTestAbstract {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void getContainerInformationStorageNotFoundException() throws Exception {
         storage.getContainerInformation(CONTAINER_NAME);
-    }
-
-
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        storage.countObjects(WRONG_CONTAINER_NAME);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenNullContainerNameWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        storage.countObjects(null);
     }
 
     @Test
