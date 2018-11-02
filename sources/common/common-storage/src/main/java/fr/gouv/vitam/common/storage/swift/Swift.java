@@ -78,7 +78,6 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
     private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
-    private static final String X_CONTAINER_BYTES_USED = "X-Container-Bytes-Used";
 
     private final Supplier<OSClient> osClient;
 
@@ -149,9 +148,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (size != null && size > swiftLimit) {
             bigFile(containerName, objectName, stream, size);
         } else {
-            smallFile(containerName, objectName, stream, digestType);
+            smallFile(containerName, objectName, stream);
         }
-
+        computeAndStoreDigestInMetadata(containerName, objectName, digestType);
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
@@ -188,9 +187,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     }
 
-    private void smallFile(String containerName, String objectName, InputStream stream, DigestType digestType)
-        throws ContentAddressableStorageException {
+    private void smallFile(String containerName, String objectName, InputStream stream) {
         osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+    }
+
+    private void computeAndStoreDigestInMetadata(String containerName, String objectName, DigestType digestType)
+        throws ContentAddressableStorageException {
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
         Map<String, String> metadataToUpdate = new HashMap<>();
@@ -204,7 +206,6 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
-
     }
 
     @Override

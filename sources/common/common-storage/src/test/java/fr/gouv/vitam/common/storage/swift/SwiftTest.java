@@ -139,9 +139,7 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        assertThatCode(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L)
-        ).doesNotThrowAnyException();
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
 
     }
 
@@ -164,12 +162,11 @@ public class SwiftTest {
     @Test
     public void should_segmented_inputstream_to_swift_offer() throws Exception {
         // Given
+        swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
+            aResponse().withStatus(202)));
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        assertThatCode(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L)
-        ).doesNotThrowAnyException();
-
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
     }
 }
