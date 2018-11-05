@@ -97,7 +97,8 @@ Détail des champs
   * La date est au format ISO 8601
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-``"CreationDate": "2017-04-10T11:30:33.798",``
+
+``Exemple : "CreationDate": "2017-04-10T11:30:33.798",``
 
 
 **"LastUpdate":**  date de dernière mise à jour de la notice du profil d'archivage dans la collection Profile.
@@ -105,21 +106,24 @@ Détail des champs
   * La date est au format ISO 8601
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-``"LastUpdate": "2017-04-10T11:30:33.798"``
+
+``Exemple : "LastUpdate": "2017-04-10T11:30:33.798"``
 
 **"ActivationDate":** date d'activation de la notice du profil d'archivage.
 
   * La date est au format ISO 8601
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-``"ActivationDate": "2017-04-10T11:30:33.798"``
+
+``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
 
 **"DeactivationDate":** date de désactivation de la notice du profil d'archivage.
 
   * La date est au format ISO 8601
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-``"DeactivationDate": "2017-04-10T11:30:33.798"``
+
+``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
 
 **"_v":**  version de l'enregistrement décrit
 
