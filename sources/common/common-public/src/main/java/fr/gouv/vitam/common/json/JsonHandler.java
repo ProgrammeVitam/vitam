@@ -52,8 +52,10 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
@@ -86,6 +88,8 @@ public final class JsonHandler {
      * Default ObjectMapperLowerCamelCase
      */
     private static final ObjectMapper OBJECT_MAPPER_LOWER_CAMEL_CASE;
+
+    private static final String REG_EXP_JSONPATH_SEPARATOR = "\\.";
 
     static {
         OBJECT_MAPPER = buildObjectMapper();
@@ -897,6 +901,33 @@ public final class JsonHandler {
         }
         currentLevelNode.set(lastNodeName, value);
 	}
+
+
+    /**
+     * Find node from the simple path separated with "."
+     *
+     * @param rootNode
+     * @param path of node to find
+     */
+    public static JsonNode findNode(JsonNode rootNode, String path) {
+        if (rootNode == null || Strings.isNullOrEmpty(path)) {
+            return MissingNode.getInstance();
+        }
+
+        String nodeNames[] = path.split(REG_EXP_JSONPATH_SEPARATOR);
+
+        JsonNode currentNode = rootNode;
+        for (String nodeName : nodeNames) {
+
+            currentNode = currentNode.path(nodeName);
+            if (currentNode.isMissingNode()) {
+                return currentNode;
+            }
+        }
+
+        return currentNode;
+    }
+
 
     /**
      * transform an {@link ArrayNode} (JSON Array) to an {@link java.util.ArrayList}
