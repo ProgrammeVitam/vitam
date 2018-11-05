@@ -56,10 +56,9 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -113,17 +112,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public Response getObject(String containerName, String objectId)
+    public ObjectContent getObject(String containerName, String objectId)
         throws ContentAddressableStorageException {
 
-        final Response response = defaultStorage.getObjectAsync(containerName, objectId);
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-            response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
-
-        return new VitamAsyncInputStreamResponse(response, Response.Status.fromStatusCode(response.getStatus()), headers);
+        return defaultStorage.getObject(containerName, objectId);
     }
 
     @Override
@@ -168,14 +160,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         Long size, DigestType digestType)
         throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
-        if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
+        if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
-        // Check digest AFTER writing in order to ensure correctness
-        final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
-        return digest;
+        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
     }
 
     @Override

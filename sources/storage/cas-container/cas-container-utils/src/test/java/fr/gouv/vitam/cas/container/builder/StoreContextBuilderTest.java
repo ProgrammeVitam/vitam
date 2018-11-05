@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -90,15 +91,17 @@ public class StoreContextBuilderTest {
         contentAddressableStorage
             .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L);
 
-        Response response = contentAddressableStorage.getObject("testContainer", uuid);
+        ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
+        try(InputStream is = response.getInputStream()) {
 
-        File fileDownloaded = tempFolder.newFile();
+            File fileDownloaded = tempFolder.newFile();
 
-        FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded);
-        IOUtils.copy((InputStream) response.getEntity(), fileOutputStream);
+            FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded);
+            IOUtils.copy(is, fileOutputStream);
 
-        // Then
-        assertThat(fileDownloaded.length()).isEqualTo(resourceFile.length());
+            // Then
+            assertThat(fileDownloaded.length()).isEqualTo(resourceFile.length());
+        }
     }
 
 }

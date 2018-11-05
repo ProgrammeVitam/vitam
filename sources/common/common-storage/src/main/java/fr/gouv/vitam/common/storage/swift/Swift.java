@@ -33,14 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -50,6 +48,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -78,7 +77,6 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
     private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
-    private static final String X_CONTAINER_BYTES_USED = "X-Container-Bytes-Used";
 
     private final Supplier<OSClient> osClient;
 
@@ -134,7 +132,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
         Long size) throws
         ContentAddressableStorageException {
 
@@ -149,9 +147,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (size != null && size > swiftLimit) {
             bigFile(containerName, objectName, stream, size);
         } else {
-            smallFile(containerName, objectName, stream, digestType);
+            smallFile(containerName, objectName, stream);
         }
-
+        return computeAndStoreDigestInMetadata(containerName, objectName, digestType);
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
@@ -188,9 +186,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     }
 
-    private void smallFile(String containerName, String objectName, InputStream stream, DigestType digestType)
-        throws ContentAddressableStorageException {
+    private void smallFile(String containerName, String objectName, InputStream stream) {
         osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+    }
+
+    private String computeAndStoreDigestInMetadata(String containerName, String objectName, DigestType digestType)
+        throws ContentAddressableStorageException {
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
         Map<String, String> metadataToUpdate = new HashMap<>();
@@ -204,11 +205,11 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
-
+        return digest;
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
@@ -218,14 +219,10 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
-        // Size in bytes ???
-        return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, object.download().getInputStream(),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(object));
-    }
 
-    @Override
-    public Response getObjectAsync(String containerName, String objectName) throws ContentAddressableStorageException {
-        return getObject(containerName, objectName);
+        long size = object.getSizeInBytes();
+        InputStream inputStream = object.download().getInputStream();
+        return new ObjectContent(inputStream, size);
     }
 
     @Override
@@ -269,24 +266,14 @@ public class Swift extends ContentAddressableStorageAbstract {
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
-        if (object == null) {
-            Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
-            if (metadata.size() > 2) {
-                result.setObjectName(containerName);
-                result.setDigest(null);
-                result.setFileSize(Long.valueOf(metadata.get(X_CONTAINER_BYTES_USED)));
-                result.setLastModifiedDate(null);
-            }
-        } else {
-            // ugly
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-            // ugly
-            result.setType(containerName.split("_")[1]);
-            result.setObjectName(objectId);
-            result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
-            result.setFileSize(object.getSizeInBytes());
-            result.setLastModifiedDate(object.getLastModified().toString());
-        }
+        // ugly
+        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        // ugly
+        result.setType(containerName.split("_")[1]);
+        result.setObjectName(objectId);
+        result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
+        result.setFileSize(object.getSizeInBytes());
+        result.setLastModifiedDate(object.getLastModified().toString());
         return result;
     }
 

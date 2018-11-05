@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -124,7 +125,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+    public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
         Long size)
         throws ContentAddressableStorageException {
         ParametersChecker
@@ -138,6 +139,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
             String digest = super.computeObjectDigest(containerName, objectName, digestType);
             storeDigest(containerName, objectName, digestType, digest);
+            return digest;
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
                 e);
@@ -147,7 +149,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
@@ -157,24 +159,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         try {
             SafeFileChecker.checkSafeFilePath(fsHelper.getPathContainer(containerName).toString(), objectName);
+            long size = Files.size(filePath);
             InputStream inputStream = Files.newInputStream(filePath);
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, inputStream,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                getXContentLengthHeader(filePath));
+            return new ObjectContent(inputStream, size);
         } catch (IOException e) {
             throw new ContentAddressableStorageException(
                 "I/O error on retrieving object " + objectName + " in the container " + containerName, e);
         }
-    }
-
-    // TODO : To be modified when there will be a real method in ContentAddressableStorageJcloudsAbstract
-    // TODO P1 : asyncResponse not used !
-    @Override
-    public Response getObjectAsync(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        return getObject(containerName, objectName);
     }
 
     @Override
@@ -185,7 +176,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         // Delete file
         try {
-            long size = Files.size(filePath);
             Files.delete(filePath);
         } catch (NoSuchFileException e) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName, e);
@@ -212,7 +202,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        Path filePath = null;
+        Path filePath;
         try {
             filePath = fsHelper.getPathObject(containerName, objectName);
         } catch (ContentAddressableStorageNotFoundException e) {// NOSONAR : not found => false
@@ -323,16 +313,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         File file = fsHelper.getPathObject(containerName, objectId).toFile();
         BasicFileAttributes basicAttribs = getFileAttributes(file);
         long size = Files.size(Paths.get(file.getPath()));
-        if (objectId != null) {
-            result.setObjectName(objectId);
-            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-            result.setDigest(
-                computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-            result.setFileSize(size);
-        } else {
-            result.setObjectName(containerName);
-            result.setDigest(null);
-        }
+        result.setObjectName(objectId);
+        // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+        result.setDigest(
+            computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+        result.setFileSize(size);
         // TODO see how to retrieve metadatas
         result.setType(containerName.split("_")[1]);
         result.setFileOwner("Vitam_" + containerName.split("_")[0]);

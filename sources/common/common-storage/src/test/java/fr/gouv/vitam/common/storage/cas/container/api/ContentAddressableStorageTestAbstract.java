@@ -126,8 +126,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, null);
         assertEquals(getInputStream("file2.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
-
+            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -167,7 +166,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
         assertEquals(getInputStream("file1.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
+            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
 
     @Test
@@ -250,28 +249,6 @@ public abstract class ContentAddressableStorageTestAbstract {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void getContainerInformationStorageNotFoundException() throws Exception {
         storage.getContainerInformation(CONTAINER_NAME);
-    }
-
-    @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
-        storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
-        final Digest digest = new Digest(ALGO);
-        digest.update(getInputStream("file1.pdf"));
-        assertTrue(storage.checkObject(CONTAINER_NAME, OBJECT_NAME, digest.toString(), ALGO));
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotExistingWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
-        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", DigestType.MD5);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckObjectThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
     }
 
     @Test

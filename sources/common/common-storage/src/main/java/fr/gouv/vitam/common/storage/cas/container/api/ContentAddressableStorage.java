@@ -87,17 +87,13 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void putObject(String containerName, String objectName, InputStream stream,
+    String putObject(String containerName, String objectName, InputStream stream,
         DigestType digestType, Long size)
         throws ContentAddressableStorageException;
 
     /**
      * Retrieves an object representing the data at location containerName/objectName
      * <p>
-     * <b>WARNING</b> : use this method only if the response has to be consumed right away. If the response has to be
-     * forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync}
-     * instead
-     * </p>
      *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
@@ -107,25 +103,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    Response getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-
-    // TODO P1 : getObjectAsync should replace getObject in the future. and
-    // getObject uses should be reviewed
-    // TODO P1 : asyncResponse not used !
-
-    /**
-     * Retrieves an object representing the data at location containerName/objectName
-     *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
-     * @return the object you intended to receive
-     *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
-     */
-    Response getObjectAsync(String containerName, String objectName)
+    ObjectContent getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
@@ -180,19 +158,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      */
     ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * Check object
-     *
-     * @param containerName the container name
-     * @param objectId the objectId to check
-     * @param digest the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
-     * @return true if the digest is correct
-     * @throws ContentAddressableStorageException Thrown when check action failed due some other failure
-     */
-    boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException;
 
     /**
      * get metadata of the object

@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -279,8 +280,10 @@ public class DefaultOfferServiceTest {
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
 
-        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
+        final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
         assertNotNull(response);
+        assertNotNull(response.getInputStream());
+        response.getInputStream().close();
     }
 
     private ObjectInit getObjectInit(boolean algo) throws IOException {
@@ -354,8 +357,10 @@ public class DefaultOfferServiceTest {
                 DataCategory.UNIT, null, VitamConfiguration.getDefaultDigestType());
 
         // check if the object has been created
-        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
+        final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
         assertNotNull(response);
+        assertNotNull(response.getInputStream());
+        response.getInputStream().close();
 
 
 
