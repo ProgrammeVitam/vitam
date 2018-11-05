@@ -33,7 +33,6 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -42,12 +41,12 @@ import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
@@ -105,7 +104,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
     // TODO: Manage interruption (if possible)
     @Override
     public ThreadResponseData call()
-        throws StorageException, StorageDriverException, StorageAlreadyExistsException, InterruptedException {
+        throws StorageException, StorageDriverException, InterruptedException {
         if (IS_JUNIT_MODE && request.getGuid().equals(TIMEOUT_TEST) && request.getTenantId() == 0) {
             LOGGER.info("Sleep for Junit test");
             Thread.sleep(2000);
@@ -131,15 +130,15 @@ public class TransferThread implements Callable<ThreadResponseData> {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
+
             // Check digest against offer
-            StorageCheckRequest storageCheckRequest =
-                new StorageCheckRequest(request.getTenantId(), request.getType(),
-                    request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()), globalDigest.digestHex());
-            if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
+            if (!globalDigest.digestHex().equals(putObjectResult.getDigestHashBase16())) {
                 LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
                     HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
-                throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content "
-                    + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
+                throw new StorageInconsistentStateException("[Driver:" + driver.getName() + "] Content "
+                    + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid()
+                    + " sent digest: " + globalDigest.digestHex()
+                    + " offer digest: " + putObjectResult.getDigestHashBase16());
             }
             response = new ThreadResponseData(
                 new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(),

@@ -633,23 +633,18 @@ public class DefaultOfferResourceTest {
     }
 
     @Test
-    public void checkObjectTestNotExisting() {
-        // no object -> 500
-        given().header(GlobalDataRest.X_TENANT_ID, 0).header(GlobalDataRest.X_DIGEST, "digest")
-            .header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
-            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(500);
+    public void checkObjectExistenceTestNotExisting() {
+        // no object -> 404
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(404);
     }
 
     @Test
-    public void checkObjectTestBadRequests() {
-        given().header(GlobalDataRest.X_DIGEST, "digest").header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
+    public void checkObjectExistenceTestBadRequest() {
+        // Missing tenant
+        given()
             .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(400);
-
-        given().header(GlobalDataRest.X_TENANT_ID, 0).header(GlobalDataRest.X_DIGEST, "digest")
-            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(500);
-
-        given().header(GlobalDataRest.X_TENANT_ID, 0).header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
-            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(500);
     }
 
     @Test
@@ -675,18 +670,9 @@ public class DefaultOfferResourceTest {
 
         checkOfferDatabaseExistingDocument("1_object", "id1");
 
-        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
-
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_DIGEST, "fakeDigest")
-            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-            //.header("Content-Length", "8766")
-            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(409);
-
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_DIGEST, digest.toString())
-            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
-            //.header("Content-Length", "8766")
-            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(200);
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, "1")
+            .head(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(204);
 
     }
 

@@ -64,8 +64,6 @@ import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -256,16 +254,6 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
             return "already_in_offer".equals(request.getGuid());
-        }
-
-        @Override
-        public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
-            if ("digest_bad_test".equals(request.getGuid())) {
-                throw new StorageDriverException("checkObject",
-                    "ExceptionTest");
-            }
-            return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
-                request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
 
         @Override

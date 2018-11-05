@@ -138,19 +138,6 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
-     * Check object
-     *
-     * @param containerName   the container name
-     * @param objectId        the objectId to check
-     * @param digest          the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
-     * @return true if the digest is correct
-     * @throws ContentAddressableStorageException
-     */
-    boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException;
-
-    /**
      * Deletes a object representing the data at location containerName/objectName
      *
      * @param containerName   container where this exists.
@@ -163,28 +150,6 @@ public interface DefaultOfferService {
     void deleteObject(String containerName, String objectId,
         DataCategory type)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-
-    /**
-     * Check digest (UNIMPLEMENTED)
-     *
-     * @param containerName the container name
-     * @param idObject      the objectId to check
-     * @param digest        the digest to be compared with
-     * @return true if the digest is correct
-     * @throws UnsupportedOperationException (UNIMPLEMENTED)
-     */
-    boolean checkDigest(String containerName, String idObject, String digest);
-
-    /**
-     * Check digest algorithm (UNIMPLEMENTED)
-     *
-     * @param containerName   the container name
-     * @param idObject        the objectId to check
-     * @param digestAlgorithm the digest Algorithm
-     * @return true if the digest algorithm is correct
-     * @throws UnsupportedOperationException (UNIMPLEMENTED)
-     */
-    boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
 
     /**
      * Get Metadata

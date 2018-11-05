@@ -193,25 +193,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException {
-        String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
-        return offerDigest.equals(digest);
-    }
-
-    @Override
-    public boolean checkDigest(String containerName, String idObject, String digest) {
-        LOGGER.error("Not yet implemented");
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm) {
-        LOGGER.error("Not yet implemented");
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
     public void deleteObject(String containerName, String objectId, DataCategory type)
         throws  ContentAddressableStorageException {
         if (!type.canDelete()) {

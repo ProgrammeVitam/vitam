@@ -491,8 +491,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @param type Object type to test
      * @param idObject the id of the object to be tested
      * @param xTenantId the id of the tenant
-     * @param xDigest the digest
-     * @param xDigestAlgorithm the digest algorithm
      * @return the response with a specific HTTP status. If none of DIGEST or
      * DIGEST_ALGORITHM headers is given, an existence test is done and
      * can return 204/404 as response. If only DIGEST or only
@@ -503,40 +501,20 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      */
     @HEAD
     @Path("/objects/{type}/{id:.+}")
-    public Response headObject(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_DIGEST) String
-        xDigest,
-        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
+    public Response checkObjectExistence(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         String containerName = buildContainerName(type, xTenantId);
-        Boolean checkDigest = !Strings.isNullOrEmpty(xDigest);
-        Boolean checkAlgo = !Strings.isNullOrEmpty(xDigestAlgorithm);
 
         try {
             SanityChecker.checkParameter(idObject);
-            boolean objectIsOK;
-            if (checkDigest && !checkAlgo) {
-                objectIsOK = defaultOfferService.checkDigest(containerName, idObject, xDigest);
-            } else if (checkAlgo && !checkDigest) {
-                objectIsOK = defaultOfferService.checkDigestAlgorithm(containerName, idObject,
-                    DigestType.fromValue(xDigestAlgorithm));
-            } else if (checkAlgo && checkDigest) {
-                objectIsOK = defaultOfferService.checkObject(containerName, idObject, xDigest,
-                    DigestType.fromValue(xDigestAlgorithm));
+            if (defaultOfferService.isObjectExist(containerName, idObject)) {
+                return Response.status(Response.Status.NO_CONTENT).build();
             } else {
-                if (defaultOfferService.isObjectExist(containerName, idObject)) {
-                    return Response.status(Response.Status.NO_CONTENT).build();
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-            }
-            if (objectIsOK) {
-                return Response.status(Status.OK).build();
-            } else {
-                return Response.status(Status.CONFLICT).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

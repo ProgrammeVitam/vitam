@@ -34,8 +34,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -112,15 +110,6 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException;
-
-    /**
-     * Check an object in order to validate its transfer
-     *
-     * @param request the request to send. It contains informations needed to check the object.
-     * @return a result that may contains information about the object check operation.
-     * @throws StorageDriverException if any problem occurs during request
-     */
-    StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException;
 
     /**
      * Get metadata of object
