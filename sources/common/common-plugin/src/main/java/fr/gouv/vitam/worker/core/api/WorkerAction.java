@@ -102,6 +102,6 @@ public interface WorkerAction {
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */
-    void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException;
+    default void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 
 }
