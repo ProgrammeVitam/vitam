@@ -1,0 +1,258 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+
+package fr.gouv.vitam.griffons.imagemagick;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.griffons.imagemagick.pojo.Action;
+import fr.gouv.vitam.griffons.imagemagick.pojo.BatchStatus;
+import fr.gouv.vitam.griffons.imagemagick.pojo.Input;
+import fr.gouv.vitam.griffons.imagemagick.pojo.Output;
+import fr.gouv.vitam.griffons.imagemagick.pojo.Outputs;
+import fr.gouv.vitam.griffons.imagemagick.pojo.Parameters;
+import fr.gouv.vitam.griffons.imagemagick.pojo.RawOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static fr.gouv.vitam.griffons.imagemagick.Main.ID;
+import static fr.gouv.vitam.griffons.imagemagick.Main.doneFileExt;
+import static fr.gouv.vitam.griffons.imagemagick.Main.readyFileExt;
+import static fr.gouv.vitam.griffons.imagemagick.PuidImageType.formatTypes;
+import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.ANALYSE;
+import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.EXTRACT;
+import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.GENERATE;
+import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.IDENTIFY;
+import static fr.gouv.vitam.griffons.imagemagick.status.AnalyseResult.NOT_VALID;
+import static fr.gouv.vitam.griffons.imagemagick.status.AnalyseResult.VALID_ALL;
+import static fr.gouv.vitam.griffons.imagemagick.status.AnalyseResult.WRONG_FORMAT;
+import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.OK;
+import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.WARNING;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
+public class BatchProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(BatchProcessor.class);
+
+    public static final String outputFilesDirName = "output-files";
+    public static final String parametersFileName = "parameters.json";
+    public static final String resultFileName = "result.json";
+    public static final String inputFilesDirName = "input-files";
+
+    private final String execPath;
+    private final ObjectMapper mapper;
+    private final Pattern fileMatch = Pattern.compile("[a-zA-Z0-9_.\\-]+");
+
+    public BatchProcessor(String execPath, ObjectMapper mapper) {
+        this.execPath = execPath;
+        this.mapper = mapper;
+    }
+
+    public BatchStatus execute(String batchProcessingId) throws IOException {
+        long startTime = System.currentTimeMillis();
+        try {
+            File file = Paths.get(execPath, ID, batchProcessingId, parametersFileName).toFile();
+            Parameters parameters = mapper.readValue(file, Parameters.class);
+
+            if (!batchProcessingId.equals(parameters.getId())) {
+                throw new Exception("Batch id must be same as in "+ parametersFileName);
+            }
+
+            Files.createDirectory(Paths.get(execPath, ID, batchProcessingId, outputFilesDirName));
+
+            List<Output> outputs = parameters.getInputs()
+                .stream()
+                .flatMap(input -> executeActions(input, parameters))
+                .collect(toList());
+
+            addToFile(outputs, parameters.getRequestId(), parameters.getId());
+
+            boolean isOutputsContainingError = outputs.stream().anyMatch(o -> o.getStatus() != OK);
+            if (isOutputsContainingError || outputs.isEmpty()) {
+                return BatchStatus.warning(batchProcessingId, startTime, "Batch result contains error or is empty.");
+            }
+            return BatchStatus.ok(batchProcessingId, startTime);
+        } catch (Exception e) {
+            logger.error("{}", e);
+            return BatchStatus.error(batchProcessingId, startTime, e);
+        } finally {
+            Files.delete(Paths.get(execPath, ID, batchProcessingId + readyFileExt));
+            Files.createFile(Paths.get(execPath, ID, batchProcessingId + doneFileExt));
+        }
+    }
+
+    private void addToFile(List<Output> outputs, String requestId, String id) throws IOException {
+        Map<String, List<Output>> outputsMap = outputs.stream()
+            .collect(toMap(o -> o.getInput().getName(), Collections::singletonList, (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
+        mapper.writer().writeValue(Paths.get(execPath, ID, id, resultFileName).toFile(), Outputs.of(requestId, id, outputsMap));
+    }
+
+    private Stream<Output> executeActions(Input input, Parameters parameters) {
+        return parameters.getActions()
+            .stream()
+            .map(action -> apply(action, input, parameters.getId()))
+            .map(raw -> postProcess(raw, parameters));
+    }
+
+    private RawOutput apply(Action action, Input input, String batchProcessingId) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getMagickParams(input, action, batchProcessingId));
+        try {
+            Process magick = processBuilder.start();
+            magick.waitFor();
+            return new RawOutput(magick, processBuilder, input, getOutputname(input.getName(), action), action);
+        } catch (Exception e) {
+            logger.error("{}", e);
+            return new RawOutput(e, processBuilder, input, getOutputname(input.getName(), action), action);
+        }
+    }
+
+    private String getOutputname(String inputname, Action actionType) {
+        if (actionType.getType().equals(ANALYSE)) {
+            return null;
+        }
+        if (actionType.getType().equals(EXTRACT)) {
+            return String.format("%s-%s.%s", actionType.getType().name(), inputname, "json");
+        }
+        if (actionType.getType().equals(GENERATE)) {
+            return String.format("%s-%s.%s", actionType.getType().name(), inputname, actionType.getValues().getExtension());
+        }
+        throw new IllegalStateException("Unreachable");
+    }
+
+    private List<String> getMagickParams(Input input, Action actionType, String batchProcessingId) {
+        if (actionType.getType() == null) {
+            throw new RuntimeException("Action type cannot be null nor empty");
+        }
+        if (actionType.getType() == IDENTIFY) {
+            throw new RuntimeException("Cannot IDENTIFY with imagemagick");
+        }
+        if (!fileMatch.matcher(input.getName()).matches()) {
+            throw new RuntimeException("filename must match " + fileMatch.pattern());
+        }
+
+        List<String> actionCommand = new ArrayList<>(actionType.getType().action);
+        actionCommand.replaceAll(c -> c.equals("%inputname%") ? Paths.get(execPath, ID, batchProcessingId, inputFilesDirName, input.getName()).toString() : c);
+        actionCommand.replaceAll(c -> c.equals("%outputname%") ? Paths.get(execPath, ID, batchProcessingId, outputFilesDirName, getOutputname(input.getName(), actionType)).toString() : c);
+        actionCommand.replaceAll(c -> c.equals("%format%:%inputname%") ? String.format("%s:%s", formatTypes.get(input.getFormatId()), Paths.get(execPath, ID, batchProcessingId, inputFilesDirName, input.getName()).toString()) : c);
+
+        int indexOf = actionCommand.indexOf("%args%");
+        if (indexOf != -1) {
+            actionCommand.remove(indexOf);
+            actionCommand.addAll(indexOf, actionType.getValues().getArgs());
+        }
+
+        return actionCommand;
+    }
+
+    private Output postProcess(RawOutput rawOutput, Parameters parameters) throws RuntimeException {
+        switch (rawOutput.action.getType()) {
+            case GENERATE:
+                return generate(rawOutput, parameters.isDebug());
+            case ANALYSE:
+                return analyze(rawOutput, parameters.isDebug());
+            case EXTRACT:
+                return extract(rawOutput, parameters.isDebug(), parameters.getId());
+            default:
+                throw new IllegalStateException("Unreachable");
+        }
+    }
+
+    private Output analyze(RawOutput rawOutput, boolean debug) {
+        if (rawOutput.exception != null) {
+            return rawOutput.toError(debug);
+        }
+        Output output = rawOutput.toOk(debug);
+        if (rawOutput.exitCode > 0) {
+            output.setAnalyseResult(WRONG_FORMAT);
+            return output;
+        }
+        String warning = WARNING.name().toLowerCase();
+        boolean outputContainsWarnings = rawOutput.stdout.toLowerCase().contains(warning) || rawOutput.stderr.toLowerCase().contains(warning);
+        if (outputContainsWarnings) {
+            output.setAnalyseResult(NOT_VALID);
+            return output;
+        }
+        output.setAnalyseResult(VALID_ALL);
+        return output;
+    }
+
+    private Output generate(RawOutput rawOutput, boolean debug) {
+        if (rawOutput.exception != null || rawOutput.exitCode > 0) {
+            return rawOutput.toError(debug);
+        }
+        String warning = WARNING.name().toLowerCase();
+        boolean outputContainsWarnings = rawOutput.stdout.toLowerCase().contains(warning) || rawOutput.stderr.toLowerCase().contains(warning);
+        if (outputContainsWarnings) {
+            return rawOutput.toWarning(debug);
+        }
+        return rawOutput.toOk(debug);
+    }
+
+    private Output extract(RawOutput rawOutput, boolean debug, String batchProcessingId) {
+        if (rawOutput.exception != null || rawOutput.exitCode > 0) {
+            return rawOutput.toError(debug);
+        }
+        try {
+            final ArrayNode metadata = (ArrayNode) this.mapper.readTree(rawOutput.stdout);
+            Set<Entry<String, String>> entries = rawOutput.action.getValues()
+                .getDataToExtract()
+                .entrySet();
+            Map<String, JsonNode> collect = entries.stream()
+                .map(e -> new SimpleImmutableEntry<>(e.getKey(), metadata.get(0).at(e.getValue())))
+                .collect(toMap(SimpleImmutableEntry::getKey, SimpleImmutableEntry::getValue));
+
+            this.mapper.writer()
+                .writeValue(Paths.get(execPath, ID, batchProcessingId, outputFilesDirName, rawOutput.outputName).toFile(), collect);
+
+            String warning = WARNING.name().toLowerCase();
+            boolean outputContainsWarnings = rawOutput.stdout.toLowerCase().contains(warning) || rawOutput.stderr.toLowerCase().contains(warning);
+            if (outputContainsWarnings) {
+                return rawOutput.toWarning(debug);
+            }
+            return rawOutput.toOk(debug);
+        } catch (IOException e) {
+            logger.error("{}", e);
+            return rawOutput.toError(debug, e.getMessage());
+        }
+    }
+}
