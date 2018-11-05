@@ -1,5 +1,5 @@
 Introduction
-============
+############
 
 L'élimination est un traitement de masse permettant d'évaluer dans un lot conséquent d'unités archivistiques, celles qui sont éliminables (la durée d'utilité adminstrative est échue et le sort final déclaré est "Détruire") et de procéder à leur élimination du système. 
 
@@ -7,15 +7,15 @@ Ces deux étapes ne sont pas liées, l'action d'élimination peut être exécut�
 
 
 Workflow d'analyse de l'élimination des unités archivistiques
-#############################################################
+=============================================================
 
 Lors de la phase d'analyse, le système va effectuer pour chaque unité archivistique une vérification de ses règles de gestion, qu'elles soient portées par l'unité ou héritée et indexer les résultats de ce calcul. Il calcule un statut global de l'unité archivistique et l'indexe pour les statuts DESTROY et CONFLICT 
 
 Processus de préparation de l'analyse de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_PREPARATION)
-=======================================================================================================================
+-----------------------------------------------------------------------------------------------------------------------
 
 Analyse de l'élimination des unités archivistiques ELIMINATION_ANALYSIS_PREPARATION
------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** :Analyse de l'élimination des unités archivistiques
 
@@ -48,7 +48,7 @@ Vérification des seuils de l'analyse de l'élimination des unités archivistiqu
 
 
 Préparation de l'analyse de l'élimination des unités archivistiques ELIMINATION_ANALYSIS_PREPARATION
-----------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Préparation de l'analyse de l'élimination des unités archivistiques
@@ -65,10 +65,10 @@ Préparation de l'analyse de l'élimination des unités archivistiques ELIMINATI
 
 
 Processus d'indexation de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_UNIT_INDEXATION)
-============================================================================================================
+------------------------------------------------------------------------------------------------------------
 
 Indexation de l''analyse d''élimination des unités archivistiques ELIMINATION_ANALYSIS_UNIT_INDEXATION
-------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Indexation des unités archivistiques qui répondent aux critères d'éliminabilité (règle de gestion APP dont la date de fin est antèrieure à la date données par l'analyse)
 
@@ -85,11 +85,11 @@ Indexation de l''analyse d''élimination des unités archivistiques ELIMINATION_
 
 
 Processus de finalisation de l'analyse de l'élimination des unités archivistiques (STP_ELIMINATION_ANALYSIS_FINALIZATION)
-=========================================================================================================================
+-------------------------------------------------------------------------------------------------------------------------
 
 
 Finalisation de l'analyse de l'élimination des unités archivistiques ELIMINATION_ANALYSIS_FINALIZATION
---------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Finalisation de l'analyse de l'élimination des unités archivistiques
 
@@ -106,24 +106,24 @@ Finalisation de l'analyse de l'élimination des unités archivistiques ELIMINATI
 
 
 Structure de workflow d'analyse de l'élimination des unités archivistiques
-==========================================================================
+--------------------------------------------------------------------------
 
 .. image:: images/workflow_elimination_analysis.png
     :align: center
 
 
 Workflow d'élimination définitive des unités archivistiques
-###########################################################
+===========================================================
 
 
 Le processus d'élimination comprend deux phases, une première d'analyse consistant à s'assurer du statut global des unités archivistiques et que l'élimination des unités archivistiques de statut "DESTROY" ne produit pas de cas d'orphelinage. La seconde comprenant la phase d'action proprement dite. 
 
 
 Analyse des éliminables et action d'élimination (ELIMINATION_ACTION)
-====================================================================
+---------------------------------------------------------------------
 
 Vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK)
------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Vérification des processus concurrents
 
@@ -142,7 +142,7 @@ Vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK)
 
 
 Vérification des seuils de l'élimination définitive des unités archivistiques ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD
------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Vérification des seuils de traitement des unités archivistiques par rapport à la liste des unités archivistiques à traiter
@@ -162,7 +162,7 @@ Vérification des seuils de l'élimination définitive des unités archivistique
 
 
 Préparation de l'élimination définitive des unités archivistiques ELIMINATION_ACTION_UNIT_PREPARATION
------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Préparation de l'élimination définitive des unités archivistiques (Vérification du statut global d'élimination et vérification d'orphelinage)
  
@@ -181,10 +181,10 @@ Préparation de l'élimination définitive des unités archivistiques ELIMINATIO
 
 
 Processus d'élimination définitive des unités archivistiques éliminables (STP_ELIMINATION_ACTION_DELETE_UNIT)
-=============================================================================================================
+-------------------------------------------------------------------------------------------------------------
 
 Élimination définitive des unités archivistiques éliminables ELIMINATION_ACTION_DELETE_UNIT
--------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Élimination définitive des unités archivistiques éliminables 
@@ -203,7 +203,7 @@ Processus d'élimination définitive des unités archivistiques éliminables (ST
 
 
 Établissement de la liste des objets  OBJECTS_LIST_EMPTY
---------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : établissement de la liste des objets, visible seulement lorsqu'il n'y a pas d'objet 
 
@@ -212,11 +212,11 @@ Processus d'élimination définitive des unités archivistiques éliminables (ST
   + WARNING : Le processus d'établissement de la liste des objets est en warning (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
 
 Processus de préparation de l'élimination définitive des groupes d'objets techniques (STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION)
-======================================================================================================================================
+---------------------------------------------------------------------------------------------------------------------------------------
 
 
 Préparation de l'élimination définitive des groupes d'objets techniques ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION
--------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Règle** : Processus de préparation de l'élimination définitive des groupes d'objets techniques
 
@@ -235,11 +235,11 @@ Préparation de l'élimination définitive des groupes d'objets techniques ELIMI
 
 
 Processus d'élimination définitive des groupes d'objets techniques dont les unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DELETE_OBJECT_GROUP)
-======================================================================================================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 Élimination définitive des groupes d'objets techniques dont toutes les unités archivistiques parentes sont éliminées ELIMINATION_ACTION_DELETE_OBJECT_GROUP
------------------------------------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Élimination définitive des groupes d'objets techniques dont toutes les unités archivistiques parentes sont éliminées
@@ -259,7 +259,7 @@ Processus d'élimination définitive des groupes d'objets techniques dont les un
 
 
 Établissement de la liste des objets  OBJECTS_LIST_EMPTY
----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Règle** : établissement de la liste des objets, visible seulement lorsqu'il n'y a pas d'objet 
 
@@ -271,10 +271,10 @@ Processus d'élimination définitive des groupes d'objets techniques dont les un
 
 
 Processus de détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées (STP_ELIMINATION_ACTION_DETACH_OBJECT_GROUP)
-==================================================================================================================================================================
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées ELIMINATION_ACTION_DETACH_OBJECT_GROUP
------------------------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Détachement des groupes d'objets techniques dont certaines unités archivistiques parentes sont éliminées
 
@@ -292,7 +292,7 @@ Détachement des groupes d'objets techniques dont certaines unités archivistiqu
 
 
 Établissement de la liste des objets  OBJECTS_LIST_EMPTY
----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : établissement de la liste des objets, visible seulement lorsqu'il n'y a pas d'objet 
 
@@ -304,11 +304,11 @@ Détachement des groupes d'objets techniques dont certaines unités archivistiqu
 
 
 Processus de mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION)
-=================================================================================================================================================================
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 Mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION
-----------------------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Préparation de la mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques
@@ -327,11 +327,11 @@ Mise à jour du registre des fonds suite à l'élimination définitive des unit�
 
 
 Processus de mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE)
-============================================================================================================================================================
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 Mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE
------------------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : Mise à jour du registre des fonds suite à l'élimination définitive des unités archivistiques
@@ -350,7 +350,7 @@ Mise à jour du registre des fonds suite à l'élimination définitive des unit�
 
 
 ÉÉtablissement de la liste des objets  OBJECTS_LIST_EMPTY
----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : établissement de la liste des objets, visible seulement lorsqu'il n'y a pas d'objet 
 
@@ -361,11 +361,11 @@ Mise à jour du registre des fonds suite à l'élimination définitive des unit�
 
 
 Processus de génération du rapport d'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_REPORT_GENERATION)
-================================================================================================================================
+---------------------------------------------------------------------------------------------------------------------------------
 
 
 Génération du rapport d'élimination définitive des unités archivistiques ELIMINATION_ACTION_REPORT_GENERATION
--------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : génération du rapport d'élimination définitive des unités archivistiques
 
@@ -384,11 +384,11 @@ Génération du rapport d'élimination définitive des unités archivistiques EL
 
 
 Processus de finalisation de l'élimination définitive des unités archivistiques (STP_ELIMINATION_ACTION_FINALIZATION)
-=====================================================================================================================
+-----------------------------------------------------------------------------------------------------------------------
 
 
 Finalisation de l'élimination définitive des unités archivistiques ELIMINATION_ACTION_FINALIZATION
----------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 + **Règle** : élimination définitive des unités archivistiques
@@ -408,7 +408,7 @@ Finalisation de l'élimination définitive des unités archivistiques ELIMINATIO
 
 
 Structure du workflow d'analyse des éliminables et action d'élimination 
-=======================================================================
+-------------------------------------------------------------------------
 
 
 .. image:: images/workflow_elimination_action.png
@@ -416,12 +416,12 @@ Structure du workflow d'analyse des éliminables et action d'élimination
 
 
 Rapport d'élimination
-######################
+======================
 
 Le rapport d’élimination est un fichier JSON généré par la solution logicielle Vitam lorsqu’une opération d’élimination se termine. Cette section décrit la manière dont ce rapport est structuré.
 
 Exemple de JSON : rapport d'élimination
-=======================================
+----------------------------------------
 
 .. code-block:: json
   
@@ -488,7 +488,7 @@ Exemple de JSON : rapport d'élimination
 
 
 Détails du rapport
-==================
+-------------------
 
 - **Première partie : les unités archivistiques** 
 
@@ -496,11 +496,13 @@ Détails du rapport
   + "originatingAgency" : service producteur
   + "opi" : identifiant de l'opération d'entrée
   + "status" : statut au regard de l'action d'élimination :
-	
-	  - GLOBAL_STATUS_KEEP : unité archivistique non éliminables au regard des règles de gestion. 
-	  - GLOBAL_STATUS_CONFLICT : unité archivistique portant des règles contradictoires. 
-        - NOT_DESTROYABLE_HAS_CHILD_UNIT : unité non supprimable car elle a des enfants et sa suppression entrînerait une incohérence dans le graph.
-        - DELETED : l'unité a effectivment été supprimée
+
+    + **GLOBAL_STATUS_KEEP** : unité archivistique non éliminables au regard des règles de gestion.
+    + **GLOBAL_STATUS_CONFLICT** : unité archivistique portant des règles contradictoires
+
+      + NOT_DESTROYABLE_HAS_CHILD_UNIT : unité non supprimable car elle a des enfants et sa suppression entrînerait une incohérence dans le graph.
+      + DELETED : l'unité a effectivment été supprimée
+
 
   + "objectIds": identifiant du GOT rattaché à l'unité archivistique
 
@@ -512,6 +514,5 @@ Détails du rapport
   + "objectIds": identifiant des objets du GOT
   + "status" : statut au regard de l'action d'élimination :
 
-
-        - DELETED : le Got a été supprimé
-        - PARTIAL_DETACHEMENT : le GOT est détaché de la ou des unités archivistiques effectivement supprimés et conserve un ou plusieurs autres parents. 
+    - DELETED : le Got a été supprimé
+    - PARTIAL_DETACHEMENT : le GOT est détaché de la ou des unités archivistiques effectivement supprimés et conserve un ou plusieurs autres parents. 
