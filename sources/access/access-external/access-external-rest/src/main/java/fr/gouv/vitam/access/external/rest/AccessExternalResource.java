@@ -54,12 +54,10 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
-import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -69,7 +67,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -147,20 +144,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = null;
-            try {
-                result = client.selectUnits(queryJson);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(UNITS)
-                        .setState(CODE_VITAM)
-                        .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase()))
-                    .build();
-            }
+            RequestResponse<JsonNode>  result = client.selectUnits(queryJson);
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {

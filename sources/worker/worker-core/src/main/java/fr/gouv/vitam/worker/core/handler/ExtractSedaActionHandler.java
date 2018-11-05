@@ -77,7 +77,6 @@ import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -90,7 +89,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
 import fr.gouv.vitam.common.graph.Graph;
@@ -2945,7 +2943,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 attachmentNode.add(auToBeChecked);
             }
         } catch (InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException |
-                MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                MetaDataClientServerException | InvalidParseOperationException e) {
             LOGGER.error("error while checking unit", e);
             throw new ProcessingUnitLinkingException("Unit could not be attached", e);
         }

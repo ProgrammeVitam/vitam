@@ -54,7 +54,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -936,7 +935,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 return metadataClient.selectUnits(selectMultiQuery.getFinalSelect());
             }
 
-        } catch (final MetaDataException | VitamDBException e) {
+        } catch (final MetaDataException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
 

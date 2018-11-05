@@ -278,7 +278,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = VitamDBException.class)
+    @Test(expected = AccessInternalClientServerException.class)
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);

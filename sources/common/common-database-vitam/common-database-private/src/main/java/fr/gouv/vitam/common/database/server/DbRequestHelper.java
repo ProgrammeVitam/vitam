@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;

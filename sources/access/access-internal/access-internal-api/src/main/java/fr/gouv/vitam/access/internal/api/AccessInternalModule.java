@@ -55,7 +55,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     JsonNode selectUnit(JsonNode queryJson)
-        throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException;
+        throws InvalidParseOperationException, AccessInternalExecutionException;
 
     /**
      * select Unit by id

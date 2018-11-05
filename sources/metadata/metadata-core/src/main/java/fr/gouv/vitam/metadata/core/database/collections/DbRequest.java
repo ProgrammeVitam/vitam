@@ -119,6 +119,7 @@ import fr.gouv.vitam.metadata.core.graph.GraphService;
  * DB Request using MongoDB only
  */
 public class DbRequest {
+
     private static final String QUERY2 = "query: ";
 
     private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
@@ -139,7 +140,7 @@ public class DbRequest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
     private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
-        "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
+            "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private GraphService graphService;
 
@@ -160,14 +161,14 @@ public class DbRequest {
      *
      * @param requestParser the RequestParserMultiple to execute
      * @return the Result
-     * @throws MetaDataExecutionException when select/update/delete on metadata collection exception occurred
+     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
     public Result execRequest(final RequestParserMultiple requestParser)
-        throws MetaDataExecutionException,
-        InvalidParseOperationException, BadRequestException,
-        VitamDBException {
+            throws MetaDataExecutionException,
+            InvalidParseOperationException, BadRequestException,
+            VitamDBException {
         final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
@@ -194,12 +195,12 @@ public class DbRequest {
                 checkConsistency = true;
             } else {
                 LOGGER.debug(
-                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
+                        NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(requestParser.model())
-                    .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
-                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                    .addError(WHERE_PREVIOUS_RESULT_WAS + result).setTotal(newResult != null ? newResult.total : 0);
+                        .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
+                        .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                        .addError(WHERE_PREVIOUS_RESULT_WAS + result).setTotal(newResult != null ? newResult.total : 0);
                 return result;
             }
             LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
@@ -210,24 +211,24 @@ public class DbRequest {
             final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result);
             if (newResult == null) {
                 LOGGER.debug(
-                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
+                        NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(result.type)
-                    .addError(result.getCurrentIds().toString())
-                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
+                        .addError(result.getCurrentIds().toString())
+                        .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                        .addError(WHERE_PREVIOUS_RESULT_WAS + result);
                 return result;
             }
             if (!newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
                 LOGGER.debug(
-                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
+                        NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
-                    .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
-                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
+                        .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
+                        .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                        .addError(WHERE_PREVIOUS_RESULT_WAS + result);
                 return result;
             }
             LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
@@ -237,20 +238,20 @@ public class DbRequest {
             LOGGER.debug(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
             // XXX TODO P1 should be adapted to have a correct error feedback
             result = new ResultError(result.type)
-                .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
-                .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                .addError(WHERE_PREVIOUS_RESULT_WAS + result);
+                    .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
+                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
         }
         if (request instanceof UpdateMultiQuery) {
             final Result<MetadataDocument<?>> newResult =
-                lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
+                    lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
             if (newResult != null) {
                 result = newResult;
             }
         } else if (request instanceof DeleteMultiQuery) {
             final Result<MetadataDocument<?>> newResult =
-                lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
+                    lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
             }
@@ -259,7 +260,7 @@ public class DbRequest {
             // get facets
             // get result
             final Result<MetadataDocument<?>> newResult =
-                lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result, checkConsistency);
+                    lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result, checkConsistency);
 
             if (newResult != null) {
                 result = newResult;
@@ -301,23 +302,22 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current set of result id
+     * @param current         set of result id
      * @param defaultStartSet
      * @return the valid root ids set
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current,
-        final Result<MetadataDocument<?>> defaultStartSet) {
+                                                final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
             return current;
         }
         // TODO P1 add unit tests
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
-                MongoDbMetadataHelper.ID_PROJECTION);
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
+                        MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
+                        MongoDbMetadataHelper.ID_PROJECTION);
         final Set<String> newRoots = new HashSet<>();
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
@@ -332,17 +332,17 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank current rank query
-     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     * @param rank             current rank query
+     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> executeQuery(final RequestParserMultiple requestParser,
-        final RequestToAbstract requestToMongodb, final int rank,
-        final Result<MetadataDocument<?>> previous)
-        throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
+                                                       final RequestToAbstract requestToMongodb, final int rank,
+                                                       final Result<MetadataDocument<?>> previous)
+            throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         final boolean isLastQuery = requestToMongodb.getNbQueries() == rank + 1;
         List<SortBuilder> sorts = null;
@@ -356,9 +356,9 @@ public class DbRequest {
         if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
             VitamCollection.setMatch(false);
             sorts =
-                QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
-                    collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
-                        : MetadataCollections.OBJECTGROUP.useScore());
+                    QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
+                            collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
+                                    : MetadataCollections.OBJECTGROUP.useScore());
             if (FILTERARGS.UNITS.equals(collectionType)) {
                 facets = QueryToElasticsearch.getFacets(requestParser);
             }
@@ -402,18 +402,18 @@ public class DbRequest {
                     // Exact Depth request (descending)
                     LOGGER.debug("Unit Exact Depth request (descending)");
                     result = exactDepthUnitQuery(realQuery, previous, exactDepth, tenantId, sorts,
-                        offset, limit, facets, scrollId, scrollTimeout);
+                            offset, limit, facets, scrollId, scrollTimeout);
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
                     result =
-                        relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts,
-                            offset, limit, facets, scrollId, scrollTimeout);
+                            relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts,
+                                    offset, limit, facets, scrollId, scrollTimeout);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
                     result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset,
-                        limit, facets, scrollId, scrollTimeout);
+                            limit, facets, scrollId, scrollTimeout);
                 }
             } else {
                 // OBJECTGROUPS
@@ -421,7 +421,7 @@ public class DbRequest {
                 // FIXME later on see if we should support depth
                 LOGGER.debug("ObjectGroup No depth at all");
                 result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
-                    limit, scrollId, scrollTimeout);
+                        limit, scrollId, scrollTimeout);
             }
         } finally {
             previous.clear();
@@ -446,30 +446,30 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
+                                                              int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                              final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+            throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
-            new BoolQueryBuilder().must(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(exactDepth).gte(0))
-                .must(QueryBuilders.rangeQuery(Unit.MINDEPTH).lte(exactDepth).gte(0));
+                new BoolQueryBuilder().must(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(exactDepth).gte(0))
+                        .must(QueryBuilders.rangeQuery(Unit.MINDEPTH).lte(exactDepth).gte(0));
         if (!previous.getCurrentIds().isEmpty()) {
             roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds()));
         }
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery))
-            .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
-            .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
+                .must(QueryToElasticsearch.getCommand(realQuery))
+                .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
+                .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
         final Result<MetadataDocument<?>> result =
-            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
+                        VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("UnitExact: {}", result);
@@ -494,15 +494,15 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
-        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
+                                                                 int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
+                                                                 final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+            throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery));
+                .must(QueryToElasticsearch.getCommand(realQuery));
 
         if (previous.getCurrentIds().isEmpty()) {
             if (relativeDepth < 1) {
@@ -533,8 +533,8 @@ public class DbRequest {
         }
 
         final Result<MetadataDocument<?>> result =
-            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
+                        VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("UnitRelative: {}", result);
@@ -556,21 +556,19 @@ public class DbRequest {
         final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
         final Bson group = group(new BasicDBObject(MetadataDocument.ID, "all"),
-            addToSet(DEPTH_ARRAY, BuilderToken.DEFAULT_PREFIX + Unit.UNITDEPTHS));
+                addToSet(DEPTH_ARRAY, BuilderToken.DEFAULT_PREFIX + Unit.UNITDEPTHS));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Depth: {} {}", MongoDbHelper.bsonToString(match, false),
-                MongoDbHelper.bsonToString(group, false));
+                    MongoDbHelper.bsonToString(group, false));
         }
         final List<Bson> pipeline = Arrays.asList(match, group);
-        @SuppressWarnings("unchecked")
-        final AggregateIterable<Unit> aggregateIterable =
-            MetadataCollections.UNIT.getCollection().aggregate(pipeline);
+        @SuppressWarnings("unchecked") final AggregateIterable<Unit> aggregateIterable =
+                MetadataCollections.UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
-            @SuppressWarnings("unchecked")
-            final List<Map<String, List<String>>> array =
-                (List<Map<String, List<String>>>) aggregate.get(DEPTH_ARRAY);
+            @SuppressWarnings("unchecked") final List<Map<String, List<String>>> array =
+                    (List<Map<String, List<String>>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
             for (final Map<String, List<String>> map : array) {
                 for (final String key : map.keySet()) {
@@ -602,9 +600,9 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
+                                                             Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                             final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+            throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
         QueryBuilder finalQuery;
@@ -618,19 +616,19 @@ public class DbRequest {
         if (tenantId != null) {
             // lets add the query on the tenant
             finalQuery = new BoolQueryBuilder().must(finalQuery)
-                .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
+                    .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
     }
 
     /**
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous units, Note: only immediate Unit parents are allowed
+     * @param previous  units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
@@ -641,9 +639,9 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
+                                                           Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+                                                           final String scrollId, final Integer scrollTimeout)
+            throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
         QueryBuilder finalQuery;
@@ -661,12 +659,12 @@ public class DbRequest {
         if (tenantId != null) {
             // lets add the query on the tenant
             finalQuery = new BoolQueryBuilder().must(finalQuery)
-                .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
+                    .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, null, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, null, scrollId, scrollTimeout);
     }
 
     /**
@@ -678,8 +676,8 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last, boolean checkConsistency)
-        throws InvalidParseOperationException, VitamDBException {
+                                                                     Result<MetadataDocument<?>> last, boolean checkConsistency)
+            throws InvalidParseOperationException, VitamDBException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson projection = requestToMongodb.getFinalProjection();
         final boolean isIdIncluded = requestToMongodb.idWasInProjection();
@@ -687,14 +685,13 @@ public class DbRequest {
         final List<String> desynchronizedResults = new ArrayList<>();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("To Select: " + MongoDbHelper.bsonToString(roots, false) + " " +
-                (projection != null ? MongoDbHelper.bsonToString(projection, false) : ""));
+                    (projection != null ? MongoDbHelper.bsonToString(projection, false) : ""));
         }
         if (model == FILTERARGS.UNITS) {
             final Map<String, Unit> units = new HashMap<>();
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                    roots, projection, null, -1, -1);
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
+                            roots, projection, null, -1, -1);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
@@ -707,7 +704,7 @@ public class DbRequest {
                 Unit unit = units.get(id);
                 if (unit != null) {
                     if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
-                        requestToMongodb.isScoreIncluded()) {
+                            requestToMongodb.isScoreIncluded()) {
                         Float score = Float.valueOf(1);
                         try {
                             score = last.scores.get(i);
@@ -729,26 +726,25 @@ public class DbRequest {
                     desynchronizedResults.add(id);
                     // desynchronization logs
                     LOGGER.error(String.format(
-                        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
-                        id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
+                            CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
+                            id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
                 }
             }
 
             // As soon as we detect a synchronization error MongoDB / ES, we return an error.
             if (!desynchronizedResults.isEmpty()) {
                 throw new VitamDBException(
-                    "[Consistency ERROR] : An internal data consistency error has been detected !");
+                        "[Consistency ERROR] : An internal data consistency error has been detected !");
             }
 
             return last;
         }
         // OBJECTGROUPS:
         final Map<String, ObjectGroup> obMap = new HashMap<>();
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-                MetadataCollections.OBJECTGROUP,
-                roots, projection, null, -1, -1);
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
+                (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
+                        MetadataCollections.OBJECTGROUP,
+                        roots, projection, null, -1, -1);
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final ObjectGroup og = cursor.next();
@@ -761,7 +757,7 @@ public class DbRequest {
             ObjectGroup og = obMap.get(id);
             if (og != null) {
                 if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
-                    requestToMongodb.isScoreIncluded()) {
+                        requestToMongodb.isScoreIncluded()) {
                     Float score = Float.valueOf(1);
                     try {
                         score = last.scores.get(i);
@@ -782,15 +778,15 @@ public class DbRequest {
                 desynchronizedResults.add(id);
                 // desynchronization logs
                 LOGGER.error(String.format(
-                    CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
-                    id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
+                        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
+                        id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
             }
         }
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!desynchronizedResults.isEmpty()) {
             throw new VitamDBException(
-                "[Consistency ERROR] : An internal data consistency error has been detected !");
+                    "[Consistency ERROR] : An internal data consistency error has been detected !");
         }
 
         return last;
@@ -808,9 +804,9 @@ public class DbRequest {
      * @throws MetadataInvalidUpdateException
      */
     protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last,
-        RequestParserMultiple requestParser)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetadataInvalidUpdateException {
+                                                                     Result<MetadataDocument<?>> last,
+                                                                     RequestParserMultiple requestParser)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetadataInvalidUpdateException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final FILTERARGS model = requestToMongodb.model();
@@ -824,7 +820,7 @@ public class DbRequest {
 
         if (!requestToMongodb.isMultiple() && last.getNbResult() > 1) {
             throw new MetadataInvalidUpdateException(
-                "Update Request is not multiple but found multiples entities to update");
+                    "Update Request is not multiple but found multiples entities to update");
         }
         final List<MetadataDocument<?>> listDocuments = new ArrayList<>();
         final FindIterable<MetadataDocument<?>> searchResults = collection.find(roots);
@@ -855,7 +851,7 @@ public class DbRequest {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("DEBUG update {} to udate to {}", jsonDocument,
-                        MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
+                            MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 requestToMongodb.getFinalUpdateActions();
@@ -867,9 +863,9 @@ public class DbRequest {
 
                     if (model == FILTERARGS.UNITS) {
                         JsonNode externalSchema =
-                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                                updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
                         JsonNode ontologyFields =
-                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
+                                updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
                         if (ontologyFields != null && ontologyFields.size() > 0) {
                             validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
                             documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
@@ -879,7 +875,7 @@ public class DbRequest {
                         SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
-                                "Unable to validate updated Unit " + status.getValidationMessage());
+                                    "Unable to validate updated Unit " + status.getValidationMessage());
                         }
                         if (externalSchema != null && externalSchema.size() > 0) {
                             validateOtherExternalSchema(updatedJsonDocument, externalSchema);
@@ -889,7 +885,7 @@ public class DbRequest {
 
                     // Make Update
                     final Bson condition =
-                        and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
+                            and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
                     updatedJsonDocument.remove(VitamDocument.SCORE);
                     LOGGER.debug("DEBUG update {}", updatedJsonDocument);
                     result = collection.replaceOne(condition, documentFinal);
@@ -924,20 +920,20 @@ public class DbRequest {
     }
 
     private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+            throws InvalidParseOperationException, MetaDataExecutionException {
         try {
             SchemaValidationUtils validatorSecond =
-                new SchemaValidationUtils(
-                    schema.isArray()
-                        ? schema.get(0).asText()
-                        : schema.asText(),
-                    true);
+                    new SchemaValidationUtils(
+                            schema.isArray()
+                                    ? schema.get(0).asText()
+                                    : schema.asText(),
+                            true);
             updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
             SchemaValidationStatus secondstatus =
-                validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
+                    validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
             if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
                 throw new MetaDataExecutionException(
-                    "Unable to validate updated Unit " + secondstatus.getValidationMessage());
+                        "Unable to validate updated Unit " + secondstatus.getValidationMessage());
             }
         } catch (FileNotFoundException | ProcessingException e) {
             LOGGER.debug("Unable to initialize External Json Validator");
@@ -946,8 +942,8 @@ public class DbRequest {
     }
 
     private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
-        SchemaValidationUtils validator)
-        throws MetaDataExecutionException {
+                                           SchemaValidationUtils validator)
+            throws MetaDataExecutionException {
         String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
         Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
         try {
@@ -971,7 +967,7 @@ public class DbRequest {
             // archive unit could not be transformed, so the error would be thrown later by the schema
             // validation verification
             String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                String.join(",", errors.toString());
+                    String.join(",", errors.toString());
             LOGGER.error(error);
             throw new MetaDataExecutionException(error);
         }
@@ -990,14 +986,13 @@ public class DbRequest {
         }
         if (last.getCurrentIds().size() == 1) {
             finalQuery = and(eq(MetadataDocument.ID, last.getCurrentIds().iterator().next()),
-                eq(MetadataDocument.TENANT_ID, tenantId));
+                    eq(MetadataDocument.TENANT_ID, tenantId));
         } else {
             finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
-                eq(MetadataDocument.TENANT_ID, tenantId));
+                    eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+                .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             MetadataCollections.UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor, tenantId);
@@ -1023,10 +1018,9 @@ public class DbRequest {
         } else {
             finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-                .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
+                (FindIterable<ObjectGroup>) MongoDbMetadataHelper
+                        .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             MetadataCollections.OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);
@@ -1071,21 +1065,21 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
-     * @throws MetaDataNotFoundException when metadata not found exception
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataNotFoundException      when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
-        throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
-        MetaDataAlreadyExistException {
+            throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
+            MetaDataAlreadyExistException {
 
         LOGGER.debug("Exec db insert unit request: %s", requestParser);
 
         try {
 
             final InsertToMongodb requestToMongodb =
-                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
+                    (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
 
             final Unit unit = new Unit(requestToMongodb.getFinalData());
 
@@ -1098,26 +1092,26 @@ public class DbRequest {
 
             final Integer tenantId = ParameterHelper.getTenantParameter();
             MetadataCollections.UNIT.getEsClient()
-                .insertFullDocument(MetadataCollections.UNIT, tenantId, unitId,
-                    unit);
+                    .insertFullDocument(MetadataCollections.UNIT, tenantId, unitId,
+                            unit);
 
             String ogId = unit.getString(MetadataDocument.OG);
             if (StringUtils.isNotEmpty(ogId)) {
 
                 final ObjectGroup objectGroup =
-                    (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
+                        (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
                 if (objectGroup == null) {
                     throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
-                        " from " + unitId);
+                            " from " + unitId);
                 }
 
                 objectGroup.buildParentGraph(unit);
                 MetadataCollections.OBJECTGROUP.getCollection().findOneAndReplace(
-                    eq(VitamDocument.ID, ogId), objectGroup);
+                        eq(VitamDocument.ID, ogId), objectGroup);
 
                 MetadataCollections.OBJECTGROUP.getEsClient()
-                    .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
-                        objectGroup);
+                        .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
+                                objectGroup);
             }
 
         } catch (final MongoWriteException e) {
@@ -1131,19 +1125,19 @@ public class DbRequest {
      * Inserts an object group
      *
      * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
      */
     public void execInsertObjectGroupRequest(InsertParserMultiple requestParser)
-        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
+            throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
 
         LOGGER.debug("Exec db insert object group request: %s", requestParser);
 
         try {
 
             final InsertToMongodb requestToMongodb =
-                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
+                    (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
 
             final ObjectGroup og = new ObjectGroup(requestToMongodb.getFinalData());
 
@@ -1153,7 +1147,7 @@ public class DbRequest {
 
             final Integer tenantId = ParameterHelper.getTenantParameter();
             MetadataCollections.OBJECTGROUP.getEsClient()
-                .insertFullDocument(MetadataCollections.OBJECTGROUP, tenantId, odId, og);
+                    .insertFullDocument(MetadataCollections.OBJECTGROUP, tenantId, odId, og);
 
         } catch (final MongoWriteException e) {
             throw e;
@@ -1172,21 +1166,21 @@ public class DbRequest {
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastDeleteFilterProjection(DeleteToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+                                                                     Result<MetadataDocument<?>> last)
+            throws InvalidParseOperationException, MetaDataExecutionException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
         }
         if (!requestToMongodb.isMultiple() && last.getNbResult() > 1) {
             throw new MetaDataExecutionException(
-                "Delete Request is not multiple but found multiples entities to delete");
+                    "Delete Request is not multiple but found multiples entities to delete");
         }
         final FILTERARGS model = requestToMongodb.model();
         try {
             if (model == FILTERARGS.UNITS) {
                 final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.UNIT,
-                    roots, last.getCurrentIds().size());
+                        roots, last.getCurrentIds().size());
                 if (result.getDeletedCount() != last.getNbResult()) {
                     LOGGER.warn("Deleted items different than specified");
                 }
@@ -1196,8 +1190,8 @@ public class DbRequest {
             // TODO P1 add unit tests
             // OBJECTGROUPS:
             final DeleteResult result =
-                MongoDbMetadataHelper.delete(MetadataCollections.OBJECTGROUP,
-                    roots, last.getCurrentIds().size());
+                    MongoDbMetadataHelper.delete(MetadataCollections.OBJECTGROUP,
+                            roots, last.getCurrentIds().size());
             if (result.getDeletedCount() != last.getNbResult()) {
                 LOGGER.warn("Deleted items different than specified");
             }
