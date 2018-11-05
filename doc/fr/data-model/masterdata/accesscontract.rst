@@ -120,28 +120,32 @@ Détail des champs
   * La date est au format ISO 8601 et prend la forme suivante :
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-  ``"CreationDate": "2017-04-10T11:30:33.798"``
+
+``"CreationDate": "2017-04-10T11:30:33.798"``
 
 **"LastUpdate":** date de dernière mise à jour du contrat dans la collection AccesContrat.
 
   * La date est au format ISO 8601 et prend la forme suivante :
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-  ``"LastUpdate": "2017-04-10T11:30:33.798"``
+
+``"LastUpdate": "2017-04-10T11:30:33.798"``
 
 **"ActivationDate":** date d'activation du contrat.
 
   * La date est au format ISO 8601 et prend la forme suivante :
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-  ``"ActivationDate": "2017-04-10T11:30:33.798"``
+
+``"ActivationDate": "2017-04-10T11:30:33.798"``
 
 **"DeactivationDate":** date de désactivation du contrat.
 
   * La date est au format ISO 8601 et prend la forme suivante :
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
-  ``"DeactivationDate": "2017-04-10T11:30:33.798"``
+
+``"DeactivationDate": "2017-04-10T11:30:33.798"``
 
 **"DataObjectVersion":** types d'usages des groupes d'objets auxquels le détenteur du contrat a accès.
 

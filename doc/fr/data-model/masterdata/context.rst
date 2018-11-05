@@ -179,25 +179,29 @@ Détail des champs
 
   * Il s'agit d'une date au format ISO 8601
   * Cardinalité : 1-1
-  ``"CreationDate": "2017-04-10T11:30:33.798",``
+
+``Exemple : "CreationDate": "2017-04-10T11:30:33.798",``
 
 **"LastUpdate":** date de dernière modification du contexte applicatif.
 
   * Il s'agit d'une date au format ISO 8601
   * Cardinalité : 1-1
-  ``"LastUpdate": "2017-04-10T11:30:33.798",``
+
+``Exemple : "LastUpdate": "2017-04-10T11:30:33.798",``
 
 **"ActivationDate":** date d'activation du contexte applicatif.
 
   * La date est au format ISO 8601
   * Cardinalité : 0-1
-  ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
+
+``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
 
 **"DeactivationDate":** date de désactivation du contexte applicatif.
 
   * La date est au format ISO 8601
   * Cardinalité : 0-1
-  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
+
+``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
 
 
 **"_v":**  version de l'enregistrement décrit

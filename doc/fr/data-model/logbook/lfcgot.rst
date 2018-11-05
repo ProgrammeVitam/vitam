@@ -123,6 +123,7 @@ Détail des champs du JSON stocké en base
     * Ce champ est positionné par le client LogBook.
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
+
 ``Exemple : "2016-08-17T08:26:04.227"``.
 
 
@@ -173,7 +174,8 @@ Détail des champs du JSON stocké en base
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     * Cardinalité : 1-1
     * Ce champ existe pour les structures incluantes et incluses.
-    ``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
+
+``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
 
 **"obId" (object Identifier):** identifiant de la solution logicielle Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
@@ -216,7 +218,9 @@ Détail des champs du JSON stocké en base
 
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     * Elle est renseignée par le serveur Logbook.
-      ``Exemple : "2016-08-17T08:26:04.227"``
+
+``Exemple : "2016-08-17T08:26:04.227"``
+
     * Cardinalité : 1-1
     * Ce champ existe uniquement pour la structure incluante.
 
