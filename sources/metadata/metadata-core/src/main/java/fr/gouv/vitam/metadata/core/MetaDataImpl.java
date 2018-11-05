@@ -140,7 +140,7 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(insertRequest);
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
-        } catch (InstantiationException | IllegalAccessException | BadRequestException e) {
+        } catch (BadRequestException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
@@ -162,7 +162,7 @@ public class MetaDataImpl implements MetaData {
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
-        } catch (InstantiationException | IllegalAccessException | BadRequestException | VitamDBException e) {
+        } catch (BadRequestException | VitamDBException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
@@ -300,7 +300,7 @@ public class MetaDataImpl implements MetaData {
             if (shouldComputeUnitRule && result.hasFinalResult()) {
                 computeRuleForUnit(arrayNodeResponse);
             }
-        } catch (InstantiationException | IllegalAccessException | MetaDataAlreadyExistException e) {
+        } catch (MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         } catch (final MetaDataNotFoundException e) {
@@ -348,9 +348,8 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | BadRequestException | MetaDataAlreadyExistException |
-            MetaDataNotFoundException |
-            IllegalAccessException e) {
+        } catch (final BadRequestException | MetaDataAlreadyExistException |
+            MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -397,8 +396,7 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | BadRequestException | MetaDataAlreadyExistException |
-            IllegalAccessException e) {
+        } catch (final BadRequestException | MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }

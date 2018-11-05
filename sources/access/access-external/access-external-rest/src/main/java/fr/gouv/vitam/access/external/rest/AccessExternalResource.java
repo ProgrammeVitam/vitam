@@ -67,7 +67,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -145,20 +144,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = null;
-            try {
-                result = client.selectUnits(queryJson);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(UNITS)
-                        .setState(CODE_VITAM)
-                        .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase()))
-                    .build();
-            }
+            RequestResponse<JsonNode>  result = client.selectUnits(queryJson);
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {

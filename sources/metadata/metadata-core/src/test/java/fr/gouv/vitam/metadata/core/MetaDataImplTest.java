@@ -101,10 +101,8 @@ public class MetaDataImplTest {
     private MetaData metaDataImpl;
     private DbRequest request;
     private DbRequestFactory dbRequestFactory;
-    private MongoDbAccessMetadataFactory mongoDbAccessFactory;
 
     private static final String DATA_INSERT = "{ \"data\": \"test\" }";
-    private static final Integer TENANT_ID = 0;
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
     private static final String SAMPLE_OBJECTGROUP_FILTERED_FILENAME = "sample_objectGroup_document_filtered.json";
@@ -161,7 +159,6 @@ public class MetaDataImplTest {
     public void setUp() throws Exception {
         request = mock(DbRequest.class);
         PowerMockito.mockStatic(MongoDbAccessMetadataFactory.class);
-        mongoDbAccessFactory = mock(MongoDbAccessMetadataFactory.class);
         PowerMockito.mockStatic(DbRequestFactoryImpl.class);
         dbRequestFactory = mock(DbRequestFactoryImpl.class);
         PowerMockito.when(DbRequestFactoryImpl.getInstance()).thenReturn(dbRequestFactory);
@@ -186,23 +183,6 @@ public class MetaDataImplTest {
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-
-    @Test(expected = MetaDataExecutionException.class)
-    public void givenInsertUnitWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
-    @Test(expected = MetaDataExecutionException.class)
-    public void givenInsertObjectGroupWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
     @Test(expected = MetaDataAlreadyExistException.class)
     public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
@@ -218,22 +198,6 @@ public class MetaDataImplTest {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
         when(request.execRequest(anyObject(), anyObject())).thenThrow(error);
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
-    @Test(expected = MetaDataExecutionException.class)
-    public void givenInsertUnitWhenIllegalAccessExceptionThenThrowMetaDataExecutionException() throws Exception {
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
-    @Test(expected = MetaDataExecutionException.class)
-    public void givenInsertObjectGroupWhenIllegalAccessExceptionThenThrowMetaDataExecutionException() throws Exception {
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -271,16 +235,6 @@ public class MetaDataImplTest {
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
-    public void given_Select_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(REQUEST_TEST));
-    }
-
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
@@ -298,17 +252,6 @@ public class MetaDataImplTest {
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
-    }
-
-
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
-    public void given_selectUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
@@ -410,16 +353,6 @@ public class MetaDataImplTest {
         metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
-    public void given_updateUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
-    }
-
     public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()
         throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
@@ -436,16 +369,6 @@ public class MetaDataImplTest {
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
-    public void given_Update_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(REQUEST_TEST), "");
     }
 
     @RunWithCustomExecutor

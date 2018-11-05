@@ -154,19 +154,15 @@ public class DbRequest {
      * @param requestParser   the RequestParserMultiple to execute
      * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
-     * @throws InstantiationException
-     * @throws IllegalAccessException
      * @throws MetaDataExecutionException     when select/insert/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
      * @throws BadRequestException
      */
     public Result execRequest(final RequestParserMultiple requestParser,
         final Result<MetadataDocument<?>> defaultStartSet)
-        throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
-        InvalidParseOperationException, BadRequestException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        VitamDBException {
+            throws MetaDataExecutionException,
+            InvalidParseOperationException, BadRequestException,
+            VitamDBException, MetaDataNotFoundException, MetaDataAlreadyExistException {
         final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
@@ -355,11 +351,9 @@ public class DbRequest {
      * @param current         set of result id
      * @param defaultStartSet
      * @return the valid root ids set
-     * @throws InvalidParseOperationException
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current,
-        final Result<MetadataDocument<?>> defaultStartSet)
-        throws InvalidParseOperationException {
+        final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
@@ -412,8 +406,8 @@ public class DbRequest {
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
                         : MetadataCollections.OBJECTGROUP.useScore());
             VitamCollection.setMatch(false);
-            limit = ((SelectToMongodb) requestToMongodb).getFinalLimit();
-            offset = ((SelectToMongodb) requestToMongodb).getFinalOffset();
+            limit = requestToMongodb.getFinalLimit();
+            offset = requestToMongodb.getFinalOffset();
         }
 
         if (GlobalDatasDb.PRINT_REQUEST && LOGGER.isDebugEnabled()) {
