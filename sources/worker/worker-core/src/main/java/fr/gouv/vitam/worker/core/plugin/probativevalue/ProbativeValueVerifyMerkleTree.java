@@ -221,8 +221,6 @@ public class ProbativeValueVerifyMerkleTree extends ActionHandler {
         return merkleLogbookRootHash;
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+
 
 }

@@ -154,8 +154,4 @@ public class DataRectificationStep extends ActionHandler {
             .setItemsStatus(CORRECTIVE_AUDIT, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //nothing to do
-    }
 }

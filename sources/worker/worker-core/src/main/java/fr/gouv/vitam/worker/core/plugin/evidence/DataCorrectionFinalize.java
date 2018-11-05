@@ -109,9 +109,6 @@ public class DataCorrectionFinalize extends ActionHandler {
         return new ItemStatus(CORRECTION_FINALIZE).setItemsStatus(CORRECTION_FINALIZE, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //nothing
-    }
+
 
 }

@@ -204,13 +204,4 @@ public class UnitMetadataUpdateCheckRulesID extends ActionHandler {
         return null;
     }
 
-
-    /**
-     * Check mandatory parameter
-     * @param handler input output list
-     * @throws ProcessingException when handler io is not complete
-     */
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing
-    }
 }

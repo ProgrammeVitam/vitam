@@ -124,11 +124,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Auto-generated method stub
 
-    }
 
     /**
      * write LFC for KO tasks

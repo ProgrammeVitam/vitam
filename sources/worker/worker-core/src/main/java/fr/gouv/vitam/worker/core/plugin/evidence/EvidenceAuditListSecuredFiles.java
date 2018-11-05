@@ -111,7 +111,5 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
             .setItemsStatus(EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /*Nothing to do */ }
 
 }

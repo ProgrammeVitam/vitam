@@ -171,10 +171,6 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         }
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing to check
-    }
 
     /**
      * @return CHECK_EXISTENCE_ID

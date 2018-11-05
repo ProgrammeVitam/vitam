@@ -140,8 +140,6 @@ public class ProbativeValueGenerateReports extends ActionHandler {
             .setItemsStatus(PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+
 
 }

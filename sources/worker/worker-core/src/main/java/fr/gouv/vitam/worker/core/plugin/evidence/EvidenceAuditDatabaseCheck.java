@@ -106,8 +106,4 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
         return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //nothing to do
-    }
 }

@@ -94,7 +94,4 @@ public class ProbativeValueObjectGroupCheck extends ActionHandler {
             .setItemsStatus(PROBATIVE_VALUE_CHECK_OBJECT_GROUP, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
 }

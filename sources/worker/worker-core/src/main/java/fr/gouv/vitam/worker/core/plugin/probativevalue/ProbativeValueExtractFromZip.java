@@ -119,8 +119,4 @@ public class ProbativeValueExtractFromZip extends ActionHandler {
 
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
-
 }

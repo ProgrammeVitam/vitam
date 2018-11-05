@@ -170,6 +170,4 @@ public class ProbativeValuePrepare extends ActionHandler {
     }
 
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing */ }
 }

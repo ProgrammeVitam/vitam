@@ -184,10 +184,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing to check
-    }
 
 
     private SchemaValidationStatus checkAUJsonAgainstSchema(WorkerParameters params, ItemStatus itemStatus)
