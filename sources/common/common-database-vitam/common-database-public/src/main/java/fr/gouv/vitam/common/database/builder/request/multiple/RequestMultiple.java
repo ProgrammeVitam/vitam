@@ -56,6 +56,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     protected Set<String> roots = new HashSet<>();
     protected List<Query> queries = new ArrayList<>();
     protected List<Facet> facets = new ArrayList<>();
+    protected Long threshold;
 
     /**
      *
@@ -278,6 +279,24 @@ public abstract class RequestMultiple extends AbstractRequest {
     @Override
     public ObjectNode getProjection() {
         return JsonHandler.createObjectNode();
+    }
+
+    /**
+     * Getter for threshold
+     *
+     * @return the threshold
+     */
+    public Long getThreshold() {
+        return threshold;
+    }
+
+    /**
+     * Setter for threshold
+     *
+     * @param threshold the value to set for the threshold
+     */
+    public void setThreshold(Long threshold) {
+        this.threshold = threshold;
     }
 
     /**

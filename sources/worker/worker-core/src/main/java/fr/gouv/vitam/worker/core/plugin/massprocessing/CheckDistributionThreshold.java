@@ -32,8 +32,10 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
@@ -62,79 +65,68 @@ public class CheckDistributionThreshold extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
-    /**
-     * CHECK_DISTRIBUTION_THRESHOLD
-     */
     private static final String CHECK_DISTRIBUTION_THRESHOLD = "CHECK_DISTRIBUTION_THRESHOLD";
 
-    /**
-     * metaDataClientFactory
-     */
+
     private MetaDataClientFactory metaDataClientFactory;
 
-    /**
-     * Constructor.
-     */
     public CheckDistributionThreshold() {
         this(MetaDataClientFactory.getInstance());
     }
 
-    /**
-     * Constructor.
-     *
-     * @param metaDataClientFactory
-     */
-    @VisibleForTesting
-    CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
-    /**
-     * Execute an action
-     *
-     * @param param {@link WorkerParameters}
-     * @param handler the handlerIo
-     * @return CompositeItemStatus:response contains a list of functional message and status code
-     * @throws ProcessingException if an error is encountered when executing the action
-     * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
-     */
+
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-            // get initial query string
+
+            String queryType = (String) handler.getInput(0);
+
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
 
-            // parse multi query
-            UpdateMultiQuery multiQuery = getUpdateQueryFromJson(queryNode);
+            RequestMultiple multiQuery = getRequestMultiple(queryNode, queryType);
 
-            // count elements
-            SelectMultiQuery selectMulti = getSelectCountQueryFromUpdateQuery(multiQuery);
-            JsonNode response = client.selectUnits(selectMulti.getFinalSelect());
+            SelectMultiQuery selectMultiQuery = getSelectCountFromQuery(multiQuery);
+
+            ObjectNode finalSelect = selectMultiQuery.getFinalSelect();
+
+            JsonNode response = client.selectUnits(finalSelect);
+
             RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(response);
 
-            // get total
             long total = responseOK.getHits().getTotal();
 
-            // get threshold
             Long requestThreshold = multiQuery.getThreshold();
+
             long defaultThreshold = VitamConfiguration.getDistributionThreshold();
 
             long threshold = (requestThreshold != null) ? requestThreshold : defaultThreshold;
 
             if (total > threshold) {
-                ObjectNode eventDetails = JsonHandler.createObjectNode()
-                    .put("error", "Too many units found. Threshold=" + threshold + ", found=" + total);
+
+                ObjectNode eventDetails = JsonHandler.createObjectNode();
+                eventDetails.put("error", "Too many units found. Threshold=" + threshold + ", found=" + total);
+
                 return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.KO, eventDetails);
-            } else if (total > defaultThreshold) {
-                ObjectNode eventDetails = JsonHandler.createObjectNode()
-                    .put("warning", "Unit count exceeds default threshold. Default threshold=" + defaultThreshold
-                        + ", found=" + total);
-                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.WARNING, eventDetails);
-            } else {
-                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.OK, null);
             }
+
+            if (total > defaultThreshold) {
+
+                ObjectNode eventDetails = JsonHandler.createObjectNode();
+                String errorMessage = "Unit count exceeds default threshold. Default threshold=" + defaultThreshold
+                    + ", found=" + total;
+
+                eventDetails.put("warning", errorMessage);
+
+                return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.WARNING, eventDetails);
+            }
+
+            return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.OK, null);
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             LOGGER.error(e);
@@ -142,52 +134,43 @@ public class CheckDistributionThreshold extends ActionHandler {
         }
     }
 
-    /**
-     * getUpdateQueryFromJson
-     *
-     * @param queryNode
-     * @return
-     * @throws InvalidParseOperationException
-     */
-    private UpdateMultiQuery getUpdateQueryFromJson(JsonNode queryNode) throws InvalidParseOperationException {
-        // parse multi query
-        UpdateParserMultiple parser = new UpdateParserMultiple();
+    private RequestMultiple getRequestMultiple(JsonNode queryNode, String queryTypeString)
+        throws InvalidParseOperationException {
+
+        QueryType queryType = QueryType.valueOf(queryTypeString);
+        RequestParserMultiple parser;
+        switch (queryType) {
+            case SELECT:
+                parser = new SelectParserMultiple();
+                break;
+            case UPDATE:
+                parser = new UpdateParserMultiple();
+                break;
+            default:
+                throw new IllegalArgumentException(queryType.name());
+        }
+
         parser.parse(queryNode);
 
         return parser.getRequest();
     }
 
-    /**
-     * getSelectCountQueryFromUpdateQuery
-     *
-     * @param multiQuery
-     * @return
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
-     */
-    @VisibleForTesting
-    public SelectMultiQuery getSelectCountQueryFromUpdateQuery(UpdateMultiQuery multiQuery)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        // create multi select with same queries
-        SelectMultiQuery selectMulti = new SelectMultiQuery();
-        selectMulti.addRoots(multiQuery.getRoots().stream().toArray(String[]::new));
-        selectMulti.addQueries(multiQuery.getQueries().stream().toArray(Query[]::new));
-        // to get only the count add filter.limit = 1
-        selectMulti.setLimitFilter(0, 1);
-        // get only the id, no need to get full document
-        selectMulti.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
+    SelectMultiQuery getSelectCountFromQuery(RequestMultiple multiQuery)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        return selectMulti;
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+
+        String[] roots = multiQuery.getRoots().toArray(new String[0]);
+        selectMultiQuery.addRoots(roots);
+
+        Query[] queries = multiQuery.getQueries().toArray(new Query[0]);
+        selectMultiQuery.addQueries(queries);
+
+        selectMultiQuery.setLimitFilter(0, 1);
+
+        selectMultiQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
+
+        return selectMultiQuery;
     }
 
-    /**
-     * Check mandatory parameter
-     *
-     * @param handler input output list
-     * @throws ProcessingException when handler io is not complete
-     */
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing
-    }
 }

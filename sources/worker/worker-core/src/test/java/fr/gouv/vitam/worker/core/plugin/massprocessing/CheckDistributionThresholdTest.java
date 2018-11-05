@@ -88,33 +88,10 @@ public class CheckDistributionThresholdTest {
         UpdateMultiQuery multiQuery = parser.getRequest();
 
         // transform update to select query
-        SelectMultiQuery selectMultiQuery = checkDistributionThreshold.getSelectCountQueryQuery(multiQuery);
+        SelectMultiQuery selectMultiQuery = checkDistributionThreshold.getSelectCountFromQuery(multiQuery);
 
         // check query
         assertThat(selectMultiQuery).isNotNull();
-        // check have same queries as update
-        assertThat(selectMultiQuery.toString()).isEqualTo(selectMultiQuery.toString());
-        // set filter.limit to 1
-        assertThat(selectMultiQuery.getFilter().toString()).isEqualTo("{\"$limit\":1}");
-    }
-
-    @Test
-    public void givingSelectQueryThenReturnSelectQuery() throws Exception {
-
-        JsonNode queryNode = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CheckDistributionThreshold/select_all_request.json"));
-
-        UpdateParserMultiple parser = new UpdateParserMultiple();
-        parser.parse(queryNode);
-        UpdateMultiQuery multiQuery = parser.getRequest();
-
-        // transform update to select query
-        SelectMultiQuery selectMultiQuery = checkDistributionThreshold.getSelectCountQueryQuery(multiQuery);
-
-        // check query
-        assertThat(selectMultiQuery).isNotNull();
-        // check have same queries as update
-        assertThat(selectMultiQuery.toString()).isEqualTo(selectMultiQuery.toString());
         // set filter.limit to 1
         assertThat(selectMultiQuery.getFilter().toString()).isEqualTo("{\"$limit\":1}");
     }
@@ -127,6 +104,8 @@ public class CheckDistributionThresholdTest {
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithoutThreshold.json"));
@@ -153,6 +132,8 @@ public class CheckDistributionThresholdTest {
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
+
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
@@ -177,6 +158,8 @@ public class CheckDistributionThresholdTest {
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold25.json"));
@@ -203,6 +186,8 @@ public class CheckDistributionThresholdTest {
 
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
@@ -223,32 +208,6 @@ public class CheckDistributionThresholdTest {
     }
 
 
-    @Test
-    @RunWithCustomExecutor
-    public void should_checkUpdateQuery() throws Exception {
-        // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
-        MetaDataClient metaDataClient = mock(MetaDataClient.class);
-
-        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CheckDistributionThreshold/select_all_request.json"));
-        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
-        given(metaDataClient.selectUnits(any())).willReturn(
-            JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckDistributionThreshold/resultMetadata5.json")));
-
-        // When
-        ItemStatus itemStatus =
-            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
-
-        // Then
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-
-    }
 
     @Test
     @RunWithCustomExecutor
@@ -258,6 +217,8 @@ public class CheckDistributionThresholdTest {
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));
@@ -284,9 +245,12 @@ public class CheckDistributionThresholdTest {
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
+        given(handlerIO.getInput(0)).willReturn("UPDATE");
+
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
         given(metaDataClient.selectUnits(any())).willThrow(MetaDataClientServerException.class);
         // When
         ItemStatus itemStatus =

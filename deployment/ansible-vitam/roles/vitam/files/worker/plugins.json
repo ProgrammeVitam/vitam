@@ -157,8 +157,7 @@
     "propertiesFile": "check_update_rules_id.properties"
   },
   "CHECK_DISTRIBUTION_THRESHOLD": {
-    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold",
-    "propertiesFile": "check_distribution_threshold.properties"
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold"
   },
   "PREPARE_UPDATE_UNIT_LIST": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.PrepareUpdateUnits"
