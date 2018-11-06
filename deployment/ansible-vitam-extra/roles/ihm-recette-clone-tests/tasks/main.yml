@@ -88,6 +88,13 @@
   args:
     chdir: /vitam/data/ihm-recette/test-data/system
 
+- name: Set proxy conf in repo
+  shell: "git config http.proxy {{ http_proxy_environnement }}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+  when: http_proxy_environnement is defined
+
 # # SYSTEM WIDE ? sinon, lancer en tant que vitam
 # - name: initialize git lfs
 #   chdir: /vitam/data/ihm-recette/test-data/system
@@ -96,9 +103,6 @@
 - name: ensure git repo is clean
   shell: git reset --hard
   become_user: "{{ vitam_defaults.users.vitam }}"
-  environment:
-    http_proxy: "{{ http_proxy_environnement }}"
-    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -110,9 +114,6 @@
 - name: fetch repo
   shell: git fetch
   become_user: "{{ vitam_defaults.users.vitam }}"
-  environment:
-    http_proxy: "{{ http_proxy_environnement }}"
-    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -120,9 +121,6 @@
 - name: checkout {{ vitam_tests_branch }}
   shell: git checkout {{ vitam_tests_branch }}
   become_user: "{{ vitam_defaults.users.vitam }}"
-  environment:
-    http_proxy: "{{ http_proxy_environnement }}"
-    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
   when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
@@ -153,9 +151,6 @@
 - name: rebase documents only when on branch
   shell: git rebase
   become_user: "{{ vitam_defaults.users.vitam }}"
-  environment:
-    http_proxy: "{{ http_proxy_environnement }}"
-    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
   when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
