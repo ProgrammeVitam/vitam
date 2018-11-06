@@ -131,8 +131,6 @@ public class LogbookResource extends ApplicationStatusResource {
 
     private static final String LOGBOOK = "logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
-    public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
-        "[Consistency ERROR] : An internal data consistency error has been detected !";
     public static final String CODE_VITAM = "code_vitam";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;

@@ -203,7 +203,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
                 .collect(Collectors.toMap(
                     (unit) -> unit.get(VitamFieldsHelper.id()).asText(), unit -> unit));
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not load units", e);
         }
     }

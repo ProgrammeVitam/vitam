@@ -352,16 +352,6 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test
-    public void givenInternalServerError_whenSelect_ThenRaiseAnException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnits(queryJson))
-            .isInstanceOf(VitamDBException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void givenBadRequestException_whenSelect_ThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.FORBIDDEN).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
@@ -613,18 +603,6 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
         Response response = client.downloadTraceabilityFile("OP_ID");
         assertNotNull(response);
-    }
-
-    /* select units with inherited rules */
-
-    @RunWithCustomExecutor
-    @Test
-    public void givenInternalServerError_whenSelectUnitsWithInheritedRules_ThenRaiseAnException() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
-            .isInstanceOf(VitamDBException.class);
     }
 
     @RunWithCustomExecutor
