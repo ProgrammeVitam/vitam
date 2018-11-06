@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Collections;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -49,6 +51,21 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -136,6 +153,36 @@ public class ManifestBuilder implements AutoCloseable {
 
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         final DataObjectPackageType xmlObject;
+
+        // Usage access control
+        AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
+        if(accessContractModel == null) {
+            final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            Select select = new Select();
+
+            try {
+                Query query = QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+                select.setQuery(query);
+                accessContractModel = ((RequestResponseOK<AccessContractModel>)client.findAccessContracts(select.getFinalSelect())).getResults().get(0);
+            } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+                throw new ProcessingException(e.getMessage(), e.getCause());
+            }
+        }
+
+        final AccessContractModel accessContract = accessContractModel;
+
+        List<QualifiersModel> qualifiersToRemove;
+        if(!accessContractModel.isEveryDataObjectVersion()) {
+            qualifiersToRemove = objectGroup.getQualifiers().stream()
+                    .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                    .collect(Collectors.toList());
+            objectGroup.getQualifiers().removeAll(qualifiersToRemove);
+        }
+
+        if(objectGroup.getQualifiers().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
         try {
             xmlObject = objectGroupMapper.map(objectGroup);
             List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =

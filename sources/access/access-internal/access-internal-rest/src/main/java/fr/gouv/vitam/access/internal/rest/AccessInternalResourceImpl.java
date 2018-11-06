@@ -284,7 +284,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
-                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                JsonNode finalQueryDsl = AccessContractRestrictionHelper
+                        .applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                                VitamThreadUtils.getVitamSession().getContract());
+
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQueryDsl));
 
                 processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), operationId, EXPORT_DIP);
                 // When

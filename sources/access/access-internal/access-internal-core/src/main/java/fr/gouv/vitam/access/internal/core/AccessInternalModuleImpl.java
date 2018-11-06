@@ -45,6 +45,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -249,7 +250,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -292,7 +293,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param jsonQuery as String { $query : query}
      * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
+     * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -718,7 +719,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
      * @throws InvalidParseOperationException
-     * @throws AccessInternalException if unable to find the unit or it's lfc
+     * @throws AccessInternalException        if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
         try {
@@ -813,7 +814,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException when error in execution
+     * @throws ProcessingException                 when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1101,7 +1102,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             }
                         }
                         if (updatedPreventInheritanceNode != null) {
-                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
+                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX,
+                                updatedPreventInheritanceNode);
                         }
                     } else {
                         try {
@@ -1138,7 +1140,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
                 }
                 if (updatedPreventInheritanceNode != null) {
-                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
+                    action
+                        .put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
                 }
                 if (classificationLevel != null) {
                     action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
@@ -1461,4 +1464,39 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         }
     }
+
+    public void checkClassificationLevel(JsonNode query)
+        throws IllegalArgumentException, InvalidParseOperationException {
+        UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+        updateParserMultiple.parse(query);
+        List<Action> actions = updateParserMultiple.getRequest().getActions();
+
+        for (Action action : actions) {
+
+            ObjectNode currentAction = action.getCurrentAction();
+            JsonNode setAction = currentAction.get(UPDATEACTION.SET.exactToken());
+
+            handleClassificationValidation(setAction);
+        }
+    }
+
+    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException {
+        if (setAction == null) {
+            return;
+        }
+        JsonNode classificationRule =
+            setAction.get(VitamFieldsHelper.management() + "." + VitamConstants.TAG_RULE_CLASSIFICATION);
+        if (classificationRule == null) {
+            return;
+        }
+        JsonNode classificationLevel = classificationRule.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+        String classificationLevelValue = null;
+        if (classificationLevel != null) {
+            classificationLevelValue = classificationLevel.asText();
+        }
+        if (!ClassificationLevelUtil.checkClassificationLevel(classificationLevelValue)) {
+            throw new IllegalArgumentException("Classification Level is not in the list of allowed values");
+        }
+    }
+
 }

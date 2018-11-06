@@ -16,6 +16,7 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         session_timeout: 1800000
         secure_cookie: true
+        metrics_enabled: true
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
@@ -24,6 +25,7 @@ vitam:
         baseuri: "doc"
         https_enabled: false
         secret_platform: "false"
+        metrics_enabled: false
 
 # Period units in seconds
 metricbeat:

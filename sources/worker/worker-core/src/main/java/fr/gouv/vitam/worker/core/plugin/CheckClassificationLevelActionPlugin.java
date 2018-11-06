@@ -42,7 +42,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.service.ClassificationLevelService;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -73,7 +73,7 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         try {
 
             JsonNode archiveUnit = getArchiveUnit(param);
-            if (!ClassificationLevelService.checkclassificationLevel(archiveUnit)) {
+            if (!ClassificationLevelUtil.checkClassificationLevel(archiveUnit)) {
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
             }

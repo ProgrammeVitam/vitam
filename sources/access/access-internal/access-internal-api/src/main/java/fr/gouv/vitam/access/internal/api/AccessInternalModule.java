@@ -129,4 +129,13 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException
      */
     Response findDIPByOperationId(String id) throws AccessInternalExecutionException;
+
+    /**
+     * check ClassificationLevel in update Unit
+     * @param query query
+     * @throws IllegalArgumentException IllegalArgumentException
+     * @throws InvalidParseOperationException InvalidParseOperationException
+     */
+    void checkClassificationLevel(JsonNode query) throws IllegalArgumentException, InvalidParseOperationException;
+
 }
