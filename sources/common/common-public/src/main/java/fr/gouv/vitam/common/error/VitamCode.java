@@ -419,6 +419,8 @@ public enum VitamCode {
         "Unauthorized to update rules: Bad ID or wrong category"),
     UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "19", Status.UNAUTHORIZED,
         "Unauthorized to update rules: Incorrect value for a property"),
+    UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "20", Status.UNAUTHORIZED,
+        "Unauthorized to update management metadata: Incorrect property value"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

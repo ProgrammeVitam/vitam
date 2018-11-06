@@ -48,14 +48,40 @@
                                 <span class="ui-g-8"></span>
                             </div>
                         </div>
+                        <span *ngIf="metadata.FieldName === 'ArchiveUnitProfile'">ArchiveUnitProfile doit être modifié via le bloc de métadonnées de gestion.</span>
                     </ng-template>
                 </div>
             </div>
         </p-accordionTab>
 
         <!-- Rules part -->
-        <p-accordionTab header="Mise à jour des règles de gestion">
+        <p-accordionTab header="Mise à jour des métadonnées de gestion">
             <div class="ui-g-12" *ngIf="internalSavedRules">
+
+                <div class="ui-g ui-g-12">
+                    <div class="ui-g-12">
+                        <span class="ui-g-4">Profil d'unité archivistique</span>
+                        <div class="ui-g-4 ui-g-no-pad">
+                            <input pInputText [(ngModel)]="internalSavedRules.ArchiveUnitProfile" style="width: 100%"/>
+                        </div>
+                        <button pButton class="ui-button secondaryButton ui-g-3" style="padding: 2px; margin-top: 5px"
+                                (click)="internalSavedRules.ArchiveUnitProfile = null;
+                                        internalSavedRules.RemoveArchiveUnitProfile = true"
+                                *ngIf="!internalSavedRules.RemoveArchiveUnitProfile"
+                                title="Supprimer le champ de diffusion"
+                                label="Supprimer" icon="fa-times" iconPos="left"></button>
+                        <button pButton class="ui-button secondaryButton ui-g-3" style="padding: 2px; margin-top: 5px"
+                                (click)="internalSavedRules.ArchiveUnitProfile = null;
+                                        internalSavedRules.RemoveArchiveUnitProfile = false"
+                                *ngIf="internalSavedRules.RemoveArchiveUnitProfile"
+                                title="Ne pas modifier le champ de diffusion"
+                                label="Annuler" icon="fa-refresh" iconPos="left"></button>
+                    </div>
+                    <span class="ui-g-12" *ngIf="internalSavedRules.ArchiveUnitProfile === null && internalSavedRules.RemoveArchiveUnitProfile">
+                                Ce champ sera supprimé sur toute les unité archivistiques sélectionnées pour le traitement de masse
+                            </span>
+                </div>
+
                 <ng-template ngFor let-category [ngForOf]="rulesCategories">
                     <p-fieldset [legend]="category.label" class="ui-g-12" [toggleable]="true" [collapsed]="true">
                         <div class="ui-g-12 ui-g-nopad">

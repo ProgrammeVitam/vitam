@@ -30,13 +30,7 @@ package fr.gouv.vitam.common.database.server;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,20 +43,34 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.QueryPattern;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
+import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
@@ -190,12 +198,11 @@ public class MongoDbInMemory {
         if(ruleActions != null) {
             final ObjectNode initialMgt = (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
 
-            // deal with adds
             applyAddRuleAction(ruleActions.getAdd(), initialMgt, bindRuleToDuration);
-            // deal with update
             applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt, bindRuleToDuration);
-            // deal with delete
             applyDeleteRuleAction(ruleActions.getDelete(), initialMgt);
+
+            checkAndApplyAUPIfNeeded(ruleActions);
 
             JsonHandler.setNodeInPath((ObjectNode) updatedDocument, MANAGEMENT_KEY, initialMgt, true);
         }
@@ -308,6 +315,51 @@ public class MongoDbInMemory {
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
         return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+    }
+
+    private void checkAndApplyAUPIfNeeded(RuleActions ruleActions) {
+
+        // If updated from request, no need to check old values in Unit
+        if (updateFromRequest(ruleActions)) {
+            return;
+        }
+
+        JsonNode aupInfo = updatedDocument.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
+        if (aupInfo == null) {
+            return;
+        }
+
+        String originalAupIdentifier = aupInfo.isArray() ? aupInfo.get(0).asText() : aupInfo.asText();
+        if (originalAupIdentifier != null && !originalAupIdentifier.isEmpty()) {
+            ((ObjectNode) updatedDocument).put(SchemaValidationUtils.TAG_SCHEMA_VALIDATION, originalAupIdentifier);
+        }
+    }
+
+    private Boolean shouldDeleteAUP(RuleActions ruleActions) {
+        ManagementMetadataAction deleteActions = ruleActions.getDeleteMetadata();
+        return deleteActions != null && deleteActions.getArchiveUnitProfile() != null;
+    }
+
+    private Boolean updateFromRequest(RuleActions ruleActions) {
+        if (shouldDeleteAUP(ruleActions) ) {
+            ((ObjectNode) updatedDocument).remove(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
+            return true;
+        }
+
+        ManagementMetadataAction newMetadata = ruleActions.getAddOrUpdateMetadata();
+
+        if (newMetadata == null) {
+            return false;
+        }
+
+        String archiveUnitProfileIdentifier = newMetadata.getArchiveUnitProfile();
+        if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
+            ((ObjectNode) updatedDocument).put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier);
+            ((ObjectNode) updatedDocument).put(SchemaValidationUtils.TAG_SCHEMA_VALIDATION, archiveUnitProfileIdentifier);
+            return true;
+        }
+
+        return false;
     }
 
     private ObjectNode handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {

@@ -40,4 +40,6 @@ export class RulesInformation {
   DisseminationRule = new RuleCategory();
   ReuseRule = new RuleCategory();
   StorageRule = new StorageRulesCategory();
+  ArchiveUnitProfile: string;
+  RemoveArchiveUnitProfile: boolean;
 }

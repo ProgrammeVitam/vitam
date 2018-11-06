@@ -42,6 +42,12 @@ public class RuleActions {
     @JsonProperty("delete")
     List<Map<String, RuleCategoryAction>> delete;
 
+    @JsonProperty("addOrUpdateMetadata")
+    ManagementMetadataAction addOrUpdateMetadata;
+
+    @JsonProperty("deleteMetadata")
+    ManagementMetadataAction deleteMetadata;
+
     public List<Map<String, RuleCategoryAction>> getAdd() {
         return add;
     }
@@ -64,5 +70,21 @@ public class RuleActions {
 
     public void setDelete(List<Map<String, RuleCategoryAction>> delete) {
         this.delete = delete;
+    }
+
+    public ManagementMetadataAction getAddOrUpdateMetadata() {
+        return addOrUpdateMetadata;
+    }
+
+    public void setAddOrUpdateMetadata(ManagementMetadataAction addOrUpdateMetadata) {
+        this.addOrUpdateMetadata = addOrUpdateMetadata;
+    }
+
+    public ManagementMetadataAction getDeleteMetadata() {
+        return deleteMetadata;
+    }
+
+    public void setDeleteMetadata(ManagementMetadataAction deleteMetadata) {
+        this.deleteMetadata = deleteMetadata;
     }
 }

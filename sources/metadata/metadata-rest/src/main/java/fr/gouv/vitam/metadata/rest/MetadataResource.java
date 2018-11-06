@@ -35,11 +35,7 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -566,7 +562,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response updateUnitbyId(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result = null;
+            RequestResponse<JsonNode> result;
             try {
                 result = metaData.updateUnitbyId(updateRequest, unitId);
             } catch (final VitamDBException ve) {
@@ -599,7 +595,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataExecutionException e) {
+        } catch (final MetaDataExecutionException | SchemaValidationException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
@@ -682,7 +678,7 @@ public class MetadataResource extends ApplicationStatusResource {
         }
     }
 
-    private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
+    private Response metadataExecutionExceptionTrace(final Exception e) {
         Status status;
         LOGGER.error(e);
         status = Status.BAD_REQUEST;
