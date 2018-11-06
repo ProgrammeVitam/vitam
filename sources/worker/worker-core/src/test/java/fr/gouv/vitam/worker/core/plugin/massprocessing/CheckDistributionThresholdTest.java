@@ -106,6 +106,7 @@ public class CheckDistributionThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
+        given(handlerIO.getInput(1)).willReturn("query.json");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithoutThreshold.json"));
@@ -134,6 +135,8 @@ public class CheckDistributionThresholdTest {
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
 
+        given(handlerIO.getInput(1)).willReturn("query.json");
+
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
@@ -160,6 +163,7 @@ public class CheckDistributionThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
+        given(handlerIO.getInput(1)).willReturn("query.json");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold25.json"));
@@ -187,6 +191,7 @@ public class CheckDistributionThresholdTest {
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
+        given(handlerIO.getInput(1)).willReturn("query.json");
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -219,6 +224,7 @@ public class CheckDistributionThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
+        given(handlerIO.getInput(1)).willReturn("query.json");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));
@@ -246,6 +252,7 @@ public class CheckDistributionThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         given(handlerIO.getInput(0)).willReturn("UPDATE");
+        given(handlerIO.getInput(1)).willReturn("query.json");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
             getClass().getResourceAsStream("/CheckDistributionThreshold/queryWithThreshold10.json"));

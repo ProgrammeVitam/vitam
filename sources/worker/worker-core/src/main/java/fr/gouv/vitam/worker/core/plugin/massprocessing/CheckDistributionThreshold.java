@@ -86,8 +86,9 @@ public class CheckDistributionThreshold extends ActionHandler {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
             String queryType = (String) handler.getInput(0);
+            String queryUri = (String) handler.getInput(1);
 
-            JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
+            JsonNode queryNode = handler.getJsonFromWorkspace(queryUri);
 
             RequestMultiple multiQuery = getRequestMultiple(queryNode, queryType);
 

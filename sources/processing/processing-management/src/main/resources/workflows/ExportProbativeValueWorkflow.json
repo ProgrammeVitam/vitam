@@ -17,6 +17,22 @@
       "actions": [
         {
           "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:UPDATE"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:request"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PROBATIVE_VALUE_LIST_OBJECT",
             "behavior": "BLOCKING"
           }
@@ -53,7 +69,6 @@
           "action": {
             "actionKey": "PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD",
             "behavior": "BLOCKING"
-
           }
         }
       ]
