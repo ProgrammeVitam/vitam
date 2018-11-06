@@ -1,14 +1,16 @@
 ---
 # TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
 - name: install ClamAV packages
-  package:
+  yum:
     name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
+    update_cache: yes
     state: latest
   when: ansible_os_family == "RedHat"
 
 - name: install ClamAV packages
-  package:
+  apt:
     name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs
+    update_cache: yes
     state: latest
   when: ansible_os_family == "Debian"
 
@@ -61,10 +63,10 @@
       path: "/etc/sysconfig/freshclam"
       regexp: '^FRESHCLAM_DELAY(.)*'
       replace: '#FRESHCLAM_DELAY\1'
-  
-  - name: change check periodicity for clamAV database updates 
+
+  - name: change check periodicity for clamAV database updates
     lineinfile:
-      path: "/etc/freshclam.conf" 
+      path: "/etc/freshclam.conf"
       regexp: '^[# \t]*Checks'
       line: "Checks {{ clamav.db_update_periodicity }}"
 
@@ -97,8 +99,8 @@
       block: |
         HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
         HTTPProxyPort {{ http_proxy_environnement | urlsplit('port') }}
-    when: 
-      - http_proxy_environnement is defined 
+    when:
+      - http_proxy_environnement is defined
       - http_proxy_environnement != ''
 
   - name: update database for clamAV
@@ -120,9 +122,9 @@
       enabled: yes
       state: restarted
 
-  - name: change check periodicity for clamAV database updates 
+  - name: change check periodicity for clamAV database updates
     lineinfile:
-      path: "/etc/clamav/freshclam.conf" 
+      path: "/etc/clamav/freshclam.conf"
       regexp: '^[# \t]*Checks'
       line: "Checks {{ clamav.db_update_periodicity }}"
 
@@ -132,4 +134,3 @@
 #     state: restarted
 
   when: ansible_os_family == "Debian"
-

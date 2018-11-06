@@ -96,7 +96,10 @@ public class AccessInternalResourceTest {
         GUID request = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(request);
-        VitamThreadUtils.getVitamSession().setContract(new AccessContractModel().setEveryOriginatingAgency(true));
+        AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true);
+        accessContract.setIdentifier("FakeContract");
+        VitamThreadUtils.getVitamSession().setContractId("FakeContract");
+        VitamThreadUtils.getVitamSession().setContract(accessContract);
         
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);

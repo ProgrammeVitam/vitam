@@ -162,6 +162,11 @@ export class MySelectionService {
     }
   }
 
+  deleteAllFromBasket() {
+    const tenantId: string = this.resourceService.getTenant();
+    this.setBasketToLocalStorage(tenantId, []);
+  }
+
   deleteFromBasket(ids: string[]) {
     const tenantId: string = this.resourceService.getTenant();
     const basketInfo: BasketInfo[] = this.getBasketFromLocalStorage(tenantId);

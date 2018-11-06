@@ -27,8 +27,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -39,19 +37,24 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.events.XMLEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.events.XMLEvent;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -126,8 +129,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     private LogbookLifeCyclesClient lifeCyclesClient;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
-    private ValidationXsdUtils validationXsdUtils;
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
     private List<IOParameter> out;
     private GUID guid;
@@ -149,8 +151,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(guid.getId(), "workerId");
-
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
+        
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
@@ -167,21 +170,26 @@ public class TransferNotificationActionHandlerIteratorTest {
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file" + i)));
         }
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        action.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
-        action.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
-        action.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
-        action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
-        action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        action.reset();
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
+        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
+        handlerIO.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+
+        File  existingGOTGUIDToNewGotGUIDInAttachmentFile = handlerIO.getNewLocalFile("existingGOTGUIDToNewGotGUIDInAttachmentFile");
+        JsonHandler.writeAsFile(JsonHandler.createObjectNode(), existingGOTGUIDToNewGotGUIDInAttachmentFile);
+            handlerIO.addOuputResult(6, existingGOTGUIDToNewGotGUIDInAttachmentFile, false);
+
+        handlerIO.reset();
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/responseReply.xml")));
     }
 
     @After
     public void clean() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
@@ -200,14 +208,14 @@ public class TransferNotificationActionHandlerIteratorTest {
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, StatusCode.OK.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
         }
     }
@@ -229,17 +237,17 @@ public class TransferNotificationActionHandlerIteratorTest {
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, StatusCode.WARNING.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
             final InputStream xmlFile;
             try {
-                xmlFile = action.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
+                xmlFile = handlerIO.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
                 throw new ProcessingException(e);
             }
@@ -313,15 +321,15 @@ public class TransferNotificationActionHandlerIteratorTest {
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, KO.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
                 .execute(parameters.putParameterValue(workflowStatusKo, KO.name()),
-                    action);
+                    handlerIO);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
         }
     }
@@ -342,14 +350,14 @@ public class TransferNotificationActionHandlerIteratorTest {
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, KO.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
         }
     }
@@ -365,14 +373,14 @@ public class TransferNotificationActionHandlerIteratorTest {
                 anyObject());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, KO.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
             assertEquals(KO, response.getGlobalStatus());
         }
     }
@@ -394,14 +402,14 @@ public class TransferNotificationActionHandlerIteratorTest {
                 .unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(workflowStatusKo, KO.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
             assertEquals(KO, response.getGlobalStatus());
         }
     }
@@ -421,14 +429,14 @@ public class TransferNotificationActionHandlerIteratorTest {
             .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
             .thenReturn(new RequestResponseOK<JsonNode>());
         
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
+        handlerIO.addOutIOParameters(out);
         WorkerParameters parameters = params.putParameterValue(workflowStatusKo, KO.name())
             .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
 
         // When
-        final ItemStatus response = handler.execute(parameters, action);
+        final ItemStatus response = handler.execute(parameters, handlerIO);
 
         // Then
         assertThat(response.getGlobalStatus()).isEqualTo(KO);

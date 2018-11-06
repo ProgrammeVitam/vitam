@@ -38,18 +38,14 @@
 #### Elasticsearch installation ####
 
 # Only prerequisite for Debian : install openjdk from jessie-backports
-- name: install openjdk from jessie-backports only when Debian
+
+- name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
   apt:
-    name: openjdk-8-jdk-headless
+    name: "openjdk-8-jre-headless"
+    update_cache: yes
     state: latest
     default_release: jessie-backports
   when: ansible_os_family == "Debian"
-
-# - name: install java on CentOS
-#   yum:
-#     name: java-1.8.0-openjdk
-#     state: latest
-#   when: ansible_os_family == "RedHat"
 
 - name: install vitam-{{composant.cluster_name}} package
   package:

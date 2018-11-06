@@ -45,9 +45,9 @@ public class ContextModel {
 
     private static final String TAG_ACTIVATION_DATE = "ActivationDate";
 
-    private static final String TAG_LAST_UPDATE = "LastUpdate";
+    public static final String TAG_LAST_UPDATE = "LastUpdate";
 
-    private static final String TAG_CREATION_DATE = "CreationDate";
+    public static final String TAG_CREATION_DATE = "CreationDate";
 
     public static final String TAG_NAME = "Name";
 

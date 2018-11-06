@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
@@ -112,8 +111,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final int DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK = 3;
     private static final int SEDA_PARAMETERS_RANK = 4;
     private static final int OBJECT_GROUP_ID_TO_GUID_MAP_RANK = 5;
-    static final int HANDLER_IO_PARAMETER_NUMBER = 6;
-
+    static final int HANDLER_IO_PARAMETER_NUMBER = 7;
+    private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 6;
 
     private static final String XML = ".xml";
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
@@ -297,8 +296,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 addOperation(archiveTransferReply, logbookOperation, statusToBeChecked);
             }
 
-            addDataObjectPackage(archiveTransferReply, params.getContainerName(), logbookOperation,
-                statusToBeChecked);
+            addDataObjectPackage(archiveTransferReply, params.getContainerName(), statusToBeChecked);
 
             Marshaller archiveTransferReplyMarshaller = marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
             archiveTransferReplyMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, NAMESPACE_URI+" "+SedaUtils.SEDA_XSD_VERSION);
@@ -484,7 +482,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * Add DataObjectPackage element to the ATR xml
      * @param archiveTransferReply the archiveTransferReplyType object to populate
-     * @param logbookOperation
      * @param containerName the operation identifier
      * @param statusToBeChecked depends of ATR status (KO={FATAL,KO} or OK=Warning)
      * @throws ProcessingException thrown if a logbook could not be retrieved
@@ -493,7 +490,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      */
     private void addDataObjectPackage(ArchiveTransferReplyType archiveTransferReply, String containerName,
-        LogbookOperation logbookOperation, List<String> statusToBeChecked)
+        List<String> statusToBeChecked)
         throws ProcessingException, FileNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException {
 
@@ -553,6 +550,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 final File objectGroupSystemGuidTmpFile = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
                 final File dataObjectToDetailDataObjectMapTmpFile = (File) handlerIO.getInput(DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK);
 
+                final File existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile =  (File) handlerIO.getInput(
+                        EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK);
+
                 Map<String, Object> dataObjectSystemGuid;
                 if (dataObjectMapTmpFile != null && bdoObjectGroupStoredMapTmpFile != null) {
                     try (InputStream binaryDataObjectMapTmpFIS = new FileInputStream(dataObjectMapTmpFile);
@@ -603,6 +603,16 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     dataObjectToDetailDataObject = new HashMap<>();
                 }
 
+                final Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
+
+                if (existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile != null) {
+                    final InputStream existingGOTGUIDToNewGotGUIDInAttachmentMapFIS = new FileInputStream(existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile);
+                    existingGOTGUIDToNewGotGUIDInAttachment =
+                        JsonHandler.getMapFromInputStream(existingGOTGUIDToNewGotGUIDInAttachmentMapFIS, String.class);
+                } else {
+                    existingGOTGUIDToNewGotGUIDInAttachment = new HashMap<>();
+                }
+
                 //build DataObjectGroup object List
                 List<Object> dataObjectGroupList = archiveTransferReply.getDataObjectPackage().getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
 
@@ -618,13 +628,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
                             .map(LogbookLifeCycleObjectGroupInProcess::new)
                             .forEach(logbookLifeCycleObjectGroup -> dataObjectGroupList.add(
                                 buildDataObjectGroup(statusToBeChecked, objectGroupGuid, dataObjectsForOG, dataObjectSystemGuid,
-                                    dataObjectToDetailDataObject, logbookLifeCycleObjectGroup))
+                                    dataObjectToDetailDataObject, existingGOTGUIDToNewGotGUIDInAttachment, logbookLifeCycleObjectGroup))
                             );
                     } else {
 
                         dataObjectGroupList.addAll(
                             buildListOfSimpleDataObjectGroup(dataObjectsForOG, dataObjectSystemGuid,
-                            dataObjectToDetailDataObject, objectGroupSystemGuid)
+                            dataObjectToDetailDataObject, objectGroupSystemGuid, existingGOTGUIDToNewGotGUIDInAttachment)
                         );
                     }
                 }
@@ -703,7 +713,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private List<DataObjectGroupType> buildListOfSimpleDataObjectGroup(Map<String, List<String>> dataObjectsForOG,
             Map<String, Object> dataObjectSystemGuid, Map<String, DataObjectDetail> dataObjectToDetailDataObject,
-            Map<String, Object> objectGroupSystemGuid) {
+            Map<String, Object> objectGroupSystemGuid, Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment) {
 
         final List<DataObjectGroupType> dataObjectGroupList = new ArrayList<>();
 
@@ -715,7 +725,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             String dataObjectGroupId = dataObjectGroupEntry.getKey();
 
-            Object dataObjectGroupSystemId = objectGroupSystemGuid.get(dataObjectGroupId);
+            Object dataObjectGroupSystemIdObject = objectGroupSystemGuid.get(dataObjectGroupId);
+            String dataObjectGroupSystemId = dataObjectGroupSystemIdObject.toString();
+            //case of GOT attachment
+            if (existingGOTGUIDToNewGotGUIDInAttachment.containsValue(dataObjectGroupSystemId)) {
+                String finalDataObjectGroupSystemId = dataObjectGroupSystemId;
+                dataObjectGroupSystemId = existingGOTGUIDToNewGotGUIDInAttachment.entrySet().stream()
+                    .filter(key -> key.getValue().equals(finalDataObjectGroupSystemId)).findFirst().get().getKey();
+            }
 
             dataObjectGroup.setId(dataObjectGroupId);
 
@@ -734,7 +751,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 binaryOrPhysicalDataObject.setId(dataObjectId);
 
-                binaryOrPhysicalDataObject.setDataObjectGroupSystemId(dataObjectGroupSystemId.toString());
+                binaryOrPhysicalDataObject.setDataObjectGroupSystemId(dataObjectGroupSystemId);
 
                 String dataObjectSystemGUID = dataObjectSystemGuid.get(dataObjectId).toString();
                 if (dataObjectSystemGUID != null) {
@@ -758,25 +775,31 @@ public class TransferNotificationActionHandler extends ActionHandler {
         List<String> statusToBeChecked,
         Map<String, String> objectGroupGuid, Map<String, List<String>> dataObjectsForOG,
         Map<String, Object> dataObjectSystemGuid, Map<String, DataObjectDetail> dataObjectToDetailDataObject,
+        Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment,
         LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGroup) {
 
         Map<String, String>  dataObjectSystemGUIDToID = new TreeMap<>();
 
-        final String eventIdentifier = null;
         DataObjectGroupType dataObjectGroup = objectFactory.createDataObjectGroupType();
         MinimalDataObjectType binaryOrPhysicalDataObject = null;
 
-        final String ogGUID =
+        String ogGUID =
             logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
                 ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
                 .toString()
                 : "";
+        String existingObjectGroupSystemGUID = new String(ogGUID);
+        //look, in case of GOT attachment, mapping (existing Got in DB --> new GOT)
+        if(existingGOTGUIDToNewGotGUIDInAttachment.containsKey(ogGUID)){
+            ogGUID = existingGOTGUIDToNewGotGUIDInAttachment.get(ogGUID);
+        }
 
         String igId = "";
         if (objectGroupGuid.containsKey(ogGUID)) {
             igId = objectGroupGuid.get(ogGUID);
             dataObjectGroup.setId(igId);
         }
+
         if (dataObjectsForOG.get(igId) != null) {
             for (final String idObj : dataObjectsForOG.get(igId)) {
                 if (dataObjectToDetailDataObject.get(idObj) != null &&
@@ -792,8 +815,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     binaryOrPhysicalDataObject.setDataObjectSystemId(dataObjectSystemGUID);
                     dataObjectSystemGUIDToID.put(dataObjectSystemGUID, idObj);
                 }
-                if (ogGUID != null && !ogGUID.isEmpty()) {
-                    binaryOrPhysicalDataObject.setDataObjectGroupSystemId(ogGUID);
+                if (!existingObjectGroupSystemGUID.isEmpty()) {
+                    binaryOrPhysicalDataObject.setDataObjectGroupSystemId(existingObjectGroupSystemGUID);
                 }
 
                 binaryOrPhysicalDataObject.setDataObjectVersion(
@@ -885,6 +908,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(1, handlerInitialIOList)) {
+
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }

@@ -26,20 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -49,8 +60,12 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -68,16 +83,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
 
 /**
  * Lifecycle traceability audit resource
@@ -89,6 +94,8 @@ public class EvidenceResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
     private static final String EVIDENCE_AUDIT = "EVIDENCE_AUDIT";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
+    private static final String OPERATION_ID_MANDATORY = "Operation id Mandatory";
+    private static final String ACCESS_CONTRACT = "AccessContract";
 
     /**
      * Evidence service
@@ -100,20 +107,30 @@ public class EvidenceResource {
 
     private WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
+    private MongoDbAccessAdminImpl mongoDbAccess;
+    private VitamCounterService vitamCounterService;
+
     @VisibleForTesting
     public EvidenceResource(
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory,
+        MongoDbAccessAdminImpl mongoDbAccess,
+        VitamCounterService vitamCounterService) {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.mongoDbAccess = mongoDbAccess;
+        this.vitamCounterService = vitamCounterService;
     }
 
 
-    EvidenceResource() {  /*nothing to do   */}
+    EvidenceResource(MongoDbAccessAdminImpl mongoDbAccess, VitamCounterService vitamCounterService) {
+        this.mongoDbAccess = mongoDbAccess;
+        this.vitamCounterService = vitamCounterService;
+    }
 
-    private void createEvidenceAuditOperation(String operationId)
+    private void createEvidenceAuditOperation(String operationId, AccessContractModel accessContract)
         throws
         LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
@@ -129,6 +146,13 @@ public class EvidenceResource {
                     StatusCode.STARTED,
                     VitamLogbookMessages.getLabelOp("EVIDENCE_AUDIT.STARTED") + " : " + GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
+
+            // Add access contract rights
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+            rightsStatementIdentifier
+                    .put(ACCESS_CONTRACT,accessContract.getIdentifier());
+            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                    rightsStatementIdentifier.toString());
 
             client.create(initParameters);
 
@@ -150,12 +174,21 @@ public class EvidenceResource {
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
+                AccessContractImpl accessContractService = new AccessContractImpl(mongoDbAccess, vitamCounterService);
+                AccessContractModel contract = accessContractService
+                        .findByIdentifier(VitamThreadUtils.getVitamSession().getContractId());
+                if(contract == null) {
+                    throw new AccessUnauthorizedException("Contract Not Found");
+                }
+
+                JsonNode finalQuery = AccessContractRestrictionHelper.
+                        applyAccessContractRestrictionForUnitForSelect(queryDsl, contract);
 
                 workspaceClient.createContainer(operationId);
 
-                createEvidenceAuditOperation(operationId);
+                createEvidenceAuditOperation(operationId, contract);
 
-                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
                 processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), operationId, EVIDENCE_AUDIT);
 
@@ -166,7 +199,8 @@ public class EvidenceResource {
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
 
-                VitamClientException | LogbookClientServerException | InternalServerException |InvalidGuidOperationException e) {
+                VitamClientException | LogbookClientServerException | InternalServerException
+                    | InvalidGuidOperationException | ReferentialException e) {
                 LOGGER.error("Error while auditing", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)
@@ -177,7 +211,7 @@ public class EvidenceResource {
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
             }
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Response.Status.BAD_REQUEST;

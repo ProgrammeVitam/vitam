@@ -55,6 +55,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -70,7 +71,6 @@ import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -123,6 +123,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -153,6 +154,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final static String ORIGINATING_AGENCY = "OriginatingAgency";
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
+
+    private static final String ACCESS_CONTRACT = "AccessContract";
+
     /**
      * Audit type constant
      */
@@ -855,8 +859,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
 
     private void createAuditLogbookOperation()
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidGuidOperationException {
+            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+            InvalidGuidOperationException, InvalidCreateOperationException, ReferentialException, InvalidParseOperationException {
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
 
@@ -866,6 +870,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 LogbookTypeProcess.AUDIT, StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(Contexts.AUDIT_WORKFLOW.getEventType(), StatusCode.STARTED),
                 objectId);
+
+            // Add access contract rights
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+            rightsStatementIdentifier
+                    .put(ACCESS_CONTRACT, contract.getIdentifier());
+            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                    rightsStatementIdentifier.toString());
+
             logbookClient.create(initParameters);
         }
     }

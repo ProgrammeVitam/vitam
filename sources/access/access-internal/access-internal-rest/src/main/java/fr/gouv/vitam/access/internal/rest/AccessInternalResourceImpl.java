@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.io.ByteArrayInputStream;
@@ -67,10 +66,8 @@ import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -80,7 +77,6 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -99,7 +95,6 @@ import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamSession;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -111,6 +106,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -141,7 +137,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     private static final String UNITS = "units";
     private static final String RESULTS = "$results";
-
+    private static final String ACCESS_CONTRACT = "AccessContract";
     // DIP
     private DipService unitDipService;
     private DipService objectDipService;
@@ -289,6 +285,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
 
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
+
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
@@ -321,6 +320,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
+    }
+
+    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier
+                .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString());
     }
 
     @Override
@@ -438,6 +445,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
+            accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
