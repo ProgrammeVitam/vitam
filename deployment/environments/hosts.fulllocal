@@ -15,7 +15,6 @@ localhost
 ########### Extra VITAM applications ###########
 
 [ldap] # Extra : OpenLDAP server
-localhost
 
 [library] # EXTRA : Library server
 
