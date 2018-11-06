@@ -1,0 +1,55 @@
+{
+  "dslRequest": {
+    "$roots": [ "id1" ],
+    "$query": [
+      {
+        "$match": { "title": "titre" },
+        "$depth": 4
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "AccessRule": {
+          "PreventInheritance": false,
+          "Rules": [
+            {
+              "Rule": "ACC-00003",
+              "StartDate": "2018-11-14T00:00:00.000Z"
+            }
+          ]
+        }
+      },
+      {
+        "StorageRule": {
+          "FinalAction": "Copy"
+        }
+      }
+    ],
+    "update": [
+      {
+        "AccessRule": {
+          "Rules": [
+            {
+              "OldRule": "ACC-00001",
+              "Rule": "ACC-00002"
+            }
+          ]
+        }
+      }
+    ],
+    "delete": [
+      {
+        "ReuseRule": {
+          "Rules": [
+            {
+              "Rule": "REU-00001"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

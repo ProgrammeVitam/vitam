@@ -239,7 +239,7 @@ public class DbRequest {
                         validateOtherExternalSchema(updatedJsonDocument, externalSchema);
                         documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
                     }
-                    
+
                     // Make Update
                     final Bson condition =
                             and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));

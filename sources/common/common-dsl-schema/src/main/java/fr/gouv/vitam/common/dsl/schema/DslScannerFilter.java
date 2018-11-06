@@ -95,7 +95,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
                 case SELECT_SINGLE:
                     selectSingleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
-                case ELIMINATION_QUERY:
+                case BATCH_PROCESSING:
                     eliminationQuerySchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
                 case GET_BY_ID:

@@ -72,6 +72,13 @@ documentation:
       X-Http-Method-Override:
         required: true
 
+  /rules:
+    post:
+      description: |
+        Requête qui déclanche la mise à jour de masse des métadonnées de gestion d'unités d'archives.
+        La requête utilise un POJO spécifique pour effectuer la mise à jour des éléments de gestion.
+      is: [AccessTraits.UnitBatchUpdateResponse]
+
   /{idu}:
     uriParameters:
         idu:
