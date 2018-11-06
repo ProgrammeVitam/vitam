@@ -381,10 +381,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
         }
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
-    }
+
 
     public static String getId() {
         return RECLASSIFICATION_PREPARATION_LOAD_REQUEST;

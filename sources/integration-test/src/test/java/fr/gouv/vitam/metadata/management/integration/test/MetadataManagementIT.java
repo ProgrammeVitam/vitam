@@ -369,7 +369,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2_v2, DataCategory.UNIT);
 
         deleteFileFromOffer(got_with_graph_1_guid, JSON_EXTENTION, DataCategory.OBJECTGROUP);
-        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2_v2, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2_v2,
+            DataCategory.OBJECTGROUP);
 
         checkOfferLogSize(DataCategory.UNIT, 6);
         checkOfferLogSize(DataCategory.OBJECTGROUP, 6);
@@ -1021,13 +1022,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
             JsonNode logbook = logbookClient.selectOperationById(operation);
             JsonNode logbookNode = logbook.get("$results").get(0);
             JsonNode preparationEvent = logbookNode.get("events");
-            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
-            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
-            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
-            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
+            assertThat(preparationEvent.get(2).get("outDetail").asText())
+                .isEqualTo("CHECK_DISTRIBUTION_THRESHOLD.OK");
+            assertThat(preparationEvent.get(3).get("outDetail").asText())
+                .isEqualTo("CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
+            assertThat(preparationEvent.get(4).get("outDetail").asText())
+                .isEqualTo("RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertThat(preparationEvent.get(5).get("outDetail").asText())
+                .isEqualTo("RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(5).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
 
             // When attach HOLDING_UNIT -> INGEST then KO
             VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kbqaaaaq");
@@ -1044,13 +1047,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
-            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
-            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
-            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
-            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
+            assertThat(preparationEvent.get(2).get("outDetail").asText()).isEqualTo("CHECK_DISTRIBUTION_THRESHOLD.OK");
+            assertThat(preparationEvent.get(3).get("outDetail").asText()).isEqualTo("CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
+            assertThat(preparationEvent.get(4).get("outDetail").asText()).isEqualTo("RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertThat(preparationEvent.get(5).get("outDetail").asText()).isEqualTo(                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(5).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
 
 
             // When attach FILING_UNIT -> INGEST then KO
@@ -1068,13 +1069,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
-            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
-            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
-            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
-            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
+            assertThat(preparationEvent.get(2).get("outDetail").asText()).isEqualTo("CHECK_DISTRIBUTION_THRESHOLD.OK");
+            assertThat(preparationEvent.get(3).get("outDetail").asText()).isEqualTo("CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
+            assertThat(preparationEvent.get(4).get("outDetail").asText()).isEqualTo("RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertThat(preparationEvent.get(5).get("outDetail").asText()).isEqualTo("RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(5).get("evDetData").asText()).contains("illegalUnitTypeAttachments");
 
             // When cycle exists then KO
             VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kdqaaaaq");
@@ -1091,13 +1090,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbook = logbookClient.selectOperationById(operation);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
-            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
-                "CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
-            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
-            assertEquals(preparationEvent.get(4).get("outDetail").asText(),
-                "RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
-            assertThat(preparationEvent.get(4).get("evDetData").asText()).contains("Cycle detected");
+
+            assertThat(preparationEvent.get(2).get("outDetail").asText()).isEqualTo("CHECK_DISTRIBUTION_THRESHOLD.OK");
+            assertThat(preparationEvent.get(3).get("outDetail").asText()).isEqualTo("CHECK_CONCURRENT_WORKFLOW_LOCK.OK");
+            assertThat(preparationEvent.get(4).get("outDetail").asText()).isEqualTo("RECLASSIFICATION_PREPARATION_LOAD_REQUEST.OK");
+            assertThat(preparationEvent.get(5).get("outDetail").asText()).isEqualTo("RECLASSIFICATION_PREPARATION_CHECK_GRAPH.KO");
+            assertThat(preparationEvent.get(5).get("evDetData").asText()).contains("Cycle detected");
             //When access contract restriction then KO
 
             //When parallel reclassification then KO
@@ -1128,9 +1126,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
             logbook = logbookClient.selectOperationById(operation_parallel);
             logbookNode = logbook.get("$results").get(0);
             preparationEvent = logbookNode.get("events");
-            assertEquals(preparationEvent.get(2).get("outDetail").asText(),
+            assertEquals(preparationEvent.get(3).get("outDetail").asText(),
                 "CHECK_CONCURRENT_WORKFLOW_LOCK.KO");
-            assertThat(preparationEvent.get(2).get("evDetData").asText())
+            assertThat(preparationEvent.get(3).get("evDetData").asText())
                 .contains("Concurrent process(es) found");
 
 
