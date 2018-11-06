@@ -75,26 +75,14 @@ Output files
 
 Output files are set in a directory named `output-files`.
 
-Ready to process
-----------------
-
-To show that the batch is ready to process, we have a file named `<BATCH_ID>.ready` where `<BATCH_ID>` is the id of the batch.
-
-Process done
-------------
-
-To show that the batch is done to process, we have a file named `<BATCH_ID>.done` where `<BATCH_ID>` is the id of the batch.
-
 Example
 -------
 
 Here `f5a5f253-04a5-4567-b88a-c5af7df633df` is the batch id.
-- `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df.ready` is the file showing that the griffon is able to process the batch.
 - `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df/parameters.json` is the file where all parameters are set.
 - `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df/result.json` is the file where processing results are set.
 - `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df/input-files/` is the directory where files to process are set.
 - `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df/output-files/` is the directory where processed files are set.
-- `./imagemagick-griffon-vitam/f5a5f253-04a5-4567-b88a-c5af7df633df.done` is the file to set when it is done.
 
 `parameters.json` example
 ~~~~~~~~~~~~~~~~~~~~~~~~~

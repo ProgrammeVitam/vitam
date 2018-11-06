@@ -29,6 +29,7 @@ package fr.gouv.vitam.griffons.imagemagick;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.griffons.imagemagick.pojo.Action;
 import fr.gouv.vitam.griffons.imagemagick.pojo.BatchStatus;
@@ -43,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,9 +56,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fr.gouv.vitam.griffons.imagemagick.Main.ID;
-import static fr.gouv.vitam.griffons.imagemagick.Main.doneFileExt;
-import static fr.gouv.vitam.griffons.imagemagick.Main.readyFileExt;
 import static fr.gouv.vitam.griffons.imagemagick.PuidImageType.formatTypes;
 import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.ANALYSE;
 import static fr.gouv.vitam.griffons.imagemagick.status.ActionType.EXTRACT;
@@ -74,31 +72,32 @@ import static java.util.stream.Collectors.toMap;
 public class BatchProcessor {
     private static final Logger logger = LoggerFactory.getLogger(BatchProcessor.class);
 
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final Pattern fileMatch = Pattern.compile("[a-zA-Z0-9_.\\-]+");
+
+    private final Path batchDirectory;
+
     public static final String outputFilesDirName = "output-files";
     public static final String parametersFileName = "parameters.json";
     public static final String resultFileName = "result.json";
     public static final String inputFilesDirName = "input-files";
 
-    private final String execPath;
-    private final ObjectMapper mapper;
-    private final Pattern fileMatch = Pattern.compile("[a-zA-Z0-9_.\\-]+");
-
-    public BatchProcessor(String execPath, ObjectMapper mapper) {
-        this.execPath = execPath;
-        this.mapper = mapper;
+    public BatchProcessor(Path batchDirectory) {
+        this.batchDirectory = batchDirectory;
     }
 
-    public BatchStatus execute(String batchProcessingId) throws IOException {
+    public BatchStatus execute() {
         long startTime = System.currentTimeMillis();
+        String batchProcessingId = batchDirectory.getFileName().toString();
         try {
-            File file = Paths.get(execPath, ID, batchProcessingId, parametersFileName).toFile();
+            File file = batchDirectory.resolve(parametersFileName).toFile();
             Parameters parameters = mapper.readValue(file, Parameters.class);
 
             if (!batchProcessingId.equals(parameters.getId())) {
-                throw new Exception("Batch id must be same as in "+ parametersFileName);
+                throw new Exception("Batch id must be same as in " + parametersFileName);
             }
 
-            Files.createDirectory(Paths.get(execPath, ID, batchProcessingId, outputFilesDirName));
+            Files.createDirectory(batchDirectory.resolve(outputFilesDirName));
 
             List<Output> outputs = parameters.getInputs()
                 .stream()
@@ -115,27 +114,24 @@ public class BatchProcessor {
         } catch (Exception e) {
             logger.error("{}", e);
             return BatchStatus.error(batchProcessingId, startTime, e);
-        } finally {
-            Files.delete(Paths.get(execPath, ID, batchProcessingId + readyFileExt));
-            Files.createFile(Paths.get(execPath, ID, batchProcessingId + doneFileExt));
         }
     }
 
     private void addToFile(List<Output> outputs, String requestId, String id) throws IOException {
         Map<String, List<Output>> outputsMap = outputs.stream()
             .collect(toMap(o -> o.getInput().getName(), Collections::singletonList, (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
-        mapper.writer().writeValue(Paths.get(execPath, ID, id, resultFileName).toFile(), Outputs.of(requestId, id, outputsMap));
+        mapper.writer().writeValue(batchDirectory.resolve(resultFileName).toFile(), Outputs.of(requestId, id, outputsMap));
     }
 
     private Stream<Output> executeActions(Input input, Parameters parameters) {
         return parameters.getActions()
             .stream()
-            .map(action -> apply(action, input, parameters.getId()))
-            .map(raw -> postProcess(raw, parameters));
+            .map(action -> apply(action, input))
+            .map(raw -> postProcess(raw, parameters.isDebug()));
     }
 
-    private RawOutput apply(Action action, Input input, String batchProcessingId) {
-        ProcessBuilder processBuilder = new ProcessBuilder(getMagickParams(input, action, batchProcessingId));
+    private RawOutput apply(Action action, Input input) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getMagickParams(input, action));
         try {
             Process magick = processBuilder.start();
             magick.waitFor();
@@ -159,7 +155,7 @@ public class BatchProcessor {
         throw new IllegalStateException("Unreachable");
     }
 
-    private List<String> getMagickParams(Input input, Action actionType, String batchProcessingId) {
+    private List<String> getMagickParams(Input input, Action actionType) {
         if (actionType.getType() == null) {
             throw new RuntimeException("Action type cannot be null nor empty");
         }
@@ -171,9 +167,10 @@ public class BatchProcessor {
         }
 
         List<String> actionCommand = new ArrayList<>(actionType.getType().action);
-        actionCommand.replaceAll(c -> c.equals("%inputname%") ? Paths.get(execPath, ID, batchProcessingId, inputFilesDirName, input.getName()).toString() : c);
-        actionCommand.replaceAll(c -> c.equals("%outputname%") ? Paths.get(execPath, ID, batchProcessingId, outputFilesDirName, getOutputname(input.getName(), actionType)).toString() : c);
-        actionCommand.replaceAll(c -> c.equals("%format%:%inputname%") ? String.format("%s:%s", formatTypes.get(input.getFormatId()), Paths.get(execPath, ID, batchProcessingId, inputFilesDirName, input.getName()).toString()) : c);
+
+        actionCommand.replaceAll(c -> c.equals("%inputname%") ? getInputPath(input) : c);
+        actionCommand.replaceAll(c -> c.equals("%outputname%") ? getOutputPath(input, actionType) : c);
+        actionCommand.replaceAll(c -> c.equals("%format%:%inputname%") ? String.format("%s:%s", formatTypes.get(input.getFormatId()), getInputPath(input)) : c);
 
         int indexOf = actionCommand.indexOf("%args%");
         if (indexOf != -1) {
@@ -184,14 +181,22 @@ public class BatchProcessor {
         return actionCommand;
     }
 
-    private Output postProcess(RawOutput rawOutput, Parameters parameters) throws RuntimeException {
+    private String getInputPath(Input input) {
+        return batchDirectory.resolve(inputFilesDirName).resolve(input.getName()).toString();
+    }
+
+    private String getOutputPath(Input input, Action actionType) {
+        return batchDirectory.resolve(outputFilesDirName).resolve(getOutputname(input.getName(), actionType)).toString();
+    }
+
+    private Output postProcess(RawOutput rawOutput, boolean debug) throws RuntimeException {
         switch (rawOutput.action.getType()) {
             case GENERATE:
-                return generate(rawOutput, parameters.isDebug());
+                return generate(rawOutput, debug);
             case ANALYSE:
-                return analyze(rawOutput, parameters.isDebug());
+                return analyze(rawOutput, debug);
             case EXTRACT:
-                return extract(rawOutput, parameters.isDebug(), parameters.getId());
+                return extract(rawOutput, debug);
             default:
                 throw new IllegalStateException("Unreachable");
         }
@@ -228,21 +233,24 @@ public class BatchProcessor {
         return rawOutput.toOk(debug);
     }
 
-    private Output extract(RawOutput rawOutput, boolean debug, String batchProcessingId) {
+    private Output extract(RawOutput rawOutput, boolean debug) {
         if (rawOutput.exception != null || rawOutput.exitCode > 0) {
             return rawOutput.toError(debug);
         }
         try {
             final ArrayNode metadata = (ArrayNode) this.mapper.readTree(rawOutput.stdout);
-            Set<Entry<String, String>> entries = rawOutput.action.getValues()
+            Set<Entry<String, String>> dataToExtract = rawOutput.action.getValues()
                 .getDataToExtract()
                 .entrySet();
-            Map<String, JsonNode> collect = entries.stream()
+            Map<String, JsonNode> dataToExtractByMetadata = dataToExtract.stream()
                 .map(e -> new SimpleImmutableEntry<>(e.getKey(), metadata.get(0).at(e.getValue())))
                 .collect(toMap(SimpleImmutableEntry::getKey, SimpleImmutableEntry::getValue));
 
-            this.mapper.writer()
-                .writeValue(Paths.get(execPath, ID, batchProcessingId, outputFilesDirName, rawOutput.outputName).toFile(), collect);
+            ObjectWriter writer = this.mapper.writer();
+            Path outputPath = batchDirectory.resolve(outputFilesDirName);
+
+            File file = outputPath.resolve(rawOutput.outputName).toFile();
+            writer.writeValue(file, dataToExtractByMetadata);
 
             String warning = WARNING.name().toLowerCase();
             boolean outputContainsWarnings = rawOutput.stdout.toLowerCase().contains(warning) || rawOutput.stderr.toLowerCase().contains(warning);

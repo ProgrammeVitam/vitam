@@ -62,7 +62,7 @@ public class BatchStatus {
 
     @Override
     public String toString() {
-        return "\nBatchStatus{" +
+        return "BatchStatus{" +
             "batchId='" + batchId + '\'' +
             ", startTime=" + startTime +
             ", endTime=" + endTime +

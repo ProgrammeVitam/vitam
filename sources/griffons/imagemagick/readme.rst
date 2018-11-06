@@ -8,11 +8,6 @@ How to build
 ------------
 Execute the following command:
 - `mvn clean install` it will build the jar and execute the test.
-- `mkdir imagemagick-griffon-vitam`.
-- `cp griffon-imagemagick imagemagick-griffon-vitam/`.
-- `cp target/imagemagick-jar-with-dependencies.jar imagemagick-griffon-vitam/`.
-- `fpm -s dir -t deb -d 'imagemagick' -n vitam-imagemagick-griffon ./imagemagick-griffon-vitam=/vitam/griffon`.
-- `fpm -s dir -t rpm -d 'ImageMagick' -n vitam-imagemagick-griffon ./imagemagick-griffon-vitam=/vitam/griffon`.
 
 In order to build the RPM package you must have `rpmbuild` tool.
 
@@ -22,4 +17,4 @@ On a shell run `griffon-imagemagick path/to/batch/directory`, it can also be run
 
 How to install
 --------------
-On centos run `dnf install vitam-imagemagick-griffon-1.0-1.x86_64.rpm` and on debian `apt-get install vitam-imagemagick-griffon_1.0_amd64.deb`.
+On centos run `dnf install target/imagemagick-griffon-vitam-1.11.0-SNAPSHOT.rpm` and on debian `dpkg -i target/imagemagick-griffon-vitam-1.11.0-SNAPSHOT.deb`.
