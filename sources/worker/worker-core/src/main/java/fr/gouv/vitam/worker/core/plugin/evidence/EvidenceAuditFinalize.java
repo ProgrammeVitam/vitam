@@ -143,9 +143,5 @@ public class EvidenceAuditFinalize extends ActionHandler {
         return new ItemStatus(EVIDENCE_AUDIT_FINALIZE).setItemsStatus(EVIDENCE_AUDIT_FINALIZE, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //nothing
-    }
 
 }

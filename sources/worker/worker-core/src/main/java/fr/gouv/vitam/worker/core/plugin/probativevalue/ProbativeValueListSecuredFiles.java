@@ -143,7 +143,5 @@ public class ProbativeValueListSecuredFiles extends ActionHandler {
         map.get(index).add(element);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /*Nothing to do */ }
 
 }

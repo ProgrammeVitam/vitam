@@ -261,11 +261,6 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         }
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing to check
-    }
-
 
     /**
      * Check unit schema status values

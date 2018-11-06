@@ -81,8 +81,5 @@ public class EvidenceAuditExtractFromZip extends ActionHandler {
 
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
 
 }

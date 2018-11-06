@@ -160,7 +160,6 @@ public class MassUpdateIT extends VitamRuleRunner {
 
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
-    private static String CONFIG_BIG_WORKER_PATH = "";
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -168,7 +167,7 @@ public class MassUpdateIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        CONFIG_BIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
+        PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
         processMonitoring = ProcessMonitoringImpl.getInstance();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -346,7 +345,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                     .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
-            assertThat(updatedUnit.get().get(TITLE).equals("update old title sous fonds"));
+            assertThat(updatedUnit.get().get(TITLE)).isEqualTo("update old title sous fonds");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -419,13 +418,13 @@ public class MassUpdateIT extends VitamRuleRunner {
                 VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                     .getByID("aeaqaaaaaagbcaacaang6ak4ts6palibbbbq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
-            assertThat(updatedUnit.get().get(TITLE).equals("Reportage photographique juillet n°17642"));
+            assertThat(updatedUnit.get().get(TITLE)).isEqualTo("Reportage photographique juillet n°17642");
 
             Optional<Document> updatedUnit2 =
                 VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                     .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliccccq", TENANT_0);
             assertTrue(updatedUnit2.isPresent());
-            assertThat(updatedUnit2.get().get(TITLE).equals("Le Reportage photographique juillet n°17642 est réalisé en 1789 sous le titre: Reportage photographique juillet n°17642"));
+            assertThat(updatedUnit2.get().get(TITLE)).isEqualTo("Le Reportage photographique juillet n°17642 est réalisé en 1789 sous le titre: Reportage photographique juillet n°17642");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =

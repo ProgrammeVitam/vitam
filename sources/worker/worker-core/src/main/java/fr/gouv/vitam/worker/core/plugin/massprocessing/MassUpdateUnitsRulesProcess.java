@@ -517,14 +517,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         }
     }
 
-    /**
-     * Check mandatory parameter
-     *
-     * @param handler input output list
-     * @throws ProcessingException when handler io is not complete
-     */
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+
 
     /**
      * getJsonLineForItem

@@ -134,8 +134,5 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             .setItemsStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {//nothing
-    }
 
 }

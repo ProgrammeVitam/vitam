@@ -246,8 +246,5 @@ public class ProbativeValueReport extends ActionHandler {
         jsonGenerator.writeEndArray();
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
 
 }

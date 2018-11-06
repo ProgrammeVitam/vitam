@@ -214,12 +214,5 @@ public class UnitMetadataUpdateCheckPermission extends ActionHandler {
             .setItemsStatus(UNIT_METADATA_UPDATE_CHECK_PERMISSION, itemStatus);
     }
 
-    /**
-     * Check mandatory parameter
-     * @param handler input output list
-     * @throws ProcessingException when handler io is not complete
-     */
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing
-    }
+
 }
