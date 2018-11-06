@@ -37,6 +37,9 @@ rm -f  "deployment/environments/group_vars/all/vault-extra.example"
 rm -f  "deployment/environments/group_vars/all/vault-keystores.yml"
 rm -f  "deployment/environments/group_vars/all/vault-vitam.yml"
 
+echo "Removing useless directives..."
+sed -i 's/admin_personal_certs: \[ \"userOK.crt\" \]/admin_personal_certs: \[\]/' deployment/environments/group_vars/all/vitam_security.yml
+
 # Clean up PKI (but keep the lib/functions.sh)
 rm -rf "deployment/pki/ca"
 rm -rf "deployment/pki/config"
