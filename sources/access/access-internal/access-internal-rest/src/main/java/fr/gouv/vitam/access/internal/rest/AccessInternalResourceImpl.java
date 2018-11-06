@@ -26,12 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -67,9 +65,6 @@ import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 
@@ -82,7 +77,6 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -100,9 +94,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamSession;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -438,11 +430,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
-            accessModule.checkClassificationLevel(queryDsl);
-            JsonNode result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
+            JsonNode result = accessModule.updateUnitbyId(AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
@@ -624,53 +617,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
         }
         return false;
-    }
-
-    private JsonNode applyAccessContractRestriction(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-        Set<String> rootUnits = contract.getRootUnits();
-        if (null != rootUnits && !rootUnits.isEmpty()) {
-            String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
-            final SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(queryDsl);
-
-            Query rootUnitsRestriction = QueryHelper
-                .or().add(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
-                    QueryHelper.in(PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray));
-
-            List<Query> queryList = parser.getRequest().getQueries();
-            if (queryList.isEmpty()) {
-                queryList.add(rootUnitsRestriction.setDepthLimit(0));
-            } else {
-                Query firstQuery = queryList.get(0);
-                int depth = firstQuery.getParserRelativeDepth();
-                Query restrictedQuery = QueryHelper.and().add(rootUnitsRestriction, firstQuery);
-                restrictedQuery.setDepthLimit(depth);
-                parser.getRequest().getQueries().set(0, restrictedQuery);
-            }
-            queryDsl = parser.getRequest().getFinalSelect();
-        }
-
-        return addProdServicesToQuery(queryDsl);
-    }
-
-    private JsonNode addProdServicesToQuery(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
-        Set<String> prodServices = contract.getOriginatingAgencies();
-        if (contract.getEveryOriginatingAgency()) {
-            return queryDsl;
-        } else {
-            final SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(queryDsl);
-            parser.getRequest().addQueries(QueryHelper.or()
-                .add(QueryHelper.in(
-                    ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])))
-                .add(QueryHelper.eq(PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name()))
-                .setDepthLimit(0));
-            return parser.getRequest().getFinalSelect();
-        }
     }
 
     private void checkEmptyQuery(JsonNode queryDsl)

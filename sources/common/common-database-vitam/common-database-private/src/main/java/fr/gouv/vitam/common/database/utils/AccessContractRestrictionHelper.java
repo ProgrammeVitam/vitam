@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -85,6 +86,23 @@ public final class AccessContractRestrictionHelper {
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, false);
         return parser.getRequest().getFinalSelect();
+    }
+
+    /**
+     * Apply access contract restriction for archive unit for update request
+     *
+     * @param queryDsl
+     * @param contract
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl, AccessContractModel contract)
+            throws InvalidParseOperationException, InvalidCreateOperationException {
+        final UpdateParserMultiple parser = new UpdateParserMultiple();
+        parser.parse(queryDsl);
+        applyAccessContractRestriction(parser, contract, true);
+        return parser.getRequest().getFinalUpdate();
     }
 
     /**
