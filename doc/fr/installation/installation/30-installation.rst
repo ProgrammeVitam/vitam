@@ -124,6 +124,15 @@ Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des iden
  - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
  - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
 
+La liste des choix possibles, pour chaque tenant, est :
+
+  - INGEST_CONTRACT : contrats d'entrée
+  - ACCESS_CONTRACT : contrats d'accès
+  - PROFILE : profils SEDA
+  - SECURITY_PROFILE : profils de sécurité
+  - CONTEXT : contextes applicatifs
+  - ARCHIVEUNITPROFILE : profils d'unités archivistiques
+
 Déploiement
 -------------
 
