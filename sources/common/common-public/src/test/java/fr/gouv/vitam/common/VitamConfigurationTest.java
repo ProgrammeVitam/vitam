@@ -155,6 +155,7 @@ public class VitamConfigurationTest {
 
             assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
+            assertThat(VitamConfiguration.getEnvironmentName()).isEqualTo("ENV");
         }
     }
 

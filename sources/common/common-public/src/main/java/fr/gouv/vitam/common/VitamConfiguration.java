@@ -449,6 +449,11 @@ public class VitamConfiguration {
     private static int ADMIN_TENANT = -1;
 
     /**
+     * Environment name used for storage offer container prefix (by default, set to empty string)
+     */
+    private static String environmentName;
+
+    /**
      * Max dsl queries per reclassification request
      */
     private static int reclassificationMaxBulkThreshold = 1000;
@@ -894,6 +899,10 @@ public class VitamConfiguration {
 
         if(null != parameters.getClassificationLevel()){
             setClassificationLevel(parameters.getClassificationLevel());
+        }
+
+        if (null != parameters.getEnvironmentName()) {
+            setEnvironmentName(parameters.getEnvironmentName());
         }
     }
 
@@ -2071,8 +2080,6 @@ public class VitamConfiguration {
         VitamConfiguration.textMaxLength = textMaxLength;
     }
 
-
-
     /**
      * Get defaultOffset
      *
@@ -2119,6 +2126,22 @@ public class VitamConfiguration {
 
     public static void setWorkspaceWorkflowsFolder(String workspaceWorkflowsFolder) {
         VitamConfiguration.workspaceWorkflowsFolder = workspaceWorkflowsFolder;
+    }
+
+    /**
+     * Get environmentName
+     *
+     * @return environmentName value
+     */
+    public static String getEnvironmentName() {
+        return environmentName;
+    }
+
+    public static /**
+     * set the environmentName
+     */
+    void setEnvironmentName(String environmentName) {
+        VitamConfiguration.environmentName = environmentName;
     }
 
     /**

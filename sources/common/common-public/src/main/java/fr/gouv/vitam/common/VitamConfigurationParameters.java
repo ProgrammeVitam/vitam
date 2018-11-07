@@ -319,6 +319,11 @@ public class VitamConfigurationParameters {
     private ClassificationLevel classificationLevel;
 
     /**
+     * Environment name used for storage offer container prefix (by default, set to empty string)
+     */
+    private String environmentName;
+
+    /**
      * VitamData empty constructor for YAMLFactory
      */
     public VitamConfigurationParameters() {
@@ -1276,4 +1281,21 @@ public class VitamConfigurationParameters {
     public void setClassificationLevel(ClassificationLevel classificationLevel) {
         this.classificationLevel = classificationLevel;
     }
+
+
+    /**
+     * Get environmentName
+     *
+     * @return environmentName value
+     */
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+    /**
+     * set the environmentName
+     */
+    public void setEnvironmentName(String environmentName) {
+        this.environmentName = environmentName;
+    }
+
 }
