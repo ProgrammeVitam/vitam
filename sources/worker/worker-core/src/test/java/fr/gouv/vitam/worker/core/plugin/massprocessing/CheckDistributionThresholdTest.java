@@ -126,6 +126,34 @@ public class CheckDistributionThresholdTest {
 
     @Test
     @RunWithCustomExecutor
+    public void whenCheckDistributionDefaultThresholdOnSelectQueryThenReturnOK() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        given(handlerIO.getInput(0)).willReturn("SELECT");
+        given(handlerIO.getInput(1)).willReturn("query.json");
+
+        JsonNode queryUnit = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/CheckDistributionThreshold/select_all_request.json"));
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+        given(metaDataClient.selectUnits(any())).willReturn(
+            JsonHandler.getFromInputStream(
+                getClass().getResourceAsStream("/CheckDistributionThreshold/resultMetadata5.json")));
+
+        // When
+        ItemStatus itemStatus =
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+
+        // Then
+        assertThat(itemStatus).isNotNull();
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void whenCheckDistributionOvercomeThresholdThenReturnOK() throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);

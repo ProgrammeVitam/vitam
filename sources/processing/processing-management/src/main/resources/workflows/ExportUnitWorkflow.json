@@ -21,7 +21,7 @@
             "in": [
               {
                 "name": "queryType",
-                "uri": "VALUE:UPDATE"
+                "uri": "VALUE:SELECT"
               },
               {
                 "name": "queryUri",

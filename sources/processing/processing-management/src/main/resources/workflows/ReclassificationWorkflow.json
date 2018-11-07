@@ -15,22 +15,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "queryType",
-                "uri": "VALUE:UPDATE"
-              },
-              {
-                "name": "queryUri",
-                "uri": "VALUE:request.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
             "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
             "behavior": "BLOCKING",
             "in": [
