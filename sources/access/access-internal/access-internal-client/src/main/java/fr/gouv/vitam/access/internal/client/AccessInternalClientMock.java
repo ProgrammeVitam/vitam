@@ -224,7 +224,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest) {
+    public RequestResponse<JsonNode> exportDIP(JsonNode dslRequest) {
+        return new RequestResponseOK<>();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
         return new RequestResponseOK<>();
     }
 

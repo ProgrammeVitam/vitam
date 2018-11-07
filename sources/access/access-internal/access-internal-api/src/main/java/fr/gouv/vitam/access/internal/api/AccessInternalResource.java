@@ -56,10 +56,16 @@ public interface AccessInternalResource extends VitamResource {
     Response selectUnitsWithInheritedRules(JsonNode queryDsl);
 
     /**
+     * @param dslRequest
+     * @return
+     */
+    Response exportDIP(JsonNode dslRequest);
+
+    /**
      * @param dipExportRequest
      * @return
      */
-    Response exportDIP(DipExportRequest dipExportRequest);
+    Response exportDIPByUsageFilter(DipExportRequest dipExportRequest);
 
     /**
      * @param id of operation (X-Request-Id)

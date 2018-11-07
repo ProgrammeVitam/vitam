@@ -168,7 +168,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-                                        DipExportRequest dipExportRequest) throws VitamClientException;
+                                        JsonNode dslRequest) throws VitamClientException;
 
     /**
      * getDIPById<br>
