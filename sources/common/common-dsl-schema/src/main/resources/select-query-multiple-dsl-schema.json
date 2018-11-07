@@ -14,6 +14,12 @@
         "min": 0,
         "hint": "List of query"
       },
+      "$threshold": {
+        "format": "ref",
+        "type": "THRESHOLD",
+        "optional": true,
+        "hint": "Threshold"
+      },
       "$filter": {
         "format": "ref",
         "type": "FILTER",
@@ -357,6 +363,11 @@
         "hint": "Query of the facet filter bucket"
       }
     }
+  },
+  "THRESHOLD": {
+    "format": "ref",
+    "type": "posinteger",
+    "optional": true,
+    "hint": "Threshold"
   }
-
 }
