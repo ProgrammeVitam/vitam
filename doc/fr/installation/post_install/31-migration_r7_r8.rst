@@ -3,7 +3,7 @@
 Migration R7 vers R8
 ####################
 
-.. caution:: la migration n'est possible qu'en partant de la version la plus récente de la version "R7" (1.4.2).
+.. caution:: La migration n'est possible qu'en partant de la version la plus récente de la version "R7" (1.4.5).
 
 .. caution:: Il faut d'abord lancer la migration sur le site secondaire pour purger les registres des fonds, ensuite lancer la migration sur le site primaire et à la fin lancer la reconstruction des registres des fonds sur le site secondaire.
 
