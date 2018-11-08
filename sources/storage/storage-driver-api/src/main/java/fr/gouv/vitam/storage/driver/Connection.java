@@ -34,6 +34,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -118,7 +119,7 @@ public interface Connection extends AutoCloseable {
      * @return a result that may contain information about the storage metadata
      * @throws StorageDriverException
      */
-    StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException;
+    StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException;
 
     /**
      * List object on a container type

@@ -35,7 +35,7 @@ public class StorageClientUtilTest {
 
 
         when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul")))
+            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
             .thenReturn(JsonHandler.getFromString(storageResults));
 
 
@@ -61,7 +61,7 @@ public class StorageClientUtilTest {
 
 
         when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul")))
+            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
             .thenReturn(JsonHandler.getFromString(storageResults));
 
 
@@ -90,7 +90,7 @@ public class StorageClientUtilTest {
 
 
         when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul")))
+            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
             .thenReturn(JsonHandler.getFromString(storageResults));
 
 

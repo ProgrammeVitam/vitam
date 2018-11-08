@@ -210,7 +210,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
 
-        when(storageClient.getInformation(eq("default"), anyObject(), anyString(), eq(Arrays.asList(offerIds))))
+        when(storageClient.getInformation(eq("default"), anyObject(), anyString(), eq(Arrays.asList(offerIds)), eq(false)))
             .thenReturn(objectInformationResult);
 
 

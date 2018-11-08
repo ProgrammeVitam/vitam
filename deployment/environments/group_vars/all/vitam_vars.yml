@@ -238,6 +238,12 @@ vitam:
         secret_platform: "true"
         storageTraceabilityOverlapDelay: 300
         restoreBulkSize: 1000
+        # batch thread pool size
+        minBatchThreadPoolSize: 4
+        maxBatchThreadPoolSize: 16
+        # Digest computation timeout in seconds
+        batchDigestComputationTimeout: 300
+
         # log_level: "DEBUG"
         metrics_enabled: true
     storageofferdefault:

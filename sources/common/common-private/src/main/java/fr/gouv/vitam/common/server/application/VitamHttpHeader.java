@@ -47,6 +47,10 @@ public enum VitamHttpHeader {
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
     OFFERS_IDS(GlobalDataRest.X_OFFER_IDS, ".+"),
     /**
+     * The X_OFFER_NO_CACHE header, used in requests to set cache policy when computing object digest </br>
+     */
+    OFFER_NO_CACHE(GlobalDataRest.X_OFFER_NO_CACHE, "true|false"),
+    /**
      * The X_TENANT_ID header, used in requests to specify the used tenant</br>
      */
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)

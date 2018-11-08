@@ -98,6 +98,7 @@ La première chose que nous devons faire est d'ajouter la dépendance maven dans
 La configuration de l'offre de stockage est basé sur plusieurs paramètres:
 
   - provider :: String : le type de l'offre de stockage (valeur par defaut: filesystem, valeur possibles : openstack-swift , filesystem ou chaîne vide)
+  - shouldRecomputeDigest :: Boolean : Activation de la double vérification des empreintes lors de l'écriture sur les offres.
   - swiftKeystoneAuthUrl* :: String : URL d'authentification keystone
   - swiftUser* :: String : le nom de l'utilisateur (sur rados, il prend la forme <tenant>$<user>)
   - storagePath :: String : path de stockage pour l'offre FileSystem
@@ -142,6 +143,7 @@ Exemple d'un fichier de configuration :
 .. code-block:: yaml
 
   provider: openstack-swift
+  shouldRecomputeDigest: false
   swiftKeystoneAuthUrl : http://10.10.10.10:5000/auth/v1.0
   swiftDomain : vitam
   swiftUser : swift

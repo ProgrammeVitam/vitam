@@ -26,8 +26,16 @@
  **/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.bson.Document;
 
@@ -37,6 +45,12 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 /**
  * Metadata repository : direct access to databases
@@ -79,5 +93,42 @@ public class MetadataRepositoryService {
             throw new MetaDataNotFoundException(String
                 .format("Could not find document of type %s by id %s for tenant %d", collection.getName(), id, tenant));
         }
+    }
+
+    /**
+     * Retrieve document by its ID in a given collection filtered by a tenant in mongo
+     *
+     * @param collection collection
+     * @param ids ids
+     * @param tenant tenant
+     * @return the document as JsonNode
+     * @throws InvalidParseOperationException could not parse response
+     */
+    public List<JsonNode> getDocumentsByIds(MetadataCollections collection, Collection<String> ids, Integer tenant)
+        throws InvalidParseOperationException {
+
+        MongoCursor<Document>
+            documents = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).findDocuments(
+            and(
+                in(ID, ids),
+                eq(TENANT_ID, tenant)), VitamConfiguration.getBatchSize()).iterator();
+
+        List<JsonNode> entries = new ArrayList<>();
+
+        while (documents.hasNext()) {
+            Document document = documents.next();
+            switch (collection) {
+                case UNIT:
+                    entries.add(JsonHandler.toJsonNode(new Unit(document)));
+                    break;
+                case OBJECTGROUP:
+                    entries.add(JsonHandler.toJsonNode(new ObjectGroup(document)));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Metadata collection invalid");
+            }
+        }
+
+        return entries;
     }
 }

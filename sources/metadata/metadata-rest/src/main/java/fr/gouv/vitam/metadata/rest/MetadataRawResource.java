@@ -42,12 +42,15 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataRepositoryService;
+
+import java.util.List;
 
 /**
  * Metadata Raw resource REST API
@@ -113,6 +116,47 @@ public class MetadataRawResource {
                 .format("Technical error while trying to find document of type %s",
                     collection.getName()))
                 .toResponse();
+        } catch (InvalidParseOperationException e) {
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
+                .format("Technical error while trying to parse document of type %s", collection.getName()))
+                .toResponse();
+        }
+    }
+
+    /**
+     * Get Units as raw data
+     *
+     * @return {@link Response} contains a request response json filled with unit result
+     */
+    @Path("/raw/units")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getBulkRawUnitByIds(JsonNode body) {
+        return getByIds(MetadataCollections.UNIT, body);
+    }
+
+    /**
+     * Get ObjectGroups as raw data
+     *
+     * @return {@link Response} contains a request response json filled with object group result
+     */
+    @Path("/raw/objectgroups")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getBulkRawObjectGroupsByIds(JsonNode body) {
+        return getByIds(MetadataCollections.OBJECTGROUP, body);
+    }
+
+    private Response getByIds(MetadataCollections collection, JsonNode idsJson) {
+        try {
+            final Integer tenant = ParameterHelper.getTenantParameter();
+            List<String> ids = JsonHandler.getFromJsonNode(idsJson, List.class);
+            List<JsonNode> documents = metadataRepositoryService.getDocumentsByIds(collection, ids, tenant);
+            RequestResponse<JsonNode> responseOK =
+                new RequestResponseOK<JsonNode>().addAllResults(documents).setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(responseOK).build();
         } catch (InvalidParseOperationException e) {
             return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
                 .format("Technical error while trying to parse document of type %s", collection.getName()))

@@ -94,7 +94,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private static final StorageStrategyProvider STRATEGY_PROVIDER =
         StorageStrategyProviderFactory.getDefaultProvider();
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
-    private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
 
     /**
@@ -102,10 +101,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
      */
     static final ExecutorService executor = new VitamThreadPoolExecutor();
 
-    /**
-     * Used to wait for all task submission (executorService)
-     */
-    private static final long THREAD_SLEEP = 1;
     private static final String WRONG_NUMBER_ON_WAIT_ON_OFFER_ID = "Wrong number on wait on offer ID ";
     private static final String INTERRUPTED_ON_OFFER_ID = "Interrupted on offer ID ";
     private static final String ERROR_ON_OFFER_ID = "Error on offer ID ";
@@ -113,9 +108,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private static final String NO_MESSAGE_RETURNED = "No message returned";
     private static final String INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID = "Interrupted after timeout on offer ID ";
     private static final String OBJECT_NOT_DELETED = "Object not deleted: ";
-    private static final String THREAD_SLEEP_TO_WAIT_ALL_TASK_SUBMISSION_INTERRUPTED =
-        "Thread sleep to wait all task submission interrupted !";
-    private static final String OBJECT_POTENTIALLY_NOT_DELETED = "Object potentially not deleted: ";
     private static final String TIMEOUT_ON_OFFER_ID = "Timeout on offer ID ";
     private static final String OBJECT_ID_IS_MANDATORY = "Object id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category is mandatory";
@@ -168,23 +160,22 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-        if (hotStrategy != null) {
-            isStrategyValid(hotStrategy);
-            final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
-            if (offerReferences.isEmpty()) {
-                throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
-            }
-
-
-            List<StorageOffer> storageOffers = offerReferences.stream()
-                .map(StoragePopulateImpl::apply)
-                .collect(Collectors.toList());
-            OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
-
-            tryAndRetry(objectId, category, file, tenantId, offers, 1);
-
+        if (hotStrategy == null) {
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
-        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+
+        isStrategyValid(hotStrategy);
+        final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+        if (offerReferences.isEmpty()) {
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        }
+
+        List<StorageOffer> storageOffers = offerReferences.stream()
+            .map(StoragePopulateImpl::apply)
+            .collect(Collectors.toList());
+        OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
+
+        tryAndRetry(objectId, category, file, tenantId, offers, 1);
     }
 
     private void tryAndRetry(String objectId, DataCategory category, File file,
@@ -220,21 +211,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 LOGGER.error(WRONG_NUMBER_ON_WAIT_ON_OFFER_ID + offerId2, e);
             } catch (StorageException e) {
                 LOGGER.error(INTERRUPTED_ON_OFFER_ID + offerId2, e);
-            }
-
-            // wait all tasks submission
-            try {
-                Thread.sleep(THREAD_SLEEP);
-            } catch (InterruptedException exc) {
-                LOGGER.warn(THREAD_SLEEP_TO_WAIT_ALL_TASK_SUBMISSION_INTERRUPTED, exc);
-                if (!datas.getKoOffers().isEmpty()) {
-                    try {
-                        deleteObjects(datas.getOkOffers(), tenantId, category, objectId);
-                    } catch (StorageTechnicalException e) {
-                        LOGGER.error("Cannot delete object {}", objectId, e);
-                        throw e;
-                    }
-                }
             }
 
             // wait for all threads execution
@@ -360,12 +336,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         // wait all tasks submission
-        try {
-            Thread.sleep(THREAD_SLEEP, TimeUnit.MILLISECONDS.ordinal());
-        } catch (InterruptedException exc) {
-            LOGGER.warn(THREAD_SLEEP_TO_WAIT_ALL_TASK_SUBMISSION_INTERRUPTED, exc);
-            throw new StorageTechnicalException(OBJECT_POTENTIALLY_NOT_DELETED + objectId, exc);
-        }
         for (Entry<String, Future<Boolean>> entry : futureMap.entrySet()) {
             final Future<Boolean> future = entry.getValue();
             String offerId = entry.getKey();

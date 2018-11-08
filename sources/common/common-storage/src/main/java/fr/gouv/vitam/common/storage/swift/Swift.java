@@ -28,22 +28,19 @@ package fr.gouv.vitam.common.storage.swift;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
@@ -133,7 +130,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size) throws
+        Long size, boolean recomputeDigest) throws
         ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -144,12 +141,26 @@ public class Swift extends ContentAddressableStorageAbstract {
         // when downloaded, sends all the segments concatenated as a single object.
         // This also offers much greater upload speed with the possibility of parallel uploads of the segments.
 
+        Digest digest = new Digest(digestType);
+        InputStream digestInputStream = digest.getDigestInputStream(stream);
+
         if (size != null && size > swiftLimit) {
-            bigFile(containerName, objectName, stream, size);
+            bigFile(containerName, objectName, digestInputStream, size);
         } else {
-            smallFile(containerName, objectName, stream);
+            smallFile(containerName, objectName, digestInputStream);
         }
-        return computeAndStoreDigestInMetadata(containerName, objectName, digestType);
+
+        String streamDigest = digest.digestHex();
+
+        if(recomputeDigest) {
+            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+            if(!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
+            }
+        }
+
+        storeDigest(containerName, objectName, digestType, streamDigest);
+        return streamDigest;
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
@@ -190,10 +201,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
     }
 
-    private String computeAndStoreDigestInMetadata(String containerName, String objectName, DigestType digestType)
+    private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
         throws ContentAddressableStorageException {
-        // Same as the others (like HashFileSystem) but clearly not the best way
-        String digest = super.computeObjectDigest(containerName, objectName, digestType);
+
         Map<String, String> metadataToUpdate = new HashMap<>();
         // Not necessary to put the "X-Object-Meta-"
         metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
@@ -205,11 +215,33 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
-        return digest;
     }
 
     @Override
-    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
+        throws ContentAddressableStorageException {
+
+        if (!noCache) {
+            Map<String, String> metadata = osClient.get().objectStorage().objects()
+                .getMetadata(ObjectLocation.create(containerName, objectName));
+
+            if (metadata != null
+                && metadata.containsKey(X_OBJECT_META_DIGEST)
+                && metadata.containsKey(X_OBJECT_META_DIGEST_TYPE)
+                && digestType.getName().equals(metadata.get(X_OBJECT_META_DIGEST_TYPE))) {
+
+                return metadata.get(X_OBJECT_META_DIGEST);
+            }
+
+            LOGGER.warn(String.format(
+                "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
+        }
+
+        return computeObjectDigest(containerName, objectName, digestType);
+    }
+
+    @Override
+        public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
@@ -261,7 +293,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId) {
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache) {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
@@ -311,13 +343,4 @@ public class Swift extends ContentAddressableStorageAbstract {
     public void close() {
         // nothing ? have to do something ?
     }
-
-    private MultivaluedHashMap<String, Object> getXContentLengthHeader(SwiftObject object) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        List<Object> headersList = new ArrayList<>();
-        headersList.add(object.getSizeInBytes());
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
-        return headers;
-    }
-
 }

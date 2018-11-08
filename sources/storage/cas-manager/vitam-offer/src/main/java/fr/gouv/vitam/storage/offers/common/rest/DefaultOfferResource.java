@@ -100,8 +100,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
     private static final String CODE_VITAM = "code_vitam";
 
-    private static final String MISSING_X_DIGEST_ALGORITHM = "Missing the digest type (X-digest-algorithm)";
-    private static final String MISSING_X_DIGEST = "Missing the type (X-digest)";
     private DefaultOfferService defaultOfferService;
 
     /**
@@ -534,15 +532,17 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/{id:.+}/metadatas")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) Boolean noCache) {
+
+        if (Strings.isNullOrEmpty(xTenantId) || noCache == null) {
+            LOGGER.error("Missing tenant ID (X-Tenant-Id) or noCache");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String containerName = buildContainerName(type, xTenantId);
         try {
             SanityChecker.checkParameter(idObject);
-            StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject);
+            StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject, noCache);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);

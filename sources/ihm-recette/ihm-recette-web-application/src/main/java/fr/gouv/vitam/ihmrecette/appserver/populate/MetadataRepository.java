@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.bson.Document;
@@ -52,10 +53,14 @@ import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -74,6 +79,8 @@ public class MetadataRepository {
     private TransportClient transportClient;
     private ObjectMapper objectMapper;
     private final StoragePopulateImpl storagePopulateService;
+    private final ExecutorService storageExecutorService
+        = Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance());
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
@@ -136,7 +143,11 @@ public class MetadataRepository {
     }
 
     private void storeObjects(List<UnitGotModel> unitGotList) {
+
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+
         for (UnitGotModel unitGotModel : unitGotList) {
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
             try {
                 this.storagePopulateService.storeData(
                     STRATEGY_ID,
@@ -146,8 +157,12 @@ public class MetadataRepository {
                 );
             } catch (StorageException | FileNotFoundException e) {
                 LOGGER.error("Can not store object of " + unitGotModel.getUnit().getId());
-            }
+            }}, storageExecutorService);
+
+            completableFutures.add(completableFuture);
         }
+
+        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
     }
 
     /**

@@ -37,6 +37,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -224,7 +225,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageException
      */
     JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
-        List<String> offerIds) throws StorageException;
+        List<String> offerIds, boolean noCache) throws StorageException;
 
 
     /**
@@ -263,13 +264,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
     void deleteObjectInOffers(String strategyId, DataContext context, List<String> offers)
         throws StorageException;
 
-
-    /**
-     * Get the status from the service
-     *
-     * @return the status as a JsonNode
-     * @throws UnsupportedOperationException method not implemented yet
-     */
-    JsonNode status() throws UnsupportedOperationException;
-
+    List<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
+        List<String> objectIds, List<String> offerIds)
+        throws StorageException;
 }

@@ -697,7 +697,10 @@ public class DefaultOfferResourceTest {
         checkOfferDatabaseExistingDocument("1_unit", "id1");
 
         // test
-        given().header(GlobalDataRest.X_TENANT_ID, 1).when().get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "id1" + METADATA)
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, "false")
+            .when().get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "id1" + METADATA)
             .then()
             .statusCode(200);
     }

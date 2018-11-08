@@ -57,6 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
@@ -781,7 +782,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void getObjectMetadataTestOK() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
-        final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        final StorageGetMetadataRequest request = new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid",
+            false);
         final StorageMetadataResult result = connection.getMetadatas(request);
         assertNotNull(result);
 
@@ -790,16 +792,16 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverNotFoundException.class)
     public void getObjectMetadataTestTestNotFound() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final StorageObjectRequest request =
-            new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        final StorageGetMetadataRequest request =
+            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid", false);
         connection.getMetadatas(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void getObjectMetadataTestInternalServerError() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final StorageObjectRequest request =
-            new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        final StorageGetMetadataRequest request =
+            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid", false);
         connection.getMetadatas(request);
     }
 

@@ -27,10 +27,10 @@
 package fr.gouv.vitam.common.storage.cas.container.api;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.jcloud.VitamJcloudsPageSetImpl;
@@ -45,7 +45,6 @@ import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -117,20 +116,32 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size)
+        Long size, boolean recomputeDigest)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         final BlobStore blobStore = context.getBlobStore();
         try {
-            if (isExistingObject(containerName, objectName)) {
-                LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
-            }
 
-            final Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
+            Digest digest = new Digest(digestType);
+            InputStream digestInputStream = digest.getDigestInputStream(stream);
+
+            final Blob blob = blobStore.blobBuilder(objectName).payload(digestInputStream).build();
 
             blob.getMetadata().getContentMetadata().setContentLength(size);
             blobStore.putBlob(containerName, blob);
+
+            String streamDigest = digest.digestHex();
+
+            if(recomputeDigest) {
+                String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+                if(!streamDigest.equals(computedDigest)) {
+                    throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
+                }
+            }
+
+            return streamDigest;
+
         } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
@@ -142,8 +153,13 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             closeContext();
             StreamUtils.closeSilently(stream);
         }
+    }
 
-        return this.computeObjectDigest(containerName, objectName, digestType);
+    @Override
+    public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
+        throws
+        ContentAddressableStorageException {
+        return computeObjectDigest(containerName, objectName, digestType);
     }
 
     @Override
@@ -286,8 +302,4 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             closeContext();
         }
     }
-
-    @Override
-    public abstract MetadatasObject getObjectMetadatas(String containerName, String objectId) throws
-        ContentAddressableStorageException, IOException;
 }

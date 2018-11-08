@@ -174,7 +174,7 @@ public class EvidenceServiceTest {
 
         when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
             .thenReturn(responseMock);
-        when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any()))
+        when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any(), eq(true)))
             .thenReturn(OFFERS_INFO);
 
 

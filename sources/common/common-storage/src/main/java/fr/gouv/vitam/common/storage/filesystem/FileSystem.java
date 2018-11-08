@@ -142,7 +142,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
         throws IOException, ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -154,7 +154,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setObjectName(objectId);
             // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result
-                .setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+                .setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
             result.setFileSize(size);
             // TODO store vitam metadatas
             result.setType(containerName.split("_")[1]);

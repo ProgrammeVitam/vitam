@@ -1,4 +1,5 @@
 provider: {{ vitam_offers[offer_conf]["provider"] }}
+shouldRecomputeDigest: false
 {% if vitam_offers[offer_conf]["provider"] != "openstack-swift" %}
 storagePath: {{vitam_folder_data}}
 {% endif %}

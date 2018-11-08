@@ -2,24 +2,20 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 
-import cucumber.runtime.junit.Assertions;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
 
 public class StorageCRUDUtilsTest {
 
@@ -43,7 +39,7 @@ public class StorageCRUDUtilsTest {
         ArrayList<String> offers = new ArrayList<>();
         offers.add("offer-fs-1.service.consul");
         given(storageClient
-            .getInformation("default", DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers))
+            .getInformation("default", DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers, true))
             .willReturn(
                 JsonHandler.getFromString(information));
 

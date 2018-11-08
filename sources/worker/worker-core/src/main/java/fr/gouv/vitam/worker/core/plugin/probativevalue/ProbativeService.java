@@ -372,7 +372,7 @@ public class ProbativeService {
 
             JsonNode information = storageClient.
                 getInformation("default",
-                    DataCategory.OBJECT, versionsModel.getId(), versionsModel.getStorage().getOfferIds());
+                    DataCategory.OBJECT, versionsModel.getId(), versionsModel.getStorage().getOfferIds(), true);
             List<String> errorDetails = new ArrayList<>();
             for (String offerId : versionsModel.getStorage().getOfferIds()) {
 

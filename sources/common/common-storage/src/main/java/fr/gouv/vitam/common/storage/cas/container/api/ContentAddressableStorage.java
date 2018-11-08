@@ -29,9 +29,6 @@ package fr.gouv.vitam.common.storage.cas.container.api;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -83,12 +80,13 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *
      * @param digestType parameter to compute an hash.
      * @param size size off the input stream
+     * @param recomputeDigest
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     String putObject(String containerName, String objectName, InputStream stream,
-        DigestType digestType, Long size)
+        DigestType digestType, Long size, boolean recomputeDigest)
         throws ContentAddressableStorageException;
 
     /**
@@ -138,13 +136,14 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
      * @param algo Digest algo
+     * @param noCache forces full digest computation
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @return the digest object as String
      */
-    String computeObjectDigest(String containerName, String objectName, DigestType algo)
+    String getObjectDigest(String containerName, String objectName, DigestType algo, boolean noCache)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         ContentAddressableStorageException;
 
@@ -169,7 +168,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws IOException if an IOException is encountered with files
      * @throws IllegalArgumentException thrown when containerName or objectId is null
      */
-    MetadatasObject getObjectMetadatas(String containerName, String objectId)
+    MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException;
 
     /**

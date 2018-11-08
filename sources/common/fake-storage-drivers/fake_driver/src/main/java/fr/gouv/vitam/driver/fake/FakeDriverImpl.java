@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
 
@@ -257,7 +258,7 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+        public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
             return new StorageMetadataResult(null);
         }
 

@@ -29,13 +29,12 @@ package fr.gouv.vitam.common.storage.filesystem.v2;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.security.SafeFileChecker;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
@@ -50,10 +49,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,8 +66,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * FileSystem implements a Content Addressable Storage that stores objects on the file system with a hierarchical vision
@@ -126,7 +119,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size)
+        Long size, boolean recomputeDigest)
         throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
@@ -135,11 +128,25 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         // Create the chain of directories
         fsHelper.createDirectories(parentPath);
         try {
+
+            Digest digest = new Digest(digestType);
+            InputStream digestInputStream = digest.getDigestInputStream(stream);
+
             // Create the file from the inputstream
-            Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            String digest = super.computeObjectDigest(containerName, objectName, digestType);
-            storeDigest(containerName, objectName, digestType, digest);
-            return digest;
+            Files.copy(digestInputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String streamDigest = digest.digestHex();
+
+            if(recomputeDigest) {
+                String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+                if(!streamDigest.equals(computedDigest)) {
+                    throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
+                }
+            }
+
+            storeDigest(containerName, objectName, digestType, streamDigest);
+            return streamDigest;
+
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
                 e);
@@ -212,24 +219,31 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
+    public String getObjectDigest(String containerName, String objectName, DigestType algo, boolean noCache)
         throws ContentAddressableStorageException {
+
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
 
-        if (!isExistingObject(containerName, objectName)) {
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName);
+        // Get digest from XATTR
+        String digestFromMD = getObjectDigestFromMD(containerName, objectName, algo);
+
+        if (!noCache) {
+
+            if(digestFromMD != null) {
+                return digestFromMD;
+            }
+
+            LOGGER.warn(String.format(
+                "Could not retrieve cached digest for object '%s' in container '%s'. Recomputing digest",
+                objectName, containerName));
         }
 
-        // Calculate the digest via the common method
-        String digest = super.computeObjectDigest(containerName, objectName, algo);
+        String digest = computeObjectDigest(containerName, objectName, algo);
 
-        // Update digest in XATTR if needed
-        String digestFromMD = getObjectDigestFromMD(containerName, objectName, algo);
-        if (digest != null && !digest.equals(digestFromMD)) {
+        if(digestFromMD == null || !digestFromMD.equals(digest)) {
             storeDigest(containerName, objectName, algo, digest);
         }
 
-        // return the calculated digest
         return digest;
     }
 
@@ -240,8 +254,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
      * @return the digest
      * @throws ContentAddressableStorageException if workspace could not be reached
      */
-    @VisibleForTesting
-    public String getObjectDigestFromMD(String containerName, String objectName, DigestType algo)
+    String getObjectDigestFromMD(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         Path filePath = fsHelper.getPathObject(containerName, objectName);
 
@@ -304,7 +317,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     // FIXME : <Copié/collé du FS v1
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
@@ -316,7 +329,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         result.setObjectName(objectId);
         // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
         result.setDigest(
-            computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
         result.setFileSize(size);
         // TODO see how to retrieve metadatas
         result.setType(containerName.split("_")[1]);
@@ -362,14 +375,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public void close() {
         // Nothing to do
-    }
-
-    private MultivaluedHashMap<String, Object> getXContentLengthHeader(Path path) throws IOException {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        List<Object> headersList = new ArrayList<>();
-        headersList.add(String.valueOf(Files.size(path)));
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
-        return headers;
     }
 
     private BasicFileAttributes getFileAttributes(File file) throws IOException {

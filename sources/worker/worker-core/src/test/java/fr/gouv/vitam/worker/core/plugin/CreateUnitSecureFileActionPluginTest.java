@@ -213,7 +213,7 @@ public class CreateUnitSecureFileActionPluginTest {
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
 
         when(storageClient
-            .getInformation(eq("default"), eq(DataCategory.UNIT), eq(guidUnit + ".json"), eq(Arrays.asList(offerIds))))
+            .getInformation(eq("default"), eq(DataCategory.UNIT), eq(guidUnit + ".json"), eq(Arrays.asList(offerIds)), eq(false)))
             .thenReturn(objectInformationResult);
 
 

@@ -7,6 +7,10 @@ p12LogbookPassword: {{keystores.timestamping.secure_storage}}
 p12LogbookFile: keystore_{{vitam_timestamp_usage}}.p12
 storageTraceabilityOverlapDelay: {{ vitam.storageengine.storageTraceabilityOverlapDelay }}
 restoreBulkSize: {{vitam.storageengine.restoreBulkSize}}
+minBatchThreadPoolSize: {{vitam.storageengine.minBatchThreadPoolSize}}
+maxBatchThreadPoolSize: {{vitam.storageengine.maxBatchThreadPoolSize}}
+batchDigestComputationTimeout: {{vitam.storageengine.batchDigestComputationTimeout}}
+
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}

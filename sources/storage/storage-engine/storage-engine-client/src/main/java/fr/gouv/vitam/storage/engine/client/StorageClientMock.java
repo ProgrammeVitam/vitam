@@ -32,6 +32,7 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.HttpMethod;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -210,7 +212,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds, boolean noCache)
         throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
@@ -226,15 +228,21 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, List<String> offerIds,
+        Collection<String> objectIds) {
+        throw new  UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
     public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
         String destination) throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemeted ");
+        throw new  UnsupportedOperationException("Not Implemented");
     }
 
     @Override public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
-        throw new  UnsupportedOperationException("Not Implemeted ");
+        throw new  UnsupportedOperationException("Not Implemented");
     }
 
     @Override

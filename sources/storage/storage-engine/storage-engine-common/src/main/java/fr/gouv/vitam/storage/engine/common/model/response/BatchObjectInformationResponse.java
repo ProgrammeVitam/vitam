@@ -24,43 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.storage.cas.container.api;
+package fr.gouv.vitam.storage.engine.common.model.response;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Map;
 
-/**
- * Abstract class of CAS that contains common methos
- */
-public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
+public class BatchObjectInformationResponse {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
+    @JsonProperty("dataCategory")
+    private DataCategory type;
 
-    /**
-     * Max result for listing option TODO: have to be configurable ?
-     */
-    public static final int LISTING_MAX_RESULTS = 100;
+    @JsonProperty("objectId")
+    private String objectId;
 
-    protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageException {
+    @JsonProperty("offerDigests")
+    private Map<String, String> offerDigests;
 
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
+    public BatchObjectInformationResponse() {
+        // Empty constructor for deserialization
+    }
 
-        try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
-            final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return digest.toString();
-        } catch (final IOException e) {
-            throw new ContentAddressableStorageException(e);
-        }
+    public BatchObjectInformationResponse(DataCategory type, String objectId,
+        Map<String, String> offerDigests) {
+        this.type = type;
+        this.objectId = objectId;
+        this.offerDigests = offerDigests;
+    }
+
+    public DataCategory getType() {
+        return type;
+    }
+
+    public String getObjectId() {
+        return objectId;
+    }
+
+    public Map<String, String> getOfferDigests() {
+        return offerDigests;
     }
 }
