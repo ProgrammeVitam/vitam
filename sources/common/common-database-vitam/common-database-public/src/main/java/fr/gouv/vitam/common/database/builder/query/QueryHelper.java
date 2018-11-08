@@ -682,6 +682,18 @@ public class QueryHelper {
      *
      * @param variableName key name
      * @param value of key
+     * @return a SearchQuery using SEARCH operator
+     * @throws InvalidCreateOperationException when creating query errors
+     */
+    public static final SearchQuery nestedSearch(final String variableName, final String value)
+            throws InvalidCreateOperationException {
+        return new SearchQuery(QUERY.SUBOBJECT, variableName, value);
+    }
+
+    /**
+     *
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
      * @throws InvalidCreateOperationException when creating query errors
      */

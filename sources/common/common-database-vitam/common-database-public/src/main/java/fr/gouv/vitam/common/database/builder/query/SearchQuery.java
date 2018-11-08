@@ -53,6 +53,7 @@ public class SearchQuery extends Query {
         switch (searchQuery) {
             case REGEX:
             case SEARCH:
+            case SUBOBJECT:
                 createQueryVariableValue(searchQuery, variableName, value);
                 currentTokenQUERY = searchQuery;
                 setReady(true);

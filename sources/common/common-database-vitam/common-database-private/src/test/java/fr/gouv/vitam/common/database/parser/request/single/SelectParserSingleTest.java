@@ -91,6 +91,8 @@ public class SelectParserSingleTest {
     static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
     static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
+    private static JsonNode nestedSearchQuery;
+
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
@@ -141,6 +143,41 @@ public class SelectParserSingleTest {
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
 
+        nestedSearchQuery = JsonHandler.getFromString(
+                "{\n" +
+                        "  \"$query\": \n" +
+                        "    {\n" +
+                        "      \"$and\": [\n" +
+                        "        {\n" +
+                        "          \"$match\": {\n" +
+                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                        "          }\n" +
+                        "        },\n" +
+                        "        {\n" +
+                        "          \"$subobject\": {\n" +
+                        "            \"#qualifiers.versions\": {\n" +
+                        "              \"$and\": [\n" +
+                        "                {\n" +
+                        "                  \"$eq\": {\n" +
+                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                        "                  }\n" +
+                        "                },\n" +
+                        "                {\n" +
+                        "                  \"$lte\": {\n" +
+                        "                    \"version.size\": 20000\n" +
+                        "                  }\n" +
+                        "                }\n" +
+                        "              ]\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  ,\n" +
+                        "  \"$projection\": {},\n" +
+                        "  \"$filters\": {}\n" +
+                        "}"
+        );
 
     }
 
@@ -475,6 +512,13 @@ public class SelectParserSingleTest {
         assertTrue(selectToMongoDb.getFinalOffset() == 0);
         assertNotNull(selectToMongoDb.getFinalOrderBy());
         assertNotNull(selectToMongoDb.getFinalProjection());
+    }
+
+    @Test
+    public void testSingleParseSelectForNested() throws InvalidParseOperationException {
+        final SelectParserSingle request = new SelectParserSingle();
+        request.parse(nestedSearchQuery);
+        assertNotNull(request);
     }
 
 }

@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class RequestToElasticsearchTest {
 
     private static JsonNode exampleSelectElasticsearch;
+    private static JsonNode nestedSearchQuery;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -83,6 +84,42 @@ public class RequestToElasticsearchTest {
             "    }" + 
             "}"+
             "] }");
+
+        nestedSearchQuery = JsonHandler.getFromString(
+                "{\n" +
+                        "  \"$query\": [\n" +
+                        "    {\n" +
+                        "      \"$and\": [\n" +
+                        "        {\n" +
+                        "          \"$match\": {\n" +
+                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                        "          }\n" +
+                        "        },\n" +
+                        "        {\n" +
+                        "          \"$subobject\": {\n" +
+                        "            \"#qualifiers.versions\": {\n" +
+                        "              \"$and\": [\n" +
+                        "                {\n" +
+                        "                  \"$eq\": {\n" +
+                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                        "                  }\n" +
+                        "                },\n" +
+                        "                {\n" +
+                        "                  \"$lte\": {\n" +
+                        "                    \"version.size\": 20000\n" +
+                        "                  }\n" +
+                        "                }\n" +
+                        "              ]\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  ],\n" +
+                        "  \"$projection\": {},\n" +
+                        "  \"$filters\": {}\n" +
+                        "}"
+        );
     }
 
     @AfterClass
@@ -105,16 +142,16 @@ public class RequestToElasticsearchTest {
     public void testGetCommands() {
 
         try {
-            final SelectToElasticsearch rte = createSelect();
+            final SelectToElasticsearch rte = createSelect(exampleSelectElasticsearch);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i);
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter());
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
             try {
-                rte.getNthQueries(size);
+                rte.getNthQueries(size, new FakeMetadataVarNameAdapter());
                 fail("Should failed");
             } catch (final IllegalAccessError e) {
 
@@ -138,10 +175,53 @@ public class RequestToElasticsearchTest {
         RequestToElasticsearch.getRequestToElasticsearch(request1);
     }
 
-    private SelectToElasticsearch createSelect() {
+    @Test
+    public void testGetNestedRequestToElasticsearch() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
-            request1.parse(exampleSelectElasticsearch);
+            request1.parse(nestedSearchQuery);
+            assertNotNull(request1);
+            assertTrue(RequestToElasticsearch.getRequestToElasticsearch(request1) instanceof SelectToElasticsearch);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetNestedCommands() {
+
+        try {
+            final SelectToElasticsearch rte = createSelect(nestedSearchQuery);
+            final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
+            final int size = rte.getNbQueries();
+            for (int i = 0; i < size; i++) {
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
+                System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
+            }
+            try {
+                rte.getNthQueries(size, new FakeMetadataVarNameAdapter());
+                fail("Should failed");
+            } catch (final IllegalAccessError e) {
+
+            }
+            assertNotNull(rte.getRequest());
+            assertNotNull(rte.getNthQuery(0));
+            assertNotNull(rte.getRequestParser());
+            assertNotNull(rte.model());
+            System.out.println("Select Context = " + rte.getLastDepth() + ":" + rte.getFinalLimit() + ":" +
+                    rte.getFinalOffset() + ":" + rte.getUsage() + ":" + rte.getHints());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    private SelectToElasticsearch createSelect(JsonNode query) {
+        try {
+            final SelectParserMultiple request1 = new SelectParserMultiple();
+            request1.parse(query);
             assertNotNull(request1);
             return new SelectToElasticsearch(request1);
         } catch (final Exception e) {

@@ -658,7 +658,7 @@ public class AccessStep {
             facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
-            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+            Fail.fail("request selectObjects return an error: " + vitamError.getCode());
         }
     }
 

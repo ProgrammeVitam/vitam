@@ -405,7 +405,7 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException,
         VitamDBException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
-        QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0));
+        QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0), parser.getAdapter());
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore());
         offset = requestToEs.getFinalOffset();
         limit = requestToEs.getFinalLimit();

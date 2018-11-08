@@ -588,7 +588,7 @@ public class DbRequest {
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery))
+            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter()))
             .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
             .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
 
@@ -633,7 +633,7 @@ public class DbRequest {
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery));
+            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter()));
 
         if (previous.getCurrentIds().isEmpty()) {
             if (relativeDepth < 1) {
@@ -738,7 +738,7 @@ public class DbRequest {
                                                              final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
+        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter());
         QueryBuilder finalQuery;
         LOGGER.debug("DEBUG prev {} RealQuery {}", previous.getCurrentIds(), realQuery);
         if (previous.getCurrentIds().isEmpty()) {
@@ -779,7 +779,7 @@ public class DbRequest {
                                                            final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
+        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter());
         QueryBuilder finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;

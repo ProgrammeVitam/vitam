@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -227,7 +228,7 @@ public class QueryToElasticsearch {
      * @return the associated QueryBuilder
      * @throws InvalidParseOperationException if query could not parse to command
      */
-    public static QueryBuilder getCommand(final Query query)
+    public static QueryBuilder getCommand(final Query query, VarNameAdapter adapter)
         throws InvalidParseOperationException {
         final QUERY req = query.getQUERY();
         final JsonNode content = query.getNode(req.exactToken());
@@ -235,7 +236,7 @@ public class QueryToElasticsearch {
             case AND:
             case NOT:
             case OR:
-                return andOrNotCommand(req, query);
+                return andOrNotCommand(req, query, adapter);
             case EXISTS:
             case MISSING:
                 return existsMissingCommand(req, content);
@@ -249,6 +250,8 @@ public class QueryToElasticsearch {
                 return matchCommand(req, content);
             case SEARCH:
                 return searchCommand(req, content);
+            case SUBOBJECT:
+                return nestedSearchCommand(req, content, adapter);
             case NIN:
             case IN:
                 return inCommand(req, content);
@@ -449,6 +452,42 @@ public class QueryToElasticsearch {
         }
 
         return QueryBuilders.simpleQueryStringQuery(element.getValue().asText()).field(attribute);
+    }
+
+    /**
+     * $subobject : { name : searchParameter }
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the search Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     */
+    private static QueryBuilder nestedSearchCommand(final QUERY query, final JsonNode content, VarNameAdapter adapter)
+            throws InvalidParseOperationException {
+
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
+        final String attribute = element.getKey();
+
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+            // Unsupported mode. May be updated without prior notice.
+            logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
+        } else {
+            logCommand(query, content);
+        }
+
+        if(content == null || !content.fields().hasNext() || !content.fields().next().getValue().fields().hasNext()) {
+            throw new InvalidParseOperationException("$subobject query is not valid");
+        }
+
+        String path = content.fields().next().getKey();
+        JsonNode subQueryJson = content.fields().next().getValue();
+        Query subQuery;
+        try {
+            subQuery = QueryParserHelper.query(subQueryJson.fields().next().getKey(), subQueryJson.fields().next().getValue(), adapter);
+        } catch (InvalidCreateOperationException e) {
+            throw new InvalidParseOperationException("$subobject query is not valid");
+        }
+        return QueryBuilders.nestedQuery(path, getCommand(subQuery, adapter), ScoreMode.Avg);
     }
 
     /**
@@ -996,7 +1035,7 @@ public class QueryToElasticsearch {
      * @return the and Or Not Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req)
+    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req, VarNameAdapter adapter)
         throws InvalidParseOperationException {
 
         logCommand(query, req.getCurrentObject());
@@ -1007,14 +1046,14 @@ public class QueryToElasticsearch {
         for (int i = 0; i < sub.size(); i++) {
             switch (query) {
                 case AND:
-                    boolQueryBuilder.must(getCommand(sub.get(i)));
+                    boolQueryBuilder.must(getCommand(sub.get(i), adapter));
                     break;
                 case NOT:
-                    boolQueryBuilder.mustNot(getCommand(sub.get(i)));
+                    boolQueryBuilder.mustNot(getCommand(sub.get(i), adapter));
                     break;
                 case OR:
                 default:
-                    boolQueryBuilder.minimumNumberShouldMatch(1).should(getCommand(sub.get(i)));
+                    boolQueryBuilder.minimumNumberShouldMatch(1).should(getCommand(sub.get(i), adapter));
             }
         }
         return boolQueryBuilder;
@@ -1123,7 +1162,7 @@ public class QueryToElasticsearch {
 
         List<KeyedFilter> keyFilters = new ArrayList<>();
         for (Map.Entry<String, Query> entry : filtersMap.entrySet()) {
-            keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue())));
+            keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue(), adapter)));
         }
         KeyedFilter[] keyFiltersArray = keyFilters.stream().toArray(KeyedFilter[]::new);
         FiltersAggregationBuilder filtersBuilder = AggregationBuilders.filters(facet.getName(), keyFiltersArray);

@@ -94,6 +94,8 @@ public class UpdateParserMultipleTest {
 
     private static JsonNode exampleMd;
 
+    private static JsonNode nestedSearchQuery;
+
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
@@ -140,6 +142,42 @@ public class UpdateParserMultipleTest {
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
             "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false }," + "$action : " +
             updateAction + " }");
+
+        nestedSearchQuery = JsonHandler.getFromString(
+                "{\n" +
+                        "  \"$query\": [\n" +
+                        "    {\n" +
+                        "      \"$and\": [\n" +
+                        "        {\n" +
+                        "          \"$match\": {\n" +
+                        "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+                        "          }\n" +
+                        "        },\n" +
+                        "        {\n" +
+                        "          \"$subobject\": {\n" +
+                        "            \"#qualifiers.versions\": {\n" +
+                        "              \"$and\": [\n" +
+                        "                {\n" +
+                        "                  \"$eq\": {\n" +
+                        "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+                        "                  }\n" +
+                        "                },\n" +
+                        "                {\n" +
+                        "                  \"$lte\": {\n" +
+                        "                    \"version.size\": 20000\n" +
+                        "                  }\n" +
+                        "                }\n" +
+                        "              ]\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  ],\n" +
+                        "  \"$projection\": {},\n" +
+                        "  \"$filters\": {}\n," +
+                        " \"$action\" : " + updateAction + " }"
+        );
 
     }
 
@@ -363,5 +401,12 @@ public class UpdateParserMultipleTest {
         JsonNode query = JsonHandler.getFromString(queryString);
         final UpdateParserMultiple request = new UpdateParserMultiple();
         request.parse(query);
+    }
+
+    @Test
+    public void testUpdateParserForNested() throws InvalidParseOperationException {
+        final UpdateParserMultiple request = new UpdateParserMultiple();
+        request.parse(nestedSearchQuery.deepCopy());
+        assertNotNull(request);
     }
 }

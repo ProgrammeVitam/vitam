@@ -1,0 +1,18 @@
+{
+  "$query": [
+    {
+      "$and": [
+        {
+          "$match": {
+            "FileInfo.FileName": "Montparnasse.txt"
+          }
+        },
+        {
+          "$subobject": {}
+        }
+      ]
+    }
+  ],
+  "$projection": {},
+  "$filter": {}
+}

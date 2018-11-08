@@ -282,6 +282,18 @@ public class QueryParserHelper extends QueryHelper {
      *
      * @param command JsonNode
      * @param adapter VarNameAdapter
+     * @return a SearchQuery using nested search mode
+     * @throws InvalidParseOperationException if could not parse to JSON
+     */
+    public static final SearchQuery nestedSearch(final JsonNode command, final VarNameAdapter adapter)
+            throws InvalidParseOperationException {
+        return new SearchQuery(QUERY.SUBOBJECT, command, adapter);
+    }
+
+    /**
+     *
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a TermQuery
      * @throws InvalidParseOperationException if could not parse to JSON
      */
@@ -383,6 +395,7 @@ public class QueryParserHelper extends QueryHelper {
             case LTE:
             case SEARCH:
             case SIZE:
+            case SUBOBJECT:
                 GlobalDatas.sanityValueCheck(command.toString());
                 break;
             default:
@@ -477,6 +490,9 @@ public class QueryParserHelper extends QueryHelper {
                 break;
             case SEARCH:
                 dslQuery = search(command, adapter);
+                break;
+            case SUBOBJECT:
+                dslQuery = nestedSearch(command, adapter);
                 break;
             case SIZE:
                 dslQuery = size(command, adapter);
