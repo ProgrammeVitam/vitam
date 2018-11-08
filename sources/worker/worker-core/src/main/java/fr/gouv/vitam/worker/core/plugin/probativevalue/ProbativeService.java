@@ -62,9 +62,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.plugin.CreateSecureFileActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildTraceabilityActionPlugin;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -317,7 +317,7 @@ public class ProbativeService {
                 target.add(node);
             }
         }
-        return CreateSecureFileActionPlugin.generateDigest(target, VitamConfiguration.getDefaultDigestType());
+        return BuildTraceabilityActionPlugin.generateDigest(target, VitamConfiguration.getDefaultDigestType());
 
     }
 

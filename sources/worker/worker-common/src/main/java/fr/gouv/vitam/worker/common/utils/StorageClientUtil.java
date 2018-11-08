@@ -27,166 +27,71 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
  * StorageClientUtil class
  */
 public class StorageClientUtil {
 
+    public static final String UNKNOWN_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
 
     /**
-     * retrieve global Hash (lfc+metadata{unit|og} or Object Doucment under og) from storage offers picked from the optimistic {@code SedaConstants.STORAGE}  node
-     *
-     * @param metadataOrDocumentJsonNode json document for the metadadataObject (Unit  or ObjectGroup) or plain document (raw type)
-     * @param dataCategory               the data category
-     * @param objectId                   the object id
-     * @return the Digest of the document containing (LFC + METADATA) as saved in the storage offers
-     * @throws ProcessingException Exception thrown when :
-     *                             <ul>
-     *                             li>
-     *                             {@code StorageNotFoundClientException} or {@code StorageServerClientException} if no connection can be done for the given storage strategy
-     *                             </li>
-     *                             <li>
-     *                             {@code InvalidParseOperationException} if no digest information was found when parsing json node
-     *                             </li>
-     *                             </ul>
+     * Check that all offers have digest information, and that all digests match.
      */
-    public static String getLFCAndMetadataGlobalHashFromStorage(JsonNode metadataOrDocumentJsonNode,
-        DataCategory dataCategory, String objectId, StorageClient storageClient, AlertService alertService)
-        throws ProcessingException {
+    public static String aggregateOfferDigests(Map<String, String> digestsByOfferId, DataCategory dataCategory,
+        String objectId, AlertService alertService) {
 
-        String digest = null, firstDigest = null;
         boolean offersAreNotSynchronised = false;
 
-        try {
-            // store binary data object
+        if (digestsByOfferId.isEmpty()) {
+            throw new IllegalStateException("No offer digest provided");
+        }
 
-            StoredInfoResult mdOptimisticStorageInfos = fromMetadataJson(metadataOrDocumentJsonNode);
+        // Ensure all offers have digest information
+        List<String> offersWithoutDigest = digestsByOfferId.entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() == null)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
 
-            // Retrieve fileInfo (using cache for fast lookup)
-            JsonNode storageMetadataResultListJsonNode = storageClient.
-                getInformation(mdOptimisticStorageInfos.getStrategy(),
-                    dataCategory,
-                    objectId,
-                    mdOptimisticStorageInfos.getOfferIds(), false);
+        if (!offersWithoutDigest.isEmpty()) {
+            alertService.createAlert(VitamLogLevel.ERROR,
+                String.format("Missing metadata (%s - %s) digest from offers %s",
+                    dataCategory, objectId, String.join(", ", offersWithoutDigest)));
+            offersAreNotSynchronised = true;
+        }
 
-            boolean isFirstDigest = false;
+        // Ensure that all digests match
+        Set<String> digests = digestsByOfferId.entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null)
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toSet());
 
-            for (String offerId : mdOptimisticStorageInfos.getOfferIds()) {
-
-                JsonNode metadataResultJsonNode = storageMetadataResultListJsonNode.get(offerId);
-
-                if (metadataResultJsonNode == null || !metadataResultJsonNode.isObject()) {
-                    alertService.createAlert(VitamLogLevel.ERROR,
-                        String.format(
-                            "[%s] id [%s] The digest  '%s' for the offer '%s' is not present ",
-
-                            dataCategory, objectId, digest, offerId));
-                    offersAreNotSynchronised = true;
-                    continue;
-                }
-                StorageMetadataResult storageMetadataResult =
-                    JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadataResult.class);
-
-                if (storageMetadataResult == null) {
-
-                    alertService.createAlert(VitamLogLevel.ERROR,
-                        String.format("The %s is null for the offer %s",
-                            StorageMetadataResult.class.getSimpleName(), offerId));
-                    offersAreNotSynchronised = true;
-                    
-                    continue;
-                }
-                digest = storageMetadataResult.getDigest();
-
-                if (!isFirstDigest) {
-                    isFirstDigest = true;
-                    firstDigest = String.copyValueOf(digest.toCharArray());
-                } else if (digest == null || !digest.equals(firstDigest)) {
-                    alertService.createAlert(VitamLogLevel.ERROR,
-                        String.format(
-                            "[%s] id [%s] The digest  '%s' for the offer '%s' not equal to the first Offer globalDigest expected (%s)",
-
-                            dataCategory, objectId, digest, offerId, firstDigest));
-                    offersAreNotSynchronised = true;
-                }
-
-
-            }
-
-        } catch (StorageNotFoundClientException | StorageServerClientException | IllegalArgumentException e) {
-            throw new ProcessingException("Exception when retrieving storage client ", e);
-        } catch (InvalidParseOperationException e) {
-            throw new ProcessingException("Exception when parsing JsonNode to StorageMetadataResult object ", e);
+        if (digests.size() > 1) {
+            alertService.createAlert(VitamLogLevel.ERROR,
+                String.format("Digest mismatch for metadata %s (%s). %s",
+                    dataCategory, objectId,
+                    digestsByOfferId.entrySet()
+                        .stream()
+                        .filter(entry -> entry.getValue() != null)
+                        .map(entry -> entry.getKey() + ": " + entry.getValue())
+                        .collect(Collectors.joining(","))));
+            offersAreNotSynchronised = true;
         }
 
         if (offersAreNotSynchronised) {
-            return "0000000000000000000000000000000000000000000000000000000000000000";
+            return UNKNOWN_HASH;
         }
-        return digest;
+
+        return digests.iterator().next();
     }
-
-
-
-    /**
-     * Extract Document Objects from ObjectGroup jsonNode and populate  {@link fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject#objectGroupDocumentHashList}
-     * with hash retrieved from storage offer
-     *
-     * @param og object
-     * @return list of ObjectGroupDocumentHash
-     * @throws ProcessingException
-     */
-    public static List<ObjectGroupDocumentHash> extractListObjectsFromJson(JsonNode og, StorageClient storageClient,
-        AlertService alertService)
-        throws ProcessingException {
-        JsonNode qualifiers = og.get(SedaConstants.PREFIX_QUALIFIERS);
-
-        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
-        if (qualifiers != null && qualifiers.isArray() && qualifiers.size() > 0) {
-            List<JsonNode> listQualifiers = JsonHandler.toArrayList((ArrayNode) qualifiers);
-            for (final JsonNode qualifier : listQualifiers) {
-                JsonNode versions = qualifier.get(SedaConstants.TAG_VERSIONS);
-                if (versions.isArray() && versions.size() > 0) {
-                    for (final JsonNode version : versions) {
-                        if (version.get(SedaConstants.TAG_PHYSICAL_ID) != null) {
-                            // Skip physical objects
-                            continue;
-                        }
-                        String objectId = version.get(VitamDocument.ID).asText();
-                        String lfcAndMetadataGlobalHashFromStorage =
-                            getLFCAndMetadataGlobalHashFromStorage(version,
-                                DataCategory.OBJECT, objectId, storageClient, alertService);
-                        objectGroupDocumentHashToList
-                            .add(new ObjectGroupDocumentHash(objectId, lfcAndMetadataGlobalHashFromStorage));
-                    }
-
-
-                }
-            }
-        }
-        return objectGroupDocumentHashToList;
-    }
-
 }

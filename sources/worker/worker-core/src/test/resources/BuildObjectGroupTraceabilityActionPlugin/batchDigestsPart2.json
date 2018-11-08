@@ -1,0 +1,20 @@
+{
+  "$results": [
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "42177394e91df0b25793fbbc7ddedfe6c61dc98caadb5db606d957bc901da628144cde11a8e278065cd9559a1f1d26508b9f01ba65f94bc8afa329ea5cc9a23e",
+        "vitam-iaas-app-03.int": "42177394e91df0b25793fbbc7ddedfe6c61dc98caadb5db606d957bc901da628144cde11a8e278065cd9559a1f1d26508b9f01ba65f94bc8afa329ea5cc9a23e"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "cd89d18e9f088a0286a164450b572511256cb80339863fbb01f26ad0b52fd4e2e0311c8c25870c600ad440156becbfcc06f93dbb57c5aa584c713f178a90fe7f",
+        "vitam-iaas-app-03.int": "cd89d18e9f088a0286a164450b572511256cb80339863fbb01f26ad0b52fd4e2e0311c8c25870c600ad440156becbfcc06f93dbb57c5aa584c713f178a90fe7f"
+      }
+    }
+  ]
+}
