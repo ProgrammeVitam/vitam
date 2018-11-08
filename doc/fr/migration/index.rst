@@ -9,8 +9,8 @@
    :numbered:
 
    introduction
-   bugfixes_updates/_toc
-   releases_updates/_toc
+   nomenclature
+   updates/_toc
 
 .. only:: latex
 
