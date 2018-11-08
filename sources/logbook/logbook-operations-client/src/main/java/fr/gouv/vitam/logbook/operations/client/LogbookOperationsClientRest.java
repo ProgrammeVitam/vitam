@@ -162,7 +162,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.debug("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException("Request precondition failed");
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
