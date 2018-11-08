@@ -368,6 +368,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        VitamConfiguration.setEnvironmentName("");
     }
 
     private JsonNode getQueryDslOperationId(String operationId) throws InvalidCreateOperationException {
