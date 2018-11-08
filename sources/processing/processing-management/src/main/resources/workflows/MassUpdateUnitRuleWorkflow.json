@@ -52,6 +52,10 @@
               {
                 "name": "queryType",
                 "uri": "VALUE:UPDATE"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
               }
             ]
           }

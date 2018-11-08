@@ -16,6 +16,22 @@
       "actions": [
         {
           "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CREATE_MANIFEST",
             "behavior": "BLOCKING",
             "out": [

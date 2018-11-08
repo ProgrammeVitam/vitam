@@ -33,6 +33,8 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -52,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -59,11 +62,13 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.JsonSorter;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;
@@ -95,6 +100,9 @@ import java.util.regex.Pattern;
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -399,6 +407,35 @@ public class AccessStep {
         the_status_of_the_request(status);
     }
 
+//
+//    @When("^je télécharge le Dip$")
+//    public void downloadTheDip() throws VitamException {
+//
+//        VitamContext vitamContext = new VitamContext(world.getTenantId());
+//        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+//        vitamContext.setAccessContract(world.getContractId());
+//
+//        String query = world.getQuery();
+//        JsonNode jsonNode = JsonHandler.getFromString(query);
+//
+//        DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
+//        RequestResponse response = world.getAccessClient().exportDIP(vitamContext, dipExportRequest);
+//
+//        assertThat(response.isOk()).isTrue();
+//
+//        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+//        world.setOperationId(operationId);
+//
+//        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+//        boolean processTimeout = vitamPoolingClient
+//            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+//
+//        if (!processTimeout) {
+//            fail("dip processing not finished. Timeout exceeded.");
+//        }
+//        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+//    }
+
     /**
      * check if the status of the select result is unauthorized
      *
@@ -510,10 +547,10 @@ public class AccessStep {
         if (world.getEliminationOperationId() != null) {
             query = query.replace(ELIMINATION_OPERATION_ID, world.getEliminationOperationId());
         }
-        while(query.contains(NAMED_OPERATION_ID_PREFIX)) {
+        while (query.contains(NAMED_OPERATION_ID_PREFIX)) {
             int startIndex = query.indexOf(NAMED_OPERATION_ID_PREFIX);
             int endIndex = query.indexOf(NAMED_OPERATION_ID_SUFFIX, startIndex);
-            String name = query.substring(startIndex +  + NAMED_OPERATION_ID_PREFIX.length(), endIndex);
+            String name = query.substring(startIndex + +NAMED_OPERATION_ID_PREFIX.length(), endIndex);
             query = query.replace(NAMED_OPERATION_ID_PREFIX + name + NAMED_OPERATION_ID_SUFFIX,
                 world.getNamedOperationId(name));
         }

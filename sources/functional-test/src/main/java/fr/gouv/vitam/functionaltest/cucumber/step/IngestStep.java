@@ -95,7 +95,7 @@ public class IngestStep {
      * @throws IngestExternalException
      */
     @When("^je télécharge le SIP")
-    public void upload_this_sip() throws IOException, VitamException, IOException {
+    public void upload_this_sip() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
                 .ingest(
