@@ -81,7 +81,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                     }
                     
                     JsonNode offerToMetadata = storageClient.getInformation(strategy, DataCategory.OBJECT,
-                        version.get("#id").asText(), offerIds);
+                        version.get("#id").asText(), offerIds, true);
                     for (String offerId : offerIds) {
                         String digest = null;
                         JsonNode metadata = offerToMetadata.findValue(offerId);

@@ -24,43 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.storage.cas.container.api;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-
-import java.io.IOException;
-import java.io.InputStream;
+package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Abstract class of CAS that contains common methos
+ * Request for object metadata
  */
-public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
+public class StorageGetMetadataRequest extends StorageRequest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
+    private final String guid;
+    private final boolean noCache;
 
     /**
-     * Max result for listing option TODO: have to be configurable ?
+     * Initialize the needed parameters for request object metadata
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid
+     * @param noCache
      */
-    public static final int LISTING_MAX_RESULTS = 100;
-
-    protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
-
-        try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
-            final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return digest.toString();
-        } catch (final IOException e) {
-            throw new ContentAddressableStorageException(e);
-        }
+    public StorageGetMetadataRequest(Integer tenantId, String type, String guid, boolean noCache) {
+        super(tenantId, type);
+        this.guid = guid;
+        this.noCache = noCache;
     }
+
+    /**
+     * Gets the guid
+     *
+     * @return the guid
+     */
+    public String getGuid() {
+        return guid;
+    }
+
+    public boolean isNoCache() {
+        return noCache;
+    }
+
+    @Override
+    public String toString() {
+        return "GUID: " + guid + " NoCache: " + noCache + " " + super.toString();
+    }
+
 }

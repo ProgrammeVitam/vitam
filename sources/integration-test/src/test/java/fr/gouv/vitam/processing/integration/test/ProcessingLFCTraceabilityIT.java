@@ -101,6 +101,8 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -127,7 +129,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
                 AdminManagementMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
-                ProcessManagementMain.class
+                ProcessManagementMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class
             ));
 
     private static final long SLEEP_TIME = 20l;
@@ -161,11 +165,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-
         new DataLoader("integration-processing").prepareData();
-
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
 

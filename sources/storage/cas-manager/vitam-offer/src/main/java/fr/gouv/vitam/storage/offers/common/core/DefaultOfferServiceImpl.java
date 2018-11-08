@@ -38,13 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -52,7 +49,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -87,6 +83,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
+    private final boolean shouldRecomputeDigest;
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
@@ -102,13 +99,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
+        this.shouldRecomputeDigest = configuration.isShouldRecomputeDigest();
         mapXCusor = new HashMap<>();
     }
 
     @Override
+    @VisibleForTesting
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
-        return defaultStorage.computeObjectDigest(containerName, objectId, digestAlgorithm);
+        return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
     }
 
     @Override
@@ -164,7 +163,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
+        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, shouldRecomputeDigest);
     }
 
     @Override
@@ -206,9 +205,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadataResult getMetadatas(String containerName, String objectId)
+    public StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException {
-        return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId));
+        return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
     }
 
     public String createCursor(String containerName) throws ContentAddressableStorageServerException {

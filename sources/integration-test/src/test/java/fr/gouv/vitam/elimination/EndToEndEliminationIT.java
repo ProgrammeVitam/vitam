@@ -605,7 +605,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
-            JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers);
+            JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo((boolean) shouldExist);
         }

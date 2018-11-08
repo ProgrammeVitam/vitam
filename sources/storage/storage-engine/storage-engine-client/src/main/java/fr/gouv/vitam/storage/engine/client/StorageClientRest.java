@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 import javax.ws.rs.HttpMethod;
@@ -59,6 +60,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -108,7 +110,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
     }
 
-    @Override public List<String> getOffers(String strategyId)
+    @Override
+    public List<String> getOffers(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -210,7 +213,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds,
+        boolean noCache)
         throws StorageServerClientException, StorageNotFoundClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -221,6 +225,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         for (String offerId : offerIds) {
             headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
         }
+        headers.add(GlobalDataRest.X_OFFER_NO_CACHE, Boolean.toString(noCache));
 
         try {
             response = performRequest(HttpMethod.GET, "/info/" + type.getCollectionName() + "/" + guid,
@@ -236,11 +241,50 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
     }
 
+    @Override
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, List<String> offerIds,
+        Collection<String> objectIds)
+        throws StorageServerClientException {
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectIds);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectIds.toArray());
+
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(tenantId, strategyId, null, null);
+        for (String offerId : offerIds) {
+            headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
+        }
+
+        try {
+            response = performRequest(HttpMethod.GET, "/batch_info/" + type.getCollectionName(),
+                headers, objectIds, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                    throw new StorageServerClientException("Internal Server Error");
+            }
+            return RequestResponse.parseFromResponse(response, BatchObjectInformationResponse.class);
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 
     @Override
     public boolean delete(String strategyId, DataCategory type, String guid)
         throws StorageServerClientException {
-        return delete(strategyId, type, guid,  new ArrayList<>());
+        return delete(strategyId, type, guid, new ArrayList<>());
     }
 
 
@@ -305,9 +349,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     /**
      * Generate the default header map
      *
-     * @param tenantId        the tenant id
-     * @param strategyId      the storage strategy id
-     * @param digest          the digest
+     * @param tenantId the tenant id
+     * @param strategyId the storage strategy id
+     * @param digest the digest
      * @param digestAlgorithm the digest Algorithm
      * @return header map
      */
@@ -449,13 +493,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public RequestResponseOK storageAccessLogBackup()
-            throws StorageServerClientException ,InvalidParseOperationException {
+        throws StorageServerClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
             response =
-                    performRequest(HttpMethod.POST, STORAGE_ACCESSLOG_BACKUP_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.POST, STORAGE_ACCESSLOG_BACKUP_URI, headers, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

@@ -61,6 +61,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -84,7 +85,6 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.model.MetadataStorageHelper.getGotWithLFC;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_UNIT;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECTGROUP;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static java.util.Collections.singletonList;
@@ -99,6 +99,7 @@ public class EliminationIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
         EliminationIT.class);
+    private static final String DEFAULT_STRATEGY = "default";
     private StorageClient storageClient;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private MetaDataClient metaDataClient;
@@ -172,9 +173,9 @@ public class EliminationIT extends VitamRuleRunner {
         assertThat(getUnitIdByTitleForElastic("Archives privées")).isEqualTo(id_3);
 
         //assert storage verify that unit is saved in storage
-        assertThat(getStorageInfo(UNIT, id_1).get("objectName").textValue()).isEqualTo(id_1 + ".json");
-        assertThat(getStorageInfo(UNIT, id_2).get("objectName").textValue()).isEqualTo(id_2 + ".json");
-        assertThat(getStorageInfo(UNIT, id_3).get("objectName").textValue()).isEqualTo(id_3 + ".json");
+        checkFileInStorage(UNIT, id_1 + ".json", true);
+        checkFileInStorage(UNIT, id_2 + ".json", true);
+        checkFileInStorage(UNIT, id_3 + ".json", true);
 
         //when delete units
         eliminationActionDeleteService.deleteUnits(Lists.newArrayList(id_1, id_2, id_3));
@@ -194,9 +195,9 @@ public class EliminationIT extends VitamRuleRunner {
         assertThatThrownBy(() -> getUnitIdByTitleForElastic("Archives privées")).hasMessage("Not found");
 
         // then nothing in units + lfc   storage
-        assertThatThrownBy(() -> getStorageInfo(UNIT, id_1)).hasMessage("Not found");
-        assertThatThrownBy(() -> getStorageInfo(UNIT, id_2)).hasMessage("Not found");
-        assertThatThrownBy(() -> getStorageInfo(UNIT, id_3)).hasMessage("Not found");
+        checkFileInStorage(UNIT, id_1 + ".json", false);
+        checkFileInStorage(UNIT, id_2 + ".json", false);
+        checkFileInStorage(UNIT, id_3 + ".json", false);
 
         // Check offer log
         checkDeletedFilesInOfferLogs(UNIT, id_1 + ".json", id_2 + ".json", id_3 + ".json");
@@ -255,9 +256,9 @@ public class EliminationIT extends VitamRuleRunner {
         assertThat(getObjectGrpByIdForElastic(id_3)).isEqualTo(id_3);
 
         //assert storage verify that unit is saved in storage
-        assertThat(getStorageInfo(OBJECTGROUP, id_1).get("objectName").textValue()).isEqualTo(id_1 + ".json");
-        assertThat(getStorageInfo(OBJECTGROUP, id_2).get("objectName").textValue()).isEqualTo(id_2 + ".json");
-        assertThat(getStorageInfo(OBJECTGROUP, id_3).get("objectName").textValue()).isEqualTo(id_3 + ".json");
+        checkFileInStorage(OBJECTGROUP, id_1 + ".json", true);
+        checkFileInStorage(OBJECTGROUP, id_2 + ".json", true);
+        checkFileInStorage(OBJECTGROUP, id_3 + ".json", true);
 
         //when deletion
         eliminationActionDeleteService.deleteObjectGroups(Lists.newArrayList(id_1, id_2, id_3));
@@ -277,9 +278,9 @@ public class EliminationIT extends VitamRuleRunner {
         assertThatThrownBy(() -> getObjectGrpByIdForElastic(id_3)).hasMessage("Not found");
 
         //        // then nothing in units + lfc   storage
-        assertThatThrownBy(() -> getStorageInfo(OBJECTGROUP, id_1)).hasMessage("Not found");
-        assertThatThrownBy(() -> getStorageInfo(OBJECTGROUP, id_2)).hasMessage("Not found");
-        assertThatThrownBy(() -> getStorageInfo(OBJECTGROUP, id_3)).hasMessage("Not found");
+        checkFileInStorage(OBJECTGROUP, id_1 + ".json", false);
+        checkFileInStorage(OBJECTGROUP, id_2 + ".json", false);
+        checkFileInStorage(OBJECTGROUP, id_3 + ".json", false);
 
         // Check offer log
         checkDeletedFilesInOfferLogs(OBJECTGROUP, id_1 + ".json", id_2 + ".json", id_3 + ".json");
@@ -383,18 +384,16 @@ public class EliminationIT extends VitamRuleRunner {
         }
         throw new VitamException("Not found");
     }
+    
+    private void checkFileInStorage(DataCategory dataCategory, String filename, boolean shouldExist)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-    private JsonNode getStorageInfo(DataCategory category, String id)
-        throws Exception {
-
-        JsonNode information =
-            storageClient.getInformation("default", category, id + ".json", singletonList("default"));
-
-        if (information.get("default") == null)
-            throw new VitamException("Not found");
-
-        return information.get("default");
-
+            List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
+            JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
+            boolean fileFound = information.size() > 0;
+            assertThat(fileFound).isEqualTo((boolean) shouldExist);
+        }
     }
 
     private JsonNode getRawUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {

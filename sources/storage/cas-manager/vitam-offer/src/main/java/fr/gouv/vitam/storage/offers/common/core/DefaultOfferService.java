@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
@@ -62,6 +63,7 @@ public interface DefaultOfferService {
      * @return the offer computed digest
      * @throws ContentAddressableStorageException thrown on storage error
      */
+    @VisibleForTesting
     String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
 
@@ -156,11 +158,12 @@ public interface DefaultOfferService {
      *
      * @param containerName
      * @param objectId
+     * @param noCache
      * @return StorageMetadataResult
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadataResult getMetadatas(String containerName, String objectId)
+    StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException;
 
     /**

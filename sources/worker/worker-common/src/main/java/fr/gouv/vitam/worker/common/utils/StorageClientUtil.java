@@ -85,17 +85,18 @@ public class StorageClientUtil {
 
             StoredInfoResult mdOptimisticStorageInfos = fromMetadataJson(metadataOrDocumentJsonNode);
 
-            JsonNode storageMetadatasResultListJsonNode = storageClient.
+            // Retrieve fileInfo (using cache for fast lookup)
+            JsonNode storageMetadataResultListJsonNode = storageClient.
                 getInformation(mdOptimisticStorageInfos.getStrategy(),
                     dataCategory,
                     objectId,
-                    mdOptimisticStorageInfos.getOfferIds());
+                    mdOptimisticStorageInfos.getOfferIds(), false);
 
             boolean isFirstDigest = false;
 
             for (String offerId : mdOptimisticStorageInfos.getOfferIds()) {
 
-                JsonNode metadataResultJsonNode = storageMetadatasResultListJsonNode.get(offerId);
+                JsonNode metadataResultJsonNode = storageMetadataResultListJsonNode.get(offerId);
 
                 if (metadataResultJsonNode == null || !metadataResultJsonNode.isObject()) {
                     alertService.createAlert(VitamLogLevel.ERROR,

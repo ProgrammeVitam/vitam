@@ -34,7 +34,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.UUID;
-import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -89,7 +88,7 @@ public class StoreContextBuilderTest {
 
         // When
         contentAddressableStorage
-            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L);
+            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L, true);
 
         ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
         try(InputStream is = response.getInputStream()) {

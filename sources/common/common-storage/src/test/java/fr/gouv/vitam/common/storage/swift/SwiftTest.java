@@ -26,6 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.InputStream;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -33,21 +48,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.io.InputStream;
-
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
 
 public class SwiftTest {
 
@@ -122,30 +123,78 @@ public class SwiftTest {
         );
 
         swiftInstanceRule.stubFor(put(urlMatching("/swift/v1(.*)")).willReturn(aResponse().withStatus(201)));
-        swiftInstanceRule.stubFor(
-            get(urlMatching("/swift/v1(.*)")).willReturn(
-                aResponse().withStatus(200)
-                    .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withBody(bodyResponse.getBytes())));
-
     }
-
 
     @Test
     public void should_call_smallFile_method_then_swift_offer_doesNotThrowAnyException() throws Exception {
         // Given
         swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
             aResponse().withStatus(202)));
+
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1(.*)")).willReturn(
+                aResponse().withStatus(200)
+                    .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME)))));
+
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
+            true);
+    }
 
+    @Test
+    public void should_call_smallFile__with_non_matching_digest_recompute_return_error() throws Exception {
+        // Given
+        swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
+            aResponse().withStatus(202)));
+
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1(.*)")).willReturn(
+                aResponse().withStatus(200)
+                    .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withBody("BAD_FILE_HASH".getBytes())));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+        InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
+        // When / Then
+        assertThatThrownBy(() ->
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
+                true)
+        ).isInstanceOf(ContentAddressableStorageException.class)
+            .hasMessageContaining(" is not equal to computed digest ");
+    }
+
+    @Test
+    public void should_call_smallFile__without_digest_recompute_return_ok() throws Exception {
+        // Given
+        swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
+            aResponse().withStatus(202)));
+
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1(.*)")).willReturn(
+                aResponse().withStatus(200)
+                    .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withBody("BAD_FILE_HASH".getBytes())));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+        InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
+        // When / Then
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
+            false);
     }
 
     @Test
     public void should_call_smallFile_method_then_swift_offer_doesThrow_ContentAddressableStorageServerException()
         throws Exception {
+
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1(.*)")).willReturn(
+                aResponse().withStatus(200)
+                    .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME)))));
+
         //        // Given
         swiftInstanceRule.stubFor(post(urlMatching("/swift/v1/containerName/3500.txt")).willReturn(
             aResponse().withStatus(500)));
@@ -155,7 +204,8 @@ public class SwiftTest {
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
         assertThatThrownBy(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 0L)
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 0L,
+                true)
         ).hasMessage("Cannot put object " + OBJECT_NAME + " on container " + CONTAINER_NAME);
     }
 
@@ -164,9 +214,17 @@ public class SwiftTest {
         // Given
         swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
             aResponse().withStatus(202)));
+
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1(.*)")).willReturn(
+                aResponse().withStatus(200)
+                    .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME)))));
+
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
+            true);
     }
 }

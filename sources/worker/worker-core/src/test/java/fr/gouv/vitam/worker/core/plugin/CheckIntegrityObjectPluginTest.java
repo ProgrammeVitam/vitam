@@ -112,7 +112,7 @@ public class CheckIntegrityObjectPluginTest {
             6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject())).thenReturn(offerIdToMetadata);
+        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject(), eq(true))).thenReturn(offerIdToMetadata);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -124,7 +124,7 @@ public class CheckIntegrityObjectPluginTest {
         action.addOutIOParameters(out);
         JsonNode metadataInfo = JsonHandler.getFromString("{}");
         reset(storageClient);
-        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject())).thenReturn(metadataInfo);
+        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject(), eq(true))).thenReturn(metadataInfo);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

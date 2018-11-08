@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -118,7 +119,8 @@ public class StorageDistributionImplTest {
         StorageLog storageLogService =
             StorageLogFactory.getInstance(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService);
+        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService,
+            Executors.newFixedThreadPool(16), 300);
         //LogbookLifeCyclesClientFactory.changeMode(null);
     }
 
@@ -519,19 +521,9 @@ public class StorageDistributionImplTest {
         }
     }
 
-
-
     @Test(expected = UnsupportedOperationException.class)
     public void testCreateContainer() throws Exception {
         simpleDistribution.createContainer(null);
-    }
-
-
-
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testStatus() throws Exception {
-        simpleDistribution.status();
     }
 
     @RunWithCustomExecutor
@@ -633,11 +625,5 @@ public class StorageDistributionImplTest {
             simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
-    }
-
-    private JsonNode getCheckObjectResult() throws IOException {
-        final ObjectNode result = JsonHandler.createObjectNode();
-        result.put(StorageConstants.OBJECT_VERIFICATION, true);
-        return result;
     }
 }

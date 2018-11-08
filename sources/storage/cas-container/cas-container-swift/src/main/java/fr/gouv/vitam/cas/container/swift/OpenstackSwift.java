@@ -218,7 +218,7 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
@@ -232,7 +232,7 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
 
         result.setObjectName(objectId);
         // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-        result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+        result.setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
         result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
         result.setLastModifiedDate(swiftobject.getLastModified().toString());
 

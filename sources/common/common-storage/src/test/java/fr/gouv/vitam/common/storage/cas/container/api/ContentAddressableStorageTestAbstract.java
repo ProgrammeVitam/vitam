@@ -113,7 +113,8 @@ public abstract class ContentAddressableStorageTestAbstract {
     public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenRetunFalse()
         throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
 
         assertTrue(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
@@ -122,13 +123,14 @@ public abstract class ContentAddressableStorageTestAbstract {
     public void givenObjectAlreadyExistsWhenPutObjectThenNotRaiseAnException()
         throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
 
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, null,
+            true);
         assertEquals(getInputStream("file2.pdf").available(),
             storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
-
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenDeleteObjectThenRaiseAnException()
         throws ContentAddressableStorageException {
@@ -140,7 +142,8 @@ public abstract class ContentAddressableStorageTestAbstract {
     public void givenObjectNotFoundWhenDeleteObjectThenRaiseAnException()
         throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
 
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
@@ -157,14 +160,16 @@ public abstract class ContentAddressableStorageTestAbstract {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenPutObjectThenRaiseAnException()
         throws IOException, ContentAddressableStorageException {
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
     }
 
     @Test
     public void givenObjectNotFoundWhenPutObjectThenOK() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
 
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
         assertEquals(getInputStream("file1.pdf").available(),
             storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
     }
@@ -172,7 +177,8 @@ public abstract class ContentAddressableStorageTestAbstract {
     @Test
     public void givenObjectAlreadyExistsWhenDeleteObjectThenOK() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
 
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
@@ -182,30 +188,31 @@ public abstract class ContentAddressableStorageTestAbstract {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenComputeObjectDigestThenRaiseAnException()
         throws ContentAddressableStorageException {
-        storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        storage.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO, true);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotFoundWhenComputeObjectDigestThenRaiseAnException()
         throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
-        storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        storage.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO, true);
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenWhenComputeObjectDigestThenOK()
         throws ContentAddressableStorageException, IOException {
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
 
-        String messageDigest = storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        String messageDigest = storage.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO, true);
         Digest digest = new Digest(ALGO);
         digest.update(getInputStream("file1.pdf"));
         System.out.print(digest);
         System.out.print(messageDigest);
         assertTrue(messageDigest.equals(digest.toString()));
         // Verify that it works from cache (if there is a cache)
-        messageDigest = storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        messageDigest = storage.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO, true);
         assertTrue(messageDigest.equals(digest.toString()));
     }
 
@@ -255,10 +262,12 @@ public abstract class ContentAddressableStorageTestAbstract {
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
         String containerName = TENANT_ID + "_" + TYPE;
         storage.createContainer(containerName);
-        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null);
-        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512, null);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null,
+            true);
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512, null,
+            true);
         //get metadata of file
-        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID, true);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(
@@ -272,12 +281,12 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     @Test(expected = IllegalArgumentException.class)
     public void getObjectMetadataOnObjectIdNullShouldRaiseAnException() throws Exception {
-        storage.getObjectMetadatas("containerName", null);
+        storage.getObjectMetadatas("containerName", null, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getObjectMetadataOnContainerNullShouldRaiseAnException() throws Exception {
-        storage.getObjectMetadatas(null, "objectId");
+        storage.getObjectMetadatas(null, "objectId", true);
     }
 
     @Test
@@ -288,7 +297,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         assertNotNull(storage.getContainerInformation(containerName));
         for (int i = 0; i < 100; i++) {
             storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100), DigestType.SHA512,
-                null);
+                null, true);
         }
         VitamPageSet<? extends VitamStorageMetadata> pageSet = storage.listContainer(containerName);
         assertNotNull(pageSet);
@@ -297,7 +306,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         for (int i = 100; i < (nbIter * 100 + 50); i++) {
             storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100), DigestType.SHA512,
-                null);
+                null, true);
         }
         // First list without marker
         pageSet = storage.listContainer(containerName);

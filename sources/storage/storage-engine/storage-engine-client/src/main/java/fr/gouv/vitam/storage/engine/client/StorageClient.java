@@ -41,10 +41,12 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,6 +64,8 @@ public interface StorageClient extends BasicClient {
      */
     JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
+
+
 
     /**
      * get List of offers for a strategy
@@ -201,12 +205,26 @@ public interface StorageClient extends BasicClient {
      * @param type the object type to list
      * @param guid vitam guid
      * @param offerIds offers ids to delete
+     * @param noCache noCache forces digest computation.
      * @return informations
      * @throws StorageServerClientException StorageServerClientException
      * @throws StorageNotFoundClientException StorageNotFoundClientException
      */
-    JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
+    JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds, boolean noCache)
         throws StorageServerClientException, StorageNotFoundClientException;
+
+    /**
+     * Get object information from objects in storage
+     *
+     * @param strategyId the storage strategy id
+     * @param type the object type to list
+     * @param offerIds offers ids
+     * @param objectIds list of object ids
+     * @return informations
+     * @throws StorageServerClientException StorageServerClientException
+     */
+    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, List<String> offerIds, Collection<String> objectIds)
+        throws StorageServerClientException;
 
     /**
      * @param objectId objectId

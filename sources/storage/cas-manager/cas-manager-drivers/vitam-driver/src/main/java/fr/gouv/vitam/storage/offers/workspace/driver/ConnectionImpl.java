@@ -53,6 +53,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -116,7 +117,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
-                getDefaultHeaders(tenantId, null, null, null, null),
+                getDefaultHeaders(tenantId, null, null, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
@@ -164,7 +165,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                getDefaultHeaders(request.getTenantId(), null, null, null, null, null),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -212,7 +213,7 @@ public class ConnectionImpl extends AbstractConnection {
             objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null, request.getSize()),
+                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null, request.getSize(), null),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class), request.getTenantId(),
@@ -241,7 +242,7 @@ public class ConnectionImpl extends AbstractConnection {
             response = performRequest(HttpMethod.DELETE,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
                 getDefaultHeaders(request.getTenantId(), null, null,
-                    null, null),
+                    null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -280,7 +281,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.HEAD,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                getDefaultHeaders(request.getTenantId(), null, null, null, null, null),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -352,7 +353,7 @@ public class ConnectionImpl extends AbstractConnection {
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,
-        String digestType, Long size) {
+        String digestType, Long size, Boolean noCache) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -368,6 +369,9 @@ public class ConnectionImpl extends AbstractConnection {
         }
         if (size != null) {
             headers.add(GlobalDataRest.VITAM_CONTENT_LENGTH, size);
+        }
+        if(noCache != null) {
+            headers.add(GlobalDataRest.X_OFFER_NO_CACHE, noCache);
         }
         return headers;
     }
@@ -387,7 +391,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, result.getDigestAlgorithm().getName(), size), stream,
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, result.getDigestAlgorithm().getName(), size, null), stream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
@@ -407,7 +411,7 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+    public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
@@ -416,7 +420,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
-                getDefaultHeaders(request.getTenantId(), null, null, null, null), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(request.getTenantId(), null, null, null, null, request.isNoCache()), MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

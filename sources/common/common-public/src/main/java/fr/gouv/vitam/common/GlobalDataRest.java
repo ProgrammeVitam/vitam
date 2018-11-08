@@ -88,6 +88,10 @@ public class GlobalDataRest {
      */
     public static final String X_OFFER_IDS = "X-Offer-Ids";
     /**
+     * The X_OFFER_NO_CACHE header, used in requests to set cache policy when computing object digest
+     */
+    public static final String X_OFFER_NO_CACHE = "X-Offer-No-Cache";
+    /**
      * The X-CONTENT-DESTINATIONnofferId destination for copy
      */
     public static final String X_CONTENT_DESTINATION = "X-CONTENT-DESTINATION";

@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import org.jhades.JHades;
@@ -105,7 +106,6 @@ public class StorageResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResourceTest.class);
     private static final String ID_0 = "id0";
-    private static final String OFFER_ID = "/offerId";
     private static final String LOGS = "/logs";
 
     private static VitamStarter vitamStarter;
@@ -204,7 +204,7 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(),
-                "offerId")
+                "offerId", VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -1112,7 +1112,7 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
-            List<String> offerIds)
+            List<String> offerIds, boolean noCache)
             throws StorageNotFoundException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
@@ -1153,8 +1153,9 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode status() throws UnsupportedOperationException {
-            return null;
+        public List<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
+            List<String> objectIds, List<String> offerIds) {
+            throw new UnsupportedOperationException("UnsupportedOperationException");
         }
 
         @Override

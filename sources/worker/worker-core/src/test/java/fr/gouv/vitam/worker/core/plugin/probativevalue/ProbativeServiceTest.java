@@ -154,7 +154,7 @@ public class ProbativeServiceTest {
         ProbativeUsageParameter parameter = paramModel.get();
         when(storageClient
             .getInformation("default", DataCategory.OBJECT, "aeaaaaaaaahad455abryqalenekbcnqaaaco",
-                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"))).thenReturn(info);
+                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"), true)).thenReturn(info);
         //when
         probativeService.checkStorageHash(parameter);
 
@@ -175,7 +175,7 @@ public class ProbativeServiceTest {
 
         when(storageClient
             .getInformation("default", DataCategory.OBJECT, "aeaaaaaaaahad455abryqalenekbcnqaaaco",
-                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"))).thenReturn(info);
+                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"), true)).thenReturn(info);
         //when
         probativeService.checkStorageHash(parameters);
 
@@ -199,7 +199,7 @@ public class ProbativeServiceTest {
 
         when(storageClient
             .getInformation("default", DataCategory.OBJECT, "aeaaaaaaaahad455abryqalenekbcnqaaaco",
-                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"))).thenReturn(info);
+                Lists.newArrayList("offer-fs-1.service.int.consul", "offer-fs-2.service.int.consul"), true)).thenReturn(info);
         //when
         probativeService.checkStorageHash(parameter);
 

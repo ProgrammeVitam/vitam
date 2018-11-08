@@ -87,7 +87,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         Path file = path.resolve(FILE);
         Files.write(file, new byte[] {1, 2, 3, 4});
 
-        String hash = storage.computeObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512);
+        String hash = storage.getObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512, true);
 
         // When
         String hashExtendedAttribute = ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
@@ -110,15 +110,16 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
 
         storage.createContainer(containerName);
 
-        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5, null);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5, null,
+            true);
 
-        // get current SH512 saved Hash in metadatas of file
+        // get current SH512 saved Hash in metadata of file
         String currentDigest = ((HashFileSystem) storage).getObjectDigestFromMD(containerName, OBJECT_ID, DigestType.SHA512);
         // should be null as we write an MD5 Hash and not a SH521
         assertNull(currentDigest); 
 
         // check if digest has been updated when call getMetadatas
-        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID, true);
         assertNotNull(result);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());

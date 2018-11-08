@@ -44,7 +44,10 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -66,14 +69,15 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
@@ -126,7 +130,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private static final String STRATEGY_ID = "default";
     private static final String ERROR_WHEN_COPING_CONTEXT = "Error when coping context: ";
-    private static final String DATA_CATEGORY_ID_IS_MANDATORY = "DataCategory is mandatory";
     private final StorageDistribution distribution;
     private final TraceabilityStorageService traceabilityLogbookService;
     private final TimestampGenerator timestampGenerator;
@@ -526,20 +529,61 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)
+                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFER_NO_CACHE)) {
+                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            }
+            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+            List<String> offerIds = Arrays.asList(listOffer.split(","));
+            boolean noCache = Boolean.parseBoolean(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER_NO_CACHE).get(0));
+
+            JsonNode offerMetadataInfo;
+            try {
+                offerMetadataInfo = distribution.getContainerInformation(strategyId, type, objectId, offerIds, noCache);
+            } catch (StorageException e) {
+                LOGGER.error(e);
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            }
+            return Response.status(Status.OK).entity(offerMetadataInfo).build();
+        }
+        return response;
+    }
+
+    /**
+     * Get object metadata as json Note : this is NOT to be handled in item #72.
+     * @param headers http header
+     * @param objectIds the id of the object
+     */
+    @Path("/batch_info/{type}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getBatchObjectInformation(@Context HttpHeaders headers,
+        @PathParam("type") String typeStr, List<String> objectIds) {
+
+        DataCategory type = DataCategory.getByCollectionName(typeStr);
+
+        String strategyId;
+        final Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
                 return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
             }
             String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
             List<String> offerIds = Arrays.asList(listOffer.split(","));
 
-            JsonNode offerMetadataInfo;
+            List<BatchObjectInformationResponse> objectInformationResponses;
             try {
-                offerMetadataInfo = distribution.getContainerInformation(strategyId, type, objectId, offerIds);
+                objectInformationResponses =
+                    distribution.getBatchObjectInformation(strategyId, type, objectIds, offerIds);
             } catch (StorageException e) {
                 LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+                return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             }
-            return Response.status(Status.OK).entity(offerMetadataInfo).build();
+            return Response.status(Status.OK).entity(
+                new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
+                .build();
         }
         return response;
     }
