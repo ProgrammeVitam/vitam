@@ -64,7 +64,7 @@ public class DipStep {
             JsonNode jsonNode = JsonHandler.getFromString(query);
 
             DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
-            RequestResponse response = world.getAccessClient().exportDIP(vitamContext, dipExportRequest);
+            RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
             assertThat(response.isOk()).isTrue();
 
