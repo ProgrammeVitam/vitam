@@ -168,6 +168,15 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         }
     }
 
+    public RequestResponse<JsonNode> getUnitsByIdsRaw(Collection<String> unitIds) {
+        throw new UnsupportedOperationException("No need for mocks");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getObjectGroupsByIdsRaw(Collection<String> objectGroupIds) {
+        throw new UnsupportedOperationException("No need for mocks");
+    }
+
     @Override
     public GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException {
         return new GraphComputeResponse(3, 3);

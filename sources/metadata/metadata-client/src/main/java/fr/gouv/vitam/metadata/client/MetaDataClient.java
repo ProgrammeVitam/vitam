@@ -256,12 +256,28 @@ public interface MetaDataClient extends BasicClient {
     RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException;
 
     /**
-     * Search object group by path unit id
-     * @param objectGroupId : objectGroup id <br>
+     * Select raw unis by ids
+     * @param unitIds : unit ids <br>
      * null and blank is not allowed
      * @return Json object {$hint:{},$result:[{}]} or vitam error
      */
+    RequestResponse<JsonNode> getUnitsByIdsRaw(Collection<String> unitIds) throws VitamClientException;
+
+        /**
+         * Search object group by path unit id
+         * @param objectGroupId : objectGroup id <br>
+         * null and blank is not allowed
+         * @return Json object {$hint:{},$result:[{}]} or vitam error
+         */
     RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException;
+
+    /**
+     * Select raw object group by ids
+     * @param objectGroupIds : object group ids <br>
+     * null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{}]} or vitam error
+     */
+    RequestResponse<JsonNode> getObjectGroupsByIdsRaw(Collection<String> objectGroupIds) throws VitamClientException;
 
     /**
      * Compute graph of all Units/Got that match the given query dsl

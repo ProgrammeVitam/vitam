@@ -581,6 +581,24 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
+    public RequestResponse<JsonNode> getUnitsByIdsRaw(Collection<String> unitIds) throws VitamClientException {
+        ParametersChecker.checkParameter("The unit ids are mandatory", unitIds);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/raw/units", null, unitIds,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
     public RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException {
         ParametersChecker.checkParameter("The unit id is mandatory", objectGroupId);
         Response response = null;
@@ -589,6 +607,24 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getObjectGroupsByIdsRaw(Collection<String> objectGroupId) throws VitamClientException {
+        ParametersChecker.checkParameter("The object group ids are mandatory", objectGroupId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/raw/objectgroups", null, objectGroupId,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
