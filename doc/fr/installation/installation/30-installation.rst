@@ -129,9 +129,48 @@ La liste des choix possibles, pour chaque tenant, est :
   - INGEST_CONTRACT : contrats d'entrée
   - ACCESS_CONTRACT : contrats d'accès
   - PROFILE : profils SEDA
-  - SECURITY_PROFILE : profils de sécurité
-  - CONTEXT : contextes applicatifs
+  - SECURITY_PROFILE : profils de sécurité (utile seulement sur le tenant d'administration)
+  - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
   - ARCHIVEUNITPROFILE : profils d'unités archivistiques
+
+Durées minimales permettant de contrôler les valeurs saisies
+------------------------------------------------------------
+
+Afin de se prémunir contre une alimentation du référentiel des règles de gestion avec des durées trop courtes susceptibles de déclencher des actions indésirables sur la plate-forme (ex. éliminations) – que cette tentative soit intentionnelle ou non –, la solution logicielle :term:`VITAM` vérifie que l’association de la durée et de l’unité de mesure saisies pour chaque champ est supérieure ou égale à une durée minimale définie lors du paramétrage de la plate-forme, dans un fichier de configuration.
+
+Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``listMinimumRuleDuration`` dans le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+
+Exemple::
+
+  listMinimumRuleDuration:
+    2:
+      AppraisalRule : 1 year
+      DisseminationRule : 10 year
+
+    3:
+      AppraisaleRule : 5 year
+      StorageRule : 5 year
+      ReuseRule : 2 year
+
+
+Par tenant, les directives possibles sont :
+
+- AppraisalRule
+- DisseminationRule
+- StorageRule
+- ReuseRule
+- AccessRule (valeur par défaut : 0 year)
+- ClassificationRule
+
+Les valeurs associées sont une durée au format <nombre> <unité en angais, au singulier>
+
+Exemples::
+
+   6 month
+   1 year
+   5 year
+
+Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
 
 Déploiement
 -------------
