@@ -150,7 +150,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             smallFile(containerName, objectName, digestInputStream);
         }
 
-        String streamDigest = digest.toString();
+        String streamDigest = digest.digestHex();
 
         if(recomputeDigest) {
             String computedDigest = computeObjectDigest(containerName, objectName, digestType);

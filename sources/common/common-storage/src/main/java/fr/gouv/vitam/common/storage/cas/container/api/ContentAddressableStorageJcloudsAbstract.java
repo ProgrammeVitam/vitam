@@ -131,7 +131,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             blob.getMetadata().getContentMetadata().setContentLength(size);
             blobStore.putBlob(containerName, blob);
 
-            String streamDigest = digest.toString();
+            String streamDigest = digest.digestHex();
 
             if(recomputeDigest) {
                 String computedDigest = computeObjectDigest(containerName, objectName, digestType);

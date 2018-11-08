@@ -135,7 +135,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             // Create the file from the inputstream
             Files.copy(digestInputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String streamDigest = digest.toString();
+            String streamDigest = digest.digestHex();
 
             if(recomputeDigest) {
                 String computedDigest = computeObjectDigest(containerName, objectName, digestType);
