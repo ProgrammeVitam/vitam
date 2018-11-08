@@ -8,7 +8,6 @@ import fr.gouv.vitam.griffons.imagemagick.pojo.Output;
 import fr.gouv.vitam.griffons.imagemagick.pojo.Outputs;
 import fr.gouv.vitam.griffons.imagemagick.pojo.Parameters;
 import fr.gouv.vitam.griffons.imagemagick.pojo.Values;
-import fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,15 +38,9 @@ import static fr.gouv.vitam.griffons.imagemagick.status.AnalyseResult.NOT_VALID;
 import static fr.gouv.vitam.griffons.imagemagick.status.AnalyseResult.VALID_ALL;
 import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.ERROR;
 import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.OK;
-import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.WARNING;
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class MainTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -63,11 +56,11 @@ public class MainTest {
         Action action = new Action(GENERATE, new Values("GIF", Collections.emptyList()));
         generateBatch(action, input);
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        Main.exec(batchProcessor, execPath);
+        batchProcessor.execute();
 
         // Then
         Outputs outputs = getOutputs();
@@ -86,11 +79,11 @@ public class MainTest {
         Action action = new Action(ANALYSE);
         generateBatch(action, input);
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        Main.exec(batchProcessor, execPath);
+        batchProcessor.execute();
 
         // Then
         Outputs outputs = getOutputs();
@@ -110,11 +103,11 @@ public class MainTest {
         Action action = new Action(ANALYSE);
         generateBatch(action, input);
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        Main.exec(batchProcessor, execPath);
+        batchProcessor.execute();
 
         // Then
         Outputs outputs = getOutputs();
@@ -134,14 +127,14 @@ public class MainTest {
         Action action = new Action(IDENTIFY);
         generateBatch(action, input);
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        GriffonStatus status = Main.exec(batchProcessor, execPath);
+        BatchStatus status = batchProcessor.execute();
 
         // Then
-        assertThat(status).isEqualTo(ERROR);
+        assertThat(status.status).isEqualTo(ERROR);
         assertThat(Paths.get(tmpGriffonFolder.getRoot().getPath(), ID, batchName, resultFileName)).doesNotExist();
     }
 
@@ -154,11 +147,11 @@ public class MainTest {
         Action action = new Action(EXTRACT, new Values(dataToExtract));
         generateBatch(action, input);
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        Main.exec(batchProcessor, execPath);
+        batchProcessor.execute();
 
         // Then
         Outputs outputs = getOutputs();
@@ -171,81 +164,19 @@ public class MainTest {
     }
 
     @Test
-    public void should_return_warning_if_empty_batch_status() throws Exception {
-        // Given
-        tmpGriffonFolder.newFolder(ID);
-
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
-
-        // When
-        GriffonStatus status = Main.exec(batchProcessor, execPath);
-
-        // Then
-        assertThat(status).isEqualTo(WARNING);
-    }
-
-    @Test
     public void should_return_error_if_no_parameters_file_in_batch_status() throws Exception {
         // Given
         tmpGriffonFolder.newFolder(ID);
         Path batchFolder = tmpGriffonFolder.newFolder(ID, batchName).toPath();
-        Files.createFile(Paths.get(batchFolder.toString() + ".ready"));
 
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = new BatchProcessor(execPath, objectMapper);
-
-        // When
-        GriffonStatus status = Main.exec(batchProcessor, execPath);
-
-        // Then
-        assertThat(status).isEqualTo(ERROR);
-    }
-
-    @Test
-    public void should_execute_batch_processor_for_each_batch() throws Exception {
-        // Given
-        tmpGriffonFolder.newFolder(ID);
-
-        Path batchFolder = tmpGriffonFolder.newFolder(ID, batchName).toPath();
-        Files.createFile(Paths.get(batchFolder.toString() + ".ready"));
-
-        Path batchFolderTwo = tmpGriffonFolder.newFolder(ID, batchName + "-two").toPath();
-        Files.createFile(Paths.get(batchFolderTwo.toString() + ".ready"));
-
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = mock(BatchProcessor.class);
-        given(batchProcessor.execute(anyString())).willReturn(BatchStatus.ok("test", 1));
+        Path batchDirectory = tmpGriffonFolder.getRoot().toPath().resolve(ID).resolve(batchName);
+        BatchProcessor batchProcessor = new BatchProcessor(batchDirectory);
 
         // When
-        GriffonStatus status = Main.exec(batchProcessor, execPath);
+        BatchStatus status = batchProcessor.execute();
 
         // Then
-        assertThat(status).isEqualTo(OK);
-        verify(batchProcessor, times(2)).execute(anyString());
-    }
-
-    @Test
-    public void should_only_take_ready_files_as_batch() throws Exception {
-        // Given
-        tmpGriffonFolder.newFolder(ID);
-
-        Path batchFolder = tmpGriffonFolder.newFolder(ID, batchName).toPath();
-        Files.createFile(Paths.get(batchFolder.toString() + ".ready"));
-
-        Path batchFolderTwo = tmpGriffonFolder.newFolder(ID, batchName + "-two").toPath();
-        Files.createFile(Paths.get(batchFolderTwo.toString() + ".toto"));
-
-        String execPath = tmpGriffonFolder.getRoot().getPath();
-        BatchProcessor batchProcessor = mock(BatchProcessor.class);
-        given(batchProcessor.execute(anyString())).willReturn(BatchStatus.ok("test", 1));
-
-        // When
-        GriffonStatus status = Main.exec(batchProcessor, execPath);
-
-        // Then
-        assertThat(status).isEqualTo(OK);
-        verify(batchProcessor, times(1)).execute(anyString());
+        assertThat(status.status).isEqualTo(ERROR);
     }
 
     private Outputs getOutputs() throws IOException {
@@ -273,7 +204,6 @@ public class MainTest {
         File parametersFile = Files.createFile(Paths.get(batchFolder.toString(), parametersFileName), setFileAttribute).toFile();
 
         objectMapper.writer().writeValue(parametersFile, parameters);
-        Files.createFile(Paths.get(batchFolder.toString() + ".ready"));
         return parameters;
     }
 }

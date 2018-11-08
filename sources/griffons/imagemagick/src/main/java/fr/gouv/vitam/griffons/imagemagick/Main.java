@@ -27,25 +27,14 @@
 
 package fr.gouv.vitam.griffons.imagemagick;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.griffons.imagemagick.pojo.BatchStatus;
-import fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.ERROR;
-import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.WARNING;
-import static fr.gouv.vitam.griffons.imagemagick.status.GriffonStatus.OK;
-import static java.util.stream.Collectors.toList;
+import java.util.Arrays;
 
 
 public class Main {
@@ -53,58 +42,18 @@ public class Main {
 
     public static final String ID = "imagemagick-griffon-vitam";
 
-    public static final String readyFileExt = ".ready";
-    public static final String doneFileExt = ".done";
-    private static final PathMatcher readyFiles = FileSystems.getDefault().getPathMatcher("glob:**" + readyFileExt);
-
-    public static void main(String[] args) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        String execPath = args.length == 1 ? args[0] : "";
-
-        BatchProcessor processor = new BatchProcessor(execPath, mapper);
-
-        System.exit(exec(processor, execPath).code);
-    }
-
-    public static GriffonStatus exec(BatchProcessor processor, String execPath) throws IOException {
-        long startTime = System.currentTimeMillis();
-        logger.info("Start {} at {}.", ID, startTime);
-
-        List<BatchStatus> statuses = getBatchProcessingIds(execPath)
-            .map((String id) -> processImageMagickBatch(id, processor))
-            .collect(toList());
-
-        long endTime = System.currentTimeMillis();
-
-        if (statuses.isEmpty()) {
-            List<Path> filesFound = Files.list(Paths.get(execPath, ID)).collect(toList());
-            logger.error("No batch processed for {} there are no '{}' files, found {}.", ID, readyFileExt, filesFound);
-            return WARNING;
+    public static void main(String[] args) {
+        if (args.length != 1 || args[0].isEmpty() || Files.notExists(Paths.get(args[0]))) {
+            throw new RuntimeException(String.format("Need a batch directory in argument here: %s.", Arrays.toString(args)));
         }
+        Path batchDirectory = Paths.get(args[0]);
 
-        boolean isStatusesContainingError = statuses.stream().anyMatch(s -> s.status != OK);
-        if (isStatusesContainingError) {
-            logger.info("End with ERROR {} at {} and took {}ms with statuses: {}.", ID, endTime, endTime - startTime, statuses);
-            return ERROR;
-        }
+        logger.info("Start {} on batch {}.", ID, batchDirectory);
 
-        logger.info("End {} at {} and took {}ms with statuses: {}.", ID, endTime, endTime - startTime, statuses);
-        return OK;
-    }
+        BatchProcessor processor = new BatchProcessor(batchDirectory);
+        BatchStatus batch = processor.execute();
 
-    private static BatchStatus processImageMagickBatch(String batchProcessingId, BatchProcessor processor) {
-        try {
-            return processor.execute(batchProcessingId);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Stream<String> getBatchProcessingIds(String execPath) throws IOException {
-        return Files.list(Paths.get(execPath, ID))
-            .filter(readyFiles::matches)
-            .filter(p -> !p.toFile().isDirectory())
-            .map(p -> p.getFileName().toString().replace(readyFileExt, ""))
-            .peek(batchProcessingId -> logger.info("Found batch {} to process.", batchProcessingId));
+        logger.info("Griffon {} ends with status {}", ID, batch);
+        System.exit(batch.status.code);
     }
 }

@@ -2,16 +2,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>parent</artifactId>
-        <groupId>fr.gouv.vitam</groupId>
-        <version>1.10.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
-    </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <parent>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.11.0-SNAPSHOT</version>
+    </parent>
     <artifactId>imagemagick</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <name>Vitam griffon imagemagick</name>
+
+    <properties>
+        <unix.name>imagemagick-griffon-vitam</unix.name>
+        <unix.user>vitam</unix.user>
+        <unix.group>vitam</unix.group>
+        <not.build.rpm.deb>true</not.build.rpm.deb>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -56,6 +61,15 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
@@ -76,6 +90,97 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <deb>${project.build.directory}/${unix.name}-${project.version}.deb</deb>
+                            <snapshotExpand>true</snapshotExpand>
+                            <skip>${not.build.rpm.deb}</skip>
+                            <controlDir>${project.basedir}/src/deb/control</controlDir>
+                            <dataSet>
+                                <data>
+                                    <src>${project.build.directory}/imagemagick-jar-with-dependencies.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <user>${unix.user}</user>
+                                        <group>${unix.group}</group>
+                                        <filemode>0644</filemode>
+                                        <prefix>/vitam/bin/worker/griffons/${unix.name}</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>${project.basedir}/griffon-imagemagick</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <user>${unix.user}</user>
+                                        <group>${unix.group}</group>
+                                        <filemode>0644</filemode>
+                                        <prefix>/vitam/bin/worker/griffons/${unix.name}</prefix>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.1.5</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>rpm</goal>
+                        </goals>
+                        <configuration>
+                            <name>${unix.name}</name>
+                            <disabled>${not.build.rpm.deb}</disabled>
+                            <licence>CeCILL 2.1</licence>
+                            <distribution>Vitam Project</distribution>
+                            <group>Application/Archiving</group>
+                            <packager>Vitam Package Team</packager>
+                            <defineStatements/>
+                            <targetOS>linux</targetOS>
+                            <requires>
+                                <require>java-1.8.0</require>
+                                <require>ImageMagick</require>
+                            </requires>
+                            <defaultDirMode>750</defaultDirMode>
+                            <defaultFileMode>640</defaultFileMode>
+                            <defaultUsername>${unix.user}</defaultUsername>
+                            <defaultGroupname>${unix.group}</defaultGroupname>
+                            <mappings>
+                                <mapping>
+                                    <directory>/vitam/bin/worker/griffons/${unix.name}</directory>
+                                    <filemode>644</filemode>
+                                    <username>root</username>
+                                    <groupname>root</groupname>
+                                    <directoryIncluded>false</directoryIncluded>
+                                    <sources>
+                                        <source>
+                                            <location>${project.basedir}/griffon-imagemagick</location>
+                                        </source>
+                                        <source>
+                                            <location>${project.build.directory}/imagemagick-jar-with-dependencies.jar</location>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                            </mappings>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
