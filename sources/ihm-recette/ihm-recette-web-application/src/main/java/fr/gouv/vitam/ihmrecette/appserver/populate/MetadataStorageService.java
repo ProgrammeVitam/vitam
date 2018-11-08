@@ -33,14 +33,19 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +58,8 @@ public class MetadataStorageService {
     private final MetadataRepository metadataRepository;
     private final LogbookRepository logbookRepository;
     private final StoragePopulateImpl storagePopulateService;
+    private final ExecutorService storageExecutorService
+        = Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance());
 
     /**
      * Constructor
@@ -90,17 +97,27 @@ public class MetadataStorageService {
         Map<String, JsonNode> metadataByIds = metadataRepository.findRawMetadataByIds(ids, mdDataType);
         Map<String, JsonNode> lfcsByIds = logbookRepository.findRawLfcsByIds(ids, lfcDataType);
 
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+
         for (String id : ids) {
 
-            JsonNode docWithLfc;
-            if (dataCategory == DataCategory.UNIT) {
-                docWithLfc = MetadataStorageHelper.getUnitWithLFC(metadataByIds.get(id), lfcsByIds.get(id));
-            } else {
-                docWithLfc = MetadataStorageHelper.getGotWithLFC(metadataByIds.get(id), lfcsByIds.get(id));
-            }
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
 
-            persistMetadataAndLfcToOffers(populateModel, id, docWithLfc, dataCategory);
+                JsonNode docWithLfc;
+                if (dataCategory == DataCategory.UNIT) {
+                    docWithLfc = MetadataStorageHelper.getUnitWithLFC(metadataByIds.get(id), lfcsByIds.get(id));
+                } else {
+                    docWithLfc = MetadataStorageHelper.getGotWithLFC(metadataByIds.get(id), lfcsByIds.get(id));
+                }
+
+                persistMetadataAndLfcToOffers(populateModel, id, docWithLfc, dataCategory);
+
+            }, storageExecutorService);
+
+            completableFutures.add(completableFuture);
         }
+
+        CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
     }
 
     private void persistMetadataAndLfcToOffers(PopulateModel populateModel, String id, JsonNode docWithLfc,
