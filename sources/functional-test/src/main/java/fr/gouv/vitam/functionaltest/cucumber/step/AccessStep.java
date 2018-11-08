@@ -407,34 +407,34 @@ public class AccessStep {
         the_status_of_the_request(status);
     }
 
-
-    @When("^je télécharge le Dip$")
-    public void downloadTheDip() throws VitamException {
-
-        VitamContext vitamContext = new VitamContext(world.getTenantId());
-        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        vitamContext.setAccessContract(world.getContractId());
-
-        String query = world.getQuery();
-        JsonNode jsonNode = JsonHandler.getFromString(query);
-
-        DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
-        RequestResponse response = world.getAccessClient().exportDIP(vitamContext, dipExportRequest);
-
-        assertThat(response.isOk()).isTrue();
-
-        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        world.setOperationId(operationId);
-
-        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
-
-        if (!processTimeout) {
-            fail("dip processing not finished. Timeout exceeded.");
-        }
-        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-    }
+//
+//    @When("^je télécharge le Dip$")
+//    public void downloadTheDip() throws VitamException {
+//
+//        VitamContext vitamContext = new VitamContext(world.getTenantId());
+//        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+//        vitamContext.setAccessContract(world.getContractId());
+//
+//        String query = world.getQuery();
+//        JsonNode jsonNode = JsonHandler.getFromString(query);
+//
+//        DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
+//        RequestResponse response = world.getAccessClient().exportDIP(vitamContext, dipExportRequest);
+//
+//        assertThat(response.isOk()).isTrue();
+//
+//        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+//        world.setOperationId(operationId);
+//
+//        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+//        boolean processTimeout = vitamPoolingClient
+//            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+//
+//        if (!processTimeout) {
+//            fail("dip processing not finished. Timeout exceeded.");
+//        }
+//        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+//    }
 
     /**
      * check if the status of the select result is unauthorized
