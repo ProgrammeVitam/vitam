@@ -101,6 +101,9 @@ if [ ! -d ${TEMP_CERTS} ]; then
     mkdir -p ${TEMP_CERTS}
 fi
 
+# Cleaning or creating vault file for CA
+initVault ca
+
 # Création des répertoires pour les différentes CA
 # Création des CA root dans pki/ca
 # Création des CA intermédiaires pki/ca

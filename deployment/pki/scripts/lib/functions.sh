@@ -14,6 +14,11 @@ if [ -f "${REPERTOIRE_ROOT}/vault_pass.txt" ]; then
 else
     ANSIBLE_VAULT_PASSWD="--ask-vault-pass"
 fi
+if [ -f "${REPERTOIRE_ROOT}/vault_pki.pass" ]; then
+    ANSIBLE_VAULT_PKI_PASSWD="--vault-password-file ${REPERTOIRE_ROOT}/vault_pki.pass"
+else
+    ANSIBLE_VAULT_PKI_PASSWD="--ask-vault-pass"
+fi
 
 # Delete useless files
 function purge_directory {
@@ -39,6 +44,26 @@ function normalize_key {
     echo "${KEY}" | sed 's/[\\/\.-]/_/g'
 }
 
+function initVault {
+    local TYPE="${1}"
+
+    VAULT_FILE="${REPERTOIRE_CERTIFICAT}/vault-${TYPE}.yml"
+
+    if [ -f "${VAULT_FILE}" ]; then
+        pki_logger "Réinitialisation du fichier ${VAULT_FILE}"
+        ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+        echo '---' > ${VAULT_FILE}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+    else
+        pki_logger "Création du fichier ${VAULT_FILE}"
+        ansible-vault create ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
+    fi
+
+    if [ -f "${VAULT_FILE}.example" ]; then
+        rm -f "${VAULT_FILE}.example"
+    fi
+}
+
 function getComponentPassphrase {
     local TYPE="${1}"
     local KEY_FILE="${2}"
@@ -51,7 +76,7 @@ function getComponentPassphrase {
     fi
 
     # Decrypt vault file
-    ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
+    ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
     # Try/catch/finally stuff with bash (to make sure the vault stay encrypted)
     {
         # Try
@@ -75,7 +100,7 @@ function getComponentPassphrase {
             pki_logger "ERROR" "Error while retrieving the key: ${KEY_FILE}"
             RETURN_CODE=1
         fi
-        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
         return ${RETURN_CODE}
     }
 }
@@ -98,7 +123,7 @@ function setComponentPassphrase {
 
     # Manage initial state (non-existing vault)
     if [ -f "${VAULT_FILE}" ]; then
-        ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault decrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
     else
         if [ -f "${VAULT_FILE}.example" ]; then
             rm -f "${VAULT_FILE}.example"
@@ -118,7 +143,7 @@ function setComponentPassphrase {
         pki_logger "ERROR" "Error while writing to vault file: ${VAULT_FILE}"
     } && {
         # Finally
-        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PASSWD}
+        ansible-vault encrypt ${VAULT_FILE} ${ANSIBLE_VAULT_PKI_PASSWD}
         return ${RETURN_CODE}
     }
 }
