@@ -26,7 +26,7 @@
               },
               {
                 "name": "queryUri",
-                "uri": "VALUE:request"
+                "uri": "VALUE:query.json"
               }
             ]
           }

@@ -179,6 +179,8 @@ public class ProbativeValueResource {
                 workspaceClient.putObject(operationId, "request", JsonHandler
                         .writeToInpustream(new ProbativeValueRequest(finalQuery, probativeValueRequest.getUsages())));
 
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
+
                 processingClient.initVitamProcess(Contexts.EXPORT_PROBATIVE_VALUE.name(), operationId,
                     EXPORT_PROBATIVE_VALUE);
 

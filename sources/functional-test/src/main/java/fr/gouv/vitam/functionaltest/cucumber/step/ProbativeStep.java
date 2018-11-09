@@ -30,15 +30,24 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.assertj.core.util.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.fail;
 
 public class ProbativeStep {
 
@@ -84,10 +93,26 @@ public class ProbativeStep {
         JsonNode query = JsonHandler.getFromString(world.getQuery());
         ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(query, usageList);
 
-        world.getAdminClient().exportProbativeValue(
+        RequestResponse response = world.getAdminClient().exportProbativeValue(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()),
             probativeValueRequest);
+
+
+        assertThat(response.isOk()).isTrue();
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
 
