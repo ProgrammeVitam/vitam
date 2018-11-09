@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.utils;
 
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 
@@ -48,5 +49,10 @@ public class OriginatingAgencyBucketResult {
 
     public static OriginatingAgencyBucketResult of(String originatingAgency, long docCount, ValueCount objectCount, Sum binaryObjectSize) {
         return new OriginatingAgencyBucketResult(originatingAgency, docCount, objectCount.getValue(), binaryObjectSize.getValue());
+    }
+
+    public static OriginatingAgencyBucketResult of(String originatingAgency, long docCount, Nested nestedVersions) {
+        return OriginatingAgencyBucketResult.of(originatingAgency, docCount, nestedVersions.getAggregations()
+                .get("binaryObjectCount"), nestedVersions.getAggregations().get("binaryObjectSize"));
     }
 }

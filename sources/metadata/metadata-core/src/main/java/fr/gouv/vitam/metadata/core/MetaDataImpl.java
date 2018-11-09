@@ -39,6 +39,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -52,8 +53,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,7 +60,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -82,12 +80,24 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.*;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.DurationData;
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -116,8 +126,6 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.sum.Sum;
-import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -347,30 +355,28 @@ public class MetaDataImpl implements MetaData {
         Terms objectGroupOriginatingAgency = objectGroupAccessionRegisterInformation.get("originatingAgency");
 
         Map<String, OriginatingAgencyBucketResult> objectGroupByOriginatingAgency =
-            objectGroupOriginatingAgency.getBuckets().stream()
-                .map(bucket -> OriginatingAgencyBucketResult
-                    .of(bucket.getKeyAsString(),
-                        bucket.getDocCount(),
-                        bucket.getAggregations().get("binaryObjectCount"),
-                        bucket.getAggregations().get("binaryObjectSize")
-                    ))
-                .collect(Collectors.toMap(e -> e.originatingAgency, e -> e));
+                objectGroupOriginatingAgency.getBuckets().stream()
+                        .map(bucket -> OriginatingAgencyBucketResult
+                                .of(bucket.getKeyAsString(),
+                                        bucket.getDocCount(),
+                                        bucket.getAggregations().get("nestedVersions")
+                                ))
+                        .collect(Collectors.toMap(e -> e.originatingAgency, e -> e));
 
         objectGroupOriginatingAgencies.getBuckets()
-            .forEach(bucket ->
-                updateAccessionsRegister(
-                    creationDate,
-                    tenant,
-                    accessionRegisterSymbolicByOriginatingAgency,
-                    objectGroupByOriginatingAgency,
-                    OriginatingAgencyBucketResult
-                        .of(bucket.getKeyAsString(),
-                            bucket.getDocCount(),
-                            bucket.getAggregations().get("binaryObjectCount"),
-                            bucket.getAggregations().get("binaryObjectSize")
+                .forEach(bucket ->
+                        updateAccessionsRegister(
+                                creationDate,
+                                tenant,
+                                accessionRegisterSymbolicByOriginatingAgency,
+                                objectGroupByOriginatingAgency,
+                                OriginatingAgencyBucketResult
+                                        .of(bucket.getKeyAsString(),
+                                                bucket.getDocCount(),
+                                                bucket.getAggregations().get("nestedVersions")
+                                        )
                         )
-                )
-            );
+                );
     }
 
     private void updateAccessionsRegister(String creationDate, Integer tenant,
@@ -449,14 +455,16 @@ public class MetaDataImpl implements MetaData {
 
     private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant) {
         TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies")
-            .field("_sps")
-            .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
-            .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
+                .field("_sps")
+                .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
+                        .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
+                        .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
 
         TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency")
-            .field("_sp")
-            .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
-            .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id"));
+                .field("_sp")
+                .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
+                        .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
+                        .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
 
         return OBJECTGROUP.getEsClient()
             .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", tenant))
