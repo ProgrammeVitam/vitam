@@ -41,6 +41,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -190,6 +191,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void testBackupAndReconstructOperationOk() throws Exception {
 
+        VitamConfiguration.setEnvironmentName("PREFIX_ENV");
         List<ReconstructionRequestItem> reconstructionItems;
         ReconstructionRequestItem reconstructionItem1;
         ReconstructionRequestItem reconstructionItem2;
@@ -198,10 +200,12 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
+        String TENANT_0_PREFIXED = VitamConfiguration.getEnvironmentName() + "_" + TENANT_0 ;
+        String TENANT_1_PREFIXED = VitamConfiguration.getEnvironmentName() + "_" + TENANT_1 ;
 
         // 0. Init data
-        Path backup0Folder = Paths.get(OFFER_FOLDER, TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        Path backup1Folder = Paths.get(OFFER_FOLDER, TENANT_1 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup0Folder = Paths.get(OFFER_FOLDER, TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup1Folder = Paths.get(OFFER_FOLDER, TENANT_1_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
 
         assertThat(java.nio.file.Files.exists(backup0Folder)).isFalse();
         assertThat(java.nio.file.Files.exists(backup1Folder)).isFalse();
@@ -248,12 +252,12 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(9);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getSequence()).isEqualTo(1L);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getContainer())
-            .isEqualTo(TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+            .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getFileName())
             .isEqualTo(LOGBOOK_0_GUID);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getSequence()).isEqualTo(2L);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getContainer())
-            .isEqualTo(TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+            .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getFileName())
             .isEqualTo(LOGBOOK_0_GUID);
 
@@ -364,6 +368,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        VitamConfiguration.setEnvironmentName("");
     }
 
     private JsonNode getQueryDslOperationId(String operationId) throws InvalidCreateOperationException {

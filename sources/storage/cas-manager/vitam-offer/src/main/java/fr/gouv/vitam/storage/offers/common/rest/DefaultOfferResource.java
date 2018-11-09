@@ -573,6 +573,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         if (type == null || Strings.isNullOrEmpty(type.getFolder()) || Strings.isNullOrEmpty(tenantId)) {
             return null;
         }
-        return tenantId + "_" + type.getFolder();
+        String environmentName = Strings.isNullOrEmpty(VitamConfiguration.getEnvironmentName()) ?
+            "" :
+            VitamConfiguration.getEnvironmentName() + "_";
+
+        return environmentName + tenantId + "_" + type.getFolder();
     }
 }
