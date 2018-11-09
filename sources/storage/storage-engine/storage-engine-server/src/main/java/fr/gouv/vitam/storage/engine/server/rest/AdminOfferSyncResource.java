@@ -33,12 +33,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequestItem;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
-import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncServiceImpl;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -62,13 +61,13 @@ public class AdminOfferSyncResource {
      * Error/Exceptions messages.
      */
     private static final String SYNCHRONIZATION_JSON_MANDATORY_PARAMETERS_MSG =
-        "the Json input of offer synchronization's parameters is mondatory.";
+        "the Json input of offer synchronization's parameters is mandatory.";
 
     private static final String SYNCHRONIZATION_EXCEPTION_MSG =
         "ERROR: Exception has been thrown when synchronizing the offers : ";
-    private static final String SOURCE_OFFER_PARAMETER_IS_MONDATORY = "the source offer parameter is mondatory.";
-    private static final String DESTINATION_OFFER_PARAMETER_IS_MONDATORY =
-        "the destination offer parameter is mondatory.";
+    private static final String SOURCE_OFFER_PARAMETER_IS_MANDATORY = "the source offer parameter is mandatory.";
+    private static final String DESTINATION_OFFER_PARAMETER_IS_MANDATORY =
+        "the destination offer parameter is mandatory.";
 
     private final String OFFER_SYNC_URI = "/offerSync";
 
@@ -83,7 +82,7 @@ public class AdminOfferSyncResource {
      * @param distribution
      */
     public AdminOfferSyncResource(StorageDistribution distribution) {
-        this(new OfferSyncServiceImpl(distribution));
+        this(new OfferSyncService(distribution));
     }
 
     /**
@@ -108,16 +107,16 @@ public class AdminOfferSyncResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response synchronizeOffer(OfferSyncRequestItem offerSyncItems) {
+    public Response synchronizeOffer(OfferSyncRequest offerSyncItems) {
 
         ParametersChecker.checkParameter(SYNCHRONIZATION_JSON_MANDATORY_PARAMETERS_MSG, offerSyncItems);
-        ParametersChecker.checkParameter(SOURCE_OFFER_PARAMETER_IS_MONDATORY, offerSyncItems.getOfferSource());
+        ParametersChecker.checkParameter(SOURCE_OFFER_PARAMETER_IS_MANDATORY, offerSyncItems.getOfferSource());
         ParametersChecker
-            .checkParameter(DESTINATION_OFFER_PARAMETER_IS_MONDATORY, offerSyncItems.getOfferDestination());
-        OfferSyncResponseItem response = new OfferSyncResponseItem();
+            .checkParameter(DESTINATION_OFFER_PARAMETER_IS_MANDATORY, offerSyncItems.getOfferDestination());
+        OfferSyncResponseItem response;
 
         try {
-            LOGGER.debug(String
+            LOGGER.info(String
                 .format("Starting %s offer synchronization from the %s source offer with %d%n offset.",
                     offerSyncItems.getOfferDestination(), offerSyncItems.getOfferSource(),
                     offerSyncItems.getOffset()));

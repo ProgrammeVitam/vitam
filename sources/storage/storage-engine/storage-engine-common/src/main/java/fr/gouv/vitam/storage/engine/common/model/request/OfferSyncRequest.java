@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Description of offerSync request item model. <br/>
  */
-public class OfferSyncRequestItem {
+public class OfferSyncRequest {
 
     /**
      * offerSource identifier.
@@ -57,7 +57,7 @@ public class OfferSyncRequestItem {
     /**
      * Constructor.
      */
-    public OfferSyncRequestItem() {
+    public OfferSyncRequest() {
         super();
     }
 
@@ -65,7 +65,7 @@ public class OfferSyncRequestItem {
         return offerSource;
     }
 
-    public OfferSyncRequestItem setOfferSource(String offerSource) {
+    public OfferSyncRequest setOfferSource(String offerSource) {
         this.offerSource = offerSource;
         return this;
     }
@@ -74,7 +74,7 @@ public class OfferSyncRequestItem {
         return offerDestination;
     }
 
-    public OfferSyncRequestItem setOfferDestination(String offerDestination) {
+    public OfferSyncRequest setOfferDestination(String offerDestination) {
         this.offerDestination = offerDestination;
         return this;
     }
@@ -83,7 +83,7 @@ public class OfferSyncRequestItem {
         return offset;
     }
 
-    public OfferSyncRequestItem setOffset(Long offset) {
+    public OfferSyncRequest setOffset(Long offset) {
         this.offset = offset;
         return this;
     }
@@ -92,7 +92,7 @@ public class OfferSyncRequestItem {
         return containerToSync;
     }
 
-    public OfferSyncRequestItem setContainerToSync(String containerToSync) {
+    public OfferSyncRequest setContainerToSync(String containerToSync) {
         this.containerToSync = containerToSync;
         return this;
     }
@@ -101,7 +101,7 @@ public class OfferSyncRequestItem {
         return tenantIdToSync;
     }
 
-    public OfferSyncRequestItem setTenantIdToSync(Integer tenantIdToSync) {
+    public OfferSyncRequest setTenantIdToSync(Integer tenantIdToSync) {
         this.tenantIdToSync = tenantIdToSync;
         return this;
     }

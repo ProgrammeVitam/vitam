@@ -60,6 +60,7 @@ import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
@@ -376,8 +377,7 @@ public class MigrationIT extends VitamRuleRunner {
     }
 
     private String getBasicAuthnToken() {
-        return "Basic " + Base64.getEncoder()
-                .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
+        return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
     }
 
     public interface MetadataAdminMigrationService {

@@ -19,7 +19,7 @@ package fr.gouv.vitam.storage.engine.common.model.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequestItem;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 
 /**
  * Description of offerSync response item model. <br/>
@@ -53,13 +53,13 @@ public class OfferSyncResponseItem {
     /**
      * Constructor.
      *
-     * @param offerSyncRequestItem item
+     * @param offerSyncRequest item
      * @param status staus
      */
-    public OfferSyncResponseItem(OfferSyncRequestItem offerSyncRequestItem, StatusCode status) {
+    public OfferSyncResponseItem(OfferSyncRequest offerSyncRequest, StatusCode status) {
         super();
-        this.offerSource = offerSyncRequestItem.getOfferSource();
-        this.offerDestination = offerSyncRequestItem.getOfferDestination();
+        this.offerSource = offerSyncRequest.getOfferSource();
+        this.offerDestination = offerSyncRequest.getOfferDestination();
         this.status = status;
     }
 

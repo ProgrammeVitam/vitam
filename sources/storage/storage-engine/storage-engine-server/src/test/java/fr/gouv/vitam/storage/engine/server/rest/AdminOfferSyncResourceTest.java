@@ -30,7 +30,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequestItem;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
@@ -60,7 +60,7 @@ public class AdminOfferSyncResourceTest {
     private static final String OFFER_FS_1_SERVICE_CONSUL = "offer-fs-1.service.consul";
     private static final String OFFER_FS_2_SERVICE_CONSUL = "offer-fs-2.service.consul";
 
-    private OfferSyncRequestItem offerSyncRequestItem;
+    private OfferSyncRequest offerSyncRequest;
     private OfferSyncResponseItem offerSyncResponseItem;
 
     @Mock
@@ -70,16 +70,16 @@ public class AdminOfferSyncResourceTest {
 
     @Before
     public void setup() {
-        offerSyncRequestItem = new OfferSyncRequestItem();
+        offerSyncRequest = new OfferSyncRequest();
     }
 
     @Test
     public void should_return_ok_when_request_item_full() throws VitamSyncException {
 
         // Given
-        offerSyncRequestItem.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
+        offerSyncRequest.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
             .setOffset(null);
-        offerSyncResponseItem = new OfferSyncResponseItem(offerSyncRequestItem, StatusCode.OK);
+        offerSyncResponseItem = new OfferSyncResponseItem(offerSyncRequest, StatusCode.OK);
 
         when(offerSyncService.synchronize(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, null, null, null))
             .thenReturn(offerSyncResponseItem);
@@ -87,11 +87,11 @@ public class AdminOfferSyncResourceTest {
         adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
 
         // When
-        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequestItem);
+        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequest);
         LOGGER.debug(String.format(
             "calling OfferSync service with the following parameters : %s source offer, %s destination offer, %d offset.",
-            offerSyncRequestItem.getOfferSource(), offerSyncRequestItem.getOfferDestination(),
-            offerSyncRequestItem.getOffset()));
+            offerSyncRequest.getOfferSource(), offerSyncRequest.getOfferDestination(),
+            offerSyncRequest.getOffset()));
 
         // Then
         LOGGER.debug("OfferSync response : ", response);
@@ -109,19 +109,19 @@ public class AdminOfferSyncResourceTest {
 
         // Given
         adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
-        offerSyncRequestItem =
-            new OfferSyncRequestItem().setOfferSource("").setOfferDestination(OFFER_FS_2_SERVICE_CONSUL);
+        offerSyncRequest =
+            new OfferSyncRequest().setOfferSource("").setOfferDestination(OFFER_FS_2_SERVICE_CONSUL);
 
         // When / Then
-        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequestItem))
+        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequest))
             .isInstanceOf(IllegalArgumentException.class);
 
         // Given
-        offerSyncRequestItem =
-            new OfferSyncRequestItem().setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(null);
+        offerSyncRequest =
+            new OfferSyncRequest().setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(null);
 
         // When / Then
-        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequestItem))
+        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequest))
             .isInstanceOf(IllegalArgumentException.class);
 
     }
@@ -130,8 +130,8 @@ public class AdminOfferSyncResourceTest {
     public void should_return_ok_when_throws_sync_exception() throws VitamSyncException {
 
         // Given
-        offerSyncRequestItem = new OfferSyncRequestItem();
-        offerSyncRequestItem.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
+        offerSyncRequest = new OfferSyncRequest();
+        offerSyncRequest.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
             .setOffset(100L);
 
         when(offerSyncService.synchronize(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, null, null, null))
@@ -140,7 +140,7 @@ public class AdminOfferSyncResourceTest {
         adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
 
         // When
-        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequestItem);
+        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequest);
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());

@@ -77,16 +77,6 @@ public class BusinessApplication extends Application {
             StorageResource storageResource = new StorageResource(storageConfiguration);
             singletons.add(storageResource);
 
-            final StorageLog storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
-
-            final StorageDistribution distribution =
-                new StorageDistributionImpl(storageConfiguration, storageLogService);
-
-            AdminOfferSyncResource adminOfferSyncResource =
-                new AdminOfferSyncResource(distribution);
-            singletons.add(adminOfferSyncResource);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

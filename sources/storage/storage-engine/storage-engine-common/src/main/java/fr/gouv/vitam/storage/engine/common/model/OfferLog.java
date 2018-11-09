@@ -96,8 +96,9 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setSequence(long sequence) {
+    public OfferLog setSequence(long sequence) {
         this.sequence = sequence;
+        return this;
     }
 
     /**
@@ -112,8 +113,9 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setTime(LocalDateTime time) {
+    public OfferLog setTime(LocalDateTime time) {
         this.time = time;
+        return this;
     }
 
     /**
@@ -128,8 +130,9 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setContainer(String container) {
+    public OfferLog setContainer(String container) {
         this.container = container;
+        return this;
     }
 
     /**
@@ -144,8 +147,9 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setFileName(String fileName) {
+    public OfferLog setFileName(String fileName) {
         this.fileName = fileName;
+        return this;
     }
 
     /**
@@ -160,8 +164,9 @@ public class OfferLog {
      *
      * @return this
      */
-    public void setAction(OfferLogAction action) {
+    public OfferLog setAction(OfferLogAction action) {
         this.action = action;
+        return this;
     }
 
 }
