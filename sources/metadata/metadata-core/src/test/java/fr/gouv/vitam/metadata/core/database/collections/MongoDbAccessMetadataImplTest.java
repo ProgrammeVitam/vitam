@@ -26,53 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
-import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import org.assertj.core.api.Condition;
-import org.assertj.core.util.Lists;
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.ParseField;
-import org.elasticsearch.common.xcontent.ContextParser;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.common.xcontent.json.JsonXContent;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
-import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
-import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.valuecount.ParsedValueCount;
-import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.powermock.api.mockito.PowerMockito;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ARCHIVE_UNIT;
 import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECT;
 import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECTS_SIZE;
@@ -90,6 +43,58 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import org.assertj.core.util.Lists;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.ParseField;
+import org.elasticsearch.common.xcontent.ContextParser;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
+import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ParsedValueCount;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.powermock.api.mockito.PowerMockito;
 
 public class MongoDbAccessMetadataImplTest {
 
@@ -288,10 +293,96 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 3\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -322,10 +413,96 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 3\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier1\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 3,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier1\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -368,11 +545,97 @@ public class MongoDbAccessMetadataImplTest {
         long numberOfOriginatingAgency = 1;
         SearchResponse archiveUnitResponse = searchResult(
             String.format(
-                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d}]}}}",
+                    "{\n" +
+                            "  \"took\": 6,\n" +
+                            "  \"timed_out\": false,\n" +
+                            "  \"_shards\": {\n" +
+                            "    \"total\": 1,\n" +
+                            "    \"successful\": 1,\n" +
+                            "    \"skipped\": 0,\n" +
+                            "    \"failed\": 0\n" +
+                            "  },\n" +
+                            "  \"aggregations\": {\n" +
+                            "    \"sterms#originatingAgencies\": {\n" +
+                            "      \"doc_count_error_upper_bound\": 0,\n" +
+                            "      \"sum_other_doc_count\": 0,\n" +
+                            "      \"buckets\": [\n" +
+                            "        {\n" +
+                            "          \"key\": \"Identifier0\",\n" +
+                            "          \"doc_count\": %d,\n" +
+                            "          \"nested#nestedVersions\": {\n" +
+                            "            \"doc_count\": 3\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      ]\n" +
+                            "    },\n" +
+                            "    \"sterms#originatingAgency\": {\n" +
+                            "      \"doc_count_error_upper_bound\": 0,\n" +
+                            "      \"sum_other_doc_count\": 0,\n" +
+                            "      \"buckets\": [\n" +
+                            "        {\n" +
+                            "          \"key\": \"Identifier0\",\n" +
+                            "          \"doc_count\": %d,\n" +
+                            "          \"nested#nestedVersions\": {\n" +
+                            "            \"doc_count\": 1\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      ]\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}",
                 numberOfOriginatingAgencies, numberOfOriginatingAgency)
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier1\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -406,7 +669,44 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 3,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 3\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
         double binarySize = 88209;
         long binaryCount = 2;
@@ -415,7 +715,56 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier1\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%f}}]}}}",
+                    "{\n" +
+                            "  \"took\": 6,\n" +
+                            "  \"timed_out\": false,\n" +
+                            "  \"_shards\": {\n" +
+                            "    \"total\": 1,\n" +
+                            "    \"successful\": 1,\n" +
+                            "    \"skipped\": 0,\n" +
+                            "    \"failed\": 0\n" +
+                            "  },\n" +
+                            "  \"aggregations\": {\n" +
+                            "    \"sterms#originatingAgencies\": {\n" +
+                            "      \"doc_count_error_upper_bound\": 0,\n" +
+                            "      \"sum_other_doc_count\": 0,\n" +
+                            "      \"buckets\": [\n" +
+                            "        {\n" +
+                            "          \"key\": \"Identifier0\",\n" +
+                            "          \"doc_count\": %d,\n" +
+                            "          \"nested#nestedVersions\": {\n" +
+                            "            \"doc_count\": 1,\n" +
+                            "            \"value_count#binaryObjectCount\": {\n" +
+                            "              \"value\": %d\n" +
+                            "            },\n" +
+                            "            \"sum#binaryObjectSize\": {\n" +
+                            "              \"value\": %f\n" +
+                            "            }\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      ]\n" +
+                            "    },\n" +
+                            "    \"sterms#originatingAgency\": {\n" +
+                            "      \"doc_count_error_upper_bound\": 0,\n" +
+                            "      \"sum_other_doc_count\": 0,\n" +
+                            "      \"buckets\": [\n" +
+                            "        {\n" +
+                            "          \"key\": \"Identifier1\",\n" +
+                            "          \"doc_count\": %d,\n" +
+                            "          \"nested#nestedVersions\": {\n" +
+                            "            \"doc_count\": 1,\n" +
+                            "            \"value_count#binaryObjectCount\": {\n" +
+                            "              \"value\": %d\n" +
+                            "            },\n" +
+                            "            \"sum#binaryObjectSize\": {\n" +
+                            "              \"value\": %f\n" +
+                            "            }\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      ]\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}",
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
@@ -453,7 +802,44 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":3}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+            "{\n" +
+                    "  \"took\": 6,\n" +
+                    "  \"timed_out\": false,\n" +
+                    "  \"_shards\": {\n" +
+                    "    \"total\": 1,\n" +
+                    "    \"successful\": 1,\n" +
+                    "    \"skipped\": 0,\n" +
+                    "    \"failed\": 0\n" +
+                    "  },\n" +
+                    "  \"aggregations\": {\n" +
+                    "    \"sterms#originatingAgencies\": {\n" +
+                    "      \"doc_count_error_upper_bound\": 0,\n" +
+                    "      \"sum_other_doc_count\": 0,\n" +
+                    "      \"buckets\": [\n" +
+                    "        {\n" +
+                    "          \"key\": \"Identifier0\",\n" +
+                    "          \"doc_count\": 3,\n" +
+                    "          \"nested#nestedVersions\": {\n" +
+                    "            \"doc_count\": 3\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      ]\n" +
+                    "    },\n" +
+                    "    \"sterms#originatingAgency\": {\n" +
+                    "      \"doc_count_error_upper_bound\": 0,\n" +
+                    "      \"sum_other_doc_count\": 0,\n" +
+                    "      \"buckets\": [\n" +
+                    "        {\n" +
+                    "          \"key\": \"Identifier0\",\n" +
+                    "          \"doc_count\": 1,\n" +
+                    "          \"nested#nestedVersions\": {\n" +
+                    "            \"doc_count\": 1\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      ]\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}"
         );
         double binarySize = 0;
         long binaryCount = 0;
@@ -462,7 +848,56 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%.2f}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":%d,\"value_count#binaryObjectCount\":{\"value\":%d},\"sum#binaryObjectSize\":{\"value\":%.2f}}]}}}",
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": %d,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": %d\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": %.2f\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": %d,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": %d\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": %.2f\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}",
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
@@ -499,10 +934,96 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
         SearchResponse objectGroupResponse = searchResult(
-            "{\"_shards\":{\"total\":1,\"successful\":1,\"skipped\":0,\"failed\":0},\"aggregations\":{\"sterms#originatingAgencies\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]},\"sterms#originatingAgency\":{\"doc_count_error_upper_bound\":0,\"sum_other_doc_count\":0,\"buckets\":[{\"key\":\"Identifier0\",\"doc_count\":1,\"value_count#binaryObjectCount\":{\"value\":2},\"sum#binaryObjectSize\":{\"value\":88209}}]}}}"
+                "{\n" +
+                        "  \"took\": 6,\n" +
+                        "  \"timed_out\": false,\n" +
+                        "  \"_shards\": {\n" +
+                        "    \"total\": 1,\n" +
+                        "    \"successful\": 1,\n" +
+                        "    \"skipped\": 0,\n" +
+                        "    \"failed\": 0\n" +
+                        "  },\n" +
+                        "  \"aggregations\": {\n" +
+                        "    \"sterms#originatingAgencies\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    },\n" +
+                        "    \"sterms#originatingAgency\": {\n" +
+                        "      \"doc_count_error_upper_bound\": 0,\n" +
+                        "      \"sum_other_doc_count\": 0,\n" +
+                        "      \"buckets\": [\n" +
+                        "        {\n" +
+                        "          \"key\": \"Identifier0\",\n" +
+                        "          \"doc_count\": 1,\n" +
+                        "          \"nested#nestedVersions\": {\n" +
+                        "            \"doc_count\": 1,\n" +
+                        "            \"sum#binaryObjectSize\": {\n" +
+                        "              \"value\": 88209\n" +
+                        "            },\n" +
+                        "            \"value_count#binaryObjectCount\": {\n" +
+                        "              \"value\": 2\n" +
+                        "            }\n" +
+                        "          }\n" +
+                        "        }\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -536,6 +1057,7 @@ public class MongoDbAccessMetadataImplTest {
         map.put(StringTerms.NAME, (p, c) -> ParsedStringTerms.fromXContent(p, (String) c));
         map.put(SumAggregationBuilder.NAME, (p, c) -> ParsedSum.fromXContent(p, (String) c));
         map.put(ValueCountAggregationBuilder.NAME, (p, c) -> ParsedValueCount.fromXContent(p, (String) c));
+        map.put(NestedAggregationBuilder.NAME, (p, c) -> ParsedNested.fromXContent(p, (String) c));
 
         return map.entrySet()
             .stream()
