@@ -11,4 +11,4 @@ Se référer au chapitre :ref:`1.4.1_to_1.4.5`.
 Montée de version 1.4.5 vers 1.10.0
 ===================================
 
-Se référer au chapitre :ref:`1.4.5_to_1.4.10`.
+Se référer au chapitre :ref:`1.4.5_to_1.10.0`.
