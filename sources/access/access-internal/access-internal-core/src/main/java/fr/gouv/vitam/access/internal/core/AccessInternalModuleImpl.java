@@ -261,8 +261,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     @Override
     public JsonNode selectUnit(JsonNode jsonQuery)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
-        VitamDBException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
 
         JsonNode jsonNode = null;
         LOGGER.debug("DEBUG: start selectUnits {}", jsonQuery);
@@ -284,8 +283,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw e;
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ILLEGAL_ARGUMENT, e);
-            throw e;
-        } catch (final VitamDBException e) {
             throw e;
         } catch (final Exception e) {
             LOGGER.error("exeption thrown", e);
