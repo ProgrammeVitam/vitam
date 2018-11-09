@@ -264,10 +264,10 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
             ArrayNode events = (ArrayNode) lifecycle.get(LogbookDocument.EVENTS);
             JsonNode lastEvent = Iterables.getLast(events);
-            String finalOutcome = lastEvent.get(LogbookMongoDbName.outcome.getDbname()).asText();
-            String finalEventIdProc = lifecycle.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()).asText();
-            String finalEventTypeProc = lastEvent.get(LogbookMongoDbName.eventTypeProcess.getDbname()).asText();
-            String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
+            String finalOutcome = getJsonText(lastEvent, LogbookMongoDbName.outcome);
+            String finalEventIdProc = getJsonText(lifecycle, LogbookMongoDbName.eventIdentifierProcess);
+            String finalEventTypeProc = getJsonText(lastEvent, LogbookMongoDbName.eventTypeProcess);
+            String finalEvDateTime = getJsonText(lastEvent, LogbookMongoDbName.eventDateTime);
 
             final String hashLFC = generateDigest(lifecycle, digestType);
             final String hashLFCEvents = generateDigest(events, digestType);
@@ -300,9 +300,10 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 }
 
                 ArrayList<String> parents = new ArrayList<>();
-                metadata.get(MetadataDocument.UP).forEach(up -> parents.add(up.textValue()));
+                if(metadata.has(MetadataDocument.UP)) {
+                    metadata.get(MetadataDocument.UP).forEach(up -> parents.add(up.asText()));
+                }
                 lfcTraceSecFileDataLine.setUp(parents);
-
 
                 hashMetaData = generateDigest(metadata, digestType);
                 lfcAndMetadataGlobalHashFromStorage = checkAndGetOfferDigest(metadataDigestsByOfferId,
@@ -324,7 +325,9 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                         ).collect(Collectors.toList());
 
                 ArrayList<String> auParents = new ArrayList<>();
-                metadata.get(MetadataDocument.UP).forEach(up -> auParents.add(up.textValue()));
+                if(metadata.has(MetadataDocument.UP)) {
+                    metadata.get(MetadataDocument.UP).forEach(up -> auParents.add(up.asText()));
+                }
                 lfcTraceSecFileDataLine.setUp(auParents);
 
                 lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);
@@ -343,6 +346,13 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         } catch (IOException | InvalidParseOperationException e) {
             throw new ProcessingException("Could not serialize json object or could not write to file", e);
         }
+    }
+
+    private String getJsonText(JsonNode lastEvent, LogbookMongoDbName outcome) {
+        if(lastEvent == null || !lastEvent.has(outcome.getDbname())){
+            return null;
+        }
+        return lastEvent.get(outcome.getDbname()).asText();
     }
 
     /**
