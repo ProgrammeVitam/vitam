@@ -41,6 +41,8 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -131,6 +133,8 @@ public class World {
      */
     private AdminExternalClient adminClient;
 
+    private AccessExternalClientV2 adminClientV2;
+
     /**
      * logbook operations client
      */
@@ -166,6 +170,8 @@ public class World {
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
+        adminClientV2 = AccessExternalClientV2Factory.getInstance().getClient();
+
         storageClient = StorageClientFactory.getInstance().getClient();
         WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
         configureLogbookClient();
@@ -468,4 +474,10 @@ public class World {
     void setLogbookEvent(LogbookEvent logbookEvent) {
         this.logbookEvent = logbookEvent;
     }
+
+    public AccessExternalClientV2 getAdminClientV2() {
+        return adminClientV2;
+    }
+
+
 }

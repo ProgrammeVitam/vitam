@@ -163,7 +163,6 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * @param vitamContext the vitam context
-     * @param dipExportRequest the DSL query used to select unit to export as DIP
      * @return the result of the information obtained in the DIP
      * @throws VitamClientException
      */
