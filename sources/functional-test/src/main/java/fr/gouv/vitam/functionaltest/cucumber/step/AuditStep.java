@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -44,40 +43,70 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class DipStep {
+/**
+ * AuditStep class
+ */
+public class AuditStep {
 
-    private World world;
+    World world;
 
-    public DipStep(World world) {
+    public AuditStep(World world) {
         this.world = world;
     }
 
-        @When("^je télécharge le Dip$")
-        public void downloadTheDip() throws VitamException {
 
-            VitamContext vitamContext = new VitamContext(world.getTenantId());
-            vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-            vitamContext.setAccessContract(world.getContractId());
+    @When("^je lance un audit de cohérence$")
+    public void evidenceAudit() throws VitamException {
 
-            String query = world.getQuery();
-            JsonNode jsonNode = JsonHandler.getFromString(query);
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
 
-            DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
-            RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+        String query = world.getQuery();
+        JsonNode queryString = JsonHandler.getFromString(query);
 
-            assertThat(response.isOk()).isTrue();
+        RequestResponse response = world.getAdminClient().evidenceAudit(vitamContext, queryString);
 
-            final String operationId = response.getHeaderString(X_REQUEST_ID);
-            world.setOperationId(operationId);
+        assertThat(response.isOk()).isTrue();
 
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean processTimeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
 
-            if (!processTimeout) {
-                fail("dip processing not finished. Timeout exceeded.");
-            }
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
 
-            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
         }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+
+    @When("^je lance un audit rectificatif sur l'operation(.*)")
+    public void rectificationAudit(String id ) throws VitamException {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+
+        RequestResponse response = world.getAdminClient().rectificationAudit(vitamContext, id);
+
+        assertThat(response.isOk()).isTrue();
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
 }
