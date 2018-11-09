@@ -10,6 +10,8 @@ Prérequis à l'installation
 
 En prérequis, il est nécéssaire d'effectuer une reprise des données des contextes applicatifs. 
 
+.. caution:: Dans le cadre d'une installation multi-sites, la séquence de mise à jour à réspecter est la suivante : reprise des données puis arrêt des applicatifs :term:`VITAM` sur les 2 sites, montée de version du site secondaire puis du site primaire. 
+
 Le champ ``permission._tenant`` lié aux contextes applicatifs a en effet été mis à jour et doit être migré avant le déploiement de la nouvelle version (le champ doit être renommé en permission.tenant dans le cadre de la correction du bug #4317). 
 
 Sous ``deployment``, il faut lancer la commande :

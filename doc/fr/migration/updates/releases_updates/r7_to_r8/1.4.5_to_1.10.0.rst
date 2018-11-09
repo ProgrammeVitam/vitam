@@ -27,7 +27,7 @@ Etapes post-installation
 
 Dans le cadre d'une montée de version 1.4.5 (« R7.5 ») vers 1.10.0 (« R8 »), il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`. 
 
-.. caution:: Il faut d'abord lancer la migration sur le site secondaire afin de purger les registres des fonds, ensuite lancer la migration sur le site primaire puis enfin lancer la reconstruction des registres des fonds sur le site secondaire.
+.. caution:: Dans le cadre d'une installation multi-sites, il faut d'abord lancer la migration sur le site secondaire afin de purger les registres des fonds, ensuite lancer la migration sur le site primaire puis enfin lancer la reconstruction des registres des fonds sur le site secondaire.
 
 Avant de procéder à la migration
 --------------------------------
