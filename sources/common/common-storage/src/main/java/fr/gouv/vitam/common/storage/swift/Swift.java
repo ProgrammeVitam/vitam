@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -70,6 +72,7 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
+import sun.misc.PerformanceLogger;
 
 /**
  * Swift abstract implementation
@@ -170,10 +173,12 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
+        Stopwatch times = Stopwatch.createStarted();
         try {
             CountingInputStream segmentInputStream;
             int i = 1;
             long fileSizeRead = 0;
+            Stopwatch segmentTime = Stopwatch.createUnstarted();
             do {
                 final String objectNameToPut = objectName + "/" + i;
                 BoundedInputStream boundedInputStream =
@@ -183,8 +188,11 @@ public class Swift extends ContentAddressableStorageAbstract {
                 LOGGER.info("number of segment: " + objectNameToPut);
                 // for get the number of byte read to the stream
                 segmentInputStream = new CountingInputStream(boundedInputStream);
+                segmentTime.start();
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
+                LOGGER.debug("STP_Offer_" + configuration.getProvider(), "BIG_FILE[SEGMENT-"+i+"]", "REAL_SWIFT_PUT_OBJECT", segmentTime.elapsed(TimeUnit.MILLISECONDS));
+                segmentTime.stop();
                 i++;
                 fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
             } while (fileSizeRead != size);
@@ -199,13 +207,21 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
+            LOGGER.debug("STP_Offer_" + configuration.getProvider(), "BIG_FILE[total]", "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
 
     private void smallFile(String containerName, String objectName, InputStream stream, DigestType digestType)
         throws ContentAddressableStorageException {
-        osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+        } finally {
+            LOGGER.debug("STP_Offer_" + configuration.getProvider(), "SMALL_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(
+                TimeUnit.MILLISECONDS));
+        }
+
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
         Map<String, String> metadataToUpdate = new HashMap<>();

@@ -44,10 +44,12 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private boolean authentication;
     private String projectName;
     private String swiftUrl;
-    private String swiftTrustTore;
-    private String swiftTrustTorePassword;
+    private String swiftTrustStore;
+    private String swiftTrustStorePassword;
     private int swiftMaxConnectionsPerRoute;
     private int swiftMaxConnections;
+    private int swiftConnectionTimeout;
+    private int swiftReadTimeout;
 
     /**
      * @return the swiftUrl
@@ -234,20 +236,20 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
-    public String getSwiftTrustTore() {
-        return swiftTrustTore;
+    public String getSwiftTrustStore() {
+        return swiftTrustStore;
     }
 
-    public void setSwiftTrustTore(String swiftTrustTore) {
-        this.swiftTrustTore = swiftTrustTore;
+    public void setSwiftTrustStore(String swiftTrustStore) {
+        this.swiftTrustStore = swiftTrustStore;
     }
 
-    public String getSwiftTrustTorePassword() {
-        return swiftTrustTorePassword;
+    public String getSwiftTrustStorePassword() {
+        return swiftTrustStorePassword;
     }
 
-    public void setSwiftTrustTorePassword(String swiftTrustTorePassword) {
-        this.swiftTrustTorePassword = swiftTrustTorePassword;
+    public void setSwiftTrustStorePassword(String swiftTrustStorePassword) {
+        this.swiftTrustStorePassword = swiftTrustStorePassword;
     }
 
     public int getSwiftMaxConnectionsPerRoute() {
@@ -264,5 +266,37 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public void setSwiftMaxConnections(int swiftMaxConnections) {
         this.swiftMaxConnections = swiftMaxConnections;
+    }
+
+    /**
+     * getter for swiftConnectionTimeout
+     *
+     * @return swiftConnectionTimeout value
+     */
+    public int getSwiftConnectionTimeout() {
+        return swiftConnectionTimeout;
+    }
+
+    /**
+     * set swiftConnectionTimeout
+     */
+    public void setSwiftConnectionTimeout(int swiftConnectionTimeout) {
+        this.swiftConnectionTimeout = swiftConnectionTimeout;
+    }
+
+    /**
+     * getter for swiftReadTimeout
+     *
+     * @return swiftReadTimeout value
+     */
+    public int getSwiftReadTimeout() {
+        return swiftReadTimeout;
+    }
+
+    /**
+     * set swiftReadTimeout
+     */
+    public void setSwiftReadTimeout(int swiftReadTimeout) {
+        this.swiftReadTimeout = swiftReadTimeout;
     }
 }

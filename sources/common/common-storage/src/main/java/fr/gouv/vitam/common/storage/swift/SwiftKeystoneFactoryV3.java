@@ -66,12 +66,14 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         projectIdentifier = Identifier.byName(configuration.getProjectName());
         configOS4J = Config.newConfig()
             .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
+            .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
+            .withReadTimeout(configuration.getSwiftReadTimeout())
             .withMaxConnections(configuration.getSwiftMaxConnections())
             .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
 
         if (configuration.getKeystoneEndPoint().startsWith("https")) {
-            File file = new File(configuration.getSwiftTrustTore());
-            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustTorePassword().toCharArray()).build();
+            File file = new File(configuration.getSwiftTrustStore());
+            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustStorePassword().toCharArray()).build();
 
             configOS4J.withSSLContext(sslContext);
         }

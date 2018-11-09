@@ -53,6 +53,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
+import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_MAX_CONNECTIONS_PER_CONTEXT;
+import static org.jclouds.Constants.PROPERTY_MAX_CONNECTIONS_PER_HOST;
+import static org.jclouds.Constants.PROPERTY_SO_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_USER_THREADS;
+
+
 /**
  * Creates {@link BlobStoreContext} configured on {@link StorageConfiguration}
  * storage.conf file . This can be used to make an information about container.
@@ -136,6 +143,12 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
             overrides.setProperty(KeystoneProperties.CREDENTIAL_TYPE, "tempAuthCredentials");
             overrides.setProperty("jclouds.swift.tempAuth.headerUser", "X-Auth-User");
             overrides.setProperty("jclouds.swift.tempAuth.headerPass", "X-Auth-Key");
+            overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,  String.valueOf(configuration.getSwiftMaxConnectionsPerRoute()));
+            overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_HOST,  String.valueOf(configuration.getSwiftMaxConnections()));
+            overrides.setProperty(PROPERTY_CONNECTION_TIMEOUT, String.valueOf(configuration.getSwiftConnectionTimeout()));
+            overrides.setProperty(PROPERTY_SO_TIMEOUT, String.valueOf(configuration.getSwiftReadTimeout()));
+            overrides.setProperty(PROPERTY_USER_THREADS, String.valueOf(configuration.getSwiftMaxConnections()));
+
             contextBuilder.overrides(overrides);
         }
 
