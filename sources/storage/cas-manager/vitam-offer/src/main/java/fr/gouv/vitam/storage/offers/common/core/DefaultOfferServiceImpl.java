@@ -83,7 +83,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
-    private final boolean shouldRecomputeDigest;
+    private final boolean recomputeDigest;
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
@@ -99,7 +99,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
-        this.shouldRecomputeDigest = configuration.isShouldRecomputeDigest();
+        this.recomputeDigest = configuration.isRecomputeDigest();
         mapXCusor = new HashMap<>();
     }
 
@@ -163,7 +163,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, shouldRecomputeDigest);
+        return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, recomputeDigest);
     }
 
     @Override
