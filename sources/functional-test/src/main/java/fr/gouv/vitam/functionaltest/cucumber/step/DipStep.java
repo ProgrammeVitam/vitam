@@ -52,8 +52,8 @@ public class DipStep {
         this.world = world;
     }
 
-        @When("^je télécharge le Dip$")
-        public void downloadTheDip() throws VitamException {
+        @When("^j'exporte le dip$")
+        public void exportDip() throws VitamException {
 
             VitamContext vitamContext = new VitamContext(world.getTenantId());
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
