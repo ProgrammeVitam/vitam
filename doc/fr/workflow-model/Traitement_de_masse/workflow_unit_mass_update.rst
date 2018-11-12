@@ -182,21 +182,21 @@ Vérification des droits de mise à jour des métadonnées descriptives des unit
   + FATAL : une erreur technique est survenue lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.FATAL = Erreur technique lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
 
 
-Vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques CHECK_RULES_ID
------------------------------------------------------------------------------------------------------------------------------
+Vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques UNIT_METADATA_CHECK_CONSISTENCY
+-----------------------------------------------------------------------------------------------------------------------------------------
 
 
-+ **Règle** : Vérification des identifiants de règles de gestion demandées à la mise à jour des unités archivistiques 
++ **Règle** : Vérification de l'exitence des règles de gestion demandées, qu'elles appartienent à de la bonne catégorie (ajout/modif/suppression de règle, blocage/débloquage de règle). Vérification de la valeur du ClassificationLevel, que celles-ci contiennent bien une des valeurs configurée dans le fichier de configuration et vérification de l'identifiant d'AUP, que celui-ci correspond bien à un AUP actif disposant d'un schéma dans le référentiel.
 
 + **Type** : bloquant
 
 * **Statuts** :
 
-  + OK : la vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques a bien été effectué (CHECK_RULES_ID.OK = Succès de la vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques)
+  + OK : la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques a bien été effectué (UNIT_METADATA_CHECK_CONSISTENCY.OK=Succès de la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques)
 
-  + KO : la vérificationdes identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques n'a pas été effectuée en raison d'une erreur (CHECK_RULES_ID.KO = Échec de la vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques)
+  + KO : la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques n'a pas été effectuée en raison d'une erreur (UNIT_METADATA_CHECK_CONSISTENCY.KO=Échec de la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques)
 
-  + FATAL : une erreur technique est survenue lors de la vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques (CHECK_RULES_ID.FATAL = Erreur technique lors de la vérification des identifiants de règles de gestion demandées lors de la mise à jour des unités archivistiques)
+  + FATAL : une erreur technique est survenue lors de la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistique (UNIT_METADATA_CHECK_CONSISTENCY.FATAL=Erreur technique lors de la vérification de cohérence des actions lors de la mise à jour des règles de gestion unités archivistiques)
 
 
 Vérification des seuils de limitation de traitement des unités archivistiques CHECK_DISTRIBUTION_THRESHOLD
