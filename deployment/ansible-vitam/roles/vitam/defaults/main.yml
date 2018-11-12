@@ -12,7 +12,7 @@ package_name: "vitam-{{ vitam_struct.vitam_component }}"
 # Configuration par défaut du connecteur admin
 days_to_delete_logback_logfiles: 30
 days_to_delete_access_local: 7
-vitam_worker_capacity: {{ ansible_processor_vcpus }}
+vitam_worker_capacity: "{{ ansible_processor_vcpus }}"
 
 vitam_site_id: 1
 
