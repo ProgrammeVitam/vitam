@@ -12,6 +12,24 @@ objet qui lui est associé. Ce relevé de valeur probante réunit les éléments
 Processus de préparation du relevé de valeur probante (STP_PROBATIVE_VALUE_PREPARE)
 ===================================================================================
 
+Vérification des seuils de limitation de traitement des unités archivistiques CHECK_DISTRIBUTION_THRESHOLD
+-----------------------------------------------------------------------------------------------------------
+
+
++ **Règle** : Vérification des seuils de limitation de traitement des unités archivistiques
+
++ **Type** : bloquant
+
+* **Statuts** :
+
+  + OK : la vérification des seuils de limitation de traitement des unités archivistiques a bien été effectuée (CHECK_DISTRIBUTION_THRESHOLD.OK = Succès de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+  + KO : la vérification des seuils de limitation de traitement des unités archivistiques n'a pas été effectuée en raison d'une erreur (CHECK_DISTRIBUTION_THRESHOLD.KO = Échec de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+  + FATAL : une erreur technique est survenue lors de la vérification des seuils de limitation de traitement des unités archivistiques (CHECK_DISTRIBUTION_THRESHOLD.FATAL = Erreur technique lors de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+
+
 Création de la liste des objects du relevé de valeur probante (PROBATIVE_VALUE_LIST_OBJECT)  
 -------------------------------------------------------------------------------------------
 

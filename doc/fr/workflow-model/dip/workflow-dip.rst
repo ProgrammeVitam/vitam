@@ -14,6 +14,24 @@ Les étapes et actions associées ci-dessous décrivent le processus d'export de
 Processus de création du bordereau de mise à disposition (STP_CREATE_MANIFEST)
 ==============================================================================
 
+
+Vérification des seuils de limitation de traitement des unités archivistiques CHECK_DISTRIBUTION_THRESHOLD
+-----------------------------------------------------------------------------------------------------------
+
+
++ **Règle** : Vérification des seuils de limitation de traitement des unités archivistiques
+
++ **Type** : bloquant
+
+* **Statuts** :
+
+  + OK : la vérification des seuils de limitation de traitement des unités archivistiques a bien été effectuée (CHECK_DISTRIBUTION_THRESHOLD.OK = Succès de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+  + KO : la vérification des seuils de limitation de traitement des unités archivistiques n'a pas été effectuée en raison d'une erreur (CHECK_DISTRIBUTION_THRESHOLD.KO = Échec de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+  + FATAL : une erreur technique est survenue lors de la vérification des seuils de limitation de traitement des unités archivistiques (CHECK_DISTRIBUTION_THRESHOLD.FATAL = Erreur technique lors de la vérification des seuils de limitation de traitement des unités archivistiques)
+
+
 Création du Bordereau CREATE_MANIFEST (CreateManifest.java)
 -----------------------------------------------------------
 
