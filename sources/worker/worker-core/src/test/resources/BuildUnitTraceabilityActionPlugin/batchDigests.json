@@ -1,0 +1,52 @@
+{
+  "$results": [
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "4853240f27e356e34b3d2eb12c5c5a1d88dde839982b94f4955e9277de6f80584dd90a63676f2aa9cb734337533d1f19940b7ab98dbc922e56e7202953be536f",
+        "vitam-iaas-app-03.int": "4853240f27e356e34b3d2eb12c5c5a1d88dde839982b94f4955e9277de6f80584dd90a63676f2aa9cb734337533d1f19940b7ab98dbc922e56e7202953be536f"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "89496bd46c8b4823cb936958f8ea9305c012b7189486289be2ef079b88cf12fc215e4d0011502256b02094606d2bce4d8dbaab8d3c9342178c6f0665fc01daaa",
+        "vitam-iaas-app-03.int": "89496bd46c8b4823cb936958f8ea9305c012b7189486289be2ef079b88cf12fc215e4d0011502256b02094606d2bce4d8dbaab8d3c9342178c6f0665fc01daaa"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "6ec9a67b3c3b966653bee887d4bffceb42ba43ed49f11515e429044f5a8874ea2362d6c107bab7b7e3b9de810be0294687a744bbc28a2848ea04b8711f374bf5",
+        "vitam-iaas-app-03.int": "6ec9a67b3c3b966653bee887d4bffceb42ba43ed49f11515e429044f5a8874ea2362d6c107bab7b7e3b9de810be0294687a744bbc28a2848ea04b8711f374bf5"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "d588f6a35cf91476fc12d2c1931c8f20e37d0a9fcb585be180d2f3a92a1b5c781680a94dbeafa65c4b8df4b84b950b3cfe7ec4733c461e38449e7df3abd20ee9",
+        "vitam-iaas-app-03.int": "d588f6a35cf91476fc12d2c1931c8f20e37d0a9fcb585be180d2f3a92a1b5c781680a94dbeafa65c4b8df4b84b950b3cfe7ec4733c461e38449e7df3abd20ee9"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "42177394e91df0b25793fbbc7ddedfe6c61dc98caadb5db606d957bc901da628144cde11a8e278065cd9559a1f1d26508b9f01ba65f94bc8afa329ea5cc9a23e",
+        "vitam-iaas-app-03.int": "42177394e91df0b25793fbbc7ddedfe6c61dc98caadb5db606d957bc901da628144cde11a8e278065cd9559a1f1d26508b9f01ba65f94bc8afa329ea5cc9a23e"
+      }
+    },
+    {
+      "dataCategory": "UNIT",
+      "objectId": "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json",
+      "offerDigests": {
+        "vitam-iaas-app-02.int": "cd89d18e9f088a0286a164450b572511256cb80339863fbb01f26ad0b52fd4e2e0311c8c25870c600ad440156becbfcc06f93dbb57c5aa584c713f178a90fe7f",
+        "vitam-iaas-app-03.int": "cd89d18e9f088a0286a164450b572511256cb80339863fbb01f26ad0b52fd4e2e0311c8c25870c600ad440156becbfcc06f93dbb57c5aa584c713f178a90fe7f"
+      }
+    }
+  ]
+}

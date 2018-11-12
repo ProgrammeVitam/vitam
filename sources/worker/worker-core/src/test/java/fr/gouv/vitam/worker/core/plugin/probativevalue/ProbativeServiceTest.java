@@ -41,8 +41,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.plugin.CreateSecureFileActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildTraceabilityActionPlugin;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,7 +57,6 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProbativeServiceTest {
@@ -258,7 +257,7 @@ public class ProbativeServiceTest {
         JsonNode lfc = getFromFile(getResourceFile("certification/lfcObjectGroup.json"));
         JsonNode lfcWithGoodEvent = getFromFile(getResourceFile("certification/lfcObjectGroup_rightEvents.json"));
 
-        String goodHash = CreateSecureFileActionPlugin
+        String goodHash = BuildTraceabilityActionPlugin
             .generateDigest(lfcWithGoodEvent.get("events"), VitamConfiguration.getDefaultDigestType());
         String hashEventsBeforeDate = probativeService.getHashEventsBeforeDate("2018-07-05T06:15:16.106", lfc);
         assertThat(hashEventsBeforeDate).isEqualTo(goodHash);

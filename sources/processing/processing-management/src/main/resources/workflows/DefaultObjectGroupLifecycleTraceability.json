@@ -8,7 +8,7 @@
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_PREPARE_OG_LFC_TRACEABILITY",
+      "stepName": "STP_OG_LFC_TRACEABILITY",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -21,42 +21,37 @@
             "out": [
               {
                 "name": "lastOperation.file",
-                "uri": "WORKSPACE:Operations/lastOperation.json"
+                "uri": "WORKSPACE:lastOperation.json"
               },
               {
                 "name": "traceabilityInformation.file",
-                "uri": "WORKSPACE:Operations/traceabilityInformation.json"
+                "uri": "WORKSPACE:traceabilityInformation.json"
+              },
+              {
+                "name": "LfcWithMetadata.file",
+                "uri": "WORKSPACE:lfcWithMetadata.jsonl"
               }
             ]
           }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_OG_CREATE_SECURED_FILE",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST_IN_DIRECTORY",
-        "element": "ObjectGroup"
-      },
-      "actions": [
+        },
         {
           "action": {
-            "actionKey": "OG_CREATE_SECURED_FILE",
-            "behavior": "BLOCKING"
+            "actionKey": "BUILD_OG_LFC_TRACEABILITY",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "LfcWithMetadata.file",
+                "uri": "WORKSPACE:lfcWithMetadata.jsonl"
+              }
+            ],
+            "out": [
+              {
+                "name": "traceabilityData.file",
+                "uri": "WORKSPACE:traceabilityData.jsonl"
+              }
+            ]
           }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_OG_TRACEABILITY_FINALIZATION",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "REF"
-      },
-      "actions": [
+        },
         {
           "action": {
             "actionKey": "FINALIZE_OG_LFC_TRACEABILITY",
@@ -64,11 +59,15 @@
             "in": [
               {
                 "name": "lastOperation.file",
-                "uri": "WORKSPACE:Operations/lastOperation.json"
+                "uri": "WORKSPACE:lastOperation.json"
               },
               {
                 "name": "traceabilityInformation.file",
-                "uri": "WORKSPACE:Operations/traceabilityInformation.json"
+                "uri": "WORKSPACE:traceabilityInformation.json"
+              },
+              {
+                "name": "traceabilityData.file",
+                "uri": "WORKSPACE:traceabilityData.jsonl"
               }
             ]
           }

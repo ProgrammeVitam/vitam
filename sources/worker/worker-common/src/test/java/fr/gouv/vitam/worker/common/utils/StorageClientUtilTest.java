@@ -1,109 +1,150 @@
 package fr.gouv.vitam.worker.common.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import org.assertj.core.util.Lists;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class StorageClientUtilTest {
+
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private StorageClient storageClient;
     @Mock private AlertService alertService;
 
-    @Test public void should_get_storage_info() throws Exception {
+    private static final String DIGEST_1 = "digest1";
+    private static final String DIGEST_2 = "digest2";
 
-        String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+    @Test
+    public void given_no_digest_should_throw_exception() {
 
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
 
-        String storageResults =
-            "{\"offer-fs-1.service.consul\":{\"objectName\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq.json\",\"type\":\"unit\",\"digest\":\"38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba\",\"fileSize\":6482,\"fileOwner\":\"Vitam_0\",\"lastAccessDate\":\"2018-08-29T10:23:32.564105Z\",\"lastModifiedDate\":\"2018-08-29T10:23:32.540104Z\"},\"offer-fs-2.service.consul\":{\"objectName\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq.json\",\"type\":\"unit\",\"digest\":\"38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba\",\"fileSize\":6482,\"fileOwner\":\"Vitam_0\",\"lastAccessDate\":\"2018-08-29T10:23:32.568105Z\",\"lastModifiedDate\":\"2018-08-29T10:23:32.556105Z\"}}";
-        JsonNode og = JsonHandler.getFromString(ogText);
-
-
-        when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
-            .thenReturn(JsonHandler.getFromString(storageResults));
-
-
-
-        String id1 = StorageClientUtil
-            .getLFCAndMetadataGlobalHashFromStorage(og, UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq", storageClient,
-                alertService);
-
-        assertThat(id1).isEqualTo(
-            "38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba");
-
+        // When / Then
+        assertThatThrownBy(
+            () -> StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService)
+        ).isInstanceOf(IllegalStateException.class);
     }
 
-    @Test public void should_create_security_alert_when_one_offer_is_altered() throws Exception {
+    @Test
+    public void given_single_digest_should_return_digest() {
 
-        String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", DIGEST_1);
 
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
 
-        String storageResults =
-            "{\"offer-fs-1.service.consul\":{\"objectName\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq.json\",\"type\":\"unit\",\"digest\":\"38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba\",\"fileSize\":6482,\"fileOwner\":\"Vitam_0\",\"lastAccessDate\":\"2018-08-29T10:23:32.564105Z\",\"lastModifiedDate\":\"2018-08-29T10:23:32.540104Z\"},\"offer-fs-2.service.consul\":{\"objectName\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq.json\",\"type\":\"unit\",\"digest\":\"fakedigest\",\"fileSize\":6482,\"fileOwner\":\"Vitam_0\",\"lastAccessDate\":\"2018-08-29T10:23:32.568105Z\",\"lastModifiedDate\":\"2018-08-29T10:23:32.556105Z\"}}";
-        JsonNode og = JsonHandler.getFromString(ogText);
-
-
-        when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
-            .thenReturn(JsonHandler.getFromString(storageResults));
-
-
-
-        String id1 = StorageClientUtil
-            .getLFCAndMetadataGlobalHashFromStorage(og, UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq", storageClient,
-                alertService);
-
-        verify(alertService).createAlert(VitamLogLevel.ERROR,
-            "[UNIT] id [aeaqaaaaaafwtl4tabauualfquql45aaaabq] The digest  'fakedigest' for the offer 'offer-fs-2.service.consul' not equal to the first Offer globalDigest expected (38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba)");
-
-        assertThat(id1).isEqualTo(
-            "0000000000000000000000000000000000000000000000000000000000000000");
-
+        // Then
+        assertThat(digest).isEqualTo(DIGEST_1);
+        verifyNoMoreInteractions(alertService);
     }
 
-    @Test public void should_create_security_alert_when_one_file_in_offer_is_deleted() throws Exception {
+    @Test
+    public void given_multiple_similar_digest_should_return_digest() {
 
-        String ogText =
-            "{\"_id\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq\",\"_mgt\":{},\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"_sedaVersion\":\"2.1\",\"_storage\":{\"_nbc\":2,\"offerIds\":[\"offer-fs-1.service.consul\",\"offer-fs-2.service.consul\"],\"strategyId\":\"default\"},\"_sp\":\"FRAN_NP_009913\",\"_ops\":[\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\"],\"_opi\":\"aeeaaaaaacfwtl4taaxawalfquqis2aaaaaq\",\"_unitType\":\"INGEST\",\"_up\":[],\"_v\":0,\"_tenant\":0}";
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", DIGEST_1);
+        offerDigests.put("offer2", DIGEST_1);
+        offerDigests.put("offer3", DIGEST_1);
 
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
 
-        String storageResults =
-            "{\"offer-fs-1.service.consul\":{\"objectName\":\"aeaqaaaaaafwtl4tabauualfquql45aaaabq.json\",\"type\":\"unit\",\"digest\":\"38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba\",\"fileSize\":6482,\"fileOwner\":\"Vitam_0\",\"lastAccessDate\":\"2018-08-29T10:23:32.564105Z\",\"lastModifiedDate\":\"2018-08-29T10:23:32.540104Z\"}}";
-        JsonNode og = JsonHandler.getFromString(ogText);
+        // Then
+        assertThat(digest).isEqualTo(DIGEST_1);
+        verifyNoMoreInteractions(alertService);
+    }
 
+    @Test
+    public void given_distinct_digests_should_return_digest() {
 
-        when(storageClient.getInformation("default", UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq",
-            Lists.newArrayList("offer-fs-1.service.consul", "offer-fs-2.service.consul"), false))
-            .thenReturn(JsonHandler.getFromString(storageResults));
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", DIGEST_1);
+        offerDigests.put("offer2", DIGEST_2);
+        offerDigests.put("offer3", DIGEST_1);
 
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
 
+        // Then
+        assertThat(digest).isEqualTo(StorageClientUtil.UNKNOWN_HASH);
+        verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verifyNoMoreInteractions(alertService);
+    }
 
-        String id1 = StorageClientUtil
-            .getLFCAndMetadataGlobalHashFromStorage(og, UNIT, "aeaqaaaaaafwtl4tabauualfquql45aaaabq", storageClient,
-                alertService);
+    @Test
+    public void given_null_digests_should_return_digest() {
 
-        verify(alertService).createAlert(VitamLogLevel.ERROR,
-            "[UNIT] id [aeaqaaaaaafwtl4tabauualfquql45aaaabq] The digest  '38794aad825f81e0cff401c1a7e0622da0a3fa802b6fd0bd762d65f410b4b733a1a58376247c7c9d3448dbd1503841958d31887c81bbf9b7436d7fafc98276ba' for the offer 'offer-fs-2.service.consul' is not present ");
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", null);
 
-        assertThat(id1).isEqualTo(
-            "0000000000000000000000000000000000000000000000000000000000000000");
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
 
+        // Then
+        assertThat(digest).isEqualTo(StorageClientUtil.UNKNOWN_HASH);
+        verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verifyNoMoreInteractions(alertService);
+    }
+
+    @Test
+    public void given_null_and_non_null_digests_should_return_digest() {
+
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", null);
+        offerDigests.put("offer2", DIGEST_1);
+
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
+
+        // Then
+        assertThat(digest).isEqualTo(StorageClientUtil.UNKNOWN_HASH);
+        verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verifyNoMoreInteractions(alertService);
+    }
+
+    @Test
+    public void given_null_and_distinct_digests_should_return_digest() {
+
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put("offer1", null);
+        offerDigests.put("offer2", DIGEST_1);
+        offerDigests.put("offer3", DIGEST_2);
+
+        // When
+        String digest =
+            StorageClientUtil.aggregateOfferDigests(offerDigests, DataCategory.UNIT, "objectId", alertService);
+
+        // Then
+        assertThat(digest).isEqualTo(StorageClientUtil.UNKNOWN_HASH);
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verifyNoMoreInteractions(alertService);
     }
 }

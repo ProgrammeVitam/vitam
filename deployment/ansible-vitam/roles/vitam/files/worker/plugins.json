@@ -63,14 +63,6 @@
     "className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
     "propertiesFile": "audit_existence_object_plugin.properties"
   },
-  "OG_CREATE_SECURED_FILE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.CreateObjectSecureFileActionPlugin",
-    "propertiesFile": "create_object_secure_file_plugin.properties"
-  },
-  "UNITS_CREATE_SECURED_FILE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.CreateUnitSecureFileActionPlugin",
-    "propertiesFile": "create_unit_secure_file_plugin.properties"
-  },
   "CREATE_MANIFEST": {
     "className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",
     "propertiesFile": "create_unit_secure_file_plugin.properties"
@@ -211,5 +203,29 @@
   },
   "PROBATIVE_VALUE_REPORTS": {
     "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueReport"
+  },
+  "PREPARE_UNIT_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.PrepareUnitLfcTraceabilityActionPlugin",
+    "propertiesFile": "unit_lfc_traceability_preparation_plugin.properties"
+  },
+  "BUILD_UNIT_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildUnitTraceabilityActionPlugin",
+    "propertiesFile": "unit_lfc_traceability_build_plugin.properties"
+  },
+  "FINALIZE_UNIT_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeUnitLifecycleTraceabilityActionPlugin",
+    "propertiesFile": "unit_lfc_traceability_finalization_plugin.properties"
+  },
+  "PREPARE_OG_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.PrepareObjectGroupLfcTraceabilityActionPlugin",
+    "propertiesFile": "object_group_lfc_traceability_preparation_plugin.properties"
+  },
+  "BUILD_OG_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildObjectGroupTraceabilityActionPlugin",
+    "propertiesFile": "object_group_lfc_traceability_build_plugin.properties"
+  },
+  "FINALIZE_OG_LFC_TRACEABILITY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",
+    "propertiesFile": "object_group_lfc_traceability_finalization_plugin.properties"
   }
 }

@@ -60,13 +60,9 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
-import fr.gouv.vitam.worker.core.handler.FinalizeObjectGroupLifecycleTraceabilityActionHandler;
-import fr.gouv.vitam.worker.core.handler.FinalizeUnitLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
-import fr.gouv.vitam.worker.core.handler.ListObjectGroupLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
-import fr.gouv.vitam.worker.core.handler.ListUnitLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
@@ -194,15 +190,6 @@ public class WorkerImpl implements Worker {
             new ListArchiveUnitsActionHandler());
         actions.put(PrepareAuditActionHandler.getId(),
             new PrepareAuditActionHandler());
-
-        actions.put(ListUnitLifecycleTraceabilityActionHandler.getId(),
-            new ListUnitLifecycleTraceabilityActionHandler());
-        actions.put(ListObjectGroupLifecycleTraceabilityActionHandler.getId(),
-            new ListObjectGroupLifecycleTraceabilityActionHandler());
-        actions.put(FinalizeUnitLifecycleTraceabilityActionHandler.getId(),
-            new FinalizeUnitLifecycleTraceabilityActionHandler());
-        actions.put(FinalizeObjectGroupLifecycleTraceabilityActionHandler.getId(),
-            new FinalizeObjectGroupLifecycleTraceabilityActionHandler());
 
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());
