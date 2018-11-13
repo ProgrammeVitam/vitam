@@ -41,7 +41,7 @@ Les commandes sont à lancer depuis le répertoire ``deployment`` sur les diffé
 Reprise des données de certificats
 ----------------------------------
 
-La version 1.10.0 (« R8 ») apporte une nouvelle fnctionnalité permettant la révocation des certificats SIA et Personae afin d'empecher des accès non autorisés aux API Vitam (vérification dans la couche https des CRL). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections Certificate et PersonalCertificate). 
+La version 1.10.0 (« R8 ») apporte une nouvelle fonctionnalité permettant la révocation des certificats SIA et Personae afin d'empecher des accès non autorisés aux API Vitam (vérification dans la couche https des CRL). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections Certificate et PersonalCertificate). 
 
 Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
