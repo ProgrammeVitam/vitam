@@ -10,6 +10,9 @@ La montée de version 1.4.5 (« R7.5 ») vers 1.10.0 (« R8 ») est réalisée p
 Prérequis à l'installation
 ==========================
 
+Arrêt des timers systemd
+------------------------
+
 Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
@@ -21,28 +24,35 @@ ou, si vault_pass.txt n'a pas été renseigné :
 A l'issue de ce `playbook`, les `timers` systemD ont été arrêtés, afin de ne pas perturber la migration.
 
 Il est également recommandé de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement.
+
+Upgrade Mongodb 3.4 vers 4.0
+----------------------------
+
+La montée de version 1.4.5 (« R7.5 ») vers 1.10.0 (« R8 ») comprend une montée de version de MongoDB de la version 3.4 à la version 4.0. 
+
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+* Stopper Vitam (playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+* Démarrer les différents cluster mongodb (playbook ``ansible-vitam-exploitation/start_mongodb.yml``)
+* Upgrader mongodb en 3.6 (playbook ``ansible-vitam-exploitation/migration_mongodb_36.yml``)
+* Upgrader mongodb en 4.0 (playbook ``ansible-vitam-exploitation/migration_mongodb_40.yml``)
+* Démarrer Vitam (playbook ``ansible-vitam-exploitation/start_vitam.yml``)
+
+Reprise des données de certificats
+----------------------------------
+
+La version 1.10.0 (« R8 ») apporte une nouvelle fnctionnalité permettant la révocation des certificats SIA et Personae afin d'empecher des accès non autorisés aux API Vitam (vérification dans la couche https des CRL). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections Certificate et PersonalCertificate). 
+
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook ansible-vitam-exploitation/migration_r7_certificates.yml --ask-vault-pass``
 
 Etapes post-installation 
 ========================
 
 Dans le cadre d'une montée de version 1.4.5 (« R7.5 ») vers 1.10.0 (« R8 »), il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`. 
 
-.. caution:: Dans le cadre d'une installation multi-sites, il faut d'abord lancer la migration sur le site secondaire afin de purger les registres des fonds, ensuite lancer la migration sur le site primaire puis enfin lancer la reconstruction des registres des fonds sur le site secondaire.
-
-Avant de procéder à la migration
---------------------------------
-
-Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
-
-ou, si vault_pass.txt n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
-
-A l'issue de ce `playbook`, les `timers` systemD ont été arrêtés, afin de ne pas perturber la migration.
-
-Il est également recommandé de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement.
+.. caution:: Dans le cadre d'une installation multi-sites, il faut d'abord lancer la migration des données sur le site secondaire afin de purger les registres des fonds, ensuite lancer la migration sur le site primaire puis enfin lancer la reconstruction des registres des fonds sur le site secondaire.
 
 Procédure de migration des données
 ----------------------------------
@@ -83,8 +93,8 @@ Les changements apportés par la migration R7 vers R8 sont :
 
 .. warning:: En cas de souci, contacter l'équipe support.
 
-Après la migration
-------------------
+Après la migration des données
+------------------------------
 
 A l'issue de la bonne exécution du `playbook`, il faut lancer la commande suivante pour réactiver les `timers` systemD sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
@@ -102,7 +112,6 @@ Sur le site secondaire, vérifier que le processus de reconstruction des registr
 La commande à passer en tant que root est la suivante :
 
 ``systemctl status vitam-functional-administration-accession-register-reconstruction.service``
-
 
 Vérification de la bonne migration des données
 ----------------------------------------------
