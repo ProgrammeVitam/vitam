@@ -31,7 +31,16 @@ vitam_offers:
     swiftProjectName: monTenant
     # swiftUrl: optional variable to force the swift URL
     # swiftUrl: https://swift-hostname:port/swift/v1
-
+    #SSL TrustStore
+    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+    #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (by default 2 for Apache HttpClient)
+    swiftMaxConnectionsPerRoute: 200
+    #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (by default 20 for Apache HttpClient)
+    swiftMaxConnections: 1000
+    #Max time (in milliseconds) for waiting to establish connection
+    swiftConnectionTimeout: 200000
+    #Max time (in milliseconds) waiting for a data from the server (socket)
+    swiftReadTimeout: 2000
   # example_swift_v1:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
@@ -46,3 +55,8 @@ vitam_offers:
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftProjectName: monTenant
   #    projectName: monTenant
+  # swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+  # swiftMaxConnectionsPerRoute: 200
+  # swiftMaxConnections: 1000
+  # swiftConnectionTimeout: 200000
+  # swiftReadTimeout: 2000

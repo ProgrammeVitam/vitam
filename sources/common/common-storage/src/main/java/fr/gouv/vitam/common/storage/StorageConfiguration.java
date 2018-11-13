@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String provider;
+    private boolean recomputeDigest = false;
     private String swiftKeystoneAuthUrl;
     private String swiftDomain;
     private String swiftUser;
@@ -43,8 +44,12 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private boolean authentication;
     private String swiftProjectName;
     private String swiftUrl;
-    private String swiftTrustTore;
-    private String swiftTrustTorePassword;
+    private String swiftTrustStore;
+    private String swiftTrustStorePassword;
+    private int swiftMaxConnectionsPerRoute;
+    private int swiftMaxConnections;
+    private int swiftConnectionTimeout;
+    private int swiftReadTimeout;
 
     /**
      * @return the swiftUrl
@@ -213,20 +218,59 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
-    public String getSwiftTrustTore() {
-        return swiftTrustTore;
+    public String getSwiftTrustStore() {
+        return swiftTrustStore;
     }
 
-    public void setSwiftTrustTore(String swiftTrustTore) {
-        this.swiftTrustTore = swiftTrustTore;
+    public void setSwiftTrustStore(String swiftTrustStore) {
+        this.swiftTrustStore = swiftTrustStore;
     }
 
-    public String getSwiftTrustTorePassword() {
-        return swiftTrustTorePassword;
+    public String getSwiftTrustStorePassword() {
+        return swiftTrustStorePassword;
     }
 
-    public void setSwiftTrustTorePassword(String swiftTrustTorePassword) {
-        this.swiftTrustTorePassword = swiftTrustTorePassword;
+    public void setSwiftTrustStorePassword(String swiftTrustStorePassword) {
+        this.swiftTrustStorePassword = swiftTrustStorePassword;
     }
 
+    public boolean isRecomputeDigest() {
+        return recomputeDigest;
+    }
+
+    public void setRecomputeDigest(boolean recomputeDigest) {
+        this.recomputeDigest = recomputeDigest;
+    }
+
+    public int getSwiftMaxConnectionsPerRoute() {
+        return swiftMaxConnectionsPerRoute;
+    }
+
+    public void setSwiftMaxConnectionsPerRoute(int swiftMaxConnectionsPerRoute) {
+        this.swiftMaxConnectionsPerRoute = swiftMaxConnectionsPerRoute;
+    }
+
+    public int getSwiftMaxConnections() {
+        return swiftMaxConnections;
+    }
+
+    public void setSwiftMaxConnections(int swiftMaxConnections) {
+        this.swiftMaxConnections = swiftMaxConnections;
+    }
+
+    public int getSwiftConnectionTimeout() {
+        return swiftConnectionTimeout;
+    }
+
+    public void setSwiftConnectionTimeout(int swiftConnectionTimeout) {
+        this.swiftConnectionTimeout = swiftConnectionTimeout;
+    }
+
+    public int getSwiftReadTimeout() {
+        return swiftReadTimeout;
+    }
+
+    public void setSwiftReadTimeout(int swiftReadTimeout) {
+        this.swiftReadTimeout = swiftReadTimeout;
+    }
 }
