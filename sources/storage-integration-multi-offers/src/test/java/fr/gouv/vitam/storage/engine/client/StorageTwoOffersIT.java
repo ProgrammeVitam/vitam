@@ -128,7 +128,6 @@ public class StorageTwoOffersIT {
         workspaceClient.putObject(id, id, inputStream);
         StreamUtils.closeSilently(inputStream);
         storageClient.storeFileFromWorkspace(STRATEGY_ID, category, id, description);
-
     }
 
     @Test
@@ -143,7 +142,7 @@ public class StorageTwoOffersIT {
         //When
         JsonNode information =
             storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID,
-                SECOND_OFFER_ID));
+                SECOND_OFFER_ID), true);
         //Then
         assertThat(information.get(OFFER_ID).get(DIGEST)).isNotNull();
         assertThat(information.get(SECOND_OFFER_ID).get(DIGEST)).isNotNull();
@@ -163,19 +162,19 @@ public class StorageTwoOffersIT {
         storeObjectInAllOffers(id2, OBJECT, new ByteArrayInputStream(id2.getBytes()));
 
         JsonNode information;
-        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID), true);
         assertThat(information.get(OFFER_ID).get(DIGEST)).isEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
         alterFileInSecondOffer(id);
         //verify that offer2 is modified
-        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID), true);
         assertThat(information.get(OFFER_ID).get(DIGEST)).isNotEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
         // correct the offer 2
         storageClient.copyObjectToOneOfferAnother(id, DataCategory.OBJECT, OFFER_ID, SECOND_OFFER_ID);
 
         // verify That the copy has been correctly done
-        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+        information = storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID, SECOND_OFFER_ID), true);
         assertThat(information.get(OFFER_ID).get(DIGEST)).isEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
     }
@@ -200,10 +199,10 @@ public class StorageTwoOffersIT {
 
         JsonNode informationObject1 =
             storageClient.getInformation(STRATEGY_ID, OBJECT, object, newArrayList(OFFER_ID,
-                SECOND_OFFER_ID));
+                SECOND_OFFER_ID), true);
         JsonNode informationObject2 =
             storageClient.getInformation(STRATEGY_ID, OBJECT, object2, newArrayList(OFFER_ID,
-                SECOND_OFFER_ID));
+                SECOND_OFFER_ID), true);
 
         //just verify the  object  stored and equal
         assertThat(informationObject1.get(OFFER_ID).get(DIGEST))
@@ -216,20 +215,20 @@ public class StorageTwoOffersIT {
         //WHEN
         //delete object1 in second offer
         storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object, digestObject1SecondOffer, singletonList(SECOND_OFFER_ID));
+            .delete(STRATEGY_ID, DataCategory.OBJECT, object, singletonList(SECOND_OFFER_ID));
 
         storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object2, digestObject2SecondOffer, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+            .delete(STRATEGY_ID, DataCategory.OBJECT, object2, newArrayList(OFFER_ID, SECOND_OFFER_ID));
 
 
         //THEN
         //delete object2 in the two offers
         informationObject2 =
-            storageClient.getInformation(STRATEGY_ID, OBJECT, object2, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+            storageClient.getInformation(STRATEGY_ID, OBJECT, object2, newArrayList(OFFER_ID, SECOND_OFFER_ID), true);
 
         informationObject1 =
             storageClient.getInformation(STRATEGY_ID, OBJECT, object, newArrayList(OFFER_ID,
-                SECOND_OFFER_ID));
+                SECOND_OFFER_ID), true);
         //verify Object2 is  deleted in the two offers
         assertThat(informationObject2.get(SECOND_OFFER_ID)).isNull();
         assertThat(informationObject2.get(OFFER_ID)).isNull();
