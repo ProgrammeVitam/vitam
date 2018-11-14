@@ -60,8 +60,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     // that's fine.
     protected final BlobStoreContext context;
 
-    private StorageConfiguration configuration;
-
     /**
      * creates a new ContentAddressableStorageImpl with a storage configuration
      * param
@@ -69,7 +67,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
      * @param configuration {@link StorageConfiguration}
      */
     public ContentAddressableStorageJcloudsAbstract(StorageConfiguration configuration) {
-        this.setConfiguration(configuration);
+        super(configuration);
         context = getContext(configuration);
     }
 
@@ -234,23 +232,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     @Override
     public abstract ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException;
-
-    /**
-     * @return the configuration
-     */
-    public StorageConfiguration getConfiguration() {
-        return configuration;
-    }
-
-    /**
-     * @param configuration the configuration to set
-     * @return this
-     */
-    public ContentAddressableStorageJcloudsAbstract setConfiguration(StorageConfiguration configuration) {
-        this.configuration = configuration;
-        return this;
-    }
-
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)

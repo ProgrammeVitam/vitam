@@ -70,6 +70,7 @@ public class PrepareUnitLfcTraceabilityActionPlugin extends PrepareLfcTraceabili
         VitamLoggerFactory.getInstance(PrepareUnitLfcTraceabilityActionPlugin.class);
 
     private static final String ACTION_HANDLER_ID = "PREPARE_UNIT_LFC_TRACEABILITY";
+    private static final String STP_UNIT_LFC_TRACEABILITY = "STP_UNIT_LFC_TRACEABILITY";
 
     public PrepareUnitLfcTraceabilityActionPlugin() {
         super();
@@ -98,8 +99,9 @@ public class PrepareUnitLfcTraceabilityActionPlugin extends PrepareLfcTraceabili
 
         final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
         try {
-            StatusCode statusCode = selectAndExportLifecyclesWithMetadata(temporizationDelayInSeconds, lifecycleTraceabilityMaxEntries,
-                Contexts.UNIT_LFC_TRACEABILITY.getEventType(), handler);
+            StatusCode statusCode =
+                selectAndExportLifecyclesWithMetadata(temporizationDelayInSeconds, lifecycleTraceabilityMaxEntries,
+                    Contexts.UNIT_LFC_TRACEABILITY.getEventType(), handler);
             itemStatus.increment(statusCode);
 
         } catch (ProcessingException | LogbookClientException | VitamFatalRuntimeException e) {
@@ -146,6 +148,16 @@ public class PrepareUnitLfcTraceabilityActionPlugin extends PrepareLfcTraceabili
         } catch (VitamClientException e) {
             throw new ProcessingException("Could not retrieve raw metadata", e);
         }
+    }
+
+    @Override
+    protected String stepName() {
+        return STP_UNIT_LFC_TRACEABILITY;
+    }
+
+    @Override
+    protected String actionName() {
+        return ACTION_HANDLER_ID;
     }
 
     public static String getId() {

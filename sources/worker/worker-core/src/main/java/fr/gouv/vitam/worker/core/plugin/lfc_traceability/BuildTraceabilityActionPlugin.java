@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -54,6 +55,7 @@ import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -85,6 +87,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
@@ -179,6 +182,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
             DataCategory dataCategory = lifecycleType.equals(LogbookLifeCycleUnit.class.getName()) ?
                 DataCategory.UNIT : DataCategory.OBJECTGROUP;
+
             Map<String, Map<String, String>> offerDigestsByMetadataId =
                 getOfferDigests(storageClient, dataCategory, offerIds, metadataFileNames);
 
@@ -229,8 +233,12 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         List<String> offerIds,
         Collection<String> objectNames)
         throws StorageServerClientException, ProcessingException {
+
+        Stopwatch bulkObjectInformationSW = Stopwatch.createStarted();
         RequestResponse<BatchObjectInformationResponse> requestResponse =
             storageClient.getBatchObjectInformation(DEFAULT_STRATEGY, dataCategory, offerIds, objectNames);
+        PerformanceLogger.getInstance().log(stepName(), actionName(),
+            "BULK_DIGEST_" + dataCategory.getCollectionName().toUpperCase(), bulkObjectInformationSW.elapsed(TimeUnit.MILLISECONDS));
 
         if (!requestResponse.isOk()) {
             throw new ProcessingException(
@@ -450,4 +458,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
     }
+
+    protected abstract String stepName();
+    protected abstract String actionName();
 }

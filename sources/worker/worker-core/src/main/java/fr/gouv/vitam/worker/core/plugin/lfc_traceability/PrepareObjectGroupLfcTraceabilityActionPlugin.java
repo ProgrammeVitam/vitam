@@ -70,6 +70,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
         VitamLoggerFactory.getInstance(PrepareObjectGroupLfcTraceabilityActionPlugin.class);
 
     private static final String ACTION_HANDLER_ID = "PREPARE_OG_LFC_TRACEABILITY";
+    private static final String STP_OG_LFC_TRACEABILITY = "STP_OG_LFC_TRACEABILITY";
 
     public PrepareObjectGroupLfcTraceabilityActionPlugin() {
         super();
@@ -146,6 +147,16 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
         } catch (VitamClientException e) {
             throw new ProcessingException("Could not retrieve raw metadata", e);
         }
+    }
+
+    @Override
+    protected String stepName() {
+        return STP_OG_LFC_TRACEABILITY;
+    }
+
+    @Override
+    protected String actionName() {
+        return ACTION_HANDLER_ID;
     }
 
     public static String getId() {

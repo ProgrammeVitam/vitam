@@ -26,16 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract class of CAS that contains common methos
@@ -44,10 +48,20 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
+    private final StorageConfiguration configuration;
+
     /**
      * Max result for listing option TODO: have to be configurable ?
      */
     public static final int LISTING_MAX_RESULTS = 100;
+
+    protected ContentAddressableStorageAbstract(StorageConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    public StorageConfiguration getConfiguration() {
+        return configuration;
+    }
 
     protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
@@ -55,12 +69,16 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
 
+        Stopwatch sw = Stopwatch.createStarted();
         try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
         } catch (final IOException e) {
             throw new ContentAddressableStorageException(e);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
+                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 }

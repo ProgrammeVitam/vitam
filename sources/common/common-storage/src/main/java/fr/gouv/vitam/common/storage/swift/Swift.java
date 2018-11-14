@@ -26,14 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -67,6 +59,14 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 /**
  * Swift abstract implementation
  * Manage with all common swift methods
@@ -79,8 +79,6 @@ public class Swift extends ContentAddressableStorageAbstract {
     private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
 
     private final Supplier<OSClient> osClient;
-
-    protected StorageConfiguration configuration;
 
     private Long swiftLimit;
 
@@ -96,8 +94,8 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @VisibleForTesting
     Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
+        super(configuration);
         this.osClient = osClient;
-        this.configuration = configuration;
         this.swiftLimit = swiftLimit;
     }
 
@@ -187,8 +185,8 @@ public class Swift extends ContentAddressableStorageAbstract {
                 segmentTime.start();
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
-                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE",
-                    "REAL_SWIFT_PUT_OBJECT[SEGMENT-" + i + "]", times.elapsed(
+                PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+                    "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
                         TimeUnit.MILLISECONDS));
                 segmentTime.stop();
                 i++;
@@ -205,7 +203,8 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+                "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
@@ -215,13 +214,15 @@ public class Swift extends ContentAddressableStorageAbstract {
         try {
             osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "SMALL_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
+                containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
     private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
         throws ContentAddressableStorageException {
 
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Map<String, String> metadataToUpdate = new HashMap<>();
         // Not necessary to put the "X-Object-Meta-"
         metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
@@ -233,6 +234,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
+        PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
+            containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override
@@ -240,8 +243,12 @@ public class Swift extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageException {
 
         if (!noCache) {
+
+            Stopwatch stopwatch = Stopwatch.createStarted();
             Map<String, String> metadata = osClient.get().objectStorage().objects()
                 .getMetadata(ObjectLocation.create(containerName, objectName));
+            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
+                containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
             if (metadata != null
                 && metadata.containsKey(X_OBJECT_META_DIGEST)

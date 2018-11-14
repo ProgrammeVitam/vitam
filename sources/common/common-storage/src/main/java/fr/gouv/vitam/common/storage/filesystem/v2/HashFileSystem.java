@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
@@ -34,6 +35,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -66,6 +68,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.concurrent.TimeUnit;
 
 /**
  * FileSystem implements a Content Addressable Storage that stores objects on the file system with a hierarchical vision
@@ -80,6 +83,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
      * @param configuration
      */
     public HashFileSystem(StorageConfiguration configuration) {
+        super(configuration);
         ParametersChecker.checkParameter("Storage configuration can't be null", configuration);
         ParametersChecker.checkParameter("StoragePath can't be null", configuration.getStoragePath());
         storagePath = configuration.getStoragePath();
@@ -137,7 +141,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
             String streamDigest = digest.digestHex();
 
-            if(recomputeDigest) {
+            if (recomputeDigest) {
                 String computedDigest = computeObjectDigest(containerName, objectName, digestType);
                 if(!streamDigest.equals(computedDigest)) {
                     throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
@@ -229,7 +233,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
         if (!noCache) {
 
-            if(digestFromMD != null) {
+            if (digestFromMD != null) {
                 return digestFromMD;
             }
 
@@ -240,7 +244,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
         String digest = computeObjectDigest(containerName, objectName, algo);
 
-        if(digestFromMD == null || !digestFromMD.equals(digest)) {
+        if (digestFromMD == null || !digestFromMD.equals(digest)) {
             storeDigest(containerName, objectName, algo, digest);
         }
 
@@ -256,6 +260,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
      */
     String getObjectDigestFromMD(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Path filePath = fsHelper.getPathObject(containerName, objectName);
 
         // Retrieve Digest XATTR attribute
@@ -281,6 +287,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             }
         }
 
+        PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+            "READ_DIGEST_FROM_XATTR", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         return digestFromMD;
     }
 
@@ -288,8 +296,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         StringBuilder sb = new StringBuilder(algo.getName()).append(":").append(digest);
         try {
+            Stopwatch stopwatch = Stopwatch.createStarted();
             writeExtendedMetadata(fsHelper.getPathObject(containerName, objectName),
                 ExtendedAttributes.DIGEST.getKey(), sb.toString());
+            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+                "STORE_DIGEST_TO_XATTR", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         } catch (IOException e) {
             LOGGER.warn("Unable to write DIGEST extended attribute for the object " + objectName +
                 " in the container " + containerName, e);

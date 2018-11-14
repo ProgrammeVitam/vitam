@@ -45,6 +45,7 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(PrepareUnitLfcTraceabilityActionPlugin.class);
 
+    private static final String STP_UNIT_LFC_TRACEABILITY = "STP_UNIT_LFC_TRACEABILITY";
     private static final String ACTION_HANDLER_ID = "BUILD_UNIT_LFC_TRACEABILITY";
 
     public BuildUnitTraceabilityActionPlugin() {
@@ -69,6 +70,16 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
         final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
+    }
+
+    @Override
+    protected String stepName() {
+        return STP_UNIT_LFC_TRACEABILITY;
+    }
+
+    @Override
+    protected String actionName() {
+        return ACTION_HANDLER_ID;
     }
 
     public static String getId() {
