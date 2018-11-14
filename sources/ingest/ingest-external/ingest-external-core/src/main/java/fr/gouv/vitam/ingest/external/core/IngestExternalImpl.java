@@ -26,29 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
-import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getOutcomeDetail;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.VitamConstants;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -68,16 +46,21 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.external.common.util.ExecutionOutput;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -96,6 +79,22 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getOutcomeDetail;
 
 /**
  * Implementation of IngestExtern
@@ -129,7 +128,7 @@ public class IngestExternalImpl implements IngestExternal {
 
     private static final String CAN_NOT_READ_FILE = "Can not read file";
     private static final int STATUS_ANTIVIRUS_NOT_PERFORMED = 3;
-    private static final int STATUS_ANTIVIRUS_NOT_PERFORMED_2 = -1;
+    private static final int STATUS_ANTIVIRUS_EXCEPTION_OCCURRED = -1;
     private static final int STATUS_ANTIVIRUS_KO = 2;
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
@@ -268,7 +267,7 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.error(CAN_NOT_READ_FILE);
                 throw new IngestExternalException(CAN_NOT_READ_FILE);
             }
-            int antiVirusResult;
+            ExecutionOutput executionOutput;
             final LogbookOperationParameters antivirusParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDFactory.newEventGUID(operationId),
@@ -285,7 +284,7 @@ public class IngestExternalImpl implements IngestExternal {
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
                  * virus found but not corrected 3: Fatal scan not performed
                  */
-                antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
+                executionOutput = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
             } catch (final Exception e) {
                 LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
@@ -297,7 +296,7 @@ public class IngestExternalImpl implements IngestExternal {
             ManifestFileName manifestFileName = null;
 
             // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
-            switch (antiVirusResult) {
+            switch (executionOutput.getExitCode()) {
                 case STATUS_ANTIVIRUS_OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
                     // nothing to do, default already set to ok
@@ -313,8 +312,8 @@ public class IngestExternalImpl implements IngestExternal {
                     isFileInfected = true;
                     break;
                 case STATUS_ANTIVIRUS_NOT_PERFORMED:
-                case STATUS_ANTIVIRUS_NOT_PERFORMED_2:
-                    LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
+                case STATUS_ANTIVIRUS_EXCEPTION_OCCURRED:
+                    LOGGER.error("{},{},{}", IngestExternalOutcomeMessage.FATAL_VIRUS.toString(), executionOutput.getStdout(), executionOutput.getStderr());
                     antivirusParameters.setStatus(StatusCode.FATAL);
                     antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                         messageLogbookEngineHelper.getOutcomeDetail(SANITY_CHECK_SIP, StatusCode.FATAL));
