@@ -26,14 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
@@ -41,6 +35,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
@@ -63,6 +58,14 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Swift abstract implementation
@@ -91,8 +94,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         this(osClient, configuration, VitamConfiguration.getSwiftFileLimit());
     }
 
-    @VisibleForTesting
-    Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
+    @VisibleForTesting Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
         this.osClient = osClient;
         this.configuration = configuration;
         this.swiftLimit = swiftLimit;
@@ -152,10 +154,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String streamDigest = digest.digestHex();
 
-        if(recomputeDigest) {
+        if (recomputeDigest) {
             String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if(!streamDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
+            if (!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException(
+                    "Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " +
+                        computedDigest);
             }
         }
 
@@ -164,10 +168,12 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
+        Stopwatch times = Stopwatch.createStarted();
         try {
             CountingInputStream segmentInputStream;
             int i = 1;
             long fileSizeRead = 0;
+            Stopwatch segmentTime = Stopwatch.createUnstarted();
             do {
                 final String objectNameToPut = objectName + "/" + i;
                 BoundedInputStream boundedInputStream =
@@ -177,8 +183,13 @@ public class Swift extends ContentAddressableStorageAbstract {
                 LOGGER.info("number of segment: " + objectNameToPut);
                 // for get the number of byte read to the stream
                 segmentInputStream = new CountingInputStream(boundedInputStream);
+                segmentTime.start();
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
+                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE",
+                    "REAL_SWIFT_PUT_OBJECT[SEGMENT-" + i + "]", segmentTime.elapsed(
+                        TimeUnit.MILLISECONDS));
+                segmentTime.stop();
                 i++;
                 fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
             } while (fileSizeRead != size);
@@ -193,12 +204,19 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
+            PerformanceLogger.getInstance()
+                .log("STP_Offer_" + configuration.getProvider(), "BIG_FILE[total]", "REAL_SWIFT_PUT_OBJECT",
+                    times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
 
     private void smallFile(String containerName, String objectName, InputStream stream) {
+        Stopwatch times = Stopwatch.createStarted();
         osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+        PerformanceLogger.getInstance()
+            .log("STP_Offer_" + configuration.getProvider(), "SMALL_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(
+                TimeUnit.MILLISECONDS));
     }
 
     private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
@@ -241,7 +259,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-        public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);

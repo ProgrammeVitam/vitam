@@ -46,6 +46,10 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private String swiftUrl;
     private String swiftTrustTore;
     private String swiftTrustTorePassword;
+    private int swiftMaxConnectionsPerRoute;
+    private int swiftMaxConnections;
+    private int swiftConnectionTimeout;
+    private int swiftReadTimeout;
 
     /**
      * @return the swiftUrl
@@ -236,5 +240,37 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public void setRecomputeDigest(boolean recomputeDigest) {
         this.recomputeDigest = recomputeDigest;
+    }
+
+    public int getSwiftMaxConnectionsPerRoute() {
+        return swiftMaxConnectionsPerRoute;
+    }
+
+    public void setSwiftMaxConnectionsPerRoute(int swiftMaxConnectionsPerRoute) {
+        this.swiftMaxConnectionsPerRoute = swiftMaxConnectionsPerRoute;
+    }
+
+    public int getSwiftMaxConnections() {
+        return swiftMaxConnections;
+    }
+
+    public void setSwiftMaxConnections(int swiftMaxConnections) {
+        this.swiftMaxConnections = swiftMaxConnections;
+    }
+
+    public int getSwiftConnectionTimeout() {
+        return swiftConnectionTimeout;
+    }
+
+    public void setSwiftConnectionTimeout(int swiftConnectionTimeout) {
+        this.swiftConnectionTimeout = swiftConnectionTimeout;
+    }
+
+    public int getSwiftReadTimeout() {
+        return swiftReadTimeout;
+    }
+
+    public void setSwiftReadTimeout(int swiftReadTimeout) {
+        this.swiftReadTimeout = swiftReadTimeout;
     }
 }
