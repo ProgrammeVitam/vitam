@@ -36,7 +36,7 @@ vitam_offers:
     # swiftUrl: optional variable to force the swift URL
     # swiftUrl: https://swift-hostname:port/swift/v1
     #SSL TrustStore
-    swiftTrustTore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
     #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (by default 2 for Apache HttpClient)
     swiftMaxConnectionsPerRoute: 200
     #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (by default 20 for Apache HttpClient)
@@ -59,7 +59,7 @@ vitam_offers:
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftProjectName: monTenant
   #    projectName: monTenant
-  # swiftTrustTore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+  # swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
   # swiftMaxConnectionsPerRoute: 200
   # swiftMaxConnections: 1000
   # swiftConnectionTimeout: 200000
