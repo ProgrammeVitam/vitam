@@ -238,7 +238,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         RequestResponse<BatchObjectInformationResponse> requestResponse =
             storageClient.getBatchObjectInformation(DEFAULT_STRATEGY, dataCategory, offerIds, objectNames);
         PerformanceLogger.getInstance().log(stepName(), actionName(),
-            "BulkDigest-" + dataCategory.getCollectionName(), bulkObjectInformationSW.elapsed(TimeUnit.MILLISECONDS));
+            "BULK_DIGEST_" + dataCategory.getCollectionName().toUpperCase(), bulkObjectInformationSW.elapsed(TimeUnit.MILLISECONDS));
 
         if (!requestResponse.isOk()) {
             throw new ProcessingException(

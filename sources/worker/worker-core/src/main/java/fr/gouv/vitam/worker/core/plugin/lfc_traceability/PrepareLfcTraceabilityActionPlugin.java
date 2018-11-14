@@ -154,7 +154,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                     getRawLifecyclesByLastPersistedDate(selectionStartDate, selectionEndDate, batchSize,
                         logbookLifeCyclesClientFactory);
                 PerformanceLogger.getInstance().log(stepName(), actionName(),
-                    "loadTraceabilityLfc", loadTraceabilityLfc.elapsed(TimeUnit.MILLISECONDS));
+                    "LOAD_TRACEABILITY_LFC", loadTraceabilityLfc.elapsed(TimeUnit.MILLISECONDS));
 
                 List<JsonNode> rawLifecycleToProceed = new ArrayList<>();
                 Set<String> currentBatchIds = new HashSet<>();
@@ -188,7 +188,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                 Stopwatch loadTraceabilityMetadata = Stopwatch.createStarted();
                 Map<String, JsonNode> rawMetadataByIds = getRawMetadata(currentBatchIds, metaDataClientFactory);
                 PerformanceLogger.getInstance().log(stepName(), actionName(),
-                    "loadTraceabilityMetadata", loadTraceabilityMetadata.elapsed(TimeUnit.MILLISECONDS));
+                    "LOAD_TRACEABILITY_METADATA", loadTraceabilityMetadata.elapsed(TimeUnit.MILLISECONDS));
 
                 for (JsonNode rawLfc : rawLifecycleToProceed) {
 
