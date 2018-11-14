@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
@@ -68,6 +70,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
@@ -145,9 +148,13 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
 
                 // FIXME : Use streaming jsonl response
                 int limit = Math.min(batchSize, remaining);
+
+                Stopwatch loadTraceabilityLfc = Stopwatch.createStarted();
                 List<JsonNode> rawLifecycles =
                     getRawLifecyclesByLastPersistedDate(selectionStartDate, selectionEndDate, batchSize,
                         logbookLifeCyclesClientFactory);
+                PerformanceLogger.getInstance().log(stepName(), actionName(),
+                    "loadTraceabilityLfc", loadTraceabilityLfc.elapsed(TimeUnit.MILLISECONDS));
 
                 List<JsonNode> rawLifecycleToProceed = new ArrayList<>();
                 Set<String> currentBatchIds = new HashSet<>();
@@ -178,7 +185,10 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                     }
                 }
 
+                Stopwatch loadTraceabilityMetadata = Stopwatch.createStarted();
                 Map<String, JsonNode> rawMetadataByIds = getRawMetadata(currentBatchIds, metaDataClientFactory);
+                PerformanceLogger.getInstance().log(stepName(), actionName(),
+                    "loadTraceabilityMetadata", loadTraceabilityMetadata.elapsed(TimeUnit.MILLISECONDS));
 
                 for (JsonNode rawLfc : rawLifecycleToProceed) {
 
@@ -308,4 +318,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
     protected abstract Map<String, JsonNode> getRawMetadata(Set<String> ids,
         MetaDataClientFactory metaDataClientFactory)
         throws ProcessingException;
+
+    protected abstract String stepName();
+    protected abstract String actionName();
 }
