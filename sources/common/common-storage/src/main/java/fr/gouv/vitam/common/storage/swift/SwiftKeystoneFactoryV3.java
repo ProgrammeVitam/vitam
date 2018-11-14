@@ -32,13 +32,16 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.net.ssl.SSLContext;
 
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import org.apache.http.ssl.SSLContexts;
 import org.openstack4j.api.OSClient;
@@ -46,6 +49,7 @@ import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.openstack.internal.OSClientSession;
 
 /**
  * SwiftKeystoneFactory V3
@@ -72,8 +76,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
             .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
 
         if (configuration.getSwiftKeystoneAuthUrl().startsWith("https")) {
-            File file = new File(configuration.getSwiftTrustTore());
-            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustTorePassword().toCharArray()).build();
+            File file = new File(configuration.getSwiftTrustStore());
+            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustStorePassword().toCharArray()).build();
 
             configOS4J.withSSLContext(sslContext);
         }
@@ -82,18 +86,25 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
 
     public OSClient.OSClientV3 get() {
         OSClient.OSClientV3 osClientV3;
-        if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
+        Stopwatch times = Stopwatch.createStarted();
+        if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(30)))) {
             LOGGER.info("No token or token expired, let's get authenticate again");
-            // endpoint(endpoint v3).credentials(user, mdp, domain).scopeToProject(project, domain)
             osClientV3 = OSFactory.builderV3().endpoint(configuration.getSwiftKeystoneAuthUrl())
-                .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
-                .scopeToProject(projectIdentifier, domainIdentifier)
-                .withConfig(configOS4J)
-                .authenticate();
+                    .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
+                    .scopeToProject(projectIdentifier, domainIdentifier)
+                    .withConfig(configOS4J)
+                    .authenticate();
 
             token = osClientV3.getToken();
+            PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "ACTION_AUTHENTICATE", times.elapsed(TimeUnit.MILLISECONDS));
         } else {
-            osClientV3 = OSFactory.clientFromToken(token, configOS4J);
+            OSClient.OSClientV3 current = (OSClient.OSClientV3) OSClientSession.getCurrent();
+            if (null == current) {
+                osClientV3 = OSFactory.clientFromToken(token, configOS4J);
+                PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "CREATE_CLIENT", times.elapsed(TimeUnit.MILLISECONDS));
+            } else {
+                osClientV3 = current;
+            }
         }
         return osClientV3;
     }

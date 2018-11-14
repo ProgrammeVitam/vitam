@@ -10,8 +10,8 @@ swiftUser: {{ vitam_offers[offer_conf]["swiftUser"] | default("") }}
 swiftPassword: {{ vitam_offers[offer_conf]["swiftPassword"] | default("") }}
 
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
-swiftTrustTore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
-swiftTrustTorePassword: {{ password_truststore }}
+swiftTrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+swiftTrustStorePassword: {{ password_truststore }}
 swiftMaxConnectionsPerRoute: {{ vitam_offers[offer_conf]["swiftMaxConnectionsPerRoute"] | default(200) }}
 swiftMaxConnections: {{ vitam_offers[offer_conf]["swiftMaxConnections"] | default(1000) }}
 swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | default(200000) }}

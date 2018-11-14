@@ -26,6 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -59,14 +67,6 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 /**
  * Swift abstract implementation
  * Manage with all common swift methods
@@ -94,7 +94,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         this(osClient, configuration, VitamConfiguration.getSwiftFileLimit());
     }
 
-    @VisibleForTesting Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
+    @VisibleForTesting
+    Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
         this.osClient = osClient;
         this.configuration = configuration;
         this.swiftLimit = swiftLimit;
@@ -187,7 +188,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
                 PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE",
-                    "REAL_SWIFT_PUT_OBJECT[SEGMENT-" + i + "]", segmentTime.elapsed(
+                    "REAL_SWIFT_PUT_OBJECT[SEGMENT-" + i + "]", times.elapsed(
                         TimeUnit.MILLISECONDS));
                 segmentTime.stop();
                 i++;
@@ -204,19 +205,18 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), "BIG_FILE[total]", "REAL_SWIFT_PUT_OBJECT",
-                    times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
 
     private void smallFile(String containerName, String objectName, InputStream stream) {
         Stopwatch times = Stopwatch.createStarted();
-        osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
-        PerformanceLogger.getInstance()
-            .log("STP_Offer_" + configuration.getProvider(), "SMALL_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(
-                TimeUnit.MILLISECONDS));
+        try {
+            osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "SMALL_FILE", "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+        }
     }
 
     private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
