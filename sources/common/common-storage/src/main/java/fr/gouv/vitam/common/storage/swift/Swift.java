@@ -186,7 +186,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
                 PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                    "REAL_SWIFT_PUT_OBJECT_SEGMENT", times.elapsed(
+                    "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
                         TimeUnit.MILLISECONDS));
                 segmentTime.stop();
                 i++;
