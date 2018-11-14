@@ -235,6 +235,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
         PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "SAVE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
 
+        times = Stopwatch.createStarted();
         defaultStorage.deleteObject(containerName, objectId);
         PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "DELETE_FILE", times.elapsed(TimeUnit.MILLISECONDS));
     }

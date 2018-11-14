@@ -87,7 +87,7 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
     public OSClient.OSClientV3 get() {
         OSClient.OSClientV3 osClientV3;
         Stopwatch times = Stopwatch.createStarted();
-        if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
+        if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(30)))) {
             LOGGER.info("No token or token expired, let's get authenticate again");
             osClientV3 = OSFactory.builderV3().endpoint(configuration.getSwiftKeystoneAuthUrl())
                     .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)

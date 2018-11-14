@@ -61,7 +61,7 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
     public OSClient.OSClientV2 get() {
         OSClient.OSClientV2 osClientV2;
-        if (access == null || access.getToken().getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
+        if (access == null || access.getToken().getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(30)))) {
             LOGGER.info("No access or token expired, let's get authenticate again");
             osClientV2 = OSFactory.builderV2().endpoint(configuration.getSwiftKeystoneAuthUrl()).tenantName(configuration
                     .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())

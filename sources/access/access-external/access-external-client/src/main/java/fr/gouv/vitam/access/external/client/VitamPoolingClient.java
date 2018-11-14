@@ -96,23 +96,19 @@ public class VitamPoolingClient {
                          */
                         if (StatusCode.STARTED.compareTo(statusCode) <= 0) {
                             return true;
-                        } else {
-                            // If StatusCode UNKNOWN
-                            // Wait 1 minutes and retry. If the status code not changed then return false (fail)
-                            if (!unknownRetry) {
-                                try {
-                                    Thread.sleep(TimeUnit.MINUTES.toMillis(1));
-                                } catch (InterruptedException e) {
-                                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                                } finally {
-                                    unknownRetry = true;
-                                }
-                            } else {
-                                return false;
+                        }
+                        // If StatusCode UNKNOWN
+                        // Wait 1 minutes and retry. If the status code not changed then return false (fail)
+                        if (!unknownRetry) {
+                            try {
+                                Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+                            } catch (InterruptedException e) {
+                                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                            } finally {
+                                unknownRetry = true;
                             }
-
-
-
+                        } else {
+                            return false;
                         }
                         break;
                     case RUNNING:
