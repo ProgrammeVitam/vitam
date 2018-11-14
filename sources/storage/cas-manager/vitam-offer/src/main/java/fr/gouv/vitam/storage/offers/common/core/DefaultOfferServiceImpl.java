@@ -115,7 +115,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "COMPUTE_DIGEST", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "COMPUTE_DIGEST", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
@@ -126,7 +126,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return defaultStorage.getObject(containerName, objectId);
         } finally {
-            PerformanceLogger.getInstance().log("OfferType_" + configuration.getProvider(), "GET_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("OfferType_" + configuration.getProvider(), containerName, "GET_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
 
         }
     }
@@ -136,12 +136,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         Stopwatch times = Stopwatch.createStarted();
         boolean existsContainer = defaultStorage.isExistingContainer(containerName);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "CHECK_EXISTS_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
         if (!existsContainer) {
             try {
                 times = Stopwatch.createStarted();
                 defaultStorage.createContainer(containerName);
-                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "CREATE_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
             } catch (ContentAddressableStorageAlreadyExistException ex) {
                 LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
             }
@@ -150,7 +150,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         objectInit.setId(objectGUID);
         times = Stopwatch.createStarted();
         offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "INIT_CRETAE_OBJECT", "SAVE_IN_DB" , times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB" , times.elapsed(TimeUnit.MILLISECONDS));
         return objectInit;
     }
 
@@ -186,13 +186,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                         "and cannot be updated");
             }
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "CREATE_OBJECT", "CHECK_EXISTS_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_EXISTS_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
         times = Stopwatch.createStarted();
         try {
             return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, recomputeDigest);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "CREATE_OBJECT", "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
@@ -219,7 +219,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
         result.put("usableSpace", containerInformation.getUsableSpace());
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),"CHECK_CAPACITY", "CHECK_CAPACITY", times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_CAPACITY", times.elapsed(TimeUnit.MILLISECONDS));
         return result;
     }
 
@@ -233,11 +233,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         // Log in offer
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "SAVE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "LOG_DELETE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
 
         times = Stopwatch.createStarted();
         defaultStorage.deleteObject(containerName, objectId);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "DELETE_OBJECT", "DELETE_FILE", times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "DELETE_FILE", times.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override
@@ -247,7 +247,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "GET_METADATA", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GET_METADATA", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
@@ -304,7 +304,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "getOfferLogs_", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "GET_OFFER_LOGS", times.elapsed(TimeUnit.MILLISECONDS));
 
         }
     }

@@ -96,12 +96,12 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
                     .authenticate();
 
             token = osClientV3.getToken();
-            PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "ACTION_AUTHENTICATE", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "AUTHENTICATE", "RENEW_TOKEN", times.elapsed(TimeUnit.MILLISECONDS));
         } else {
             OSClient.OSClientV3 current = (OSClient.OSClientV3) OSClientSession.getCurrent();
             if (null == current) {
                 osClientV3 = OSFactory.clientFromToken(token, configOS4J);
-                PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "CREATE_CLIENT", times.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_AUTHENTICATION", "AUTHENTICATE", "CREATE_CLIENT", times.elapsed(TimeUnit.MILLISECONDS));
             } else {
                 osClientV3 = current;
             }
