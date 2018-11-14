@@ -66,15 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -89,6 +83,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class SelectParserMultipleTest {
     private static JsonNode exampleBothEsMd;
@@ -186,7 +182,18 @@ public class SelectParserMultipleTest {
                         "    }\n" +
                         "  ],\n" +
                         "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n" +
+                        "  \"$filters\": {},\n" +
+                        "\"$facets\": [\n" +
+                        "  {\n" +
+                        "    \"$name\": \"facet_testl\",\n" +
+                        "    \"$terms\": {\n" +
+                        "      \"$subobject\": \"#qualifiers.versions\",\n" +
+                        "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
+                        "      \"$size\": 5,\n" +
+                        "      \"$order\": \"ASC\"        \n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "]" +
                         "}"
         );
     }
@@ -223,6 +230,8 @@ public class SelectParserMultipleTest {
         try {
             request1.parse(nestedSearchQuery.deepCopy());
             assertNotNull(request1);
+            assertTrue(request1.getRequest().getFacets().get(0).getCurrentFacet()
+                    .get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());

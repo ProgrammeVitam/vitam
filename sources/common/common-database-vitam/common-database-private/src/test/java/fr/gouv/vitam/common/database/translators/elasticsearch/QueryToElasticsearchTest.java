@@ -28,19 +28,12 @@ package fr.gouv.vitam.common.database.translators.elasticsearch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -51,6 +44,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class QueryToElasticsearchTest {
     private static final VitamLogger LOGGER =
@@ -134,7 +134,18 @@ public class QueryToElasticsearchTest {
                         "    }\n" +
                         "  ],\n" +
                         "  \"$projection\": {},\n" +
-                        "  \"$filters\": {}\n" +
+                        "  \"$filters\": {},\n" +
+                        "\"$facets\": [\n" +
+                        "  {\n" +
+                        "    \"$name\": \"facet_testl\",\n" +
+                        "    \"$terms\": {\n" +
+                        "      \"$subobject\": \"#qualifiers.versions\",\n" +
+                        "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
+                        "      \"$size\": 5,\n" +
+                        "      \"$order\": \"ASC\"        \n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "]" +
                         "}"
         );
     }
@@ -319,6 +330,10 @@ public class QueryToElasticsearchTest {
             VitamCollection.setMatch(false);
             final SelectParserMultiple parser = createSelect(nestedSearchQuery);
             final SelectMultiQuery select = parser.getRequest();
+            assertTrue(select.getFacets().get(0).getCurrentFacet().get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
+            assertEquals(1, facetBuilders.size());
+            assertTrue(facetBuilders.get(0) instanceof NestedAggregationBuilder);
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
                     parser.hasFullTextQuery() || VitamCollection.containMatch(), true);

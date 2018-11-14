@@ -27,7 +27,9 @@
 package fr.gouv.vitam.metadata.core.utils;
 
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
+import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ParsedValueCount;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 
 public class OriginatingAgencyBucketResult {
@@ -36,23 +38,19 @@ public class OriginatingAgencyBucketResult {
     public final long objectCount;
     public final double binaryObjectSize;
 
-    private OriginatingAgencyBucketResult(String originatingAgency, long docCount, long objectCount, double binaryObjectSize) {
+    private OriginatingAgencyBucketResult(String originatingAgency, long docCount, ValueCount objectCount, Sum binaryObjectSize) {
         this.originatingAgency = originatingAgency;
         this.docCount = docCount;
-        this.objectCount = objectCount;
-        this.binaryObjectSize = binaryObjectSize;
+        this.objectCount = objectCount.getValue();
+        this.binaryObjectSize = binaryObjectSize.getValue();
     }
 
     public static OriginatingAgencyBucketResult empty() {
-        return new OriginatingAgencyBucketResult("", 0L, 0L, 0.0D);
-    }
-
-    public static OriginatingAgencyBucketResult of(String originatingAgency, long docCount, ValueCount objectCount, Sum binaryObjectSize) {
-        return new OriginatingAgencyBucketResult(originatingAgency, docCount, objectCount.getValue(), binaryObjectSize.getValue());
+        return new OriginatingAgencyBucketResult("", 0L, new ParsedValueCount(), new ParsedSum());
     }
 
     public static OriginatingAgencyBucketResult of(String originatingAgency, long docCount, Nested nestedVersions) {
-        return OriginatingAgencyBucketResult.of(originatingAgency, docCount, nestedVersions.getAggregations()
+        return new OriginatingAgencyBucketResult(originatingAgency, docCount, nestedVersions.getAggregations()
                 .get("binaryObjectCount"), nestedVersions.getAggregations().get("binaryObjectSize"));
     }
 }

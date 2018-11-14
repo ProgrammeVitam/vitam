@@ -29,17 +29,18 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filters.Filters;
 import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
-
-import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.model.FacetResult;
 
 /**
  * ElasticsearchFacetResultHelper for mapping ES object to Vitam FacetResult
@@ -65,6 +66,9 @@ public class ElasticsearchFacetResultHelper {
                 break;
             case FiltersAggregationBuilder.NAME:
                 facetResult.setBuckets(extractBucketFiltersAggregation(aggregation));
+                break;
+            case NestedAggregationBuilder.NAME:
+                facetResult.setBuckets(extractBucketNestedAggregation(aggregation));
                 break;
             default:
                 break;
@@ -98,6 +102,17 @@ public class ElasticsearchFacetResultHelper {
         buckets.stream()
             .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
         return facetBuckets;
+    }
+
+    /**
+     * Transform es terms aggregation buckets to FacetBucket
+     *
+     * @param aggregation es aggregation
+     * @return list of FacetBucket
+     */
+    private static List<FacetBucket> extractBucketNestedAggregation(Aggregation aggregation) {
+        Aggregation agg = ((InternalNested) aggregation).getAggregations().asList().get(0);
+        return transformFromEsAggregation(agg).getBuckets();
     }
 
     /**

@@ -408,6 +408,12 @@
   "TERMS_FACET": {
     "format": "object",
     "elements": {
+      "$subobject": {
+        "format": "ref",
+        "type": "string",
+        "optional": true,
+        "hint": "Nested path Field of facet"
+      },
       "$field": {
         "format": "ref",
         "type": "string",
@@ -434,6 +440,12 @@
   "DATE_RANGE_FACET": {
     "format": "object",
     "elements": {
+      "$subobject": {
+        "format": "ref",
+        "type": "string",
+        "optional": true,
+        "hint": "Nested path Field of facet"
+      },
       "$field": {
         "format": "ref",
         "type": "string",

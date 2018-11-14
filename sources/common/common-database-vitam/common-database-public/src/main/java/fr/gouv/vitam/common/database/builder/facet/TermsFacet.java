@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.facet;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -45,17 +45,40 @@ public class TermsFacet extends Facet {
      * 
      * @param name name of the facet
      * @param field field of the facet data
+     * @param nestedPath nested path of field of the facet data
      * @param size of the facet
      * @param order of the facet
-     * @throws InvalidCreateOperationExceptionwhen not valid
+     * @throws InvalidCreateOperationException not valid
      */
-    public TermsFacet(String name, String field, Integer size, FacetOrder order)
+    public TermsFacet(String name, String field, String nestedPath, Integer size, FacetOrder order)
         throws InvalidCreateOperationException {
         super(name);
+        populateFacet(name, field, nestedPath, size, order);
+    }
+
+    /**
+     * Terms Facet constructor
+     *
+     * @param name name of the facet
+     * @param field field of the facet data
+     * @param size of the facet
+     * @param order of the facet
+     * @throws InvalidCreateOperationException not valid
+     */
+    public TermsFacet(String name, String field, Integer size, FacetOrder order)
+            throws InvalidCreateOperationException {
+        super(name);
+        populateFacet(name, field, null, size, order);
+    }
+
+    private void populateFacet(String name, String field, String nestedPath, Integer size, FacetOrder order) throws InvalidCreateOperationException {
         setName(name);
         currentTokenFACET = FACET.TERMS;
         ObjectNode facetNode = JsonHandler.createObjectNode();
         facetNode.put(FACETARGS.FIELD.exactToken(), field);
+        if(nestedPath != null) {
+            facetNode.put(FACETARGS.SUBOBJECT.exactToken(), nestedPath);
+        }
         currentFacet = facetNode;
         if (size == null || size <= 0) {
             throw new InvalidCreateOperationException("Size must be > 0 in Terms Facet");
@@ -66,5 +89,4 @@ public class TermsFacet extends Facet {
         }
         currentFacet.put(FACETARGS.ORDER.exactToken(), order.name());
     }
-
 }

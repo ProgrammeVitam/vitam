@@ -43,7 +43,15 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,7 +88,16 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.*;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -104,7 +121,10 @@ import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.MetaData;
-import fr.gouv.vitam.metadata.api.exception.*;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -971,7 +991,7 @@ public class MetaDataImpl implements MetaData {
     private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String unitId)
         throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
         MetaDataExecutionException, InvalidParseOperationException,
-        ArchiveUnitProfileEmptyControlSchemaException {
+            ArchiveUnitProfileEmptyControlSchemaException {
         boolean updateAupValue = false;
         String originalAupIdentifier = null;
         // first get aup information for the unit

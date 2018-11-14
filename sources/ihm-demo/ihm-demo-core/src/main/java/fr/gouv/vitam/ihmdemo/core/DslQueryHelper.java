@@ -534,7 +534,7 @@ public final class DslQueryHelper {
 
         final SelectMultiQuery select = new SelectMultiQuery();
         final BooleanQuery andQuery = and();
-        final BooleanQuery nestedSubQuery = and();
+        BooleanQuery nestedSubQuery = null;
         final BooleanQuery booleanQueries = or();
         boolean advancedFacetQuery = false;
         String startDate = null;
@@ -571,7 +571,7 @@ public final class DslQueryHelper {
                         switch (facetItem.getFacetType()) {
                             case TERMS:
                                 select.addFacets(new TermsFacet(facetItem.getName(), facetItem.getField(),
-                                    facetItem.getSize(), facetItem.getOrder()));
+                                    facetItem.getSubobject(), facetItem.getSize(), facetItem.getOrder()));
                                 break;
 
                             case DATE_RANGE:
@@ -581,7 +581,7 @@ public final class DslQueryHelper {
 
                                 select.addFacets(
                                     new DateRangeFacet(facetItem.getName(), facetItem.getField(),
-                                        facetItem.getFormat(), ranges));
+                                            facetItem.getSubobject(), facetItem.getFormat(), ranges));
                                 break;
 
                             case FILTERS:
@@ -681,10 +681,16 @@ public final class DslQueryHelper {
             }
 
             if (searchKeys.equalsIgnoreCase(GOT_FILE_FORMAT_ID)) {
+                if(nestedSubQuery == null) {
+                    nestedSubQuery = and();
+                }
                 nestedSubQuery.add(eq(FILE_FORMAT_ID_GOT_FIELD, (String) searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(GOT_FILE_USAGE)) {
+                if(nestedSubQuery == null) {
+                    nestedSubQuery = and();
+                }
                 nestedSubQuery.add(eq(FILE_USAGE_GOT_FIELD, (String) searchValue));
                 continue;
             }
@@ -692,8 +698,14 @@ public final class DslQueryHelper {
                 fileSize = (String) searchValue;
                 if(fileSizeOperator != null) {
                     if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        if(nestedSubQuery == null) {
+                            nestedSubQuery = and();
+                        }
                         nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, (String) searchValue));
                     } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        if(nestedSubQuery == null) {
+                            nestedSubQuery = and();
+                        }
                         nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, (String) searchValue));
                     }
                 }
@@ -703,8 +715,14 @@ public final class DslQueryHelper {
                 fileSizeOperator = (String) searchValue;
                 if(fileSize != null) {
                     if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        if(nestedSubQuery == null) {
+                            nestedSubQuery = and();
+                        }
                         nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, fileSize));
                     } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        if(nestedSubQuery == null) {
+                            nestedSubQuery = and();
+                        }
                         nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, fileSize));
                     }
                 }
@@ -801,7 +819,9 @@ public final class DslQueryHelper {
             }
         }
 
-        andQuery.add(nestedSearch("#qualifiers.versions", nestedSubQuery.getCurrentQuery()));
+        if(nestedSubQuery != null) {
+            andQuery.add(nestedSearch("#qualifiers.versions", nestedSubQuery.getCurrentQuery()));
+        }
 
         boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
 
