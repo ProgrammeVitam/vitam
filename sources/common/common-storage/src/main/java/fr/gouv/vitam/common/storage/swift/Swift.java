@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -48,6 +50,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -170,10 +173,12 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
+        Stopwatch times = Stopwatch.createStarted();
         try {
             CountingInputStream segmentInputStream;
             int i = 1;
             long fileSizeRead = 0;
+            Stopwatch segmentTime = Stopwatch.createUnstarted();
             do {
                 final String objectNameToPut = objectName + "/" + i;
                 BoundedInputStream boundedInputStream =
@@ -183,8 +188,12 @@ public class Swift extends ContentAddressableStorageAbstract {
                 LOGGER.info("number of segment: " + objectNameToPut);
                 // for get the number of byte read to the stream
                 segmentInputStream = new CountingInputStream(boundedInputStream);
+                segmentTime.start();
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
+                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE", "REAL_SWIFT_PUT_OBJECT[SEGMENT-"+i+"]", segmentTime.elapsed(
+                    TimeUnit.MILLISECONDS));
+                segmentTime.stop();
                 i++;
                 fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
             } while (fileSizeRead != size);
@@ -199,6 +208,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE", "REAL_SWIFT_PUT_OBJECT[total]", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
