@@ -27,39 +27,10 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import com.google.common.collect.Lists;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.CharsetUtils;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -83,9 +54,33 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -235,8 +230,21 @@ public class FormatIdentificationActionPluginTest {
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
         assertFalse(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
             .getEvDetailData().isEmpty());
-        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
-            .getEvDetailData().contains("Plain Text File"));
+
+        //check all different warning (only in case of PUID diff)
+        LinkedHashMap<String, ItemStatus> subTaskStatusMap =
+            response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT).getSubTaskStatus();
+
+        assertFalse(subTaskStatusMap.isEmpty());
+
+        List<ItemStatus> subTaskWithWarningStatusList =
+            subTaskStatusMap.values().stream().filter(item -> item.getGlobalStatus().equals(StatusCode.WARNING))
+                .collect(
+                    Collectors.toList());
+        assertThat(subTaskWithWarningStatusList).hasSize(3);
+        subTaskWithWarningStatusList.forEach(objectItem -> {
+            objectItem.getEvDetailData().contains("+ PUID : fmt/293");
+        });
     }
 
     @Test
@@ -300,10 +308,10 @@ public class FormatIdentificationActionPluginTest {
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
         taskItemStatus.getSubTaskStatus().values().forEach(
-                subTaskItemStatus -> {
-                    assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
-                    assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNKNOWN"));
-                }
+            subTaskItemStatus -> {
+                assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNKNOWN"));
+            }
         );
     }
 
@@ -332,10 +340,10 @@ public class FormatIdentificationActionPluginTest {
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
         taskItemStatus.getSubTaskStatus().values().forEach(
-                subTaskItemStatus -> {
-                    assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
-                    assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
-                }
+            subTaskItemStatus -> {
+                assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
+            }
         );
     }
 
