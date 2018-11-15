@@ -17,22 +17,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "queryType",
-                "uri": "VALUE:SELECT"
-              },
-              {
-                "name": "queryUri",
-                "uri": "VALUE:query.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
             "actionKey": "EVIDENCE_AUDIT_LIST_OBJECT",
             "behavior": "BLOCKING"
           }

@@ -84,8 +84,8 @@ public class AuditStep {
     }
 
 
-    @When("^je lance un audit rectificatif sur l'operation(.*)")
-    public void rectificationAudit(String id ) throws VitamException {
+    @When("^je lance un audit rectificatif sur l'operation (.*)")
+    public void rectificationAudit(String id) throws VitamException {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
