@@ -19,8 +19,8 @@ Le processus de sécurisation des journaux des cycles de vie consiste en la cré
 Ce fichier zip est ensuite enregistré sur les offres de stockage, en fonction de la stratégie de stockage.
 
 
-Sécurisation des journaux du cycle de vie LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY (LogbookLFCAdministration.java)
-==============================================================================================================
+Sécurisation des journaux du cycle de vie des groupes d'objets LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY (LogbookLFCAdministration.java)
+====================================================================================================================================
 
 + **Règle** : sécurisation des journaux des cycles de vie des groupes d'objets
 
@@ -36,14 +36,11 @@ Sécurisation des journaux du cycle de vie LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY 
 
     - FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.FATAL = Erreur technique lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
+Processus de la sécurisation des journaux du cycle de vie des groupes d'objets STP_OG_LFC_TRACEABILITY
+=======================================================================================================
 
-Préparation des listes des cycles de vie
-----------------------------------------
-
-**Étape 1** - STP_PREPARE_OG_LFC_TRACEABILITY -  distribution sur REF
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Liste cycles de vie à sécuriser - PREPARE_OG_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
+Préparation de la liste des journaux du cycle de vie et des métadonnées des groupes d'objets PREPARE_OG_LFC_TRACEABILITY
+-------------------------------------------------------------------------------------------------------------------------
 
   + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
 
@@ -51,18 +48,15 @@ Liste cycles de vie à sécuriser - PREPARE_OG_LFC_TRACEABILITY - fichier out : 
 
   + **Statuts** :
 
-    - OK : les fichiers des journaux des cycles de vie ont été exportés (dans ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_OG_LFC_TRACEABILITY.OK = Succès de la préparation de la liste des journaux du cycle de vie des groupes d'objets)
+    - OK : les fichiers des journaux des cycles de vie ont été exportés (dans ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_OG_LFC_TRACEABILITY.OK = Succès de la préparation des journaux du cycle de vie et des métadonnées des groupes d'objets)
 
-    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un journal de cycle de vie (PREPARE_OG_LFC_TRACEABILITY.KO = Échec de la préparation de la liste des journaux du cycle de vie des groupes d'objets)
+    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un journal de cycle de vie (PREPARE_OG_LFC_TRACEABILITY.KO = Échec de la préparation des journaux du cycle de vie et des métadonnées des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur technique lors de la préparation de la liste des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL= Erreur technique lors de la préparation des journaux du cycle de vie et des métadonnées des groupes d'objets)
 
 
-**Étape 2** - STP_OG_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans ObjectGroup
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Traitement des journaux du cycle de vie des groupes d'objets - OG_CREATE_SECURED_FILE
-
+Sécurisation des journaux du cycle de vie des groupes d'objets BUILD_OG_LFC_TRACEABILITY
+-----------------------------------------------------------------------------------------
 
   + **Règle** : application de l'algorithme pour créer les fichiers sécurisés des journaux du cycle de vie des groupes d'objets, journal par journal, et génèration du fichier sécurisé.
 
@@ -70,48 +64,30 @@ Traitement des journaux du cycle de vie des groupes d'objets - OG_CREATE_SECURED
 
   + **Statuts** :
 
-    - OK : le fichier sécurisé pour le journal du cycle de vie en cours a été généré (STP_OG_CREATE_SECURED_FILE.OK = Succès du processus de sécurisation des groupes d'objets)
+    - OK : le fichier sécurisé pour le journal du cycle de vie en cours a été généré (BUILD_OG_LFC_TRACEABILITY.STARTED.OK = Succès de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-    - WARNING : il n'y a pas de nouveaux journaux à sécuriser (STP_OG_CREATE_SECURED_FILE.WARNING = Avertissement lors du du processus de sécurisation des groupes d'objets)
+    - WARNING : il n'y a pas de nouveaux journaux à sécuriser (BUILD_OG_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (STP_OG_CREATE_SECURED_FILE.KO = Échec du processus de sécurisation des groupes d'objets)
+    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (BUILD_OG_LFC_TRACEABILITY.KO = Échec de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (STP_OG_CREATE_SECURED_FILE.FATAL = Erreur technique lors du processus de sécurisation des groupes d'objets)
-
-
-Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY)
+    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (BUILD_OG_LFC_TRACEABILITY.FATAL = de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 
-  + **Règle** : vérification de la présence ou non d'objets à traiter. Cette action ne s'inscrit dans le journal des opérations uniquement dans les cas fatal et warning.
+Finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets FINALIZE_OG_LFC_TRACEABILITY
+---------------------------------------------------------------------------------------------------------------
 
-  + **Type** : non applicable
-
-  + **Statuts** :
-
-    - WARNING : il n'y a pas de nouveaux objets (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
-
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (OBJECTS_LIST_EMPTY.FATAL = Erreur technique lors de l'établissement de la liste des objets)
-
-
-
-**Étape 3** - STP_OG_TRACEABILITY_FINALIZATION -  distribution sur REF
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finalisation de la sécurisation - FINALIZE_OG_LFC_TRACEABILITY - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
-
-
-  + **Règle** : récupération des différents fichiers générés aux étapes 1 et 2 puis calcul du tampon d'horodatage
+  + **Règle** : récupération des différents fichiers générés puis calcul du tampon d'horodatage
 
   + **Type** : non applicable
 
   + **Statuts** :
 
 
-    - OK : la sécurisation des journaux du cycle de vie des groupes d'objets a bien été effectué (FINALIZE_OG_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - OK : la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets a bien été effectué (FINALIZE_OG_LFC_TRACEABILITY.OK = Succès de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-    - KO : la sécurisation des journaux du cycle de vie des groupes d'objets n'a pas été effectué (FINALIZE_OG_LFC_TRACEABILITY.KO = Échec de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - KO : la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets n'a pas été effectué (FINALIZE_OG_LFC_TRACEABILITY.KO = Échec de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
     
-    - FATAL : une erreur technique est survenue lors de la la sécurisation des journaux du cycle de vie des groupes d'objets (FINALIZE_OG_LFC_TRACEABILITY.FATAL = Erreur technique lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur technique est survenue lors de la finalisation de la la sécurisation des journaux du cycle de vie des groupes d'objets (FINALIZE_OG_LFC_TRACEABILITY.FATAL = Erreur technique lors de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 
 Structure du workflow du processus de sécurisation des journaux des cycles de vie des groupes d'objets 
@@ -158,14 +134,11 @@ La fin du processus peut prendre plusieurs statuts :
 
     - FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-Préparation des listes des cycles de vie
-----------------------------------------
+Processus de la sécurisation des journaux du cycle de vie des unités archivistiques STP_UNIT_LFC_TRACEABILITY
+=============================================================================================================
 
-**Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
-
+Préparation de la liste des journaux du cycle de vie et des métadonnées des unités archivistiques PREPARE_UNIT_LFC_TRACEABILITY
+--------------------------------------------------------------------------------------------------------------------------------
 
   + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
 
@@ -173,56 +146,50 @@ Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out 
 
   + **Statuts** :
 
-    - OK : les fichiers des cycles de vie ont été exportés (dans UnitsWithoutLevel et ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_UNIT_LFC_TRACEABILITY.OK = Succès du listage des journaux du cycle de vie)
+    - OK : les fichiers des journaux des cycles de vie ont été exportés ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_UNIT_LFC_TRACEABILITY.OK = Succès de la préparation des journaux du cycle de vie et des métadonnées des unités archivistiques)
 
-    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_UNIT_LFC_TRACEABILITY.KO = Échec du listage des journaux du cycle de vie)
+    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un journal de cycle de vie (PREPARE_UNIT_LFC_TRACEABILITY.KO = Échec de la préparation des journaux du cycle de vie et des unités archivistiques)
 
-    - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors du listage des journaux du cycle de vie)
+    - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors de la préparation des journaux du cycle de vie et des métadonnées des unités archivistiques)
 
 
-**Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Traitement des journaux du cycle de vie pour les unités archivistiques - UNITS_CREATE_SECURED_FILE
-
-  + **Type** : bloquant
+Sécurisation des journaux du cycle de vie des groupes d'objets BUILD_UNIT_LFC_TRACEABILITY
+-------------------------------------------------------------------------------------------
 
   + **Règle** : application de l'algorithme pour créer les fichiers sécurisés des journaux du cycle de vie des unités archivistiques, journal par journal, et génèration du fichier sécurisé.
 
-  + **Statuts** :
-
-    - OK : le fichier sécurisé pour les journaux du cycle de vie en cours a été généré (UNITS_CREATE_SECURED_FILE.OK=Succès du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
-
-    - WARNING : il n'y a pas de nouveaux journaux à sécuriser (STP_UNITS_CREATE_SECURED_FILE.WARNING = Avertissement lors du processus de sécurisation des unités archivistiques)
-
-    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (UNITS_CREATE_SECURED_FILE.KO = Échec du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
-
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (UNITS_CREATE_SECURED_FILE.FATAL = Erreur technique lors du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
-
-* Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY)
-
-Il s'agit du même contrôle que l'étape 2
-
-**Étape 4** -  STP_UNIT_TRACEABILITY_FINALIZATION -  distribution sur REF
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Finalisation de la sécurisation - FINALIZE_LC_TRACEABILITY - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
-
   + **Type** : bloquant
 
-  + **Règle** : récupération des différents fichiers générés aux étapes 2 et 3 puis calcul du tampon d'horodatage
+  + **Statuts** :
+
+    - OK : le fichier sécurisé pour le journal du cycle de vie en cours a été généré (BUILD_UNIT_LFC_TRACEABILITY.STARTED.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+    - WARNING : il n'y a pas de nouveaux journaux à sécuriser (BUILD_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (BUILD_UNIT_LFC_TRACEABILITY.KO = Échec de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (BUILD_UNIT_LFC_TRACEABILITY.FATAL = de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+
+Finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets FINALIZE_UNIT_LFC_TRACEABILITY
+-----------------------------------------------------------------------------------------------------------------
+
+  + **Règle** : récupération des différents fichiers générés puis calcul du tampon d'horodatage
+
+  + **Type** : non applicable
 
   + **Statuts** :
 
-    - OK : le fichier zip final a été créé et sauvegarder sur les offres de stockage (FINALIZE_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-    - KO : le fichier zip n'a pas pu être généré ou sauvegardé sur les offres (FINALIZE_UNIT_LFC_TRACEABILITY.KO = Échec de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - OK : la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques a bien été effectué (FINALIZE_UNIT_LFC_TRACEABILITY.OK = Succès de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-    - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors de la sécurisation des journaux du cycle de vie  des unités archivistiques)
+    - KO : la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques n'a pas été effectué (FINALIZE_UNIT_LFC_TRACEABILITY.KO = Échec de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    
+    - FATAL : une erreur technique est survenue lors de la finalisation de la la sécurisation des journaux du cycle de vie des unités archivistiques (FINALIZE_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-D'une façon synthétique, le workflow est décrit de cette façon :
 
-Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
+Structure du workflow du processus de sécurisation des journaux des cycles de vie des unités archivistiques
+============================================================================================================
 
   .. figure:: images/workflow_lfc_unit_traceability.png
     :align: center
