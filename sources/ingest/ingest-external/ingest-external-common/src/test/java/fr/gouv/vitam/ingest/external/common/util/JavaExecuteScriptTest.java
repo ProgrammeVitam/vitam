@@ -26,11 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.util;
 
-import static org.junit.Assert.assertEquals;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import static org.junit.Assert.assertEquals;
 
 public class JavaExecuteScriptTest {
 
@@ -45,11 +44,11 @@ public class JavaExecuteScriptTest {
     public void givenExecuteScanClamAVWhenVirusFoundButNotCorrectedThenReturn2()
         throws Exception {
         assertEquals(1, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(FIXED_VIRUS_FILE).getPath(), timeoutScanDelay));
+            PropertiesUtils.getResourceFile(FIXED_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
         assertEquals(2, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(UNFIXED_VIRUS_FILE).getPath(), timeoutScanDelay));
+            PropertiesUtils.getResourceFile(UNFIXED_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
         assertEquals(0, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(NO_VIRUS_FILE).getPath(), timeoutScanDelay));
+            PropertiesUtils.getResourceFile(NO_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
     }
 
 }

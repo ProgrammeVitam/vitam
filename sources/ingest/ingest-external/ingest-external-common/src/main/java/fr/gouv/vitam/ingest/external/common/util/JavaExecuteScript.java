@@ -26,21 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import fr.gouv.vitam.ingest.external.common.exception.JavaExecuteScriptException;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.PumpStreamHandler;
-
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.ingest.external.common.exception.JavaExecuteScriptException;
+
+import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class JavaExecuteScript used to execute the shell script in java
@@ -51,14 +44,13 @@ public class JavaExecuteScript {
     /**
      * Return status when execute the shell script scan-clamav.sh for scanning the file
      *
-     * @param cmd the command line that will be executed
-     * @param arg the file to scan
+     * @param cmd              the command line that will be executed
+     * @param arg              the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
      * @throws JavaExecuteScriptException if script could not be executed
      */
-    public static int executeCommand(String cmd, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
-        int exitStatus = 3;
+    public static ExecutionOutput executeCommand(String cmd, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
         String scriptPath;
         try {
             scriptPath = PropertiesUtils.findFile(cmd).getPath();
@@ -66,45 +58,20 @@ public class JavaExecuteScript {
             LOGGER.error(cmd + " does not exit");
             throw new JavaExecuteScriptException(e);
         }
-        exitStatus = execute(scriptPath, arg, timeoutScanDelay);
-        return exitStatus;
+        return exec(scriptPath, arg, timeoutScanDelay);
     }
 
-    private static int execute(String scriptPath, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
-        final CommandLine cmd = new CommandLine(scriptPath).addArgument(arg);
-        final DefaultExecutor defaultExecutor = new DefaultExecutor();
-        // TODO P1 : Le résultat de la commande (sortie du scanner) doit être prise en compte pour informer le client du
-        // problème.
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(out);
-        final ExecuteWatchdog watchdog = new ExecuteWatchdog(timeoutScanDelay);
-        defaultExecutor.setStreamHandler(pumpStreamHandler);
-        defaultExecutor.setWatchdog(watchdog);
-
-        int exitValue = -1;
+    private static ExecutionOutput exec(String scriptPath, String arg, long timeoutScanDelay) {
+        ProcessBuilder processBuilder = new ProcessBuilder(Lists.newArrayList(scriptPath, arg));
+        Process process = null;
         try {
-            exitValue = defaultExecutor.execute(cmd);
-        } catch (final ExecuteException e) {
-            if (e.getExitValue() == 1 || e.getExitValue() == 2 || e.getExitValue() == 3) {
-                return e.getExitValue();
-            }
-        } catch (final IOException e) {
-            throw new JavaExecuteScriptException(e);
-        } finally {
-            // TODO Until now, output is lost
-            watchdog.stop();
-            try {
-                pumpStreamHandler.stop();
-            } catch (final IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            out.reset();
-            try {
-                out.close();
-            } catch (final IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            process = processBuilder.start();
+            process.waitFor(timeoutScanDelay, TimeUnit.MILLISECONDS);
+            return new ExecutionOutput(process, processBuilder);
+        } catch (Exception e) {
+            return new ExecutionOutput(e, process, processBuilder);
         }
-        return exitValue;
+
     }
+
 }
