@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -164,7 +164,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.jayway.restassured.RestAssured.get;
+import static io.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;

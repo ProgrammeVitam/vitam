@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.server.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -69,6 +68,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import io.restassured.RestAssured;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;

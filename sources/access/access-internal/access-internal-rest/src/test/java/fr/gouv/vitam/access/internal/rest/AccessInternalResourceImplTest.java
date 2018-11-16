@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -64,8 +64,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;

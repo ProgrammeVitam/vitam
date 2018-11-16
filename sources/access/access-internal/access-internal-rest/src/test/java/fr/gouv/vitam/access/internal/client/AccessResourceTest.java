@@ -34,7 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;

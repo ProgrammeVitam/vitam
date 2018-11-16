@@ -28,8 +28,8 @@ package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -73,8 +73,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 

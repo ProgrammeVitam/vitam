@@ -1,7 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 public class AccessExternalApplicationTest {
     private AccessExternalMain application;

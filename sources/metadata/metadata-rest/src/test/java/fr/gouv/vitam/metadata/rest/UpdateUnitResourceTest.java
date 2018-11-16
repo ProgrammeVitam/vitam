@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -50,8 +50,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;

@@ -28,7 +28,7 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -53,8 +53,8 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;

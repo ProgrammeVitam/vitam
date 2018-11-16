@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -40,11 +38,12 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -62,10 +61,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;

@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +47,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.hamcrest.Matchers;
@@ -62,8 +64,8 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.ResponseBody;
+import io.restassured.RestAssured;
+import io.restassured.response.ResponseBody;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 
@@ -761,7 +763,7 @@ public class DefaultOfferResourceTest {
     }
 
     @Test
-    public void getOfferLogTestOk() {
+    public void getOfferLogTestOk() throws InvalidParseOperationException {
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
 
@@ -786,7 +788,7 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody1 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoResult).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response1 = responseBody1.as(RequestResponseOK.class);
+        final RequestResponseOK<OfferLog> response1 = JsonHandler.getFromInputStream(responseBody1.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response1.getStatus()).isEqualTo(200);
         assertThat(response1.getResults().size()).isEqualTo(0);
 
@@ -794,7 +796,7 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody2 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogWithOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response2 = responseBody2.as(RequestResponseOK.class);
+        final RequestResponseOK<OfferLog> response2 = JsonHandler.getFromInputStream(responseBody2.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response2.getStatus()).isEqualTo(200);
         assertThat(response2.getResults().size()).isEqualTo(4);
 
@@ -802,7 +804,7 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody3 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response3 = responseBody3.as(RequestResponseOK.class);
+        final RequestResponseOK<OfferLog> response3 = JsonHandler.getFromInputStream(responseBody3.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response3.getStatus()).isEqualTo(200);
         assertThat(response3.getResults().size()).isEqualTo(10);
         
@@ -811,7 +813,7 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody4 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogOffsetLimitDesc).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response4 = responseBody4.as(RequestResponseOK.class);
+        final RequestResponseOK<OfferLog> response4 = JsonHandler.getFromInputStream(responseBody4.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response4.getStatus()).isEqualTo(200);
         assertThat(response4.getResults().size()).isEqualTo(3);
 

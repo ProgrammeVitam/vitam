@@ -28,10 +28,9 @@ package fr.gouv.vitam.metadata.core.trigger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
+import io.restassured.path.json.JsonPath;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static com.jayway.jsonpath.JsonPath.parse;
 
 public class HistoryTest {
 
@@ -49,10 +48,11 @@ public class HistoryTest {
         Assert.assertTrue(arrayNode.isArray());
 
         String arrayNodeString = arrayNode.toString();
-        Assert.assertNotNull(parse(arrayNodeString).read("[0].ud"));
-        Assert.assertNotNull(parse(arrayNodeString).read("[0].data"));
-        Assert.assertEquals(TEST_VERSION, (int)parse(arrayNodeString).read("[0].data._v"));
-        Assert.assertEquals(TEST_VALUE, parse(arrayNodeString).read("[0].data." + TEST_PATH + "." + TEST_FIELD));
+        JsonPath path = JsonPath.from(arrayNodeString);
+        Assert.assertNotNull(path.get("[0].ud"));
+        Assert.assertNotNull(path.get("[0].data"));
+        Assert.assertEquals(TEST_VERSION, path.getInt("[0].data._v"));
+        Assert.assertEquals(TEST_VALUE, path.getString("[0].data." + TEST_PATH + "." + TEST_FIELD));
     }
 
     @Test
@@ -69,9 +69,10 @@ public class HistoryTest {
         Assert.assertTrue(node.isObject());
 
         String arrayNodeString = node.toString();
-        Assert.assertNotNull(parse(arrayNodeString).read("ud"));
-        Assert.assertNotNull(parse(arrayNodeString).read("data"));
-        Assert.assertEquals(TEST_VERSION, (int)parse(arrayNodeString).read("data._v"));
-        Assert.assertEquals(TEST_VALUE, parse(arrayNodeString).read("data." + TEST_PATH + "." + TEST_FIELD));
+        JsonPath path = JsonPath.from(arrayNodeString);
+        Assert.assertNotNull(path.get("ud"));
+        Assert.assertNotNull(path.get("data"));
+        Assert.assertEquals(TEST_VERSION, path.getInt("data._v"));
+        Assert.assertEquals(TEST_VALUE, path.getString("data." + TEST_PATH + "." + TEST_FIELD));
     }
 }

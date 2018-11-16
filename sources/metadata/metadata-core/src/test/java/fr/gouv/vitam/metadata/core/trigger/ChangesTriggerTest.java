@@ -29,10 +29,10 @@ package fr.gouv.vitam.metadata.core.trigger;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
+import io.restassured.path.json.JsonPath;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static com.jayway.jsonpath.JsonPath.parse;
 
 public class ChangesTriggerTest {
 
@@ -62,10 +62,10 @@ public class ChangesTriggerTest {
         changesTrigger.trigger(before, after);
 
         String unitAfterUpdateString = after.toString();
-
-        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
-        Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        JsonPath path = JsonPath.from(unitAfterUpdateString);
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(10, path.getInt("_history[0].data._v"));
+        Assert.assertEquals("Secret Défense", path.get("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
     @Test
@@ -78,9 +78,10 @@ public class ChangesTriggerTest {
         changesTrigger.trigger(before, after);
 
         String unitAfterUpdateString = after.toString();
+        JsonPath path = JsonPath.from(unitAfterUpdateString);
 
-        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
-        Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(10, path.getInt("_history[0].data._v"));
+        Assert.assertEquals("Secret Défense", path.get("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 }

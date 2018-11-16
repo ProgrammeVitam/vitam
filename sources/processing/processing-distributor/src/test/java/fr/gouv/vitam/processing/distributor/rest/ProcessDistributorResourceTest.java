@@ -29,8 +29,7 @@
 package fr.gouv.vitam.processing.distributor.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -46,6 +45,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import io.restassured.http.ContentType;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -62,8 +62,8 @@ import org.junit.Test;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.get;
 
 /**
  *

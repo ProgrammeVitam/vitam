@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +40,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -60,6 +54,9 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.Entry;
+import io.restassured.RestAssured;
+import io.restassured.config.EncoderConfig;
+import io.restassured.http.ContentType;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -69,6 +66,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static io.restassured.RestAssured.with;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.get;
 
 /**
  */

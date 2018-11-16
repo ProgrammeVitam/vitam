@@ -3,8 +3,8 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -52,7 +52,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.junit.Assume.assumeTrue;
 

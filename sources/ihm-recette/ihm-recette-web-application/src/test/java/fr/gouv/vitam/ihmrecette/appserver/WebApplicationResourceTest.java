@@ -27,8 +27,8 @@ package fr.gouv.vitam.ihmrecette.appserver;
  */
 
 
-import static com.jayway.restassured.RestAssured.given;
-import com.jayway.restassured.response.Cookie;
+import static io.restassured.RestAssured.given;
+import io.restassured.http.Cookie;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
@@ -39,7 +39,7 @@ import java.io.File;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;

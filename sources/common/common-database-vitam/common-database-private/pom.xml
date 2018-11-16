@@ -57,7 +57,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.jayway.jsonpath</groupId>
+            <groupId>io.rest-assured</groupId>
 			<artifactId>json-path</artifactId>
 		</dependency>
 		<dependency>

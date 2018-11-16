@@ -27,15 +27,15 @@ package fr.gouv.vitam.ihmrecette.appserver;
  */
 
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 import java.io.File;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;

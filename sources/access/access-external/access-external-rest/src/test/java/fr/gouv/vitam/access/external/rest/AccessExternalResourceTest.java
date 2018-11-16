@@ -27,10 +27,6 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -59,6 +55,10 @@ import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -79,9 +79,9 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static io.restassured.RestAssured.given;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
