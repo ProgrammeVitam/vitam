@@ -44,7 +44,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -98,6 +100,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
                     StorageConfiguration.class);
+            if(!Strings.isNullOrEmpty(configuration.getStoragePath())) {
+                configuration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
+            }
         } catch (final IOException exc) {
             LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);

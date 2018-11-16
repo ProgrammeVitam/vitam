@@ -37,9 +37,11 @@ import java.nio.file.StandardCopyOption;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -200,4 +202,39 @@ public final class FileUtil {
             StreamUtils.closeSilently(inputStream);
         }
     }
+
+    /**
+     * Creates a new empty file in the vitam temporary directory retrieved from VitamConfiguration, using the
+     * given filename  and fileExtension strings to generate its name.<BR>
+     * Do a Path traversal attack check before creating file
+     *
+     * @param  filename     The prefix string to be used in generating the file's
+     *                    name; must be at least three characters long
+     *
+     * @param  fileExtension     The suffix string to be used in generating the file's
+     *                    name; may be <code>null</code>, in which case the
+     *                    suffix <code>".tmp"</code> will be used
+     * @return An abstract file representation for  a newly-created empty file
+     * @throws IOException  If a file could not be created
+     */
+    public static  File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension) throws IOException {
+
+        String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename+fileExtension;
+
+        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), subPaths);
+
+        return File.createTempFile(filename, fileExtension, new File(VitamConfiguration.getVitamTmpFolder()));
+    }
+
+    /**
+     * retrieve the canonical path for a given file pathname
+     * @param pathname
+     * @return STring representing the canonical path for pathname file
+     * @throws IOException If an I/O errors occurs
+     */
+
+    public static String getFileCanonicalPath(String pathname) throws IOException {
+        return (new File(pathname)).getCanonicalPath();
+    }
+
 }

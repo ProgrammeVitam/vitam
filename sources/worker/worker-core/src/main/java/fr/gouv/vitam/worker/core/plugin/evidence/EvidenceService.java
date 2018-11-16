@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -420,7 +421,7 @@ public class EvidenceService {
                 .getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
 
-                final File file = File.createTempFile(TMP, extension, new File(VitamConfiguration.getVitamTmpFolder()));
+                final File file = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
                 Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 response.close();
 

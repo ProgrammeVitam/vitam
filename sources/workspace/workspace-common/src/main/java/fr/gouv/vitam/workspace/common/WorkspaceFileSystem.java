@@ -27,31 +27,6 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CharsetUtils;
@@ -90,6 +65,32 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
+
 /**
  * Workspace Filesystem implementation
  */
@@ -98,6 +99,10 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceFileSystem.class);
 
     private Path root;
+    /**
+     * To prevent multiple Path traversal attack check in inter-methods calls
+     */
+    private boolean isPathTraversalAlreadyChecked;
 
     /**
      * Default constructor Define the root of workspace with the storagePath property from configuration
@@ -122,7 +127,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             containerName);
         if (!isExistingContainer(containerName)) {
             try {
-                Path containerPath = getContainerPath(containerName);
+                Path containerPath = getContainerPath(containerName, false);
                 Files.createDirectories(containerPath);
             } catch (IOException ex) {
                 throw new ContentAddressableStorageServerException(ex);
@@ -142,9 +147,11 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
         try {
-            Path containerPath = getContainerPath(containerName);
-            Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).filter(path -> !containerPath.equals(path))
-                .sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            Path containerPath = getContainerPath(containerName, false);
+            try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
+                streams.filter(path -> !containerPath.equals(path))
+                    .sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            }
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);
         }
@@ -155,36 +162,41 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-        Path containerPath = getContainerPath(containerName);
-        if (!Files.exists(containerPath)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(
-                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-        }
-        if (recursive) {
-            try {
-                Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).sorted(Comparator.reverseOrder())
-                    .map(Path::toFile).forEach(File::delete);
-            } catch (IOException ex) {
-                throw new ContentAddressableStorageServerException(ex);
+        Path containerPath =  null;
+        try {
+            containerPath = getContainerPath(containerName, true);
+            if (!Files.exists(containerPath)) {
+                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
-        } else {
-            try {
+            if (recursive) {
+                try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS))
+                {
+                    streams.sorted(Comparator.reverseOrder())
+                        .map(Path::toFile).forEach(File::delete);
+                }
+            } else {
                 Files.delete(containerPath);
-            } catch (DirectoryNotEmptyException ex) {
-                // TODO: keep this old none recursive delete workspace container style ?
-                LOGGER.warn("Directory {} not empty, do nothing", containerPath.toString());
-            } catch (IOException ex) {
-                throw new ContentAddressableStorageServerException(ex);
             }
+        } catch (DirectoryNotEmptyException ex) {
+            // TODO: keep this old none recursive delete workspace container style ?
+            LOGGER.warn("Directory {} not empty, do nothing ", containerPath != null ? containerPath.toString() : "");
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageServerException(ex);
         }
     }
 
     @Override
     public boolean isExistingContainer(String containerName) {
-        Path containerPath = getContainerPath(containerName);
-        // if not a directory -> error ?
-        return Files.exists(containerPath) && Files.isDirectory(containerPath);
+        Path containerPath = null;
+        try {
+            containerPath = getContainerPath(containerName, true);
+            return containerPath.toFile().exists() && containerPath.toFile().isDirectory();
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
     }
 
     @Override
@@ -203,8 +215,8 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageAlreadyExistException(
                 ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + folderName);
         }
-        Path folderPath = getFolderPath(containerName, folderName);
         try {
+            Path folderPath = getFolderPath(containerName, folderName, false);
             Files.createDirectories(folderPath);
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);
@@ -221,14 +233,17 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
         }
-        Path folderPath = getFolderPath(containerName, folderName);
+        Path folderPath = null;
         try {
+            folderPath = getFolderPath(containerName, folderName, false);
             Files.delete(folderPath);
         } catch (DirectoryNotEmptyException ex) {
-            LOGGER.warn("Directory {} not empty, then we delete files and folder", folderPath.toString());
-            try {
-                Files.walk(folderPath, FileVisitOption.FOLLOW_LINKS).sorted(Comparator.reverseOrder())
+            LOGGER.warn("Directory {} not empty, then we delete files and folder",
+                folderPath != null ? folderPath.toString() : "");
+            try (Stream<Path> streams = Files.walk(folderPath, FileVisitOption.FOLLOW_LINKS)) {
+                streams.sorted(Comparator.reverseOrder())
                     .map(Path::toFile).forEach(File::delete);
+
             } catch (IOException exc) {
                 throw new ContentAddressableStorageServerException(exc);
             }
@@ -239,9 +254,13 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     @Override
     public boolean isExistingFolder(String containerName, String folderName) {
-        Path folderPath = getFolderPath(containerName, folderName);
-        // if not a directory -> error ?
-        return Files.exists(folderPath) && Files.isDirectory(folderPath);
+        try {
+            Path folderPath = getObjectPath(containerName, folderName, true);
+            return folderPath.toFile().exists() && folderPath.toFile().isDirectory();
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
     }
 
     @Override
@@ -261,8 +280,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             // TODO: ugly retro-compatibility !
             return new ArrayList<>();
         }
-        Path folderPath = getFolderPath(containerName, folderName);
+
         try {
+            Path folderPath = getFolderPath(containerName, folderName, false);
             /*
              * return Files .walk(folderPath, FileVisitOption.FOLLOW_LINKS) .filter(path -> !folderPath.equals(path))
              * .map(Path::getFileName) .map(path -> URI.create(path.toString())) .collect(Collectors.toList());
@@ -302,9 +322,15 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + " : folderName " + folderName);
             throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
         }
-        createFolder(containerName, folderName);
-        extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
-            inputStreamObject);
+
+        isPathTraversalAlreadyChecked = true;
+        try {
+            createFolder(containerName, folderName);
+            extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
+                inputStreamObject);
+        } finally {
+            isPathTraversalAlreadyChecked = false;
+        }
     }
 
     @Override
@@ -323,12 +349,15 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
             existingObject = true;
         }
-        Path filePath = getObjectPath(containerName, objectName);
+        Path filePath= null;
         try {
+
+            filePath = getObjectPath(containerName, objectName, false);
+
             if (!existingObject) {
                 // create parent folders if needed
                 Path parentPath = filePath.getParent();
-                if (!Files.exists(parentPath)) {
+                if (!parentPath.toFile().exists()) {
                     Files.createDirectories(parentPath);
                 }
                 filePath = Files.createFile(filePath);
@@ -362,8 +391,8 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
         try {
-            SafeFileChecker.checkSafeFilePath(getContainerPath(containerName).toString(), objectName);
-            Path objectPath = getObjectPath(containerName, objectName);
+            Path objectPath = getObjectPath(containerName, objectName, false);
+
             InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
             long size = Files.size(objectPath);
             return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, inputStream,
@@ -389,7 +418,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
         try {
-            Files.delete(getObjectPath(containerName, objectName));
+            Files.delete(getObjectPath(containerName, objectName, false));
         } catch (IOException ex) {
             throw new ContentAddressableStorageException(ex);
         }
@@ -397,8 +426,13 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     @Override
     public boolean isExistingObject(String containerName, String objectName) {
-        Path objectPath = getObjectPath(containerName, objectName);
-        return Files.exists(objectPath) && Files.isRegularFile(objectPath);
+        Path objectPath = null;
+        try {
+            objectPath = getObjectPath(containerName, objectName, true);
+            return objectPath.toFile().exists() && Files.isRegularFile(objectPath);
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     @Override
@@ -424,8 +458,8 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
-        Path containerPath = getContainerPath(containerName);
         try {
+            Path containerPath = getContainerPath(containerName, false);
             final long usableSpace = Files.getFileStore(containerPath).getUsableSpace();
             final ContainerInformation containerInformation = new ContainerInformation();
             containerInformation.setUsableSpace(usableSpace);
@@ -450,8 +484,8 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
-        Path objectPath = getObjectPath(containerName, objectName);
         try {
+            Path objectPath = getObjectPath(containerName, objectName, true);
             ObjectNode objectInformation = JsonHandler.createObjectNode();
             objectInformation.put("size", Files.size(objectPath));
             objectInformation.put("object_name", objectName);
@@ -471,25 +505,33 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
-        Path containerPath = getContainerPath(containerName);
         try {
-            return Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).filter(path -> !containerPath.equals(path))
-                .count();
+            Path containerPath = getContainerPath(containerName, false);
+            try (Stream<Path> streams =  Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
+                return streams.filter(path -> !containerPath.equals(path))
+                    .count();
+            }
         } catch (IOException ex) {
             throw new ContentAddressableStorageException(ex);
         }
     }
 
-    private Path getContainerPath(String containerName) {
+    private Path getContainerPath(String containerName, boolean wouldCheckTraversalAttack) throws IOException {
+        if (wouldCheckTraversalAttack && !isPathTraversalAlreadyChecked) {
+            SafeFileChecker.checkSafeFilePath(root.toString(), containerName);
+        }
         return Paths.get(root.toString(), containerName);
     }
 
-    private Path getFolderPath(String containerName, String folder) {
-        return Paths.get(root.toString(), containerName, folder);
+    private Path getFolderPath(String containerName, String folder, boolean wouldCheckTraversalAttack) throws IOException {
+        return getObjectPath( containerName, folder, wouldCheckTraversalAttack);
     }
 
     // Same as getFolderPath but...
-    private Path getObjectPath(String containerName, String objectName) {
+    private Path getObjectPath(String containerName, String objectName, boolean wouldCheckTraversalAttack) throws IOException {
+        if(wouldCheckTraversalAttack && !isPathTraversalAlreadyChecked){
+            SafeFileChecker.checkSafeFilePath(root.toString(), containerName, objectName);
+        }
         return Paths.get(root.toString(), containerName, objectName);
     }
 
@@ -517,6 +559,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
 
+            Path folderPath = getFolderPath(containerName, folderName, false);
 
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
@@ -529,7 +572,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                             String.format("%s file or folder not allowed name", entryName));
                     }
 
-                    final Path target = Paths.get(root.toString(), containerName, folderName, entryName);
+                    final Path target = Paths.get(folderPath.toString(), entryName);
                     final Path parent = target.getParent();
 
                     if (parent != null && !Files.exists(parent)) {
@@ -573,15 +616,15 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     public void compress(String containerName, List<String> folderNames, String zipName)
         throws IOException, ArchiveException {
 
-        Path zip = Paths.get(root.toString(), containerName, zipName);
+        Path zip = getObjectPath(containerName, zipName, true);
 
         try (ArchiveOutputStream archive = new ArchiveStreamFactory()
             .createArchiveOutputStream(ArchiveStreamFactory.ZIP, new FileOutputStream(zip.toString()))) {
 
             for (String folderName : folderNames) {
-                final Path target = Paths.get(root.toString(), containerName, folderName);
+                final Path target = getFolderPath(containerName, folderName, true);
 
-                Files.walkFileTree(Paths.get(target.toString()), new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(target, new SimpleFileVisitor<Path>() {
 
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

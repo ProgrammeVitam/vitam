@@ -143,8 +143,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
             if (recomputeDigest) {
                 String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-                if(!streamDigest.equals(computedDigest)) {
-                    throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
+                if (!streamDigest.equals(computedDigest)) {
+                    throw new ContentAddressableStorageException(
+                        "Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " +
+                            computedDigest);
                 }
             }
 
@@ -319,6 +321,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
+        fsHelper.checkContainerPathTraversal(containerName);
         File containerDir = fsHelper.getPathContainer(containerName).toFile();
         final long usableSpace = containerDir.getUsableSpace();
         final ContainerInformation containerInformation = new ContainerInformation();
@@ -352,9 +355,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        fsHelper.checkContainerPathTraversal(containerName);
         Path p = fsHelper.getPathContainer(containerName);
         HashFileListVisitor hfv = new HashFileListVisitor();
         try {
@@ -371,9 +375,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+
+        HashFileListVisitor hfv = new HashFileListVisitor(fsHelper.splitObjectId(nextMarker), nextMarker);
+        fsHelper.checkContainerPathTraversal(containerName);
         Path p = fsHelper.getPathContainer(containerName);
         try {
-            HashFileListVisitor hfv = new HashFileListVisitor(fsHelper.splitObjectId(nextMarker), nextMarker);
             fsHelper.walkFileTreeOrdered(p, hfv);
             return hfv.getPageSet();
         } catch (IOException e) {

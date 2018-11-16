@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -63,6 +64,7 @@ public class HashFileSystemHelper {
     private FileSystem fs = FileSystems.getDefault();
     private final String SEPARATOR = fs.getSeparator();
     private static final String CONTAINER_SUBDIRECTORY = "container";
+    private static final String PATH_TRAVERSAL_FOUND_ERROR_MESSAGE = "Invalid or infected container/object path";
 
     /**
      * Constructor
@@ -120,21 +122,28 @@ public class HashFileSystemHelper {
      * @param objectId
      * @return Path of the object
      * @throws ContentAddressableStorageNotFoundException : container not found
-     * @throws ContentAddressableStorageServerException   : The objectId contains Separator character
+     * @throws ContentAddressableStorageServerException : The objectId contains Separator character
      */
     public Path getPathObject(String container, String objectId)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!isContainer(container)) {
             throw new ContentAddressableStorageNotFoundException("Container " + container + " doesn't exist");
         }
-        List<String> l = new LinkedList<>();
+        List<String> subDirectoriesComponentList = new LinkedList<>();
         for (String id : splitObjectId(objectId)) {
-            l.add(id);
+            subDirectoriesComponentList.add(id);
         }
         // Add the objectId name at the end 
-        l.add(objectId);
-        String[] s = {""};
-        return fs.getPath(getPathContainer(container).toString(), l.toArray(s));
+        subDirectoriesComponentList.add(objectId);
+        String[] subDirectoriesComponentArray =
+            subDirectoriesComponentList.toArray(new String[subDirectoriesComponentList.size()]);
+
+        try {
+            SafeFileChecker.checkSafeFilePath(getPathContainer(container).toString(), subDirectoriesComponentArray);
+        } catch (IOException e) {
+            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
+        }
+        return fs.getPath(getPathContainer(container).toString(), subDirectoriesComponentArray);
     }
 
 
@@ -150,6 +159,11 @@ public class HashFileSystemHelper {
     public void createContainer(String container)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter("Subpath can't be null", container);
+        try {
+            SafeFileChecker.checkSafeFilePath(rootPath, CONTAINER_SUBDIRECTORY, container);
+        } catch (IOException e) {
+            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
+        }
         createDirectories(getPathContainer(container));
     }
 
@@ -225,6 +239,15 @@ public class HashFileSystemHelper {
             fv.postVisitDirectory(directory, null);
         }
         return FileVisitResult.CONTINUE;
+    }
+
+    public void checkContainerPathTraversal(String  containerName) throws ContentAddressableStorageServerException {
+        try {
+            SafeFileChecker.checkSafeFilePath(rootPath, CONTAINER_SUBDIRECTORY, containerName);
+        } catch (IOException e) {
+            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
+        }
+
     }
 
     /**
