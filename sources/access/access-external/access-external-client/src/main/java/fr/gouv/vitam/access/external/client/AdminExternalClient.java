@@ -768,7 +768,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * launch probative value process
-     * @param vitamContext the vitam context
+     *
+     * @param vitamContext          the vitam context
      * @param probativeValueRequest the request
      * @return RequestResponse
      * @throws VitamClientException {@link VitamClientException}
@@ -843,5 +844,11 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream ontologies)
         throws InvalidParseOperationException, AccessExternalClientException;
 
+
+    RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String filName)
+        throws VitamClientException, AccessExternalClientException;
+
+    RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream ScenarioStream, String filName)
+        throws VitamClientException, AccessExternalClientException;
 
 }

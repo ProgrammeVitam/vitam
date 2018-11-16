@@ -54,8 +54,10 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
@@ -132,6 +134,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
+
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1649,6 +1652,46 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolicModel.class);
         } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+    @Override
+    public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
+        throws AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("griffin file  is mandatory", griffinModelList);
+        Response response = null;
+        try {
+            response = performRequest(POST, "/importGriffins", null,
+                griffinModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
+        throws AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("PreservationScenario file  is mandatory", preservationScenarioModels);
+        Response response = null;
+        try {
+            response = performRequest(POST, "/importPreservationScenarios", null,
+                preservationScenarioModels, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

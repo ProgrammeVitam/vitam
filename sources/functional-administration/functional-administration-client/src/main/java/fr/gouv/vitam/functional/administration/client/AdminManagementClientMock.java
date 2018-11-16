@@ -51,8 +51,10 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -73,7 +75,6 @@ import javax.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -516,6 +517,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public RequestResponse<JsonNode> rectificationAudit(String operationId) {
         return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
     }
+
     @Override public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest queryDsl) {
         return new RequestResponseOK();
     }
@@ -564,6 +566,15 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     @Override
     public RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl) throws AdminManagementClientServerException {
+        throw new RuntimeException("Cannot be used");
+    }
+
+    @Override public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
+        throws AdminManagementClientServerException {
+        throw new RuntimeException("Cannot be used");
+    }
+    @Override public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModelList)
+        throws AdminManagementClientServerException {
         throw new RuntimeException("Cannot be used");
     }
 }

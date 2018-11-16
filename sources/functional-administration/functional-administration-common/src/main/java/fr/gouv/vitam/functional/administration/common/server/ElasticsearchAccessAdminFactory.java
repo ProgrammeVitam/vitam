@@ -26,12 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.io.IOException;
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamException;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Factory to get ElasticsearchAccess for Admin
@@ -47,7 +48,7 @@ public final class ElasticsearchAccessAdminFactory {
      *
      * @param configuration config of ElasticsearchDbAcess
      * @return the ElasticsearchDbAcess
-     * @throws VitamException if elasticsearch list nodes is empty
+     * @throws VitamException           if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
     public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration) {
@@ -60,28 +61,21 @@ public final class ElasticsearchAccessAdminFactory {
      * Creation of one ElasticsearchDbAcess
      *
      * @param clusterName the cluster name
-     * @param nodes the node list
+     * @param nodes       the node list
      * @return the ElasticsearchDbAcess
-     * @throws VitamException if elasticsearch list nodes is empty
+     * @throws VitamException           if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
-    public static final ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes) {
+    public static ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", clusterName, nodes);
         try {
-            ElasticsearchAccessFunctionalAdmin elasticsearchAccess = new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);
-            FunctionalAdminCollections.FORMATS.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.RULES.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.INGEST_CONTRACT.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ACCESS_CONTRACT.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.PROFILE.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.CONTEXT.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.AGENCIES.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.SECURITY_PROFILE.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.initialize(elasticsearchAccess);
-            FunctionalAdminCollections.ONTOLOGY.initialize(elasticsearchAccess);
+            ElasticsearchAccessFunctionalAdmin elasticsearchAccess =
+                new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);
+
+            Arrays.stream(FunctionalAdminCollections.values())
+                .filter(collection -> collection != FunctionalAdminCollections.VITAM_SEQUENCE)
+                .forEach(collection -> collection.initialize(elasticsearchAccess));
+
             return elasticsearchAccess;
         } catch (VitamException | IOException e) {
             throw new IllegalArgumentException(e);

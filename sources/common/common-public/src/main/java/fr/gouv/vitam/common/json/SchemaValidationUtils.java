@@ -141,6 +141,11 @@ public class SchemaValidationUtils {
     public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
 
 
+    public static final String GRIFFIN_SCHEMA = "json-schema/griffin-shema.schema.json";
+
+    public static final String PRESERVATION_SCENARIO_SCHEMA = "json-schema/preservation-scenario-shema.schema.json";
+
+
     private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
         .appendPattern("u-MM-dd['T'HH:mm:ss[.SSS][.SS][.S][xxx][X]][xxx][X]")
         .toFormatter();
@@ -268,56 +273,55 @@ public class SchemaValidationUtils {
         jsonSchema = factory.getJsonSchema(schemaJson);
     }
 
-    /**
-     * Validate the json against the schema of the specified collectionName
-     *
-     * @param jsonNode
-     * @param collectionName
-     * @return a status ({@link SchemaValidationStatus})
-     * @throws FileNotFoundException          if no schema has been found fot the specified collectionname
-     * @throws InvalidParseOperationException
-     * @throws ProcessingException
-     */
+
     public SchemaValidationStatus validateJson(JsonNode jsonNode, String collectionName)
         throws FileNotFoundException, InvalidParseOperationException, ProcessingException {
 
-        if ("AccessContract".equals(collectionName)) {
-            setSchema(ACCESS_CONTRACT_SCHEMA_FILENAME);
-        } else if ("AccessionRegisterDetail".equals(collectionName)) {
-            // TODO : use ACCESSION_REGISTER_DETAIL_SCHEMA_FILENAME and fix validation
-            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
-        } else if ("AccessionRegisterSummary".equals(collectionName)) {
-            // TODO : should we validate by json schema (ACCESSION_REGISTER_SUMMARY_SCHEMA_FILENAME)
-            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
-        } else if ("Agencies".equals(collectionName)) {
-            setSchema(AGENCIES_SCHEMA_FILENAME);
-        } else if ("ArchiveUnitProfile".equals(collectionName)) {
-            setSchema(ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME);
-        } else if ("Context".equals(collectionName)) {
-            setSchema(CONTEXT_SCHEMA_FILENAME);
-        } else if ("FileFormat".equals(collectionName)) {
-            // TODO : should we validate by json schema (FILE_FORMAT_SCHEMA_FILENAME)
-            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
-        } else if ("FileRules".equals(collectionName)) {
-            setSchema(FILE_RULES_SCHEMA_FILENAME);
-        } else if ("IngestContract".equals(collectionName)) {
-            setSchema(INGEST_CONTRACT_SCHEMA_FILENAME);
-        } else if ("Profile".equals(collectionName)) {
-            setSchema(PROFILE_SCHEMA_FILENAME);
-        } else if ("SecurityProfile".equals(collectionName)) {
-            setSchema(SECURITY_PROFILE_SCHEMA_FILENAME);
-        } else if ("Ontology".equals(collectionName)) {
-            setSchema(ONTOLOGY_SCHEMA_FILENAME);
-        } else if ("ArchiveUnitProfileSchema".equals(collectionName)) {
-            // Archive Unit Profile Schema is set before and used for validation
-            // no need to set it again here
-            return validateJson(jsonNode);
-        }
-        // used for test
-        else if ("CollectionSample".equals(collectionName)) {
-            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
-        } else {
-            throw new FileNotFoundException("No json schema found for collection " + collectionName);
+        switch (collectionName) {
+            case "AccessContract":
+                setSchema(ACCESS_CONTRACT_SCHEMA_FILENAME);
+                break;
+            case "Agencies":
+                setSchema(AGENCIES_SCHEMA_FILENAME);
+                break;
+            case "ArchiveUnitProfile":
+                setSchema(ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME);
+                break;
+            case "Context":
+                setSchema(CONTEXT_SCHEMA_FILENAME);
+                break;
+            case "FileRules":
+                setSchema(FILE_RULES_SCHEMA_FILENAME);
+                break;
+            case "IngestContract":
+                setSchema(INGEST_CONTRACT_SCHEMA_FILENAME);
+                break;
+            case "Profile":
+                setSchema(PROFILE_SCHEMA_FILENAME);
+                break;
+            case "SecurityProfile":
+                setSchema(SECURITY_PROFILE_SCHEMA_FILENAME);
+                break;
+            case "Ontology":
+                setSchema(ONTOLOGY_SCHEMA_FILENAME);
+                break;
+            case "Griffin":
+                setSchema(GRIFFIN_SCHEMA);
+                break;
+            case "PreservationScenario":
+                setSchema(PRESERVATION_SCENARIO_SCHEMA);
+                break;
+            case "ArchiveUnitProfileSchema":
+                // Archive Unit Profile Schema is set before and used for validation
+                // no need to set it again here
+                break;
+            case "FileFormat":
+            case "CollectionSample":
+            case "AccessionRegisterDetail":
+            case "AccessionRegisterSummary":
+                return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+            default:
+                throw new FileNotFoundException("No json schema found for collection " + collectionName);
         }
 
         return validateJson(jsonNode);

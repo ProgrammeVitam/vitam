@@ -231,4 +231,8 @@ public class AccessExtAPI {
      * Export probative value uri
      */
     public static final String EXPORT_PROBATIVE_VALUE = "/probativevalueexport";
+
+    public static final String GRIFFIN = "griffin";
+
+    public static final String PRESERVATION_SCENARIO = "preservationScenario";
 }

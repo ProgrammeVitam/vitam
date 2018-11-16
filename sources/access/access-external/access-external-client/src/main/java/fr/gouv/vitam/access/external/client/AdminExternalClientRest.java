@@ -1139,7 +1139,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 requestResponseOK
                     .setHttpCode(Status.OK.getStatusCode());
 
-                requestResponseOK.addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
+                requestResponseOK
+                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
                 return requestResponseOK;
 
             } else {
@@ -1167,6 +1168,20 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ONTOLOGY, query,
             OntologyModel.class);
+    }
+
+    @Override
+    public RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.GRIFFIN, griffinStream, filename,
+            MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    @Override
+    public RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream scenarios, String fileName)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.PRESERVATION_SCENARIO, scenarios, fileName,
+            MediaType.APPLICATION_JSON_TYPE);
     }
 }
 

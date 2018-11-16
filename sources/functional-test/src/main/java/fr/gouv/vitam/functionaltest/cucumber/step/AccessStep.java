@@ -99,6 +99,7 @@ import java.util.regex.Pattern;
 
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.GRIFFIN;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
@@ -968,6 +969,56 @@ public class AccessStep {
             world.setResults(results);
         } catch (Exception e) {
             LOGGER.warn("Referentiels collection already imported");
+
+        }
+    }
+
+    @When("^j'importe le griffon nommé (.*)$")
+    public void importGriffin(String fileName) throws Exception {
+
+        Path file = Paths.get(world.getBaseDirectory(), fileName);
+        ArrayList<JsonNode> results = new ArrayList<>();
+
+        try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
+            RequestResponse response = null;
+            response =
+                world.getAdminClient().importGriffin(
+                    new VitamContext(world.getTenantId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, fileName);
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            world.setOperationId(operationId);
+            results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(response.getHttpCode())));
+            world.setResults(results);
+
+        } catch (Exception e) {
+            Fail.fail("failed to  upload griffin file  " + e);
+
+        }
+    }
+
+    @When("^j'importe le preservation Scenario nommé (.*)$")
+    public void importPreservation(String fileName) throws Exception {
+
+        Path file = Paths.get(world.getBaseDirectory(), fileName);
+        ArrayList<JsonNode> results = new ArrayList<>();
+
+        try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
+            RequestResponse response = null;
+            response =
+                world.getAdminClient().importPreservationScenario(
+                    new VitamContext(world.getTenantId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, fileName);
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            world.setOperationId(operationId);
+            results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(response.getHttpCode())));
+            world.setResults(results);
+
+        } catch (Exception e) {
+            Fail.fail("failed to  upload griffin file  " + e);
         }
     }
 
@@ -996,7 +1047,7 @@ public class AccessStep {
                 new VitamContext(world.getTenantId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
                 inputStream, filename);
-            status = response.getHttpCode();
+            return response.getHttpCode();
         } else if (RULES.equals(adminCollection)) {
             response =
                 world.getAdminClient().createRules(

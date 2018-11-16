@@ -94,7 +94,12 @@ public enum AdminCollections {
     /**
      * Ontology collection
      */
-    ONTOLOGY(AccessExtAPI.ONTOLOGY, null);
+    ONTOLOGY(AccessExtAPI.ONTOLOGY, null),
+
+
+    GRIFFIN(AccessExtAPI.GRIFFIN, null),
+
+    PRESERVATION_SCENARIO(AccessExtAPI.PRESERVATION_SCENARIO, null);
 
     private String name;
 

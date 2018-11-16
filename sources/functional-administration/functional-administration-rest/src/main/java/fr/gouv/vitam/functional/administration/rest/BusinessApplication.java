@@ -109,6 +109,9 @@ public class BusinessApplication extends Application {
 
             singletons.add(profileResource);
 
+            singletons.add(new GriffinResource(mongoDbAccess, vitamCounterService,
+                functionalBackupService));
+
         } catch (IOException | VitamException e) {
             throw new RuntimeException(e);
         }
