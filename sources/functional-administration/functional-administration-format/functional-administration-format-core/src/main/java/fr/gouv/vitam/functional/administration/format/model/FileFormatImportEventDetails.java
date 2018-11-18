@@ -24,41 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.format.core;
+package fr.gouv.vitam.functional.administration.format.model;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
-import org.junit.Test;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+public class FileFormatImportEventDetails {
 
-public class PronomParserTest {
+    private String filename;
+    private List<String> warnings;
 
-    private static final String FILE_TO_TEST = "FF-vitam.xml";
-    private static final String FILE_TO_TEST_KO = "FF-vitam-KO.xml";
-
-    @Test
-    public void testPronomFormat() throws FileFormatException, FileNotFoundException {
-        List<FileFormatModel> jsonFileFormat =
-            PronomParser.getPronom(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST)));
-        final FileFormatModel fileFormatModel = jsonFileFormat.get(jsonFileFormat.size() - 1);
-        assertTrue(fileFormatModel.getName().contains("RDF/XML"));
-        assertEquals(fileFormatModel.getPuid(), "fmt/875");
-        assertTrue(fileFormatModel.getMimeType().contains("application/rdf+xml"));
-        assertFalse(fileFormatModel.isAlert());
-        assertEquals(fileFormatModel.getGroup(), "");
-        assertEquals(fileFormatModel.getComment(), "");
+    public FileFormatImportEventDetails() {
+        // Empty constructor for deserialization
     }
 
-    @Test(expected = FileNotFoundException.class)
-    public void testPronomFormatFileKO() throws FileNotFoundException, FileFormatException {
-        PronomParser.getPronom(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+    public String getFilename() {
+        return filename;
+    }
+
+    public FileFormatImportEventDetails setFilename(String filename) {
+        this.filename = filename;
+        return this;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public FileFormatImportEventDetails setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+        return this;
     }
 }
