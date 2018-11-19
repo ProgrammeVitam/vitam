@@ -3,7 +3,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest</artifactId>
-        <version>1.10.0</version>
+        <version>1.10.0-1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
