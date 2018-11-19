@@ -93,7 +93,9 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: http_proxy_environnement is defined
+  when: 
+    - http_proxy_environnement is defined
+    - http_proxy_environnement != ''
 
 # # SYSTEM WIDE ? sinon, lancer en tant que vitam
 # - name: initialize git lfs
