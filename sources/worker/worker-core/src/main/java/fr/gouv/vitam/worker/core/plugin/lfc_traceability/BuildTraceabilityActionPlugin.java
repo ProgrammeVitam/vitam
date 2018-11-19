@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
@@ -69,6 +68,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.StorageClientUtil;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -86,7 +86,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -238,7 +237,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         RequestResponse<BatchObjectInformationResponse> requestResponse =
             storageClient.getBatchObjectInformation(DEFAULT_STRATEGY, dataCategory, offerIds, objectNames);
         PerformanceLogger.getInstance().log(stepName(), actionName(),
-            "BULK_DIGEST_" + dataCategory.getCollectionName().toUpperCase(), bulkObjectInformationSW.elapsed(TimeUnit.MILLISECONDS));
+            "BULK_DIGEST_" + dataCategory.getCollectionName().toUpperCase(),
+            bulkObjectInformationSW.elapsed(TimeUnit.MILLISECONDS));
 
         if (!requestResponse.isOk()) {
             throw new ProcessingException(
@@ -308,32 +308,33 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 }
 
                 ArrayList<String> parents = new ArrayList<>();
-                if(metadata.has(MetadataDocument.UP)) {
+                if (metadata.has(MetadataDocument.UP)) {
                     metadata.get(MetadataDocument.UP).forEach(up -> parents.add(up.asText()));
                 }
                 lfcTraceSecFileDataLine.setUp(parents);
 
                 hashMetaData = generateDigest(metadata, digestType);
-                lfcAndMetadataGlobalHashFromStorage = checkAndGetOfferDigest(metadataDigestsByOfferId,
-                    DataCategory.UNIT, id + JSON_EXTENSION);
+                lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.aggregateOfferDigests(metadataDigestsByOfferId,
+                    DataCategory.UNIT, id + JSON_EXTENSION, alertService);
             } else if (LogbookLifeCycleObjectGroup.class.getName().equals(lifecycleType)) {
                 metadataType = MetadataType.OBJECTGROUP;
                 MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(metadata);
 
                 hashMetaData = generateDigest(metadata, digestType);
-                lfcAndMetadataGlobalHashFromStorage = checkAndGetOfferDigest(metadataDigestsByOfferId,
-                    DataCategory.OBJECTGROUP, id + JSON_EXTENSION);
+                lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.aggregateOfferDigests(metadataDigestsByOfferId,
+                    DataCategory.OBJECTGROUP, id + JSON_EXTENSION, alertService);
 
                 List<ObjectGroupDocumentHash> list =
                     offerDigestsByBinaryObjectIds.entrySet()
                         .stream()
                         .map(entry -> new ObjectGroupDocumentHash(
                             entry.getKey(),
-                            checkAndGetOfferDigest(entry.getValue(), DataCategory.OBJECT, entry.getKey()))
+                            StorageClientUtil.aggregateOfferDigests(
+                                entry.getValue(), DataCategory.OBJECT, entry.getKey(), alertService))
                         ).collect(Collectors.toList());
 
                 ArrayList<String> auParents = new ArrayList<>();
-                if(metadata.has(MetadataDocument.UP)) {
+                if (metadata.has(MetadataDocument.UP)) {
                     metadata.get(MetadataDocument.UP).forEach(up -> auParents.add(up.asText()));
                 }
                 lfcTraceSecFileDataLine.setUp(auParents);
@@ -357,7 +358,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     }
 
     private String getJsonText(JsonNode lastEvent, LogbookMongoDbName outcome) {
-        if(lastEvent == null || !lastEvent.has(outcome.getDbname())){
+        if (lastEvent == null || !lastEvent.has(outcome.getDbname())) {
             return null;
         }
         return lastEvent.get(outcome.getDbname()).asText();
@@ -390,58 +391,6 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     }
 
     /**
-     * Check that all offers have digest information, and that all digests match.
-     */
-    private String checkAndGetOfferDigest(Map<String, String> digestsByOfferId, DataCategory dataCategory,
-        String objectId) {
-
-        boolean offersAreNotSynchronised = false;
-
-        if (digestsByOfferId.isEmpty()) {
-            throw new IllegalStateException("No offer digest provided");
-        }
-
-        // Ensure all offers have digest information
-        List<String> offersWithoutDigest = digestsByOfferId.entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() == null)
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList());
-
-        if (!offersWithoutDigest.isEmpty()) {
-            alertService.createAlert(VitamLogLevel.ERROR,
-                String.format("Missing metadata (%s - %s) digest from offers %s",
-                    dataCategory, objectId, String.join(", ", offersWithoutDigest)));
-            offersAreNotSynchronised = true;
-        }
-
-        // Ensure that all digests match
-        Set<String> digests = digestsByOfferId.entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null)
-            .map(Map.Entry::getValue)
-            .collect(Collectors.toSet());
-
-        if (digests.size() != 1) {
-            alertService.createAlert(VitamLogLevel.ERROR,
-                String.format("Digest mismatch for metadata %s (%s). %s",
-                    dataCategory, objectId,
-                    digestsByOfferId.entrySet()
-                        .stream()
-                        .filter(entry -> entry.getValue() != null)
-                        .map(entry -> entry.getKey() + ": " + entry.getValue())
-                        .collect(Collectors.joining(","))));
-            offersAreNotSynchronised = true;
-        }
-
-        if (offersAreNotSynchronised) {
-            return "0000000000000000000000000000000000000000000000000000000000000000";
-        }
-
-        return digests.iterator().next();
-    }
-
-    /**
      * Generate a hash for a JsonNode using VITAM Digest Algorithm
      *
      * @param jsonNode the jsonNode to compute digest for
@@ -460,5 +409,6 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     }
 
     protected abstract String stepName();
+
     protected abstract String actionName();
 }
