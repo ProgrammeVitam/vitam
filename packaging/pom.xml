@@ -95,6 +95,19 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>batch-report-rest</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>batch-report-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>access-internal-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
