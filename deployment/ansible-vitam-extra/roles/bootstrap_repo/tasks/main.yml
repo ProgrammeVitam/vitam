@@ -12,6 +12,7 @@
 
   - name: Update yum cache
     yum:
+      name: coreutils
       update_cache: yes
 
   when: ansible_os_family == "RedHat"
