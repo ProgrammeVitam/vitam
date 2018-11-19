@@ -12,6 +12,8 @@
 # $ActionQueueLowWatermark 10000 # Une fois qu'il n'y a plus que 10.000 messages dans la file, on arrete d'utiliser le disque
 
 {% if (groups['hosts-logstash']|length) > 0 %}
+$ModLoad imudp
+$UDPServerRun 514
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam-queue
@@ -21,7 +23,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "vitam" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-mongo-queue
@@ -31,7 +33,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "mongo" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam_accesslog-queue
@@ -41,7 +43,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "vitam_accesslog" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_log-queue
@@ -51,7 +53,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "elasticsearch-log" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_data-queue
@@ -61,7 +63,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "elasticsearch-data" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam_consul-queue
@@ -71,7 +73,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "consul" @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-clamav-queue
@@ -81,7 +83,7 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "clam"  @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-curator-queue
@@ -91,6 +93,6 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "curator"  @@{{ logstash.host }}:{{logstash.port}}
-& ~
+& stop
 
 {% endif %}
