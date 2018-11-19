@@ -27,22 +27,6 @@
   notify:
     - restart rsyslog
 
-- name: activate UDP in rsyslog
-  replace:
-    dest: /etc/rsyslog.conf
-    regexp: '^#\$ModLoad imudp.*$'
-    replace: "$ModLoad imudp"
-  notify:
-    - restart rsyslog
-
-- name: activate port 514 in rsyslog
-  replace:
-    dest: /etc/rsyslog.conf
-    regexp: '^#\$UDPServerRun 514.*$'
-    replace: "$UDPServerRun 514"
-  notify:
-    - restart rsyslog
-
 - name: Ensure service is started
   service:
     name: "rsyslog"
