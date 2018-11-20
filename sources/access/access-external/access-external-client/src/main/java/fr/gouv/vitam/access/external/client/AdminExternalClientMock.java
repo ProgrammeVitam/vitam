@@ -37,8 +37,10 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -510,6 +512,18 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream stream, String fileName)
         throws VitamClientException, AccessExternalClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
+        throws VitamClientException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 }

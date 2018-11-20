@@ -35,8 +35,6 @@ import org.bson.Document;
  */
 public class Griffin extends VitamDocument<Griffin> {
 
-
-
     public Griffin() {}
 
     public Griffin(JsonNode content) {
@@ -51,12 +49,15 @@ public class Griffin extends VitamDocument<Griffin> {
         super(content);
     }
 
-
     public static final String IDENTIFIER = "Identifier";
 
     private static final String NAME = "Name";
 
     private static final String DESCRIPTION = "Description";
+
+    private static final String EXECUTABLE_VERSION = "ExecutableVersion";
+
+    private static final String EXECUTABLE_NAME = "ExecutableName";
 
     @Override
     public VitamDocument<Griffin> newInstance(JsonNode content) {
@@ -95,4 +96,21 @@ public class Griffin extends VitamDocument<Griffin> {
         return this;
     }
 
+    public String getExecutableVersion() {
+        return getString(EXECUTABLE_VERSION);
+    }
+
+    public Griffin setExecutableVersion(String executableVersion){
+        append(EXECUTABLE_VERSION, executableVersion);
+        return this;
+    }
+
+    public String getExecutableName() {
+        return getString(EXECUTABLE_NAME);
+    }
+
+    public Griffin setExecutableName(String executableName){
+        append(EXECUTABLE_NAME, executableName);
+        return this;
+    }
 }

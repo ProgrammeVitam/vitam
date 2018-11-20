@@ -10,7 +10,12 @@
     "Description": {
       "type": "text"
     },
-
+    "ExecutableVersion": {
+      "type": "text"
+    },
+    "ExecutableName": {
+      "type": "text"
+    },
     "CreationDate": {
       "type": "date",
       "format": "strict_date_optional_time"

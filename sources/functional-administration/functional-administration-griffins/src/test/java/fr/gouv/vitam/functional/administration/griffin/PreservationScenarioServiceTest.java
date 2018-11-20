@@ -4,12 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -23,19 +27,23 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class PreservationScenarioServiceTest {
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock MongoDbAccessReferential mongoDbAccess;
+    @Mock FunctionalBackupService functionalBackupService;
+    @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
+    @Mock LogbookOperationsClient logbookOperationsClient;
 
     PreservationScenarioService preservationScenarioService;
 
     @Before
     public void setUp() throws Exception {
+        preservationScenarioService =
+            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
 
-        preservationScenarioService = new PreservationScenarioService(mongoDbAccess);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
     }
 
     @Test
@@ -62,7 +70,8 @@ public class PreservationScenarioServiceTest {
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
         //When
-        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class)).thenReturn(allPreservationScenarioInDatabase);
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
+            .thenReturn(allPreservationScenarioInDatabase);
 
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
@@ -75,6 +84,4 @@ public class PreservationScenarioServiceTest {
         assertThat(listToUpdate.size()).isEqualTo(1);
 
     }
-
-
 }

@@ -30,62 +30,107 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
+import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static java.util.stream.Collectors.toSet;
 
 public class PreservationScenarioService {
 
+    private static final String SCENARIO_BACKUP_EVENT = "STP_BACKUP_SCENARIO";
+    private static final String SCENARIO_IMPORT_EVENT = "IMPORT_PRESERVATION_SCENARIO";
+
     private MongoDbAccessReferential mongoDbAccess;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private FunctionalBackupService functionalBackupService;
 
-    public PreservationScenarioService(MongoDbAccessReferential mongoDbAccess) {
-
+    PreservationScenarioService(MongoDbAccessReferential mongoDbAccess,
+        FunctionalBackupService functionalBackupService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
+        this.functionalBackupService = functionalBackupService;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public void importScenarios(@NotNull List<PreservationScenarioModel> listToImport)
-        throws InvalidParseOperationException, SchemaValidationException, BadRequestException, ReferentialException,
+    public PreservationScenarioService(MongoDbAccessAdminImpl mongoAccess,
+        FunctionalBackupService functionalBackupService) {
+        this(mongoAccess, functionalBackupService, getInstance());
+    }
+
+    public RequestResponse<PreservationScenarioModel> importScenarios(@NotNull List<PreservationScenarioModel> listToImport)
+        throws VitamException,
         InvalidCreateOperationException {
 
-        final List<String> listIdsToDelete = new ArrayList<>();
-        final List<PreservationScenarioModel> listToUpdate = new ArrayList<>();
-        final List<PreservationScenarioModel> listToInsert = new ArrayList<>();
+        String operationId = getVitamSession().getRequestId();
+        GUID guid = getGUID(operationId);
 
-        classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete);
+        createLogbook(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
 
-        insertScenarios(listToInsert);
+        try {
+            final List<String> listIdsToDelete = new ArrayList<>();
+            final List<PreservationScenarioModel> listToUpdate = new ArrayList<>();
+            final List<PreservationScenarioModel> listToInsert = new ArrayList<>();
 
-        updateScenarios(listToUpdate);
+            classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete);
 
-        deleteScenarios(listIdsToDelete);
+            insertScenarios(listToInsert);
+
+            updateScenarios(listToUpdate);
+
+            deleteScenarios(listIdsToDelete);
+
+            functionalBackupService
+                .saveCollectionAndSequence(guid, SCENARIO_BACKUP_EVENT, PRESERVATION_SCENARIO, operationId);
+
+        } catch (InvalidCreateOperationException | VitamException e) {
+            createLogbookEventKo(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT, e.getMessage());
+            throw e;
+        }
+
+        createLogbookEventSuccess(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
+
+       return new RequestResponseOK<PreservationScenarioModel>().addAllResults(listToImport)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     void classifyDataInInsertUpdateOrDeleteLists(@NotNull List<PreservationScenarioModel> listToImport,
@@ -145,6 +190,8 @@ public class PreservationScenarioService {
         for (PreservationScenarioModel preservationScenarioModel : listToInsert) {
             preservationScenarioModel.setTenant(HeaderIdHelper.getTenantId());
 
+            formatDateForMongo(preservationScenarioModel);
+
             (treatmentToInsert).add(toJson(preservationScenarioModel));
         }
 
@@ -159,7 +206,6 @@ public class PreservationScenarioService {
         if (jsonNode != null) {
             modelNode.set("_id", jsonNode);
         }
-
         JsonNode hashTenant = modelNode.remove(tenant());
         if (hashTenant != null) {
             modelNode.set("_tenant", hashTenant);
@@ -169,7 +215,7 @@ public class PreservationScenarioService {
     }
 
     private void deleteScenarios(@NotNull List<String> listIdsToDelete)
-        throws ReferentialException, BadRequestException, SchemaValidationException, InvalidParseOperationException,
+        throws ReferentialException, BadRequestException, SchemaValidationException,
         InvalidCreateOperationException {
 
         for (String identifier : listIdsToDelete) {
@@ -186,6 +232,7 @@ public class PreservationScenarioService {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
+            formatDateForMongo(preservationScenarioModel);
             JsonNode queryDslForUpdate = getUpdateDslQuery(preservationScenarioModel);
 
             mongoDbAccess.updateData(queryDslForUpdate, PRESERVATION_SCENARIO);
@@ -194,7 +241,6 @@ public class PreservationScenarioService {
 
     private JsonNode getUpdateDslQuery(@NotNull PreservationScenarioModel preservationScenarioModel)
         throws InvalidCreateOperationException, InvalidParseOperationException {
-
 
         final List<SetAction> actions = new ArrayList<>();
 
@@ -213,5 +259,14 @@ public class PreservationScenarioService {
         update.setQuery(eq(Griffin.IDENTIFIER, preservationScenarioModel.getIdentifier()));
         update.addActions(setActions);
         return update.getFinalUpdate();
+    }
+
+    private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) {
+
+        String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
+        preservationScenarioModel.setLastUpdate(lastUpdate);
+
+        String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
+        preservationScenarioModel.setCreationDate(creationDate);
     }
 }

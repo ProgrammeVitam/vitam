@@ -90,7 +90,7 @@ public enum SequenceType {
 
     GRIFFIN(FunctionalAdminCollections.GRIFFIN,"GR"),
 
-    TREATMENT(FunctionalAdminCollections.PRESERVATION_SCENARIO,"TR"),
+    TREATMENT(FunctionalAdminCollections.PRESERVATION_SCENARIO,"PSC"),
 
     /**
      * Accession Register Detail sequence type

@@ -38,6 +38,8 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.griffin.GriffinService;
+import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -61,7 +63,7 @@ public class BusinessApplication extends Application {
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -98,9 +100,9 @@ public class BusinessApplication extends Application {
                 functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                    adminManagementClient));
+                adminManagementClient));
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                    adminManagementClient));
+                adminManagementClient));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
             singletons.add(new EvidenceResource(mongoDbAccess, vitamCounterService));
@@ -109,8 +111,13 @@ public class BusinessApplication extends Application {
 
             singletons.add(profileResource);
 
-            singletons.add(new GriffinResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService));
+            PreservationScenarioService preservationScenarioService =
+                new PreservationScenarioService(mongoDbAccess, functionalBackupService);
+
+            GriffinService griffinService = new GriffinService(mongoDbAccess, functionalBackupService);
+            PreservationResource griffinResource = new PreservationResource(preservationScenarioService, griffinService);
+
+            singletons.add(griffinResource);
 
         } catch (IOException | VitamException e) {
             throw new RuntimeException(e);

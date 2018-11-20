@@ -96,7 +96,6 @@ public enum AdminCollections {
      */
     ONTOLOGY(AccessExtAPI.ONTOLOGY, null),
 
-
     GRIFFIN(AccessExtAPI.GRIFFIN, null),
 
     PRESERVATION_SCENARIO(AccessExtAPI.PRESERVATION_SCENARIO, null);

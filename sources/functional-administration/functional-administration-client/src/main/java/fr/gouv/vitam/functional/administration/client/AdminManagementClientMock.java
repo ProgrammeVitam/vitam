@@ -569,12 +569,27 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throw new RuntimeException("Cannot be used");
     }
 
-    @Override public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
+    @Override
+    public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
         throws AdminManagementClientServerException {
-        throw new RuntimeException("Cannot be used");
+        throw new IllegalStateException("Cannot be used");
     }
-    @Override public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModelList)
+
+    @Override
+    public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModelList)
         throws AdminManagementClientServerException {
-        throw new RuntimeException("Cannot be used");
+        throw new IllegalStateException("Cannot be used");
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throw new IllegalStateException("Cannot be used");
+    }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throw new IllegalStateException("Cannot be used");
     }
 }

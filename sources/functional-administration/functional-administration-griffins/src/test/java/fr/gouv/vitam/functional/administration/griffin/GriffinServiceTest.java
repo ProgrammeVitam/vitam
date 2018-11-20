@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,11 +31,13 @@ public class GriffinServiceTest {
     @Mock MongoDbAccessReferential mongoDbAccess;
 
     GriffinService griffinService;
+    @Mock FunctionalBackupService functionalBackupService;
+    @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @Before
     public void setUp() throws Exception {
 
-        griffinService = new GriffinService(mongoDbAccess);
+        griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
     }
 
     @Test
@@ -70,6 +74,5 @@ public class GriffinServiceTest {
         assertThat(listToDelete.size()).isEqualTo(1);
         assertThat(listToInsert.size()).isEqualTo(1);
         assertThat(listToUpdate.size()).isEqualTo(1);
-
     }
 }

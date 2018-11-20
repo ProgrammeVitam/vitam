@@ -44,8 +44,7 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
         super(content);
     }
 
-    public PreservationScenario() {
-    }
+    public PreservationScenario() {}
 
     public static final String IDENTIFIER = "Identifier";
 
@@ -89,5 +88,4 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
         append(DESCRIPTION, description);
         return this;
     }
-
 }

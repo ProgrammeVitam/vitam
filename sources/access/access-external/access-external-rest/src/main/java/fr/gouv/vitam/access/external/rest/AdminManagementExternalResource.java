@@ -2623,6 +2623,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+
+
+
     /**
      * Pause the processes specified by ProcessPause info
      *
@@ -2683,13 +2686,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "griffins:create", description = "Import du griffon")
+    @Secured(permission = "griffins:create", isAdminOnly = true, description = "Import du griffon")
     public Response importGriffin(JsonNode griffins) {
 
         ParametersChecker.checkParameter("Json griffin is a mandatory parameter", griffins);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             SanityChecker.checkJsonAll(griffins);
+
             RequestResponse requestResponse =
                 client.importGriffins(getFromStringAsTypeRefence(griffins.toString(),
                     new TypeReference<List<GriffinModel>>() {
@@ -2713,11 +2717,49 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+
+    @Path("/griffin/{id_document:.+}")
+    @GET
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "griffins:read", description = "lecture d'un griffin par identifier")
+    public Response findGriffinByID(@PathParam("id_document") String documentId) {
+
+        try {
+            ParametersChecker.checkParameter("Griffin ID is a  mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<GriffinModel> requestResponse = client.findGriffinByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+
     @POST
     @Path("/preservationScenario")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:create", description = "Import des perservation scénarios")
+    @Secured(permission = "preservationScenarios:create",isAdminOnly = true, description = "Import des perservation scénarios")
     public Response importPreservationScenario(JsonNode preservationScenarios) {
 
         ParametersChecker.checkParameter("Json preservationScenarios is a mandatory parameter", preservationScenarios);

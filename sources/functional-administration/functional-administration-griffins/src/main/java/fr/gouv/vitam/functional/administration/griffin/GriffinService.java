@@ -30,60 +30,107 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
+import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
+import javax.swing.*;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
+import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static java.util.stream.Collectors.toSet;
 
 public class GriffinService {
+    private static final String GRIFFIN_BACKUP_EVENT = "STP_BACKUP_GRIFFIN";
+    private static final String GRIFFIN_IMPORT_EVENT = "IMPORT_GRIFFIN";
 
     private MongoDbAccessReferential mongoDbAccess;
+    private FunctionalBackupService functionalBackupService;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public GriffinService(MongoDbAccessReferential mongoDbAccess) {
+    GriffinService(MongoDbAccessReferential mongoDbAccess,
+        FunctionalBackupService functionalBackupService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
+        this.functionalBackupService = functionalBackupService;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public void importGriffin(@NotNull List<GriffinModel> listToImport)
-        throws InvalidParseOperationException, SchemaValidationException, BadRequestException, ReferentialException,
-        InvalidCreateOperationException {
+    public GriffinService(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService) {
+        this(mongoAccess, functionalBackupService, getInstance());
+    }
 
-        final List<String> listIdsToDelete = new ArrayList<>();
-        final List<GriffinModel> listToUpdate = new ArrayList<>();
-        final List<GriffinModel> listToInsert = new ArrayList<>();
+    public RequestResponse<GriffinModel> importGriffin(@NotNull List<GriffinModel> listToImport)
+        throws VitamException, InvalidCreateOperationException {
 
-        classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete);
+        String operationId = getVitamSession().getRequestId();
+        GUID guid = getGUID(operationId);
 
-        insertGriffins(listToInsert);
+        createLogbook(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT);
 
-        updateGriffins(listToUpdate);
+        try {
+            final List<String> listIdsToDelete = new ArrayList<>();
+            final List<GriffinModel> listToUpdate = new ArrayList<>();
+            final List<GriffinModel> listToInsert = new ArrayList<>();
 
-        deleteGriffins(listIdsToDelete);
+            classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete);
+
+            insertGriffins(listToInsert);
+
+            updateGriffins(listToUpdate);
+
+            deleteGriffins(listIdsToDelete);
+
+            functionalBackupService.saveCollectionAndSequence(guid, GRIFFIN_BACKUP_EVENT, GRIFFIN, operationId);
+
+        } catch (InvalidCreateOperationException | VitamException e) {
+            createLogbookEventKo(logbookOperationsClientFactory, guid, GRIFFIN_BACKUP_EVENT, e.getMessage());
+            throw e;
+        }
+
+        createLogbookEventSuccess(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT);
+
+        return new RequestResponseOK<GriffinModel>().addAllResults(listToImport)
+            .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     void classifyDataInInsertUpdateOrDeleteLists(@NotNull List<GriffinModel> listToImport,
@@ -136,6 +183,8 @@ public class GriffinService {
 
         for (GriffinModel griffinModel : listToInsert) {
             griffinModel.setTenant(HeaderIdHelper.getTenantId());
+
+            formatDateForMongo(griffinModel);
             (griffinToInsert).add(toJson(griffinModel));
         }
 
@@ -164,7 +213,7 @@ public class GriffinService {
 
         for (String identifier : listIdsToDelete) {
             final Select select = new Select();
-            select.setQuery(eq(Griffin.IDENTIFIER, identifier));
+            select.setQuery(eq(IDENTIFIER, identifier));
             mongoDbAccess.deleteDocument(select.getFinalSelect(), GRIFFIN);
         }
     }
@@ -175,11 +224,22 @@ public class GriffinService {
 
         for (GriffinModel griffinModel : listToUpdate) {
 
-            JsonNode queryDslForUpdate = getUpdateDslQuery(griffinModel);
+            formatDateForMongo(griffinModel);
 
+            JsonNode queryDslForUpdate = getUpdateDslQuery(griffinModel);
             mongoDbAccess.updateData(queryDslForUpdate, GRIFFIN);
         }
     }
+
+    private void formatDateForMongo(GriffinModel griffinModel) {
+
+        String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
+        griffinModel.setLastUpdate(lastUpdate);
+
+        String creationDate = getFormattedDateForMongo(griffinModel.getCreationDate());
+        griffinModel.setCreationDate(creationDate);
+    }
+
 
     private JsonNode getUpdateDslQuery(@NotNull GriffinModel griffinModel)
         throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -196,9 +256,25 @@ public class GriffinService {
 
         SetAction[] setActions = actions.toArray(new SetAction[0]);
         final Update update = new Update();
-        update.setQuery(eq(Griffin.IDENTIFIER, griffinModel.getIdentifier()));
+        update.setQuery(eq(IDENTIFIER, griffinModel.getIdentifier()));
         update.addActions(setActions);
 
         return update.getFinalUpdate();
+    }
+
+    public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
+        DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, GRIFFIN);
+
+        return documents.getRequestResponseOK(queryDsl, Griffin.class, GriffinModel.class);
+    }
+
+    public RequestResponse<PreservationScenarioModel> findPreservationScenario(JsonNode queryDsl)
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
+        DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, PRESERVATION_SCENARIO);
+
+        return documents.getRequestResponseOK(queryDsl, PreservationScenario.class, PreservationScenarioModel.class);
     }
 }

@@ -40,7 +40,7 @@ public class PreservationScenarioModel {
 
     private static final String TAG_NAME = "Name";
 
-    private static final String TAG_IDENTIFIER = "Identifier";
+    public static final String TAG_IDENTIFIER = "Identifier";
 
     private static final String TAG_CREATION_DATE = "CreationDate";
 
@@ -71,7 +71,6 @@ public class PreservationScenarioModel {
 
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
-
 
     public String getId() {
         return id;

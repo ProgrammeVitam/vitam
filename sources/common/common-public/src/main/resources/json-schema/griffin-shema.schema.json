@@ -22,6 +22,12 @@
     "Description": {
       "type": "string"
     },
+    "ExecutableName": {
+      "type": "string"
+    },
+    "ExecutableVersion": {
+      "type": "string"
+    },
     "CreationDate": {
       "type": "string"
     },

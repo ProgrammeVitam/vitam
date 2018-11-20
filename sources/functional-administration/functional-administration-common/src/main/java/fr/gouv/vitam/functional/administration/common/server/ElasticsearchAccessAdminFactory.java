@@ -39,9 +39,7 @@ import java.util.List;
  */
 public final class ElasticsearchAccessAdminFactory {
 
-    private ElasticsearchAccessAdminFactory() {
-        // Empty
-    }
+    private ElasticsearchAccessAdminFactory() {     /* Empty */ }
 
     /**
      * Creation of one ElasticsearchDbAcess
@@ -75,7 +73,6 @@ public final class ElasticsearchAccessAdminFactory {
             Arrays.stream(FunctionalAdminCollections.values())
                 .filter(collection -> collection != FunctionalAdminCollections.VITAM_SEQUENCE)
                 .forEach(collection -> collection.initialize(elasticsearchAccess));
-
             return elasticsearchAccess;
         } catch (VitamException | IOException e) {
             throw new IllegalArgumentException(e);

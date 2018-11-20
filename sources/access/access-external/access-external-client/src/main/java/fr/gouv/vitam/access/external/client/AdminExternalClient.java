@@ -53,8 +53,10 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -851,4 +853,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream ScenarioStream, String filName)
         throws VitamClientException, AccessExternalClientException;
 
+    RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)
+        throws VitamClientException;
+
+    RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
+        throws VitamClientException;
 }

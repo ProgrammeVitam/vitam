@@ -40,13 +40,18 @@ public class GriffinModel {
 
     private static final String TAG_NAME = "Name";
 
-    private static final String TAG_IDENTIFIER = "Identifier";
+    public static final String TAG_IDENTIFIER = "Identifier";
 
     private static final String TAG_CREATION_DATE = "CreationDate";
 
     private static final String TAG_LAST_UPDATE = "LastUpdate";
 
-    public static String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
+    private static final String TAG_EXECUTABLE_VERSION = "ExecutableVersion";
+
+    private static final String TAG_EXECUTABLE_NAME = "ExecutableName";
+
+    public static String[] alterableFields =
+        {TAG_DESCRIPTION, TAG_NAME, TAG_EXECUTABLE_NAME, TAG_EXECUTABLE_VERSION, TAG_CREATION_DATE, TAG_LAST_UPDATE};
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -72,6 +77,11 @@ public class GriffinModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
+    @JsonProperty(TAG_EXECUTABLE_NAME)
+    private String executableName;
+
+    @JsonProperty(TAG_EXECUTABLE_VERSION)
+    private String executableVersion;
 
     public String getId() {
         return id;
@@ -135,5 +145,21 @@ public class GriffinModel {
 
     public void setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public String getExecutableName() {
+        return executableName;
+    }
+
+    public void setExecutableName(String executableName) {
+        this.executableName = executableName;
+    }
+
+    public String getExecutableVersion() {
+        return executableVersion;
+    }
+
+    public void setExecutableVersion(String executableVersion) {
+        this.executableVersion = executableVersion;
     }
 }
