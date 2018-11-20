@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -83,7 +82,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * Constructor from LogbookOperationParameters for update purpose
      *
      * @param parameters the logbook parameters
-     * @param forUpdate specifies if the parameters should not contain fields for update
+     * @param forUpdate  specifies if the parameters should not contain fields for update
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookOperation(LogbookOperationParameters parameters, boolean forUpdate) {
@@ -136,7 +135,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
 
     @Override
     public VitamDocument<LogbookOperation> newInstance(JsonNode content) {
-    	return new LogbookOperation(content);
+        return new LogbookOperation(content);
     }
 
     static final LogbookMongoDbName getIdName() {
@@ -157,7 +156,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     }
 
     /**
-     *
      * @return the equivalent unique Operation
      */
     private LogbookOperationParameters getOperation(Bson object) {
@@ -166,12 +164,12 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         if (object instanceof BasicDBObject) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
                 map.put(name.getLogbookParameterName(),
-                    ((BasicDBObject) object).getString(name.getDbname()));
+                        ((BasicDBObject) object).getString(name.getDbname()));
             }
         } else if (object instanceof Document) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
                 map.put(name.getLogbookParameterName(),
-                    ((Document) object).getString(name.getDbname()));
+                        ((Document) object).getString(name.getDbname()));
             }
         }
         return parameters;
