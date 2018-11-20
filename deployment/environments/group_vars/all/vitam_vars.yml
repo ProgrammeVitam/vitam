@@ -72,6 +72,9 @@ vitam:
         # If this var is not set, the default one will be used (vitam_defaults.services.log_level)
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -82,6 +85,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -93,6 +99,9 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -104,6 +113,9 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -114,6 +126,9 @@ vitam:
         secret_platform: "false"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -139,6 +154,9 @@ vitam:
         #   DELETE : After upload, the local file will be deleted if the upload succeeded
         #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -149,6 +167,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -178,6 +199,9 @@ vitam:
             # - ldapRealm
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -197,6 +221,9 @@ vitam:
         lifecycleTraceabilityMaxEntries: 100000
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -208,6 +235,9 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -218,6 +248,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -228,6 +261,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -243,9 +279,11 @@ vitam:
         maxBatchThreadPoolSize: 16
         # Digest computation timeout in seconds
         batchDigestComputationTimeout: 300
-
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -255,6 +293,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     worker:
         vitam_component: worker
         port_service: 9104
@@ -264,6 +305,9 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -274,3 +318,6 @@ vitam:
         secret_platform: "true"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
