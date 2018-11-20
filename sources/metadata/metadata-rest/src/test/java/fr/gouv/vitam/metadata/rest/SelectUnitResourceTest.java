@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import io.restassured.RestAssured;
@@ -68,8 +69,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,7 +88,7 @@ public class SelectUnitResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
 
@@ -93,40 +96,40 @@ public class SelectUnitResourceTest {
     private static final String GUID_1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
 
     private final static String AU0_MGT = "{" +
-        "    \"StorageRule\" : {" +
-        "      \"Rules\":[{" +
-        "      \"Rule\" : \"str0\"," +
-        "      \"PreventInheritance\" : \"true\"," +
-        "      \"StartDate\" : \"2017-01-01\"," +
-        "      \"EndDate\" : \"2019-01-01\"" +
-        "    }]}," +
-        "    \"AccessRule\" : {" +
-        "      \"Rules\":[{" +
-        "      \"Rule\" : \"acc0\"," +
-        "      \"StartDate\" : \"2017-01-01\"," +
-        "      \"EndDate\" : \"2019-01-01\"" +
-        "    }]," +
-        "      \"FinalAction\" : \"RestrictedAccess\"" +
-        "    }" +
-        "  }";
+            "    \"StorageRule\" : {" +
+            "      \"Rules\":[{" +
+            "      \"Rule\" : \"str0\"," +
+            "      \"PreventInheritance\" : \"true\"," +
+            "      \"StartDate\" : \"2017-01-01\"," +
+            "      \"EndDate\" : \"2019-01-01\"" +
+            "    }]}," +
+            "    \"AccessRule\" : {" +
+            "      \"Rules\":[{" +
+            "      \"Rule\" : \"acc0\"," +
+            "      \"StartDate\" : \"2017-01-01\"," +
+            "      \"EndDate\" : \"2019-01-01\"" +
+            "    }]," +
+            "      \"FinalAction\" : \"RestrictedAccess\"" +
+            "    }" +
+            "  }";
 
     private final static String AU1_MGT = "{" +
-        "    \"DissiminationRule\" : {" +
-        "      \"Rules\":[{" +
-        "      \"Rule\" : \"dis1\"" +
-        "    }]}," +
-        "    \"AccessRule\" : {" +
-        "      \"PreventInheritance\" : \"true\"" +
-        "    }" +
-        "  }";
+            "    \"DissiminationRule\" : {" +
+            "      \"Rules\":[{" +
+            "      \"Rule\" : \"dis1\"" +
+            "    }]}," +
+            "    \"AccessRule\" : {" +
+            "      \"PreventInheritance\" : \"true\"" +
+            "    }" +
+            "  }";
 
     private static final String DATA_0 =
-        "{ \"#id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT +
-            ", \"DescriptionLevel\" : \"Grp\" }";
+            "{ \"#id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT +
+                    ", \"DescriptionLevel\" : \"Grp\" }";
 
     private static final String DATA_1 =
-        "{ \"#id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT +
-            ", \"DescriptionLevel\" : \"Item\" }";
+            "{ \"#id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT +
+                    ", \"DescriptionLevel\" : \"Item\" }";
 
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
@@ -141,52 +144,52 @@ public class SelectUnitResourceTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final String BAD_QUERY_TEST =
-        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
-            "   {\"$badRquest\" : \"mavar3\"}, " +
-            "   { \"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
+            "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
+                    "   {\"$badRquest\" : \"mavar3\"}, " +
+                    "   { \"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
     private static final String SERVER_HOST = "localhost";
 
     private static final String SEARCH_QUERY =
-        "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
+            "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_FACET_MGT =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"mgt_facet\",\"$terms\":{\"$field\":\"#management.StorageRule.Rules.Rule\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
+            "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"mgt_facet\",\"$terms\":{\"$field\":\"#management.StorageRule.Rules.Rule\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
     private static final String SEARCH_QUERY_WITH_FACET_DESC_LEVEL =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
+            "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
     private static final String SEARCH_QUERY_WITH_FACET_TERMS_INVALID_SIZE =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$order\": \"ASC\"}}]}";
+            "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$order\": \"ASC\"}}]}";
     private static final String SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5}}]}";
+            "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5}}]}";
 
     private static final String SEARCH_QUERY_BY_GUID_1 =
-        "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_1 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
+            "{\"$query\": [ { \"$eq\": { \"#id\": \"" + GUID_1 + "\"} }], \"$projection\": {}, \"$filter\": {}}";
     /**
      * @deprecated : obsolete $rules projection. Use /unitsWithInheritedRules API
      */
     private static final String SEARCH_QUERY_WITH_RULE =
-        "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
+            "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_FACET_FILTERS =
-        "{" +
-            "    \"$query\": [ { \"$exists\": \"#id\" } ]," +
-            "    \"$projection\": {}," +
-            "    \"$filter\": {}," +
-            "    \"$facets\": [" +
-            "        {" +
-            "            \"$name\": \"filters_facet\"," +
-            "            \"$filters\": {" +
-            "                \"$query_filters\": [" +
-            "                    {" +
-            "                        \"$name\": \"StorageRules\"," +
-            "                        \"$query\": { \"$exists\": \"#management.StorageRule.Rules.Rule\" }" +
-            "                    },{ " +
-            "                        \"$name\": \"AccessRules\"," +
-            "                        \"$query\": { \"$exists\": \"#management.AccessRule.Rules.Rule\" }\n" +
-            "                    }" +
-            "                ]" +
-            "            }" +
-            "        }" +
-            "    ]" +
-            "}";
+            "{" +
+                    "    \"$query\": [ { \"$exists\": \"#id\" } ]," +
+                    "    \"$projection\": {}," +
+                    "    \"$filter\": {}," +
+                    "    \"$facets\": [" +
+                    "        {" +
+                    "            \"$name\": \"filters_facet\"," +
+                    "            \"$filters\": {" +
+                    "                \"$query_filters\": [" +
+                    "                    {" +
+                    "                        \"$name\": \"StorageRules\"," +
+                    "                        \"$query\": { \"$exists\": \"#management.StorageRule.Rules.Rule\" }" +
+                    "                    },{ " +
+                    "                        \"$name\": \"AccessRules\"," +
+                    "                        \"$query\": { \"$exists\": \"#management.AccessRule.Rules.Rule\" }\n" +
+                    "                    }" +
+                    "                ]" +
+                    "            }" +
+                    "        }" +
+                    "    ]" +
+                    "}";
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -215,17 +218,17 @@ public class SelectUnitResourceTest {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
+                .withLaunchArgument("--enableMajorityReadConcern")
+                .version(Version.Main.PRODUCTION)
+                .net(new Net(dataBasePort, Network.localhostIsIPv6()))
+                .build());
         mongod = mongodExecutable.start();
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+                new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
         VitamConfiguration.setTenants(tenantList);
         configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
@@ -268,12 +271,12 @@ public class SelectUnitResourceTest {
 
     private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString("{ \"$roots\" : [], \"$query\" : [], \"$data\" : " + data + " }");
+                .getFromString("{ \"$roots\" : [], \"$query\" : [], \"$data\" : " + data + " }");
     }
 
     private static final JsonNode buildDSLWithRoots(String roots, String data) throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString("{ \"$roots\" : [ " + roots + " ], \"$query\" : [ ], \"$data\" : " + data + " }");
+                .getFromString("{ \"$roots\" : [ " + roots + " ], \"$query\" : [ ], \"$data\" : " + data + " }");
     }
 
 
@@ -294,36 +297,36 @@ public class SelectUnitResourceTest {
     @Test
     public void given_2units_insert_when_searchUnits_thenReturn_Found() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 
     @Test
     public void given_badRequestHHtp_when_selectUnit_thenReturn_BAD_REQUEST() {
         given()
-            .contentType(ContentType.JSON)
-            .when()
-            .get("/units")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/units")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 
@@ -331,24 +334,24 @@ public class SelectUnitResourceTest {
     public void given_Bad_Request_when_Select_thenReturn_Bad_Request() {
 
         given()
-            .contentType(ContentType.JSON)
-            .body(BAD_QUERY_TEST)
-            .when()
-            .get("/units")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(BAD_QUERY_TEST)
+                .when()
+                .get("/units")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void given_emptyQuery_when_Select_thenReturn_BadRequest() {
 
         given()
-            .contentType(ContentType.JSON)
-            .body("")
-            .when()
-            .get("/units")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body("")
+                .when()
+                .get("/units")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -356,10 +359,10 @@ public class SelectUnitResourceTest {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
-            .post("/units/").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
+                .post("/units/").then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -369,25 +372,25 @@ public class SelectUnitResourceTest {
     @RunWithCustomExecutor
     public void given_2units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY)).when()
-            .get("/units/" + GUID_0).then()
-            .statusCode(Status.FOUND.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY)).when()
+                .get("/units/" + GUID_0).then()
+                .statusCode(Status.FOUND.getStatusCode());
     }
 
     @Test
@@ -395,39 +398,41 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsWithFacet_thenReturn_Facet() throws Exception {
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-        RequestResponseOK<JsonNode> responseOK1 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
-            .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+        InputStream stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
+                .get("/units").then()
+                .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
+        RequestResponseOK<JsonNode> responseOK1 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK1.getFacetResults().get(0).getName()).isEqualTo("mgt_facet");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().size()).isEqualTo(1);
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getValue()).isEqualTo("str0");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
 
-        RequestResponseOK<JsonNode> responseOK2 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_DESC_LEVEL)).when()
-            .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+        stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_DESC_LEVEL)).when()
+                .get("/units").then()
+                .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
+        RequestResponseOK<JsonNode> responseOK2 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK2.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK2.getFacetResults().get(0).getName()).isEqualTo("desc_level_facet");
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().size()).isEqualTo(2);
@@ -436,13 +441,14 @@ public class SelectUnitResourceTest {
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("Item");
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
 
-        RequestResponseOK<JsonNode> responseOK3 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_FILTERS)).when()
-            .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+        stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_FILTERS)).when()
+                .get("/units").then()
+                .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
+        RequestResponseOK<JsonNode> responseOK3 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK3.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK3.getFacetResults().get(0).getName()).isEqualTo("filters_facet");
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().size()).isEqualTo(2);
@@ -451,20 +457,24 @@ public class SelectUnitResourceTest {
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("StorageRules");
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
 
-        VitamError responseKO1 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER)).when()
-            .get("/units").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().as(VitamError.class);
+        stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER)).when()
+                .get("/units").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().asInputStream();
+
+        VitamError responseKO1 = JsonHandler.getFromInputStream(stream, VitamError.class);
         assertThat(responseKO1.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
-        VitamError responseKO2 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_SIZE)).when()
-            .get("/units").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().as(VitamError.class);
+        stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_SIZE)).when()
+                .get("/units").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().asInputStream();
+
+        VitamError responseKO2 = JsonHandler.getFromInputStream(stream, VitamError.class);
         assertThat(responseKO2.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -473,25 +483,25 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsByIDWithRule_thenReturn_Found() throws Exception {
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_RULE)).when()
-            .get("/units/" + GUID_1).then()
-            .statusCode(Status.FOUND.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_RULE)).when()
+                .get("/units/" + GUID_1).then()
+                .statusCode(Status.FOUND.getStatusCode());
     }
 
 
@@ -499,24 +509,24 @@ public class SelectUnitResourceTest {
     public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(""))
-            .when()
-            .get("/units/" + GUID_0)
-            .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(""))
+                .when()
+                .get("/units/" + GUID_0)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() throws InvalidParseOperationException {
 
         given()
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(SEARCH_QUERY))
-            .when()
-            .post("/units/" + GUID_0)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(SEARCH_QUERY))
+                .when()
+                .post("/units/" + GUID_0)
+                .then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -524,10 +534,10 @@ public class SelectUnitResourceTest {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
-            .post("/units/" + GUID_0).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
+                .post("/units/" + GUID_0).then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -536,56 +546,55 @@ public class SelectUnitResourceTest {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
-            .post("/units/" + GUID_0).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
+                .post("/units/" + GUID_0).then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
-
 
 
     @Test(expected = InvalidParseOperationException.class)
     public void shouldRaiseErrorOnBadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
-            .get("/units/" + GUID_0).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
+                .get("/units/" + GUID_0).then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void given_badRequestHHtp_when_selectUnitsWithInheritedRules_thenReturn_BAD_REQUEST() {
         given()
-            .contentType(ContentType.JSON)
-            .when()
-            .get("/unitsWithInheritedRules")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/unitsWithInheritedRules")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void given_Bad_Request_when_SelectUnitsWithInheritedRules_thenReturn_Bad_Request() {
 
         given()
-            .contentType(ContentType.JSON)
-            .body(BAD_QUERY_TEST)
-            .when()
-            .get("/unitsWithInheritedRules")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(BAD_QUERY_TEST)
+                .when()
+                .get("/unitsWithInheritedRules")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void given_emptyQuery_when_SelectUnitsWithInheritedRules_thenReturn_BadRequest() {
 
         given()
-            .contentType(ContentType.JSON)
-            .body("")
-            .when()
-            .get("/unitsWithInheritedRules")
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body("")
+                .when()
+                .get("/unitsWithInheritedRules")
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -593,29 +602,28 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsWithInheritedRules_thenReturn_Found() throws Exception {
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-        JsonNode responseJson =
-            given()
+        InputStream stream = given()
                 .contentType(ContentType.JSON)
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .body(JsonHandler.getFromString(SEARCH_QUERY_BY_GUID_1)).when()
                 .get("/unitsWithInheritedRules").then()
                 .statusCode(Status.FOUND.getStatusCode())
-                .extract().as(JsonNode.class);
+                .extract().asInputStream();
         RequestResponseOK<JsonNode> responseOK =
-            JsonHandler.getFromString(JsonHandler.unprettyPrint(responseJson), RequestResponseOK.class, JsonNode.class);
+                JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
 
         assertThat(responseOK.getResults()).hasSize(1);
         JsonNode unit1 = responseOK.getResults().get(0);
@@ -628,26 +636,27 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsWithInheritedRulesWithFacet_thenReturn_Facet() throws Exception {
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_1)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA_0)).when()
+                .post("/units").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-        RequestResponseOK<JsonNode> responseOK1 = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
-            .get("/unitsWithInheritedRules").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+        InputStream stream = given()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
+                .get("/unitsWithInheritedRules").then()
+                .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
 
+        RequestResponseOK<JsonNode> responseOK1 = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
         assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK1.getFacetResults().get(0).getName()).isEqualTo("mgt_facet");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().size()).isEqualTo(1);

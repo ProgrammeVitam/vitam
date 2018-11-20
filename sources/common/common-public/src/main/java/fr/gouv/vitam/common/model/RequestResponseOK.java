@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -48,6 +49,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * 
  * @param <T> Type of results
  */
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
