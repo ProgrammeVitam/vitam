@@ -32,9 +32,17 @@ vitam_offers:
     cephMode: false
     # projectName : tenant openstack
     projectName: monTenant
+    #SSL TrustStore
+    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+    #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (by default 2 for Apache HttpClient)
+    swiftMaxConnectionsPerRoute: 200
+    #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (by default 20 for Apache HttpClient)
+    swiftMaxConnections: 1000
+    #Max time (in milliseconds) for waiting to establish connection
+    swiftConnectionTimeout: 200000
+    #Max time (in milliseconds) waiting for a data from the server (socket)
+    swiftReadTimeout: 2000
 
-
-    
   # example_swift_v1:
   #   provider: openstack-swift
   #   keystoneEndPoint: https://keystone/auth/1.0
@@ -48,3 +56,9 @@ vitam_offers:
   #   swift_subuser: user
   #   cephMode: false
   #   projectName: monTenant
+  # swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+  # swiftMaxConnectionsPerRoute: 200
+  # swiftMaxConnections: 1000
+  # swiftConnectionTimeout: 200000
+  # swiftReadTimeout: 2000
+  #

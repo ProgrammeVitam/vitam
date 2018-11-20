@@ -9,7 +9,9 @@ credential: {{ vitam_offers[offer_conf]["swift_password"] | default("") }}
 cephMode: {{  vitam_offers[offer_conf]["ceph_mode"] | default(true) }}
 projectName: {{ vitam_offers[offer_conf]["projectName"] | default("") }}
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
-swiftTrustTore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
-swiftTrustTorePassword: {{ password_truststore }}
-swiftMaxConnectionsPerRoute: 200
-swiftMaxConnections: 200
+swiftTrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+swiftTrustStorePassword: {{ password_truststore }}
+swiftMaxConnectionsPerRoute: {{ vitam_offers[offer_conf]["swiftMaxConnectionsPerRoute"] | default(200) }}
+swiftMaxConnections: {{ vitam_offers[offer_conf]["swiftMaxConnections"] | default(1000) }}
+swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | default(200000) }}
+swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(200000) }}

@@ -50,7 +50,11 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
 
     public SwiftKeystoneFactoryV2(StorageConfiguration configuration) {
-        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
+        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
+            .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
+            .withReadTimeout(configuration.getSwiftReadTimeout())
+            .withMaxConnections(configuration.getSwiftMaxConnections())
+            .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
         this.configuration = configuration;
     }
 
