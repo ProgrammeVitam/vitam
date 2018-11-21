@@ -34,25 +34,9 @@ types:
         minimum: 1
         maximum: 100000
         required: false
-      $per_page:
-        description: |
-          **UNSUPPORTED**
-        type: integer
-        minimum: 1
-        maximum: 100
-        required: false
       $orderby:
         type: object
         required: false
-      $hint:
-        description: |
-          **UNSUPPORTED**
-        type: string
-        required: false
-        enum:
-          - null
-          - cache
-          - nocache
 
   Projection:
     description: Projection for a Request
@@ -61,21 +45,6 @@ types:
       $fields:
         type: object
         required: false
-      $usage:
-        description: |
-          **UNSUPPORTED**
-        type: string
-        required: false
-
-  FacetQuery:
-    description: |
-      **UNSUPPORTED** Facet for a Request
-    type: object
-
-  FacetResponse:
-    description: |
-      **UNSUPPORTED** Facet for a Response
-    type: object
 
   Error:
     description: A simple error (unique) in Vitam DSL

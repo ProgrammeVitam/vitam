@@ -1,0 +1,14 @@
+{
+  "$roots": [],
+  "$query": [ { "$eq": { "#id": "{{guid}}" } }
+  ],
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "Title",
+        "$controlPattern": "Dessert placé",
+        "$updatePattern": "Dessert glacé"
+      }
+    }
+  ]
+}

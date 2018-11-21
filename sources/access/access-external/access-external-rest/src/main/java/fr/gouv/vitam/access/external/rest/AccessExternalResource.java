@@ -231,7 +231,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/reclassification")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "reclassification:update", description = "Reclassification d'unités archivistiques")
+    @Secured(permission = "reclassification:update", description = "Mise à jour d'arborescence des unités archivistiques")
     public Response reclassification(@Dsl(DslSchema.RECLASSIFICATION_QUERY) JsonNode queryJson) {
 
         ParametersChecker.checkParameter("Missing reclassification request", queryJson);

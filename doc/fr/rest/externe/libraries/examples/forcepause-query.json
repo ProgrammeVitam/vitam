@@ -1,0 +1,5 @@
+{
+  "type": "INGEST",
+  "tenant": 1,
+  "pauseAll": false
+}

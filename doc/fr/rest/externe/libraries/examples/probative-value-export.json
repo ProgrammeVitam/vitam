@@ -1,0 +1,15 @@
+{
+  "dslQuery": {
+    "$query": [
+      {
+        "$eq": {
+          "#id": "aeaqaaaaaahkelqaaas54alhkuxi2byaaaaq"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {}
+  },
+  "usage": [ "BinaryMaster" ],
+  "version": "LAST"
+}

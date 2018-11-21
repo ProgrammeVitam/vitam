@@ -48,7 +48,7 @@ documentation:
       Requête qui retourne des résultats contenant des Formats si la requête utilise POST avec X-Http-Method-Override: GET.
       Si il n'y a pas de X-Http-Method-Override, la requête importe à partir d'un fichier PRONOM (see TNA) un nouveau référentiel.
     is: [AdminTraits.AdminListingResponse, StandardTraits.OverrideGet,
-       AdminTraits.AdminUpload, StandardTraits.UploadFileOptionalHeader]
+       AdminTraits.AdminUploadFormat, StandardTraits.UploadFileOptionalHeader]
     headers:
       X-Http-Method-Override:
         required: false
@@ -96,7 +96,7 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Règles de gestion si la requête utilise POST avec X-Http-Method-Override: GET.
       Si il n'y a pas de X-Http-Method-Override, la requête importe à partir d'un fichier CSV contenant les définitions des Règles de gestion un nouveau référentiel.
-    is: [AdminTraits.AdminListingResponse, StandardTraits.OverrideGet, AdminTraits.AdminUpload, StandardTraits.UploadFileOptionalHeader]
+    is: [AdminTraits.AdminListingResponse, StandardTraits.OverrideGet, AdminTraits.AdminUploadRule, StandardTraits.UploadFileOptionalHeader]
     headers:
       X-Http-Method-Override:
         required: false
@@ -126,7 +126,7 @@ documentation:
   displayName: FileRules check
   description: |
    API qui permet de vérifier que le fichier est correct, et peut être importé.
-  put:
+  post:
     description: |
       Vérifie si un fichier source CSV contenant les définitions des Règles de gestion peut être importé comme nouveau Référentiel.
     is: [AdminTraits.AdminUpload]
@@ -151,6 +151,17 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: true
+
+/admin-external/v1/distributionreport/{opId}:
+  displayName: Rapports de mise à jour de masse
+  uriParameters:
+    opId:
+      required: true
+      description: Identifiant de l'opération concernée
+  description: Permet de rélécharger le rapport de mise à jour des unités archivistique en masse de l'id de l'opération
+  is: [ AdminTraits.AdminFileItemResponse ]
+  get:
+    description: Permet de rélécharger le rapport de mise à jour des unités archivistique en masse de l'id de l'opération
 
 /accessionregisters:
   displayName: AccessionRegisters
@@ -193,8 +204,6 @@ documentation:
       headers:
         X-Http-Method-Override:
           required: true
-
-
 
 /accesscontracts:
   displayName: Access contracts
@@ -323,11 +332,22 @@ documentation:
   post:
     description: |
       Requête qui retourne des résultats contenant des Profils si la requête utilise POST avec X-Http-Method-Override: GET.
-      Si il n'y a pas de X-Http-Method-Override, la requête importe un ensemble de profils qui sont sauvegardés et indexés en cas de succès
+      Dans ce cas la requête doit être au format DSL SELECT SINGLE (Voir DSL API documentation).
+      Sinon, le Content-Type est requis et la requête attend un json en entrée et importe un ensemble de profils qui sont sauvegardés et indexés en cas de succès.
+      L'exemple montre le format du JSON pour l'import de référentiels.
     is: [AdminTraits.AdminItemResponse, StandardTraits.OverrideGet, AdminTraits.AdminUpload]
     headers:
       X-Http-Method-Override:
+        description: Requis pour effectuer un GET avec une requête json en body.
         required: false
+      Content-Type:
+        description: Requis pour importer des profils.
+        required: false
+        enum: [ "application/json", "application/octet-stream" ]
+    body:
+      application/json:
+        description: Requête permettant d'importer un ou plusieurs profiles
+        example: !include libraries/examples/profiles-import.json
 
   /{idp}:
     uriParameters:
@@ -340,32 +360,55 @@ documentation:
       API qui permet de mettre à jour un profil via une requête de mise à jour ou d'accéder à un profil
     get:
       description: |
-         API qui définit les requêtes pour accéder à un profil ou à son schéma XSD ou RNG
+         Permet de faire une requête par identifiant sur un profile si la requête attend application/json. L'identifiant du profile est la chaîne "idp" dans l'URL.
+         Si la requête attend application/octet-stream en réponse, VITAM renvoie alors le fichier XSD ou RNG lié au profile.
       is: [AdminTraits.AdminListingResponse, AdminTraits.AdminFileItemResponse]
+      headers:
+        Accept:
+          description: Spécifie la réponse attendue. 'json' pour les métadonénes du profile, 'octet-stream' pour le fichier XSD ou RNG lié.
+          required: true
+          enum: [ "application/json", "application/octet-stream" ]
     put:
        description: |
-        Requête qui modifie un Profil.
-        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
-    post:
-       description: |
-          Upload un profil au format XSD ou RNG
-       is: [AdminTraits.AdminProfileUpload]
+        Requête qui modifie les métadonnées d'un profil si la requête envoie un json (Content-Type = application/json).
+        Dans ce cas, la requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
+        Sinon, la requête doit spécifier le Content-Type comme application/octet-stream. Dans ce cas, elle permet de mettre à jour le fichier RNG ou XSD lié.
+       is: [AdminTraits.AdminUpload, AdminTraits.AdminProfileUpload]
+       headers:
+         Content-Type:
+           description: Requis pour importer des profils.
+           required: false
+           enum: [ "application/json", "application/octet-stream" ]
 
 /archiveunitprofiles:
-  displayName: Archive Unit Profiles
+  displayName: Document Types
   description: |
     API qui définit les requêtes pour accéder aux document types
     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de document types selon le DSL Vitam en cas de succès.
   get:
     description: |
       Requête qui retourne des résultats contenant des Document types.
-      La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste de Document types selon le DSL Vitam en cas de succès.
+      La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE - Voir DSL API Documentation)** de Vitam en entrée et retourne une liste de Document types selon le DSL Vitam en cas de succès.
     is: [AdminTraits.AdminListingResponse]
   post:
     description: |
-      La requête importe un ensemble de Document types qui sont sauvegardés et indexés en cas de succès
-    is: [AdminTraits.AdminUpload]
+      Requête qui retourne des résultats contenant des Document types si la requête utilise POST avec X-Http-Method-Override: GET.
+      Dans ce cas la requête doit être au format DSL SELECT SINGLE (Voir DSL API documentation).
+      Sinon, le Content-Type est requis et la requête attend un json en entrée et importe un ensemble de Document types qui sont sauvegardés et indexés en cas de succès.
+      L'exemple montre le format du JSON pour l'import de référentiels.
+    is: [AdminTraits.AdminItemResponse, StandardTraits.OverrideGet, AdminTraits.AdminUpload]
+    headers:
+      X-Http-Method-Override:
+        description: Requis pour effectuer un GET avec une requête json en body.
+        required: false
+      Content-Type:
+        description: Requis pour importer des document types.
+        required: false
+        enum: [ "application/json", "application/octet-stream" ]
+    body:
+      application/json:
+        description: Requête permettant d'importer un ou plusieurs document types
+        example: !include libraries/examples/archive-unit-profiles-import.json
 
   /{idp}:
     uriParameters:
@@ -381,10 +424,10 @@ documentation:
          API qui définit les requêtes pour accéder à un document type via son ID
       is: [AdminTraits.AdminListingResponse, AdminTraits.AdminItemResponse]
     put:
-       description: |
+      description: |
         Requête qui modifie un Document type.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
 
 /securityprofiles:
   displayName: Security Profiles
@@ -595,6 +638,134 @@ documentation:
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée.
     is: [AdminTraits.TraceabilityCheckResponseAsync]
 
+/reclassification:
+  displayName: Mise à jour d'arborescence
+  description: API qui définit les requêtes liées à la mise à jour d'arborescence des unités archivistiques
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: Lancement d'une ou plusieurs modifications d'arborescence d'unité archivistiques
+    body:
+      application/json:
+        description: |
+          Requête spécifiant les unités archivistiques à déplacer dans l'arborescence (ajout/suppression de parents - Tableau de DSL au format RECLASSIFICATION_QUERY).
+          Chaque DSL utilise des mots clés spécifique dans la partie $action et cible une ou plusieurs unités archivistiques parents dans la partie $query.
+          L'opérateur $add permet d'ajouter un parent à l'unité archivistique ciblée. L'opérateur $pull permet de retirer un parent à l'unité archivistique cible.
+          Seul le champs #unitups doit être modifié grâce à cette requête.
+        type: array
+        example: !include libraries/examples/reclassification.json
+    responses:
+      202:
+        description: Succès
+
+/probativevalueexport:
+  displayName: Valeur Probante
+  description: API permettant d'exporter des relevé de valeur probante
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: Lancement d'un export du relevé de valeur probante
+    body:
+      application/json:
+        description: |
+          Requête ...
+        type: object
+        properties:
+          dslQuery:
+            description: Requête DSL de sélection des éléments à exporter
+            type: object
+            example: !include libraries/examples/dslQuery.json
+          usage:
+            description: Usages cibles
+            type: string[]
+          version:
+            description: version cible (nombre ou "LAST"). Non modifiable ? LAST ?
+            type: string
+        example: !include libraries/examples/probative-value-export.json
+    responses:
+      202:
+        description: Succès
+        body:
+          application/json:
+            description: Success response
+      412:
+        description: Precondition Failed
+        body:
+          application/json:
+            description: some predicates are incorrect, therefore the operation is not possible.
+
+/rectificationaudit:
+  displayName: Audit rectificatif
+  description: API permettant de corriger les erreurs remontés lors de l'audit de cohérence
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: Lancement d'un correctif d'audit
+    body:
+      application/json:
+        description: Identifiant de l'opération d'audit de cohérance
+        type: string
+        example: !include libraries/examples/rectification-audit.json
+    responses:
+      202:
+        description: Succès
+        body:
+          application/json:
+            description: Success response
+      412:
+        description: Precondition Failed
+        body:
+          application/json:
+            description: some predicates are incorrect, therefore the operation is not possible.
+
+/evidenceaudit/:
+  displayName: LFC traceability audit
+  description: API qui définit les requêtes pour générer un audit de la traçabilité des journaux de cycles de vie.
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: Lancement d'une opération d'audit
+    body:
+      application/json:
+        description: Requête DSL de sélection d'unité archivistique
+        type: object
+        example: !include libraries/examples/dslQuery.json
+    responses:
+      202:
+        description: Succès
+        body:
+          application/json:
+            description: Success response
+      412:
+        description: Precondition Failed
+        body:
+          application/json:
+            description: some predicates are incorrect, therefore the operation is not possible.
+
 /rulesreferential/{opId}:
   displayName: Référentiel des rêgles de gestion
   uriParameters:
@@ -612,7 +783,7 @@ documentation:
       description: |
         Récupére le fichier original des rêgles de gestion sous forme de csv à partir de l'id de l'opération
       responses:
-        200:
+        202:
           description: Returns the csv file
           body:
             application/octet-stream:
@@ -643,7 +814,7 @@ documentation:
       description: |
         Récupére le fichier original des services agents sous forme de csv à partir de l'id de l'opération
       responses:
-        200:
+        202:
           description: Returns the csv file
           body:
             application/octet-stream:
@@ -697,13 +868,69 @@ documentation:
       headers:
         X-Http-Method-Override:
           required: true
-    put:
-      description: |
-        Requête qui modifie une Ontologie.
-        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-      is: [AdminTraits.AdminUpload]
 
-    
+/forcepause:
+  displayName: Alpha - Pause Process
+  description: Force new operations to pause. This is alpha endpoint
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    description: pause operations on a given tenant and/or type
+    body:
+      application/json:
+        description: Parameters for precess pause. At least one of the following parameters MUST be filled with no-null value.
+        type: object
+        properties:
+          type:
+            description: operation type to be paused. null value mean "all types". Should be one of LogbookTypeProcess.java value.
+            type: string
+          tenant:
+            description: operation tenant to be paused. null value mean "all tenants".
+            type: number
+          pauseAll:
+            description: force pause for all operation and tenants. Must be "true" to force all pause. Override potential values of tenant/type in this request.
+            type: boolean
+        example: !include libraries/examples/forcepause-query.json
+
+/removeforcepause:
+  displayName: Alpha - Remove Pause on Precess
+  description: Remove the "Must pause" on operations. This is alpha endpoint
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    description: Remove "Must Pause" for operations on a given tenant and/or type
+    body:
+      application/json:
+        description: Parameters for precess pause. At least one of the following parameters MUST be filled with no-null value.
+        type: object
+        properties:
+          type:
+            description: operation type to be unpaused. null value mean "all types". Should be one of LogbookTypeProcess.java value.
+            type: string
+          tenant:
+            description: operation tenant to be unpaused. null value mean "all tenants".
+            type: number
+          pauseAll:
+            description: remove pause for all operation and tenants. Must be "false" in order to remove all pause. Override potential values of tenant/type in this request.
+            type: boolean
+        example: !include libraries/examples/forcepause-query.json
+
+/accessionregisterssymbolic:
+  displayName: Registres de fonds symboliques
+  description: API sur les registres de fonds symboliques.
+  is: [ StandardTraits.StandardOptionalHeader ]
+  get:
+    description: Recherche sur les registres de fonds symboliques grâce à la requête donnée en entrée
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    body:
+      application/json:
+        description: Requête DSL de type **recherche simple (SELECT SINGLE)** de VITAM.
+        example: !include libraries/examples/dslQuery.json
+
 /:
   displayName: Endpoints
   description: |

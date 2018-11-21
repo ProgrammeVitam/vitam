@@ -21,7 +21,6 @@ En cas de différence, une erreur 401 sera retournée.
 # Référentiel des Formats
 
 Ce référentiel est basé sur PRONOM (TNA) mais il peut être étendu. Il est trans-tenant.
-- L'extension est à ce jour non supporté (**UNSUPPORTED**)
 - Il est possible de mettre à jour ce référentiel via les API.
 - Notez cependant que la mise à jour des outils utilisant ce référentiel n'est pas encore opérationnelle. Il n'est donc pas recommandé de mettre à jour ce référentiel avec une autre version que celle livrée par Vitam.
 

@@ -345,7 +345,7 @@ Les commandes de la Query peuvent être :
 
 | Catégorie          | Opérateurs                                              | Arguments                                  | Utilisable sur champs analysés ? | Utilisable sur champs non analysés ? | Commentaire                                                                   |
 |--------------------|---------------------------------------------------------|--------------------------------------------|----------------------------------|--------------------------------------|-------------------------------------------------------------------------------|
-| Objet           | $subobject                                         | Opérateurs                                 | NA                               | NA                                   | Sous-requête de recherche "nested" sur les objets techniques                                              |
+| Objet              | $subobject                                              | Opérateurs                                 | NA                               | NA                                   | Sous-requête de recherche "nested" sur les objets techniques                  |
 | Booléens           | $and, $or, $not                                         | Opérateurs                                 | NA                               | NA                                   | Combinaison logique d'opérateurs                                              |
 | Comparaison        | $eq, $ne, $lt, $lte, $gt, $gte                          | Champ et valeur                            | Non                              | **Oui**                              | Comparaison de la valeur d'un champ et la valeur passée en argument           |
 |                    | $range                                                  | Champ, $lt, $lte, $gt, $gte et valeurs     | Non                              | **Oui**                              | Comparaison de la valeur d'un champ avec l'intervalle passé en argument       |
@@ -836,7 +836,33 @@ Dans le cas d'un update, les opérateurs suivants sont utilisables
 | $unset    | Supprime un ou plusieurs champs (requêtes de modification uniquement)                                 |
 | $add      | Ajout d'une valeur à un champ de type liste non redondante (requêtes de reclassification uniquement)  |
 | $pull     | Supprime une valeur d'un champ de type liste non redondante (requêtes de reclassification uniquement) |
+| $setregex | Permet de modifier une valeur par pattern dans l'update de masse des unités d'archive                 |
 
+### Opérateur $setregex : Action de remplacement d'une chaine de caractères par pattern
+
+**Format :**
+`{ $setregex : "$target": "TargetedFieldName", "$controlPattern": "PatternThatShouldMatch", "$updatePattern": "NewValue" }`
+
+**Exemple :**
+
+```json
+{
+  "$roots": [],
+  "$query": [ { "$eq": { "#id": "guid" } }
+  ],
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "Title",
+        "$controlPattern": "Dessert placé",
+        "$updatePattern": "Dessert glacé"
+      }
+    }
+  ]
+}
+
+```
+Dans la mise à jour de masse d'unité archivistique, cette requête permet de remplacer le mot "Dessert placé" par "Dessert glacé" dans le titre des unités d'archive qui ont comme identifiant "guid".
 
 # Response
 

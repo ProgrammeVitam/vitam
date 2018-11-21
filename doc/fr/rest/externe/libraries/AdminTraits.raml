@@ -43,7 +43,7 @@ traits:
             schema: DslTypes.DslSingleResponse
             #example: !include examples/logbookResponse.json
 
-  AdminUpload:
+  AdminUploadFormat:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
     is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader200,
@@ -51,12 +51,33 @@ traits:
     body:
       application/xml:
         description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format XML (Formats from PRONOM registry)
+    responses:
+      201:
+        description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
+
+  AdminUploadRule:
+    description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
+    body:
       application/csv:
         description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format CSV (Rules)
+    responses:
+      201:
+        description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
+
+
+  AdminUpload:
+    description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
+    body:
       application/json:
-        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format Json (ingestcontracts, accesscontracts, contexts, profiles)
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format Json
       application/octet-stream:
-        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format InputStream (for all)
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format InputStream
     responses:
       201:
         description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
@@ -88,8 +109,7 @@ traits:
 
   AuditCreationResponseAsync:
     description: Requête pour la création d'un Audit
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Contient la requête spécifique au format JSON.
@@ -112,8 +132,7 @@ traits:
 
   TraceabilityCheckResponseAsync:
     description: Request for an Traceability Check
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Contient la requête DSL simple au format JSON.
