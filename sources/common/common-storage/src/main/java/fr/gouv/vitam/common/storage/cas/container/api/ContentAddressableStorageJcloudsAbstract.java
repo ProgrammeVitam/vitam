@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -53,7 +53,7 @@ import java.io.InputStream;
 public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
+            VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
 
     // FIXME P1: the BlobStoreContext should be build for each call, since it is
     // as a HttpClient. For now (Filesystem),
@@ -88,13 +88,13 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
         LOGGER.info(" create container : " + containerName);
         ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         // TODO: is it thread safe ?
         try {
             if (!context.getBlobStore().createContainerInLocation(null, containerName)) {
                 LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
                 throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
+                        ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
             }
         } finally {
             closeContext();
@@ -106,7 +106,11 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     @Override
     public boolean isExistingContainer(String containerName) {
         try {
-            return context.getBlobStore().containerExists(containerName);
+            if (super.isExistingContainer(containerName)) {
+                return true;
+            }
+            boolean exists = context.getBlobStore().containerExists(containerName);
+            return cacheExistsContainer(containerName, exists);
         } finally {
             closeContext();
         }
@@ -114,10 +118,10 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size, boolean recomputeDigest)
-        throws ContentAddressableStorageException {
+                            Long size, boolean recomputeDigest)
+            throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+                containerName, objectName);
         final BlobStore blobStore = context.getBlobStore();
         try {
 
@@ -131,9 +135,9 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
             String streamDigest = digest.digestHex();
 
-            if(recomputeDigest) {
+            if (recomputeDigest) {
                 String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-                if(!streamDigest.equals(computedDigest)) {
+                if (!streamDigest.equals(computedDigest)) {
                     throw new ContentAddressableStorageException("Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
                 }
             }
@@ -155,29 +159,29 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
-        throws
-        ContentAddressableStorageException {
+            throws
+            ContentAddressableStorageException {
         return computeObjectDigest(containerName, objectName, digestType);
     }
 
     @Override
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+                containerName, objectName);
         try {
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
                 LOGGER.error(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
 
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null == blob) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
             long size = blob.getMetadata().getSize();
             InputStream is = blob.getPayload().openStream();
@@ -195,16 +199,16 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public void deleteObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+                containerName, objectName);
         try {
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingContainer(containerName) || !isExistingObject(containerName, objectName)) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
 
             blobStore.removeBlob(containerName, objectName);
@@ -231,20 +235,20 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public abstract ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException;
+            throws ContentAddressableStorageNotFoundException;
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageNotFoundException {
         ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
         try {
             final BlobStore blobStore = context.getBlobStore();
             if (!isExistingContainer(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+                        ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
 
             ListContainerOptions options = new ListContainerOptions();
@@ -252,9 +256,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
             return VitamJcloudsPageSetImpl.wrap(blobStore.list(containerName, options));
 
-        } finally
-
-        {
+        } finally {
             closeContext();
         }
 
@@ -262,17 +264,17 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName,
-        String nextMarker)
-        throws ContentAddressableStorageNotFoundException {
+                                                                          String nextMarker)
+            throws ContentAddressableStorageNotFoundException {
         ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
         try {
             final BlobStore blobStore = context.getBlobStore();
             if (!isExistingContainer(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+                        ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
 
             ListContainerOptions options = new ListContainerOptions();

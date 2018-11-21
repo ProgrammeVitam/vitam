@@ -36,9 +36,13 @@ import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,8 +50,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
-
+    private final static Set<String> existingContainer = new HashSet<>();
     private final StorageConfiguration configuration;
 
     /**
@@ -59,15 +62,36 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         this.configuration = configuration;
     }
 
+    @Override
+    public boolean isExistingContainer(String containerName) {
+        // If existing containers are already checked, this help just an in memory check
+        return existingContainer.contains(containerName);
+    }
+
+    /**
+     * This handle cache already existing container
+     * Prevent handling an i/o check container exists
+     * Do only memory check if the container is already exists
+     * @param containerName
+     * @param exists
+     * @return
+     */
+    public boolean cacheExistsContainer(String containerName, boolean exists) {
+        if (exists) {
+            existingContainer.add(containerName);
+        }
+        return exists;
+    }
+
     public StorageConfiguration getConfiguration() {
         return configuration;
     }
 
     protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
+                algo);
 
         Stopwatch sw = Stopwatch.createStarted();
         try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
@@ -78,7 +102,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageException(e);
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
-                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
+                    "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 }

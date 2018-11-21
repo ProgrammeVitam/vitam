@@ -123,10 +123,16 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public boolean isExistingContainer(String containerName) {
+
+        if (super.isExistingContainer(containerName)) {
+            return true;
+        }
+
         // Is this the best way to do that ?
         Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         // more than 2 metadata then container exists (again, is this the best way ?)
-        return metadata.size() > 2;
+        boolean exists = metadata.size() > 2;
+        return cacheExistsContainer(containerName, exists);
     }
 
     @Override
