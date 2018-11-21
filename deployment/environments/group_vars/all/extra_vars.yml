@@ -17,6 +17,9 @@ vitam:
         session_timeout: 1800000
         secure_cookie: true
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
@@ -26,6 +29,10 @@ vitam:
         https_enabled: false
         secret_platform: "false"
         metrics_enabled: false
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
+
 
 # Period units in seconds
 metricbeat:
