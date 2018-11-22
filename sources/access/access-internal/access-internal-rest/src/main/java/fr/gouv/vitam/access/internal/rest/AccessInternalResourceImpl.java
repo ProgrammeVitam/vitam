@@ -329,7 +329,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * get Archive Unit list by query based on identifier
      *
-     * @param dipExportRequest as DipExportRequest
+     * @param dslRequest as DipExportRequest
      * @return an archive unit result list
      */
     @Override
@@ -337,14 +337,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIP(DipExportRequest dipExportRequest) {
+    public Response exportDIP(JsonNode dslRequest) {
 
         Status status;
-        LOGGER.debug("DEBUG: start selectUnits {}", dipExportRequest.getDslRequest());
-        LOGGER.debug("DEBUG: usage list to export {}", dipExportRequest.getDataObjectVersionToExport());
+        LOGGER.debug("DEBUG: start selectUnits {}", dslRequest);
 
         try {
-            checkEmptyQuery(dipExportRequest.getDslRequest());
+            checkEmptyQuery(dslRequest);
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -360,6 +359,80 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         StatusCode.STARTED,
                         VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
+
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(
+                        AccessContractRestrictionHelper
+                                .applyAccessContractRestrictionForUnitForSelect(dslRequest,
+                                        VitamThreadUtils.getVitamSession().getContract())));
+
+                ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
+                Boolean mustLog = ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
+                processingEntry.getExtraParams().put(
+                    WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
+                processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), processingEntry);
+
+                // When
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, EXPORT_DIP,
+                        Contexts.EXPORT_DIP.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+                InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                LogbookClientAlreadyExistsException |
+                VitamClientException | InternalServerException | InvalidCreateOperationException e) {
+                LOGGER.error("Error while generating DIP", e);
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        }
+    }
+
+    /**
+     * get Archive Unit list by query based on identifier
+     *
+     * @param dipExportRequest as DipExportRequest
+     * @return an archive unit result list
+     */
+    @Override
+    @POST
+    @Path("/dipexport/usagefilter")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
+
+        Status status;
+        LOGGER.debug("DEBUG: start selectUnits {}", dipExportRequest.getDslRequest());
+        LOGGER.debug("DEBUG: usage list to export {}", dipExportRequest.getDataObjectVersionToExport());
+
+        try {
+            checkEmptyQuery(dipExportRequest.getDslRequest());
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                final LogbookOperationParameters initParameters =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                                GUIDReader.getGUID(operationId),
+                                EXPORT_DIP,
+                                GUIDReader.getGUID(operationId),
+                                LogbookTypeProcess.EXPORT_DIP,
+                                StatusCode.STARTED,
+                                VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
+                                GUIDReader.getGUID(operationId));
 
                 // Add access contract rights
                 addRightsStatementIdentifier(initParameters);
@@ -381,21 +454,21 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
                 Boolean mustLog = ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
                 processingEntry.getExtraParams().put(
-                    WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
+                        WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
                 processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), processingEntry);
 
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, EXPORT_DIP,
-                        Contexts.EXPORT_DIP.name(), ProcessAction.RESUME.getValue());
+                        processingClient.executeOperationProcess(operationId, EXPORT_DIP,
+                                Contexts.EXPORT_DIP.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-                InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
-                LogbookClientAlreadyExistsException |
-                VitamClientException | InternalServerException | InvalidCreateOperationException e) {
+                    InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                    LogbookClientAlreadyExistsException |
+                    VitamClientException | InternalServerException | InvalidCreateOperationException e) {
                 LOGGER.error("Error while generating DIP", e);
                 return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                        .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
             }
 
         } catch (final InvalidParseOperationException e) {

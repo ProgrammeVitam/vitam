@@ -3468,7 +3468,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/archiveunit/dipexport")
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("dipexport:create")
+    @RequiresPermissions("dipexportv2:create")
     public Response createDIPForExport(@Context HttpServletRequest request, DipExportRequest criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
@@ -3478,9 +3478,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
         }
     }
 

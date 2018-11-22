@@ -147,8 +147,7 @@ public class AccessInternalResourceTest {
         // When
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
-        DipExportRequest dipExportRequest = new DipExportRequest(select.getFinalSelect());
-        accessInternalResource.exportDIP(dipExportRequest);
+        accessInternalResource.exportDIP(select.getFinalSelect());
 
         // Then
         checkLogbookStarted(Contexts.EXPORT_DIP);

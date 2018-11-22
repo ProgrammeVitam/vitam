@@ -94,7 +94,16 @@ public class AccessResourceMock implements AccessInternalResource {
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIP(DipExportRequest dipExportRequest) {
+    public Response exportDIP(JsonNode dslRequest) {
+        return null;
+    }
+
+    @Override
+    @POST
+    @Path("/dipexport/usagefilter")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
         return null;
     }
 
