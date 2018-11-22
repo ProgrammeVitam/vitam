@@ -31,11 +31,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -219,7 +215,7 @@ public interface MetaData {
      */
     RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException;
+        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException;
 
 
     /**

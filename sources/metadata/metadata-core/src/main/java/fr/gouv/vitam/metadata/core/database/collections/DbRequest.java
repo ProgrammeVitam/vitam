@@ -41,10 +41,23 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.model.DurationData;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
@@ -96,9 +109,6 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
@@ -225,34 +235,44 @@ public class DbRequest {
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                if (documentId.equals(document.get(MetadataDocument.ID))) {
-                    modified = true;
-                    documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
-
-                    JsonNode externalSchema =
-                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                    SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
-                    if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new SchemaValidationException("Unable to validate updated Unit " + status.getValidationMessage());
-                    }
-                    if (externalSchema != null && externalSchema.size() > 0) {
-                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
-                        documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                    }
-
-                    // Make Update
-                    final Bson condition =
-                            and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
-                    updatedJsonDocument.remove(VitamDocument.SCORE);
-                    LOGGER.debug("DEBUG update {}", updatedJsonDocument);
-                    result = collection.replaceOne(condition, documentFinal);
-                    if (result.getModifiedCount() != 1) {
-                        result = null;
-                    }
-                    tries++;
-                } else {
+                if (!documentId.equals(document.get(MetadataDocument.ID))) {
                     break;
                 }
+
+                modified = true;
+                documentFinal.put(VitamDocument.VERSION, documentVersion + 1);
+
+                JsonNode aupSchemaIdNode =
+                        updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
+
+                if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                    throw new SchemaValidationException("Unable to validate updated Unit " + status.getValidationMessage());
+                }
+
+                if (aupSchemaIdNode != null) {
+                    String aupSchemaId = aupSchemaIdNode.isArray() ?
+                        (aupSchemaIdNode.get(0) != null ? aupSchemaIdNode.get(0).asText(): null)
+                        : aupSchemaIdNode.asText();
+
+                    if (aupSchemaId != null && !aupSchemaId.isEmpty()) {
+                        // Call AdminClient to get AUP info
+                        JsonNode aupSchema = extractAUPSchema(aupSchemaId);
+                        validateOtherExternalSchema(updatedJsonDocument, aupSchema);
+                        documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                    }
+                }
+
+                // Make Update
+                final Bson condition =
+                        and(eq(MetadataDocument.ID, documentId), eq(MetadataDocument.VERSION, documentVersion));
+                updatedJsonDocument.remove(VitamDocument.SCORE);
+                LOGGER.debug("DEBUG update {}", updatedJsonDocument);
+                result = collection.replaceOne(condition, documentFinal);
+                if (result.getModifiedCount() != 1) {
+                    result = null;
+                }
+                tries++;
             }
 
             if (modified && result == null) {
@@ -275,6 +295,30 @@ public class DbRequest {
         
         return last;
     }
+
+    private JsonNode extractAUPSchema(String archiveUnitProfileIdentifier)
+        throws MetaDataExecutionException {
+
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
+            RequestResponse<ArchiveUnitProfileModel> response = adminClient.findArchiveUnitProfiles(select.getFinalSelect());
+
+            List<ArchiveUnitProfileModel> results = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
+
+            if (!response.isOk() || results.size() == 0) {
+                throw new MetaDataExecutionException("Archive unit profile could not be found");
+            }
+
+            ArchiveUnitProfileModel archiveUnitProfile = results.get(0);
+            return JsonHandler.getFromString(archiveUnitProfile.getControlSchema());
+
+        } catch (AdminManagementClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new MetaDataExecutionException(e);
+        }
+
+    }
+
 
     /**
      * The request should be already analyzed.
@@ -1079,14 +1123,14 @@ public class DbRequest {
                 new SchemaValidationUtils(
                     schema.isArray()
                         ? schema.get(0).asText()
-                        : schema.asText(),
+                        : schema.toString(),
                     true);
             updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            SchemaValidationStatus secondstatus =
+            SchemaValidationStatus status =
                 validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
-            if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
+            if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                 throw new SchemaValidationException(
-                    "Unable to validate updated Unit " + secondstatus.getValidationMessage());
+                    "Unable to validate updated Unit " + status.getValidationMessage());
             }
         } catch (FileNotFoundException | ProcessingException e) {
             LOGGER.debug("Unable to initialize External Json Validator");

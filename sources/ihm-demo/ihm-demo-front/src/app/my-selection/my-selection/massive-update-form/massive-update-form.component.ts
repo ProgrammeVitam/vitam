@@ -33,13 +33,13 @@ export class MassiveUpdateFormComponent implements OnInit {
   }
 
   addNewRule(action: RuleAction, category: string) {
-    let ruleInformation = new RuleInformation();
+    const ruleInformation = new RuleInformation();
     ruleInformation.Action = action;
     this.internalSavedRules[category].Rules.push(ruleInformation);
   }
 
   addNewMetadata(action: MetadataAction) {
-    let metadataInformation = new MetadataInformation();
+    const metadataInformation = new MetadataInformation();
     metadataInformation.Action = action;
     this.internalSavedMetadata.push(metadataInformation);
   }
@@ -103,13 +103,28 @@ export class MassiveUpdateFormComponent implements OnInit {
   }
 
   checkAndPutInFormRuleUpdates(): boolean {
-    let updates = {};
-    let additions = {};
-    let deletions = {};
+    const updates = {};
+    const additions = {};
+    const deletions = {};
+    const updateMetadata: any = {};
+    const deleteMetadata: any = {};
     let nbErrors = 0;
     let nbUpdates = 0;
 
+    const categoryNames: string[] = this.rulesCategories.map(x => x.rule);
+
+    if (this.internalSavedRules.RemoveArchiveUnitProfile) {
+      deleteMetadata.ArchiveUnitProfile = '';
+      nbUpdates++;
+    } else if (this.internalSavedRules.ArchiveUnitProfile !== null && this.internalSavedRules.ArchiveUnitProfile !== '') {
+      updateMetadata.ArchiveUnitProfile = this.internalSavedRules.ArchiveUnitProfile;
+      nbUpdates++;
+    }
+
     for (const categoryKey in this.internalSavedRules) {
+      if (categoryNames.indexOf(categoryKey) === -1) {
+        continue;
+      }
       const ruleCategory = this.internalSavedRules[categoryKey];
 
       // Check updates on FinalAction, ClassificationOwner and ClassificationLevel in the category
@@ -254,7 +269,9 @@ export class MassiveUpdateFormComponent implements OnInit {
       this.form.updateRules = {
         add: ObjectsService.objectToArray(additions),
         update: ObjectsService.objectToArray(updates),
-        delete: ObjectsService.objectToArray(deletions)
+        delete: ObjectsService.objectToArray(deletions),
+        addOrUpdateMetadata: updateMetadata,
+        deleteMetadata: deleteMetadata
       };
     } else {
       delete this.form.updateRules;
@@ -263,17 +280,24 @@ export class MassiveUpdateFormComponent implements OnInit {
   }
 
   getMetadataUpdates(): boolean {
-    let patterns = [];
-    let updates = [];
-    let deletions = [];
+    const patterns = [];
+    const updates = [];
+    const deletions = [];
     let nbErrors = 0;
     let nbUpdates = 0;
 
-    for (let field of this.internalSavedMetadata) {
+    for (const field of this.internalSavedMetadata) {
+
+      if (field.FieldName === 'ArchiveUnitProfile') {
+        nbErrors++;
+        console.warn('Impossible de modifier ArchiveUnitProfile. Utiliser le bloc de métadonnées de gestion');
+        break;
+      }
+
       switch(field.Action) {
         case MetadataAction.PATTERN:
           if(!field.FieldName || !field.FieldValue || !field.FieldPattern) {
-            console.log('Une métadonnée modifiée par pattern ne renseigne pas de nom, de pattern ou de valeur.');
+            console.warn('Une métadonnée modifiée par pattern ne renseigne pas de nom, de pattern ou de valeur.');
             nbErrors++;
             break;
           }
@@ -286,7 +310,7 @@ export class MassiveUpdateFormComponent implements OnInit {
           break;
         case MetadataAction.UPDATE:
           if (!field.FieldName || !field.FieldValue) {
-            console.log('Une métadonnée modifiée ne renseigne pas de nom ou de valeur.');
+            console.warn('Une métadonnée modifiée ne renseigne pas de nom ou de valeur.');
             nbErrors++;
             break;
           }
@@ -298,7 +322,7 @@ export class MassiveUpdateFormComponent implements OnInit {
           break;
         case MetadataAction.DELETE:
           if (!field.FieldName) {
-            console.log('Une métadonnée supprimée ne renseigne pas de nom.');
+            console.warn('Une métadonnée supprimée ne renseigne pas de nom.');
             nbErrors++;
             break;
           }
@@ -312,7 +336,7 @@ export class MassiveUpdateFormComponent implements OnInit {
 
     if (nbErrors > 0) {
       this.dialogService.displayMessage(
-        'Au moins une des métadonnées renseignée (ajout/modification/suppression) est incomplète',
+        'Au moins une des métadonnées renseignée (ajout/modification/suppression) est incomplète ou non supportée',
         'Erreur de saisie des modifications de métadonnées'
       );
       delete this.form.updateMetadata;
@@ -333,8 +357,8 @@ export class MassiveUpdateFormComponent implements OnInit {
 
   getUpdates(isOnSelection) {
     let couldUpdate = true;
-    if (!this.checkAndPutInFormRuleUpdates()) couldUpdate = false;
-    if (!this.getMetadataUpdates()) couldUpdate = false;
+    if (!this.checkAndPutInFormRuleUpdates()) { couldUpdate = false; }
+    if (!this.getMetadataUpdates()) { couldUpdate = false; }
 
     if (!couldUpdate) {
       return;

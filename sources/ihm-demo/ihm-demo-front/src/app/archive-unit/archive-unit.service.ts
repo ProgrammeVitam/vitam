@@ -9,8 +9,8 @@ export class ArchiveUnitService {
   static inputRequest: any;
   ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL = 'archiveunit/objects/download';
   ARCHIVE_UNIT_SEARCH_API = 'archivesearch';
-  ARCHIVE_UNIT_API = 'archiveunit';
   ARCHIVE_UPDATE_API = 'archiveupdate';
+  ARCHIVE_UNIT_API = 'archiveunit';
   TREE = 'tree';
   UNITS = 'units';
   UNIT = 'unit';

@@ -37,7 +37,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
@@ -45,6 +49,7 @@ import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -130,20 +135,24 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     private JsonNode getErrorFromActionQuery(JsonNode queryActions) throws InvalidParseOperationException {
         RuleActions ruleActions = JsonHandler.getFromJsonNode(queryActions, RuleActions.class);
 
+        Optional<JsonNode> potentialErrorInManagement = computeErrorsForManagementMetadata(ruleActions);
+        if (potentialErrorInManagement.isPresent()) { return potentialErrorInManagement.get(); }
+
         Optional<JsonNode> checkError = ruleActions.getUpdate().stream()
             .flatMap(x -> x.entrySet().stream())
             .map(this::computeErrorsForCategory)
-            .filter(Objects::nonNull)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .findFirst();
         if(checkError.isPresent()) return checkError.get();
 
         checkError = ruleActions.getAdd().stream()
             .flatMap(x -> x.entrySet().stream())
             .map(this::computeErrorsForCategory)
-            .filter(Objects::nonNull)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .findFirst();
         if(checkError.isPresent()) return checkError.get();
-
         checkError = ruleActions.getDelete().stream()
             .flatMap(x -> x.entrySet().stream())
             .map(this::computeOnlyRulesID)
@@ -152,9 +161,59 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         return checkError.orElse(null);
     }
 
-    private JsonNode computeErrorsForCategory(Map.Entry<String, RuleCategoryAction> entry) {
+    private Optional<JsonNode> computeErrorsForManagementMetadata(RuleActions ruleActions) {
+        if (ruleActions.getAddOrUpdateMetadata() != null
+            && ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile() != null) {
+            Optional<JsonNode> error = checkAUPId(ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile());
+            if (error != null) { return error; }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<JsonNode> checkAUPId(String aupId)  {
+        try {
+            RequestResponse<ArchiveUnitProfileModel> aup = adminManagementClientFactory.getClient().findArchiveUnitProfilesByID(aupId);
+            if (!aup.isOk()) {
+                throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+            }
+
+            ArchiveUnitProfileModel archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult();
+            if (archiveUnitProfile == null) {
+                throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+            }
+
+            if (!ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not ACTIVE");
+                return Optional.of(errorInfo);
+            }
+
+            if(archiveUnitProfile.getControlSchema() == null || JsonHandler.isEmpty(archiveUnitProfile.getControlSchema())) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " havn't a valid Control Schema");
+                return Optional.of(errorInfo);
+            }
+
+        } catch (ReferentialNotFoundException e) {
+            ObjectNode errorInfo = JsonHandler.createObjectNode();
+            errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
+            errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
+            errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not in database");
+            return Optional.of(errorInfo);
+        } catch (InvalidParseOperationException | AdminManagementClientServerException e) {
+            throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<JsonNode> computeErrorsForCategory(Map.Entry<String, RuleCategoryAction> entry) {
         JsonNode rulesIDErrors = computeOnlyRulesID(entry);
-        if (rulesIDErrors != null) { return rulesIDErrors; }
+        if (rulesIDErrors != null) { return Optional.of(rulesIDErrors); }
 
         String categoryName = entry.getKey();
         RuleCategoryAction category = entry.getValue();
@@ -166,11 +225,11 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", classificationLevel + " is not a valid value for ClassificationLevel");
-                return errorInfo;
+                return Optional.of(errorInfo);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private JsonNode computeOnlyRulesID(Map.Entry<String, RuleCategoryAction> entry) {

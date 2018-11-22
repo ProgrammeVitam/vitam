@@ -18,6 +18,12 @@ types:
       delete:
         description: Métadonnées de gestion à supprimer
         type: RuleCategory[]
+      addOrUpdateMetadata:
+        description: Modification de valeur de métadonnée(s) de gestion (hors règles de gestion), peut être vide/null
+        type: ManagementMetadata
+      deleteMetadata:
+        description: Suppression de valeur de métadonnée(s) de gestion (hors règles de gestion), peut être vide/null
+        type: ManagementMetadata
 
   RuleCategory:
     displayName: Liste des catégories
@@ -42,6 +48,16 @@ types:
       StorageRule?:
         description: Modifications liées aux durées d'utilité courante
         type: CategoryMetadata
+
+  ManagementMetadata:
+    displayName: Liste des champs de gestion
+    description: Définit les champs impactées par la modification
+    type: object
+    properties:
+      ArchiveUnitProfile?:
+        description: Modifications de l'identifiant de documents type (La valeur doit être non nulle dans le cas d'une suppression)
+        type: string
+
 
   CategoryMetadata:
     displayName: Métadonnées par catégories
