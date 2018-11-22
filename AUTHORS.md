@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release 8 (V1) active development team (10/2018)
+## Release 8 (V1) active development team (11/2018)
 
 ### French government team
 
@@ -12,6 +12,7 @@
 * Mélanie Rebours
 * Marion Ville
 * Nathalie Morin
+* Thierry Devillechabrolle
 
 ### Linagora development team
 
@@ -38,13 +39,18 @@
 * Joachim Gonthier
 * Olivier Marsol
 * Nicolas Ménétrier
-* Bernardo Resende
 * Nicolas Roselier
 * Karima Belili
 
+## Others contributors
+* Gabriel Arena
+* Emmanuel Castro
+* Jean-Paul Pham
+* Julien Georges - Adamant
+
+
 ## Those who have gone a long (or short) way with us
 
-* Bilel Ben Mustapha
 * David Carella
 * Jérémie Charrier
 * Lourdes Fuentes-Hashimoto
@@ -84,6 +90,7 @@
 * Claude Prabel
 * Lilas Becha
 * Kristopher Waltzer
+* Bernardo Resende
 
 
 ## Thanks for collaboration
@@ -98,12 +105,9 @@
 * French public institution of Exploitation of the Computerized Land Book (EPELFI)
 * National Computing Center for Higher Education (CINES)
 * Payment Services Agency (ASP)
+* Musée du quai Branly - Jacques Chirac
 
 ## Thanks for support
 
 * Claire Botella
 * Julie Garnier
-
-## Main contributors
-
-... may be you!
