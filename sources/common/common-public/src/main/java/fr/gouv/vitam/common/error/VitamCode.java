@@ -141,9 +141,12 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Request agency validation error"),
 
-
     PRESERVATION_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "13",
         Status.BAD_REQUEST,
+        "Request griffin validation error"),
+
+    PRESERVATION_INTERNAL_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "13",
+        Status.INTERNAL_SERVER_ERROR,
         "Request griffin validation error"),
 
     SECURITY_PROFILE_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "14",
@@ -247,6 +250,10 @@ public enum VitamCode {
     ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "66",
             Status.BAD_REQUEST,
             "Access external client error in getAccessionRegisterSymbolic method."),
+
+    ACCESS_EXTERNAL_GET_GET_GRIFFIN_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "67",
+            Status.BAD_REQUEST,
+            "Access external client in getting griffin."),
 
     // MASS UPDATE units
     ACCESS_EXTERNAL_MASS_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "40",
@@ -464,8 +471,6 @@ public enum VitamCode {
         "DatabaseException while accessing database through repository service"),
 
     METADATA_NOT_FOUND(ServiceName.METADATA, DomainName.DATABASE, "03", Status.NOT_FOUND, "Metadata not found");
-
-
 
     private final ServiceName service;
     private final DomainName domain;

@@ -141,14 +141,14 @@ public class PreservationResource {
     }
 
     @GET
-    @Path("/preservationScenarios")
+    @Path("/preservationScenario")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findPreservation(JsonNode queryDsl) {
 
         try {
             RequestResponse<PreservationScenarioModel> requestResponse =
-                griffinService.findPreservationScenario(queryDsl);
+                preservationScenarioService.findPreservationScenario(queryDsl);
 
             return Response.status(Status.OK).entity(requestResponse).build();
 

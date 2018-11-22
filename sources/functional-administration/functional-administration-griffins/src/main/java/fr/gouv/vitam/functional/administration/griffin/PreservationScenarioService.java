@@ -61,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
@@ -97,9 +98,9 @@ public class PreservationScenarioService {
         this(mongoAccess, functionalBackupService, getInstance());
     }
 
-    public RequestResponse<PreservationScenarioModel> importScenarios(@NotNull List<PreservationScenarioModel> listToImport)
-        throws VitamException,
-        InvalidCreateOperationException {
+    public RequestResponse<PreservationScenarioModel> importScenarios(
+        @NotNull List<PreservationScenarioModel> listToImport)
+        throws VitamException {
 
         String operationId = getVitamSession().getRequestId();
         GUID guid = getGUID(operationId);
@@ -122,14 +123,13 @@ public class PreservationScenarioService {
             functionalBackupService
                 .saveCollectionAndSequence(guid, SCENARIO_BACKUP_EVENT, PRESERVATION_SCENARIO, operationId);
 
-        } catch (InvalidCreateOperationException | VitamException e) {
+        } catch (VitamException e) {
             createLogbookEventKo(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT, e.getMessage());
             throw e;
         }
-
         createLogbookEventSuccess(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
 
-       return new RequestResponseOK<PreservationScenarioModel>().addAllResults(listToImport)
+        return new RequestResponseOK<PreservationScenarioModel>().addAllResults(listToImport)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
@@ -192,7 +192,7 @@ public class PreservationScenarioService {
 
             formatDateForMongo(preservationScenarioModel);
 
-            (treatmentToInsert).add(toJson(preservationScenarioModel));
+            treatmentToInsert.add(toJson(preservationScenarioModel));
         }
 
         mongoDbAccess.insertDocuments(treatmentToInsert, PRESERVATION_SCENARIO);
@@ -215,20 +215,20 @@ public class PreservationScenarioService {
     }
 
     private void deleteScenarios(@NotNull List<String> listIdsToDelete)
-        throws ReferentialException, BadRequestException, SchemaValidationException,
-        InvalidCreateOperationException {
-
-        for (String identifier : listIdsToDelete) {
-
-            final Select select = new Select();
-            select.setQuery(eq(Griffin.IDENTIFIER, identifier));
-            mongoDbAccess.deleteDocument(select.getFinalSelect(), PRESERVATION_SCENARIO);
+        throws ReferentialException, BadRequestException, SchemaValidationException {
+        try {
+            for (String identifier : listIdsToDelete) {
+                final Select select = new Select();
+                select.setQuery(eq(Griffin.IDENTIFIER, identifier));
+                mongoDbAccess.deleteDocument(select.getFinalSelect(), PRESERVATION_SCENARIO);
+            }
+        } catch (InvalidCreateOperationException e) {
+            throw new IllegalStateException("cannot Create Dsl");
         }
     }
 
     private void updateScenarios(@NotNull List<PreservationScenarioModel> listToUpdate)
-        throws ReferentialException, SchemaValidationException, BadRequestException, InvalidCreateOperationException,
-        InvalidParseOperationException {
+        throws ReferentialException, SchemaValidationException, BadRequestException {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
@@ -239,26 +239,54 @@ public class PreservationScenarioService {
         }
     }
 
-    private JsonNode getUpdateDslQuery(@NotNull PreservationScenarioModel preservationScenarioModel)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
+    private JsonNode getUpdateDslQuery(@NotNull PreservationScenarioModel preservationScenarioModel) {
 
-        final List<SetAction> actions = new ArrayList<>();
+        try {
+            List<SetAction> actions = getSetActionsFromModel(preservationScenarioModel);
+            SetAction[] setActions = actions.toArray(new SetAction[0]);
+            Update update = new Update();
 
-        JsonNode jsonModel = JsonHandler.toJsonNode(preservationScenarioModel);
+            update.setQuery(eq(Griffin.IDENTIFIER, preservationScenarioModel.getIdentifier()));
 
-        for (String field : Lists.newArrayList(PreservationScenarioModel.alterableFields)) {
+            update.addActions(setActions);
 
-            JsonNode fieldNode = jsonModel.get(field);
-            String value = fieldNode.textValue();
-            SetAction action = new SetAction(field, value);
-            actions.add(action);
+            return update.getFinalUpdate();
+        } catch (InvalidCreateOperationException e) {
+            throw new IllegalStateException("Illegal state");
         }
 
-        SetAction[] setActions = actions.toArray(new SetAction[0]);
-        final Update update = new Update();
-        update.setQuery(eq(Griffin.IDENTIFIER, preservationScenarioModel.getIdentifier()));
-        update.addActions(setActions);
-        return update.getFinalUpdate();
+    }
+
+    private List<SetAction> getSetActionsFromModel(PreservationScenarioModel preservationScenarioModel)
+        throws InvalidCreateOperationException {
+
+        JsonNode jsonModel = modelToJson(preservationScenarioModel);
+
+        List<SetAction> actions = new ArrayList<>();
+
+        for (String field : newArrayList(PreservationScenarioModel.alterableFields)) {
+            JsonNode fieldNode = jsonModel.get(field);
+
+            if (fieldNode != null) {
+                String value = fieldNode.textValue();
+
+                SetAction action = new SetAction(field, value);
+                actions.add(action);
+            }
+        }
+
+        return actions;
+    }
+
+    private JsonNode modelToJson(@NotNull PreservationScenarioModel preservationScenarioModel) {
+        JsonNode jsonModel;
+        try {
+            jsonModel = JsonHandler.toJsonNode(preservationScenarioModel);
+        } catch (InvalidParseOperationException e) {
+
+            throw new IllegalStateException("incorrect model");
+        }
+        return jsonModel;
     }
 
     private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) {
@@ -269,4 +297,13 @@ public class PreservationScenarioService {
         String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
         preservationScenarioModel.setCreationDate(creationDate);
     }
+
+    public RequestResponse<PreservationScenarioModel> findPreservationScenario(JsonNode queryDsl)
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
+        DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, PRESERVATION_SCENARIO);
+
+        return documents.getRequestResponseOK(queryDsl, PreservationScenario.class, PreservationScenarioModel.class);
+    }
+
 }

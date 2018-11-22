@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.griffin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -45,17 +46,14 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
-import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
-import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -72,7 +70,6 @@ import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
@@ -87,7 +84,7 @@ public class GriffinService {
     private FunctionalBackupService functionalBackupService;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    GriffinService(MongoDbAccessReferential mongoDbAccess,
+    @VisibleForTesting GriffinService(MongoDbAccessReferential mongoDbAccess,
         FunctionalBackupService functionalBackupService,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
@@ -185,7 +182,7 @@ public class GriffinService {
             griffinModel.setTenant(HeaderIdHelper.getTenantId());
 
             formatDateForMongo(griffinModel);
-            (griffinToInsert).add(toJson(griffinModel));
+            griffinToInsert.add(toJson(griffinModel));
         }
 
         mongoDbAccess.insertDocuments(griffinToInsert, GRIFFIN);
@@ -244,15 +241,7 @@ public class GriffinService {
     private JsonNode getUpdateDslQuery(@NotNull GriffinModel griffinModel)
         throws InvalidCreateOperationException, InvalidParseOperationException {
 
-        JsonNode jsonModel = JsonHandler.toJsonNode(griffinModel);
-        final List<SetAction> actions = new ArrayList<>();
-
-        for (String field : Lists.newArrayList(GriffinModel.alterableFields)) {
-            JsonNode fieldNode = jsonModel.get(field);
-            String value = fieldNode.textValue();
-            SetAction action = new SetAction(field, value);
-            actions.add(action);
-        }
+        final List<SetAction> actions = getSetActionsFromModel(griffinModel);
 
         SetAction[] setActions = actions.toArray(new SetAction[0]);
         final Update update = new Update();
@@ -262,19 +251,28 @@ public class GriffinService {
         return update.getFinalUpdate();
     }
 
+    private List<SetAction> getSetActionsFromModel(@NotNull GriffinModel griffinModel)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        JsonNode jsonModel = JsonHandler.toJsonNode(griffinModel);
+        final List<SetAction> actions = new ArrayList<>();
+
+        for (String field : Lists.newArrayList(GriffinModel.alterableFields)) {
+
+            JsonNode fieldNode = jsonModel.get(field);
+            if (fieldNode != null) {
+                String value = fieldNode.textValue();
+                SetAction action = new SetAction(field, value);
+                actions.add(action);
+            }
+        }
+        return actions;
+    }
+
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
         throws ReferentialException, BadRequestException, InvalidParseOperationException {
 
         DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, GRIFFIN);
 
         return documents.getRequestResponseOK(queryDsl, Griffin.class, GriffinModel.class);
-    }
-
-    public RequestResponse<PreservationScenarioModel> findPreservationScenario(JsonNode queryDsl)
-        throws ReferentialException, BadRequestException, InvalidParseOperationException {
-
-        DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, PRESERVATION_SCENARIO);
-
-        return documents.getRequestResponseOK(queryDsl, PreservationScenario.class, PreservationScenarioModel.class);
     }
 }

@@ -29,8 +29,13 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
@@ -39,30 +44,33 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.valueOf;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * GriffinStep class
+ * PreservationStep class
  */
-public class GriffinStep {
+public class PreservationStep {
 
     private World world;
 
-    public GriffinStep(World world) {
+    public PreservationStep(World world) {
         this.world = world;
     }
 
     @When("^j'importe le griffon nommé (.*)$")
-    public void importGriffin(String fileName) throws Exception {
+    public void importGriffin(String fileName) {
 
         Path file = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
 
             VitamContext vitamContext = new VitamContext(world.getTenantId());
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-            RequestResponse response =  world.getAdminClient().importGriffin(vitamContext, inputStream, fileName);
+
+            RequestResponse response = world.getAdminClient().importGriffin(vitamContext, inputStream, fileName);
 
             final String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
@@ -98,4 +106,29 @@ public class GriffinStep {
             Fail.fail("failed to  upload griffin file  " + e);
         }
     }
+
+    @When("^je cherche le griffon nommé (.*)$")
+    public void searchGriffinById(String identifier) throws VitamClientException, InvalidParseOperationException {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<GriffinModel> response = world.getAdminClient().findGriffinById(vitamContext, identifier);
+
+        assertThat(response.getHttpCode()).isEqualTo(200);
+
+        world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
+    }
+
+    @When("^je cherche le scénario de preservation nommé (.*)$")
+    public void searchPreservationById(String identifier) throws VitamClientException, InvalidParseOperationException {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<PreservationScenarioModel> response = world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
+
+        assertThat(response.getHttpCode()).isEqualTo(200);
+
+        world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
+    }
+
 }

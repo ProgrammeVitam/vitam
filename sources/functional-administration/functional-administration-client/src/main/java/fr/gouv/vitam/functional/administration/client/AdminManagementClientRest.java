@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -131,8 +132,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
-    private static final String GRIFFIN_URI = "/griffin";
-    private static final String PRESERVATION_URI = "/preservation-scenario";
 
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
@@ -1688,7 +1687,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
 
-            response = performRequest(GET, GRIFFIN_URI, null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            response = performRequest(GET, "/griffin", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
 
@@ -1727,7 +1726,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(PreservationScenarioModel.TAG_IDENTIFIER, id);
 
             response =
-                performRequest(GET, PRESERVATION_URI, null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+                performRequest(GET, "/preservationScenario", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
 
