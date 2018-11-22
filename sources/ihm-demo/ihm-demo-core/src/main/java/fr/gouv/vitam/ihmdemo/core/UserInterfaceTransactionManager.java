@@ -103,6 +103,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * Gets search objects result
+     *
+     * @param parameters   search criteria as DSL query
+     * @param context   Vitamcontext
+     * @return result
+     * @throws VitamClientException access client exception
+     */
+    public static RequestResponse<JsonNode> searchObjects(JsonNode parameters, VitamContext context)
+            throws VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.selectObjects(context, parameters);
+        }
+    }
+
+    /**
      * Gets archive unit details
      *
      * @param preparedDslQuery search criteria as DSL query

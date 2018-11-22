@@ -171,6 +171,22 @@ public class Query {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
+    protected final void createQueryVariableValue(final QUERY query,
+                                                  final String variableName, final JsonNode value)
+            throws InvalidCreateOperationException {
+        if (variableName == null || variableName.trim().isEmpty()) {
+            throw new InvalidCreateOperationException(
+                    QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+        }
+        try {
+            GlobalDatas.sanityParameterCheck(variableName);
+        } catch (final InvalidParseOperationException e) {
+            throw new InvalidCreateOperationException(e);
+        }
+        currentObject = ((ObjectNode) currentObject).putObject(query.exactToken());
+        ((ObjectNode) currentObject).put(variableName.trim(), value);
+    }
+
     /**
      * Clean the object
      */

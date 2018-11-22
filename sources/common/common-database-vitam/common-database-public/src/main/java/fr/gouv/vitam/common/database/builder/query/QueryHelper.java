@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.builder.query;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
@@ -682,12 +683,12 @@ public class QueryHelper {
      *
      * @param variableName key name
      * @param value of key
-     * @return a SearchQuery using SEARCH operator
+     * @return a NestedQuery using Nested Search operator
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final SearchQuery nestedSearch(final String variableName, final String value)
+    public static final NestedQuery nestedSearch(final String variableName, final JsonNode value)
             throws InvalidCreateOperationException {
-        return new SearchQuery(QUERY.SUBOBJECT, variableName, value);
+        return new NestedQuery(QUERY.SUBOBJECT, variableName, value);
     }
 
     /**
