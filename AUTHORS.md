@@ -43,13 +43,14 @@
 * Karima Belili
 
 ## Others contributors
-
+* Gabriel Arena
+* Emmanuel Castro
+* Jean-Paul Pham
 * Julien Georges - Adamant
 
 
 ## Those who have gone a long (or short) way with us
 
-* Bilel Ben Mustapha
 * David Carella
 * Jérémie Charrier
 * Lourdes Fuentes-Hashimoto
