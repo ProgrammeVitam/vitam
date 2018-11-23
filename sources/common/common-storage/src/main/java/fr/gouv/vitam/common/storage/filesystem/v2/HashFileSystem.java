@@ -417,6 +417,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         try {
             ByteBuffer bb = ByteBuffer.allocate(view.size(name));
             view.read(name, bb);
+            bb.flip();
             CharBuffer buffer = Charset.defaultCharset().decode(bb);
             return buffer.toString();
         } catch (IllegalArgumentException | FileSystemException e) {
