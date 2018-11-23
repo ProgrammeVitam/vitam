@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
@@ -267,9 +268,10 @@ public class StorageDistributionImpl implements StorageDistribution {
                     OfferReference offerReference = new OfferReference();
                     offerReference.setId(offerId);
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
+                    InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                     StoragePutRequest request =
                         new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
-                            streams.getInputStream(rank));
+                            inputStream);
                     futureMap.put(offerReference.getId(),
                         executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
                             Long.valueOf((String) streamAndInfos.get(SIZE_KEY)))));
@@ -311,7 +313,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
                 final Future<ThreadResponseData> future = entry.getValue();
                 // Check if any has one IO Exception
-                streams.hasException();
+                streams.throwLastException();
                 String offerId = entry.getKey();
                 try {
                     ThreadResponseData threadResponseData = future
@@ -364,7 +366,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
             }
             // Check if any has one IO Exception
-            streams.hasException();
+            streams.throwLastException();
         } catch (IOException e1) {
             LOGGER.error("Cannot create multipleInputStream", e1);
             parameters = setLogbookStorageParameters(parameters, "none", null, requester, attempt,
@@ -414,8 +416,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
-        Digest digest)
-        throws StorageTechnicalException, StorageNotFoundException, IOException {
+        Digest digest) {
         DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
         return new MultiplePipedInputStream(digestOriginalStream, nbCopy);
     }
