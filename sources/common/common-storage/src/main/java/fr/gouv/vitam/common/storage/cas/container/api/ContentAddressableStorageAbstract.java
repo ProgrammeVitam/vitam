@@ -30,19 +30,13 @@ import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,7 +44,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
 
-    private final static Set<String> existingContainer = new HashSet<>();
     private final StorageConfiguration configuration;
 
     /**
@@ -60,27 +53,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     protected ContentAddressableStorageAbstract(StorageConfiguration configuration) {
         this.configuration = configuration;
-    }
-
-    @Override
-    public boolean isExistingContainer(String containerName) {
-        // If existing containers are already checked, this help just an in memory check
-        return existingContainer.contains(containerName);
-    }
-
-    /**
-     * This handle cache already existing container
-     * Prevent handling an i/o check container exists
-     * Do only memory check if the container is already exists
-     * @param containerName
-     * @param exists
-     * @return
-     */
-    public boolean cacheExistsContainer(String containerName, boolean exists) {
-        if (exists) {
-            existingContainer.add(containerName);
-        }
-        return exists;
     }
 
     public StorageConfiguration getConfiguration() {

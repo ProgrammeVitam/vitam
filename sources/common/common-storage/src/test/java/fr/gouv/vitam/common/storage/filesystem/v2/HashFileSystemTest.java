@@ -64,6 +64,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new HashFileSystem(configuration);
+        storage.clearExistingContainer();
     }
 
     /**

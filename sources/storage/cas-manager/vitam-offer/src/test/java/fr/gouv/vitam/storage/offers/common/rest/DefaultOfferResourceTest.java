@@ -26,29 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
+import io.restassured.RestAssured;
+import io.restassured.response.ResponseBody;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.hamcrest.Matchers;
@@ -61,39 +73,24 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import io.restassured.RestAssured;
-import io.restassured.response.ResponseBody;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Filters;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.List;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * DefaultOfferResource Test
@@ -178,6 +175,7 @@ public class DefaultOfferResourceTest {
 
     @Before
     public void initCollections() throws VitamException {
+        ContentAddressableStorage.existingContainer.clear();
         try {
             // restart server to reinit collection sequence
             application.stop();

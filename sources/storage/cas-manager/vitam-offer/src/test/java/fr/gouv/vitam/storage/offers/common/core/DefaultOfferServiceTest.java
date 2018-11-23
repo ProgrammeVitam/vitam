@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -107,7 +108,8 @@ public class DefaultOfferServiceTest {
     private OfferLogDatabaseService offerDatabaseService;
 
     @After
-    public void deleteFiles() throws Exception {
+    public void afterEachTest() throws Exception {
+        ContentAddressableStorage.existingContainer.clear();
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
