@@ -77,7 +77,8 @@ public class ParserTokens extends BuilderToken {
         "OtherMetadata", "_nbc",
         "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "EndDate", "Rule", "PreventInheritance", "StartDate", "FinalAction",
-        "ClassificationLevel", "ClassificationOwner", "ClassificationAudience", "ClassificationReassessingDate", "NeedReassessingAuthorization"
+        "ClassificationLevel", "ClassificationOwner", "ClassificationAudience", "ClassificationReassessingDate",
+        "NeedReassessingAuthorization"
     });
 
     /**
@@ -503,21 +504,21 @@ public class ParserTokens extends BuilderToken {
         "_tenant",
         "_v",
         "_score",
-            "_history.ud",
-            "_history.data._mgt.ClassificationRule.Inheritance.PreventInheritance",
-            "_history.data._mgt.ClassificationRule.Inheritance.PreventRulesId",
-            "_history.data._mgt.ClassificationRule.Rules.EndDate",
-            "_history.data._mgt.ClassificationRule.Rules.Rule",
-            "_history.data._mgt.ClassificationRule.Rules.StartDate",
-            "_history.data._mgt.DisseminationRule.Inheritance.PreventInheritance",
-            "_history.data._mgt.DisseminationRule.Inheritance.PreventRulesId",
-            "_history.data._mgt.ClassificationRule.ClassificationLevel",
-            "_history.data._mgt.ClassificationRule.ClassificationAudience",
-            "_history.data._mgt.ClassificationRule.ClassificationReassessingDate",
-            "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
-            "_history.data._v",
-            "_implementationVersion",
-            "_sedaVersion"));
+        "_history.ud",
+        "_history.data._mgt.ClassificationRule.Inheritance.PreventInheritance",
+        "_history.data._mgt.ClassificationRule.Inheritance.PreventRulesId",
+        "_history.data._mgt.ClassificationRule.Rules.EndDate",
+        "_history.data._mgt.ClassificationRule.Rules.Rule",
+        "_history.data._mgt.ClassificationRule.Rules.StartDate",
+        "_history.data._mgt.DisseminationRule.Inheritance.PreventInheritance",
+        "_history.data._mgt.DisseminationRule.Inheritance.PreventRulesId",
+        "_history.data._mgt.ClassificationRule.ClassificationLevel",
+        "_history.data._mgt.ClassificationRule.ClassificationAudience",
+        "_history.data._mgt.ClassificationRule.ClassificationReassessingDate",
+        "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
+        "_history.data._v",
+        "_implementationVersion",
+        "_sedaVersion"));
 
     private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
         AdminManagementOntologiesClientFactory.getInstance();
@@ -1051,7 +1052,11 @@ public class ParserTokens extends BuilderToken {
     public static boolean isAnArrayVariable(String name) {
         // FIXME Patch for Single collection
         switch (name) {
-            // context
+            // Preservation
+            case "ExecutableName":
+            case "ExecutableVersion":
+
+                // context
             case "SecurityProfile":
             case "EnableControl":
                 // Formats

@@ -37,8 +37,10 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -112,7 +114,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws AccessExternalClientException, InvalidParseOperationException {
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
     @Override
@@ -328,7 +330,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(agencies);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getAgencies(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -339,7 +341,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(formats);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getFormat(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -350,7 +352,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(rules);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getRule(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
 
@@ -361,7 +363,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(securityProfiles);
         return ClientMockResultHelper.createReponse(
             ClientMockResultHelper.getSecurityProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-                Status.CREATED.getStatusCode());
+            Status.CREATED.getStatusCode());
     }
 
     private Response checkInternalDocuments(VitamContext vitamContext, AdminCollections documentType,
@@ -442,7 +444,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse evidenceAudit(VitamContext vitamContext,JsonNode queryDsl) {
+    public RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl) {
         return ClientMockResultHelper.getEvidenceAudit(Status.OK.getStatusCode());
     }
 
@@ -450,8 +452,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId) {
         throw new UnsupportedOperationException("Will not Implemented");
     }
+
     @Override
-    public RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest) {
+    public RequestResponse exportProbativeValue(VitamContext vitamContext,
+        ProbativeValueRequest probativeValueRequest) {
         return ClientMockResultHelper.getProbativeValue(Status.OK.getStatusCode());
     }
 
@@ -480,20 +484,46 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream profiles)
+    @Override
+    public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper
             .createReponse(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()).toJsonNode())
             .setHttpCode(Status.CREATED.getStatusCode());
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query) throws VitamClientException {
+    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query)
+        throws VitamClientException {
         return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id) throws VitamClientException {
+    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id)
+        throws VitamClientException {
         return (RequestResponse<OntologyModel>) ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }
 
 
+    @Override
+    public RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String fileName)
+        throws VitamClientException, AccessExternalClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream stream, String fileName)
+        throws VitamClientException, AccessExternalClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

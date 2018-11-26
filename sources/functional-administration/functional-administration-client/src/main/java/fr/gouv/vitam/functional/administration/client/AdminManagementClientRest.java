@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
@@ -54,10 +53,13 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -83,6 +85,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.List;
 
+import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -223,7 +226,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -252,8 +255,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     throw new ReferentialException("Unknown error");
             }
-            return JsonHandler
-                .getFromString(response.readEntity(String.class), RequestResponseOK.class, FileFormatModel.class);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, FileFormatModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -395,7 +397,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -413,11 +415,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(AgenciesModel.TAG_IDENTIFIER, id));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(AgenciesModel.TAG_IDENTIFIER, id);
             response = performRequest(GET, AGENCIES_URL, null, queryDsl,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
@@ -425,7 +423,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<AgenciesModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         AgenciesModel.class);
 
 
@@ -468,7 +466,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -497,7 +495,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -569,7 +567,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             }
             String value = response.readEntity(String.class);
             RequestResponseOK fromString =
-                JsonHandler.getFromString(value, RequestResponseOK.class,
+                getFromString(value, RequestResponseOK.class,
                     AccessionRegisterSummaryModel.class);
             return fromString;
         } catch (final VitamClientInternalException e) {
@@ -601,7 +599,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                 AccessionRegisterDetailModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -665,7 +663,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     AccessContractModel.class);
             }
 
@@ -687,11 +685,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(AccessContract.IDENTIFIER, documentId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(AccessContract.IDENTIFIER, documentId);
 
 
             response = performRequest(GET, ACCESS_CONTRACTS_URI, null, queryDsl,
@@ -700,7 +694,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<AccessContractModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         AccessContractModel.class);
 
 
@@ -734,7 +728,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     IngestContractModel.class);
             }
 
@@ -755,11 +749,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(IngestContract.IDENTIFIER, documentId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(IngestContract.IDENTIFIER, documentId);
 
             response = performRequest(GET, INGEST_CONTRACTS_URI, null, queryDsl,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
@@ -767,7 +757,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<IngestContractModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         IngestContractModel.class);
 
                 if (resp.getResults() == null || resp.getResults().size() == 0)
@@ -874,7 +864,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     ProfileModel.class);
             }
 
@@ -895,11 +885,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(Profile.IDENTIFIER, documentId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
 
 
             response = performRequest(GET, PROFILE_URI, null, queryDsl,
@@ -908,7 +894,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<ProfileModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         ProfileModel.class);
 
 
@@ -942,7 +928,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Profile not found with id: " + id);
             }
@@ -988,7 +974,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     ArchiveUnitProfileModel.class);
             }
 
@@ -1009,11 +995,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(Profile.IDENTIFIER, documentId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
 
 
             response = performRequest(GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
@@ -1022,7 +1004,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<ArchiveUnitProfileModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         ArchiveUnitProfileModel.class);
 
                 if (resp.getResults() == null || resp.getResults().size() == 0) {
@@ -1082,7 +1064,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Access contract not found with id: " + id);
             }
@@ -1106,7 +1088,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Ingest contract not found with id: " + id);
             }
@@ -1158,7 +1140,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Context not found with id: " + id);
             }
@@ -1182,7 +1164,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     ContextModel.class);
             }
 
@@ -1203,11 +1185,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(Context.IDENTIFIER, id));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(Context.IDENTIFIER, id);
 
 
             response = performRequest(GET, CONTEXT_URI, null, queryDsl,
@@ -1216,7 +1194,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<ContextModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         ContextModel.class);
 
 
@@ -1244,11 +1222,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input security profile Id json is mandatory", securityProfileId);
         try {
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(Context.SECURITY_PROFILE, securityProfileId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+            JsonNode queryDsl = getIdentifierQuery(Context.SECURITY_PROFILE, securityProfileId);
 
             RequestResponse<ContextModel> requestResponse = findContexts(queryDsl);
 
@@ -1341,7 +1316,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     SecurityProfileModel.class);
             }
 
@@ -1368,7 +1343,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<SecurityProfileModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         SecurityProfileModel.class);
 
                 if (resp.getResults() == null || resp.getResults().size() == 0)
@@ -1478,7 +1453,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
         Response response = null;
         try {
@@ -1528,7 +1504,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     OntologyModel.class);
             }
 
@@ -1549,11 +1525,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         Response response = null;
         try {
 
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(Ontology.IDENTIFIER, documentId));
-            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            JsonNode queryDsl = getIdentifierQuery(Ontology.IDENTIFIER, documentId);
 
             response = performRequest(GET, ONTOLOGY_URI, null, queryDsl,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
@@ -1561,7 +1533,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<OntologyModel> resp =
-                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
                         OntologyModel.class);
 
                 if (resp.getResults() == null || resp.getResults().size() == 0) {
@@ -1582,6 +1554,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    private JsonNode getIdentifierQuery(String identifierFiled, String documentId)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserSingle parser = new SelectParserSingle();
+        Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq(identifierFiled, documentId));
+        return parser.getRequest().getFinalSelect();
     }
 
     @Override
@@ -1649,6 +1630,124 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolicModel.class);
         } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse importGriffins(List<GriffinModel> griffinModelList)
+        throws AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("griffin file  is mandatory", griffinModelList);
+        Response response = null;
+        try {
+            response = performRequest(POST, "/importGriffins", null,
+                griffinModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse importPreservationScenarios(List<PreservationScenarioModel> preservationScenarioModels)
+        throws AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("PreservationScenario file  is mandatory", preservationScenarioModels);
+        Response response = null;
+        try {
+            response = performRequest(POST, "/importPreservationScenarios", null,
+                preservationScenarioModels, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+
+        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+        Response response = null;
+        try {
+
+            JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
+
+            response = performRequest(GET, "/griffin", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (status == Status.OK) {
+
+                String entity = response.readEntity(String.class);
+                RequestResponseOK<GriffinModel> requestResponseOK =
+                    getFromString(entity, RequestResponseOK.class, GriffinModel.class);
+
+                if (requestResponseOK.getResults() == null ||
+                    requestResponseOK.getResults().isEmpty()) {
+                    throw new ReferentialNotFoundException("Griffin not found with id: " + id);
+                }
+                return requestResponseOK;
+            }
+            return RequestResponse.parseFromResponse(response, GriffinModel.class);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+        Response response = null;
+        try {
+
+            JsonNode queryDsl = getIdentifierQuery(PreservationScenarioModel.TAG_IDENTIFIER, id);
+
+            response =
+                performRequest(GET, "/preservationScenario", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (status == Status.OK) {
+
+                String entity = response.readEntity(String.class);
+                RequestResponseOK<PreservationScenarioModel> requestResponseOK =
+                    getFromString(entity, RequestResponseOK.class, PreservationScenarioModel.class);
+
+                if (requestResponseOK.getResults() == null ||
+                    requestResponseOK.getResults().isEmpty()) {
+                    throw new ReferentialNotFoundException("PreservationScenario not found with id: " + id);
+                }
+                return requestResponseOK;
+            }
+            return RequestResponse.parseFromResponse(response, GriffinModel.class);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

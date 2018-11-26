@@ -36,8 +36,10 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -1139,7 +1141,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 requestResponseOK
                     .setHttpCode(Status.OK.getStatusCode());
 
-                requestResponseOK.addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
+                requestResponseOK
+                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
                 return requestResponseOK;
 
             } else {
@@ -1167,6 +1170,34 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ONTOLOGY, query,
             OntologyModel.class);
+    }
+
+    @Override
+    public RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.GRIFFIN, griffinStream, filename,
+            MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    @Override
+    public RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream scenarios, String fileName)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.PRESERVATION_SCENARIO, scenarios, fileName,
+            MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.GRIFFIN, id,
+            GriffinModel.class);
+    }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.PRESERVATION_SCENARIO, id,
+            PreservationScenarioModel.class);
     }
 }
 

@@ -41,10 +41,12 @@ import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
+import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 
 /**
@@ -113,6 +115,11 @@ public enum FunctionalAdminCollections {
      * Security profile collection
      */
     SECURITY_PROFILE(SecurityProfile.class, false, false),
+
+
+    GRIFFIN(Griffin.class, false, false),
+
+    PRESERVATION_SCENARIO(PreservationScenario.class, false, false),
 
     /**
      * Ontology collection
@@ -254,6 +261,7 @@ public enum FunctionalAdminCollections {
 
     /**
      * Check if the collection is multi tenant or not
+     *
      * @param collectionName
      * @return true if the collection is multi tenant
      */

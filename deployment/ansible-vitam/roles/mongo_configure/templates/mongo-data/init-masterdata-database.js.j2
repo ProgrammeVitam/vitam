@@ -45,3 +45,6 @@ db.SecurityProfile.createIndex ( { "Identifier" : 1 } , { unique: true } )
 
 db.VitamSequence.createIndex( { "Name" : 1 } )
 db.VitamSequence.createIndex( { "Name" : 1, "_tenant" : 1 } , { unique: true } )
+
+db.Griffin.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
+db.PreservationScenario.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )

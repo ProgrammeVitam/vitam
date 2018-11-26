@@ -47,6 +47,7 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE = "/accessionregistersymbolic-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
+    static final String MAPPING_GRIFFIN_FILE = "/griffin-es-mapping.json";
+    static final String MAPPING_PRESERVATION_SCENARIO_FILE = "/preservationscenario-es-mapping.json";
 
     /**
      * @param clusterName
@@ -214,6 +217,10 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
             case SECURITY_PROFILE:
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
+            case GRIFFIN:
+                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_GRIFFIN_FILE));
+            case PRESERVATION_SCENARIO:
+                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_PRESERVATION_SCENARIO_FILE));
             case VITAM_SEQUENCE:
             default:
                 LOGGER.warn(String.format("Trying to get mapping for collection '%s', but no mapping are configured.", collection.getName()));
@@ -229,8 +236,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     private static final BasicDBObject[] accessionRegisterDetailIndexes = {
         new BasicDBObject(AccessionRegisterDetail.ORIGINATING_AGENCY, 1).append(AccessionRegisterDetail.OPI, 1).append(AccessionRegisterDetail.TENANT_ID, 1)
     };
-
-
 
     /**
      * Methods adding Indexes

@@ -30,7 +30,7 @@ package fr.gouv.vitam.functional.administration.common.counter;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 import java.util.Arrays;
-import java.util.Optional;
+
 
 public enum SequenceType {
 
@@ -87,6 +87,10 @@ public enum SequenceType {
      * Accession Register Symbolic sequence type
      */
     ACCESSION_REGISTER_SYMBOLIC(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, "REGISTER_SYMBOLIC"),
+
+    GRIFFIN(FunctionalAdminCollections.GRIFFIN,"GR"),
+
+    PRESERVATION_SCENARIO(FunctionalAdminCollections.PRESERVATION_SCENARIO,"PSC"),
 
     /**
      * Accession Register Detail sequence type
