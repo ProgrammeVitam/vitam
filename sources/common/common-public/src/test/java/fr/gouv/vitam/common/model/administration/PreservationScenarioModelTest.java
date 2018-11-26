@@ -5,11 +5,9 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PreservationScenarioModelTest {
@@ -50,10 +48,10 @@ public class PreservationScenarioModelTest {
             .isEqualTo(ActionTypePreservation.ANALYSE);
 
         assertThat(
-            model.getGriffinByFormat("x-fmt/178").get().getActionDetail().get(1).getValuesPreservation().getExtension())
+            model.getGriffinByFormat("x-fmt/178").get().getActionDetail().get(1).getValues().getExtension())
             .isEqualTo("pdf");
         assertThat(
-            model.getGriffinByFormat("x-fmt/178").get().getActionDetail().get(1).getValuesPreservation().getArgs())
+            model.getGriffinByFormat("x-fmt/178").get().getActionDetail().get(1).getValues().getArgs())
             .isEqualTo(Lists.newArrayList("-quality", "90"));
 
         assertThat(

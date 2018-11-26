@@ -125,6 +125,5 @@
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 </project>

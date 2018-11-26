@@ -1,16 +1,6 @@
 package fr.gouv.vitam.worker.common;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -21,6 +11,14 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Interface of HandlerIO for all Handlers
@@ -73,6 +71,8 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return the rank-th ProcessingUri
      */
     ProcessingUri getOutput(int rank);
+
+    HandlerIO addOutputResult(int rank, Object object) throws ProcessingException;
 
     /**
      * Add one output result (no delete)

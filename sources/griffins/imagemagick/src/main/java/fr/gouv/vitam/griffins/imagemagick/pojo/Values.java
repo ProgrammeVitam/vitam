@@ -27,13 +27,18 @@
 
 package fr.gouv.vitam.griffins.imagemagick.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class Values {
+    @JsonProperty("Extension")
     private String extension;
+    @JsonProperty("Args")
     private List<String> args;
+    @JsonProperty("DataToExtract")
     private Map<String, String> dataToExtract;
 
     public Values() {

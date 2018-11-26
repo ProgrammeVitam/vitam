@@ -7,7 +7,7 @@
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_PRESERVATION_PREPARATION",
+      "stepName": "PREPARATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -40,7 +40,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_PRESERVATION_ACTION",
+      "stepName": "STP_ACTION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
@@ -51,17 +51,105 @@
       "actions": [
         {
           "action": {
-
             "actionKey": "PRESERVATION_ACTION",
-            "behavior": "BLOCKING",
-            "lifecycleLog": "DISABLED"
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_SIEGFRIED_IDENTIFICATION",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog" : "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_BINARY_HASH",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog" : "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_STORAGE_BINARY",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog" : "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_INDEXATION_METADATA",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "FLUSH_LFC",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_STORAGE_METADATA_LFC",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
           }
         }
       ]
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_PRESERVATION_FINALIZATION",
+      "stepName": "FINALIZATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"

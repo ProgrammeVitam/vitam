@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +37,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
@@ -46,9 +47,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class PreservationFinalizationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationFinalizationPlugin.class);
 
-    private static final String PRESERVATION_FINALIZATION = "PRESERVATION_FINALIZATION";
-    private PreservationReportService preservationReportService;
+    private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
 
+    private PreservationReportService preservationReportService;
 
     public PreservationFinalizationPlugin() {
         this(new PreservationReportService());
@@ -60,18 +61,16 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
         try {
             preservationReportService.exportReport(param.getRequestId(), param.getContainerName());
         } catch (Exception e) {
             LOGGER.error("Error on finalization", e);
             ObjectNode eventDetails = JsonHandler.createObjectNode();
             eventDetails.put("error", e.getMessage());
-            return buildItemStatus(PRESERVATION_FINALIZATION, FATAL, eventDetails);
+            return buildItemStatus(PLUGIN_NAME, FATAL, eventDetails);
         }
 
-        return buildItemStatus(PRESERVATION_FINALIZATION, OK, JsonHandler.createObjectNode());
+        return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Finalization ok."));
     }
 }

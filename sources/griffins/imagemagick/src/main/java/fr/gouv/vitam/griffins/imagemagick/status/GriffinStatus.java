@@ -29,7 +29,7 @@ package fr.gouv.vitam.griffins.imagemagick.status;
 
 public enum GriffinStatus {
     OK(0),
-    ERROR(1),
+    KO(1),
     WARNING(2);
 
     public final int code;

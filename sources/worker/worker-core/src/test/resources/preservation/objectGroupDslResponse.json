@@ -1,0 +1,66 @@
+{
+  "FileInfo": {
+    "LastModified": "2017-04-04T08:07:27.825+02:00"
+  },
+  "_#id": "aebaaaaaaahiu6xhaaksgalhnbwn3sqaaaaq",
+  "_nbobjects": 1,
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "DataObjectGroupId": "aebaaaaaaahiu6xhaaksgalhnbwn3sqaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Plain Text File",
+            "MimeType": "text/plain",
+            "FormatId": "x-fmt/111"
+          },
+          "FileInfo": {
+            "LastModified": "2017-04-04T08:07:27.825+02:00"
+          },
+          "Size": 6,
+          "Uri": "Content/ID35.txt",
+          "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+          "Algorithm": "SHA-512",
+          "_id": "aeaaaaaaaahiu6xhaaksgalhnbwn3siaaaaq",
+          "_opi": "aeeaaaaaachjxmi7absioalhnbwm47qaaaaq",
+          "_storage": {
+            "offerIds": [
+              "offer-fs-2.service.itrec.consul",
+              "offer-fs-1.service.itrec.consul"
+            ],
+            "strategyId": "default",
+            "_nbc": 2
+          }
+        }
+      ]
+    }
+  ],
+  "_type": "",
+  "_tenant": 0,
+  "_up": [
+    "aeaqaaaaaahiu6xhaaksgalhnbwn4riaaaaq"
+  ],
+  "_us": [
+    "aeaqaaaaaahiu6xhaaksgalhnbwn3tyaaaba"
+  ],
+  "#operations": [
+    "aeeaaaaaachjxmi7absioalhnbwm47qaaaaq"
+  ],
+  "_opi": "aeeaaaaaachjxmi7absioalhnbwm47qaaaaq",
+  "#originating_agency": "FRAN_NP_009913",
+  "#originating_agencies": [
+    "FRAN_NP_009913"
+  ],
+  "_storage": {
+    "offerIds": [
+      "offer-fs-1.service.itrec.consul",
+      "offer-fs-2.service.itrec.consul"
+    ],
+    "strategyId": "default",
+    "_nbc": 2
+  },
+  "_version": 0
+}

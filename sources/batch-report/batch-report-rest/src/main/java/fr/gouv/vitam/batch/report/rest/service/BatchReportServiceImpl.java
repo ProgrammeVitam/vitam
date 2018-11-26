@@ -29,6 +29,7 @@ package fr.gouv.vitam.batch.report.rest.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
+import fr.gouv.vitam.batch.report.model.AnalyseResultPreservation;
 import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
@@ -38,14 +39,16 @@ import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
-import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -138,14 +141,17 @@ public class BatchReportServiceImpl {
             output = outputName.asText();
         }
         id = GUIDFactory.newGUID().toString();
-        return new PreservationReportModel(id, processId, tenantId,
+        PreservationReportModel preservationReportModel = new PreservationReportModel(id, processId, tenantId,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             PreservationStatus.valueOf(entry.get(STATUS).asText()),
             checkValuePresent("unitId", entry).asText(),
             checkValuePresent("objectGroupId", entry).asText(),
-            checkValuePresent("action", entry).asText(),
-            checkValuePresent("analyseResult", entry).asText(),
+            ActionTypePreservation.valueOf(checkValuePresent("action", entry).asText()),
+            (ActionTypePreservation.ANALYSE == ActionTypePreservation.valueOf(entry.get("action").asText()) ?
+                AnalyseResultPreservation.valueOf(checkValuePresent("analyseResult", entry).asText()) :
+                AnalyseResultPreservation.VALID_ALL),
             checkValuePresent("inputName", entry).asText(), output);
+        return preservationReportModel;
     }
 
     private JsonNode checkValuePresent(String fieldName, JsonNode entry) throws BatchReportException {
@@ -157,9 +163,8 @@ public class BatchReportServiceImpl {
 
 
     public void exportEliminationActionUnitReport(String processId, String fileName, int tenantId)
-            throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
-        File tempFile =
-                FileUtil.createFileInTempDirectoryWithPathCheck(fileName, JSONL_EXTENSION);
+        throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
+        File tempFile = File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
         try (MongoCursor<Document> iterator =
             eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId)) {
 
@@ -172,9 +177,9 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
-            throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
+        throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
 
-        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(fileName, JSONL_EXTENSION);
+        File tempFile = File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 
         try (MongoCursor<Document> iterator = eliminationActionObjectGroupRepository
             .findCollectionByProcessIdTenant(processId, tenantId)) {
@@ -190,9 +195,9 @@ public class BatchReportServiceImpl {
 
     public void exportPreservationReport(String processId, String fileName, int tenantId)
         throws IOException, ContentAddressableStorageServerException {
-        File file = FileUtil.createFileInTempDirectoryWithPathCheck(fileName, null);
+        File file = Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName)).toFile();
 
-        try  {
+        try {
             createDocument(processId, tenantId, file);
             transferDocumentToWorkspace(processId, fileName, file);
         } finally {
@@ -208,7 +213,8 @@ public class BatchReportServiceImpl {
             PreservationStatsModel stats = preservationReportRepository.stats(processId, tenantId);
             addDocumentToFile(stats, writer);
 
-            try (MongoCursor<PreservationReportModel> reports = preservationReportRepository.findCollectionByProcessIdTenant(processId, tenantId)){
+            try (MongoCursor<PreservationReportModel> reports = preservationReportRepository
+                .findCollectionByProcessIdTenant(processId, tenantId)) {
                 reports.forEachRemaining(d -> addDocumentToFile(d, writer));
             }
         }
@@ -320,7 +326,8 @@ public class BatchReportServiceImpl {
         return new JsonLineModel(next, null, null);
     }
 
-    private void transferDocumentToWorkspace(String processId, String fileName, File tempFile) throws IOException, ContentAddressableStorageServerException {
+    private void transferDocumentToWorkspace(String processId, String fileName, File tempFile)
+        throws IOException, ContentAddressableStorageServerException {
         try (WorkspaceClient client = workspaceClientFactory.getClient();
             FileInputStream fileInputStream = new FileInputStream(tempFile)) {
             client.putObject(processId, fileName, fileInputStream);
@@ -328,10 +335,10 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionDistinctObjectGroupOfDeletedUnits(String processId, String filename,
-                                                                         int tenantId)
-            throws IOException, ContentAddressableStorageServerException {
+        int tenantId)
+        throws IOException, ContentAddressableStorageServerException {
 
-        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(filename, JSONL_EXTENSION);
+        File tempFile = File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 
         try (MongoCursor<String> iterator = eliminationActionUnitRepository
             .distinctObjectGroupOfDeletedUnits(processId, tenantId)) {
@@ -343,9 +350,9 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionAccessionRegister(String processId, String filename, int tenantId)
-            throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
-        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(filename, JSONL_EXTENSION);
+        File tempFile = File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 
         try (MongoCursor<Document> unitCursor = eliminationActionUnitRepository
             .computeOwnAccessionRegisterDetails(processId, tenantId);

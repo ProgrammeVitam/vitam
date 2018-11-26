@@ -27,10 +27,13 @@
 
 package fr.gouv.vitam.griffins.imagemagick.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.griffins.imagemagick.status.ActionType;
 
 public class Action {
+    @JsonProperty("Type")
     private ActionType type;
+    @JsonProperty("Values")
     private Values values;
 
     public Action() {

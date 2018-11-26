@@ -28,6 +28,7 @@ package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -69,10 +70,10 @@ public class PreservationReportModel {
     private String objectGroupId;
 
     @JsonProperty(ACTION)
-    private String action;
+    private ActionTypePreservation action;
 
     @JsonProperty(ANALYSE_RESULT)
-    private String analyseResult;
+    private AnalyseResultPreservation analyseResult;
 
     @JsonProperty(INPUT_NAME)
     private String inputName;
@@ -81,10 +82,9 @@ public class PreservationReportModel {
     private String outputName;
 
     public PreservationReportModel() {
-        // Empty constructor for deserialization
     }
 
-    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, String action, String analyseResult, String inputName, String outputName) {
+    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, AnalyseResultPreservation analyseResult, String inputName, String outputName) {
         this.id = id;
         this.processId = processId;
         this.tenant = tenant;
@@ -154,22 +154,6 @@ public class PreservationReportModel {
         this.objectGroupId = objectGroupId;
     }
 
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String actions) {
-        this.action = actions;
-    }
-
-    public String getAnalyseResult() {
-        return analyseResult;
-    }
-
-    public void setAnalyseResult(String analyseResult) {
-        this.analyseResult = analyseResult;
-    }
-
     public String getInputName() {
         return inputName;
     }
@@ -184,5 +168,21 @@ public class PreservationReportModel {
 
     public void setOutputName(String outputName) {
         this.outputName = outputName;
+    }
+
+    public ActionTypePreservation getAction() {
+        return action;
+    }
+
+    public void setAction(ActionTypePreservation action) {
+        this.action = action;
+    }
+
+    public AnalyseResultPreservation getAnalyseResult() {
+        return analyseResult;
+    }
+
+    public void setAnalyseResult(AnalyseResultPreservation analyseResult) {
+        this.analyseResult = analyseResult;
     }
 }

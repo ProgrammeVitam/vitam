@@ -27,8 +27,12 @@
 
 package fr.gouv.vitam.griffins.imagemagick.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Input {
+    @JsonProperty("Name")
     private String name;
+    @JsonProperty("FormatId")
     private String formatId;
 
     public Input() {

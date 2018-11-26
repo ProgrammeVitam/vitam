@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.ActionPreservation;
+
+import java.util.List;
 
 /**
  * ParamsPreservationDistributionFile
@@ -55,15 +54,16 @@ public class PreservationDistributionLine {
     @JsonProperty("timeout")
     private int timeout;
     @JsonProperty("usage")
-    private String qualifier;
+    private String usage;
 
     public PreservationDistributionLine() {
     }
+
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
         boolean debug,
         int timeout,
-        String id) {
+        String id, String usage) {
         this.formatId = formatId;
         this.filename = filename;
         this.actionPreservationList = actionPreservationList;
@@ -73,6 +73,7 @@ public class PreservationDistributionLine {
         this.debug = debug;
         this.timeout = timeout;
         this.id = id;
+        this.usage = usage;
     }
 
     public String getId() {
@@ -148,17 +149,11 @@ public class PreservationDistributionLine {
         this.timeout = timeout;
     }
 
-    public String getQualifier() {
-        return qualifier;
+    public String getUsage() {
+        return usage;
     }
 
-    public void setQualifier(String qualifier) {
-        this.qualifier = qualifier;
+    public void setUsage(String usage) {
+        this.usage = usage;
     }
-
-    @Override
-    public String toString() {
-        return JsonHandler.unprettyPrint(this);
-    }
-
 }

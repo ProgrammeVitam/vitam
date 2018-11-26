@@ -85,16 +85,14 @@ public class BatchReportResource extends ApplicationStatusResource {
                     .appendEliminationActionUnitReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
                 break;
             case ELIMINATION_ACTION_OBJECTGROUP:
-                batchReportServiceImpl
-                    .appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
+                batchReportServiceImpl.appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
                         tenantId);
                 break;
             case PRESERVATION:
                 try {
-                    batchReportServiceImpl
-                        .appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
+                    batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
                 } catch (BatchReportException e) {
-                    LOGGER.error(e.getMessage());
+                    LOGGER.error(e);
                     Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
                 }
                 break;

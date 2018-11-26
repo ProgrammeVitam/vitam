@@ -26,14 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static java.lang.String.format;
-
 import fr.gouv.vitam.common.i18n.PluginPropertiesLoader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.common.PluginProperties;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import org.apache.commons.io.FileUtils;
+
+import java.io.IOException;
+import java.nio.file.Path;
+
+import static java.lang.String.format;
 
 /**
  * Plugin Helper
@@ -66,4 +70,11 @@ public class PluginHelper {
         }
     }
 
+    public static void tryDeleteLocalPreservationFiles(Path batchDirectory) {
+        try {
+            FileUtils.deleteDirectory(batchDirectory.toFile());
+        } catch (IOException e) {
+            LOGGER.error("Cannot delete input folder. {}", e);
+        }
+    }
 }

@@ -142,9 +142,11 @@ public class FunctionalBackupServiceTest {
         final FunctionalAdminCollections agencies = FunctionalAdminCollections.AGENCIES;
 
         List<String> savedDocCapture = new ArrayList<>();
-        doAnswer(invocation -> savedDocCapture
-            .add(IOUtils.toString(((InputStream) invocation.getArguments()[0]), StandardCharsets.UTF_8)))
-            .when(backupService).backup(any(), any(), anyString());
+        doAnswer(invocation -> {
+            savedDocCapture
+                .add(IOUtils.toString(((InputStream) invocation.getArguments()[0]), StandardCharsets.UTF_8));
+            return null;
+        }).when(backupService).backup(any(), any(), anyString());
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
 

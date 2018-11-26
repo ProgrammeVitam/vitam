@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,45 +23,29 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
-import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.administration.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,16 +56,37 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
+import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+
 public class PreservationActionPluginTest {
 
-    private final String test_id = "TEST_ID";
+    private final String objectId = "TEST_ID";
     private final String griffinId = "griffinId-my-test";
-    private final TestWorkerParameter parameter =
-        workerParameterBuilder()
-            .withContainerName("CONTAINER_NAME_TEST")
-            .withRequestId("REQUEST_ID_TEST")
-            .build();
 
+    private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+        .withRequestId("REQUEST_ID_TEST")
+        .build();
 
     private PreservationActionPlugin plugin;
 
@@ -89,8 +94,7 @@ public class PreservationActionPluginTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
@@ -113,25 +117,20 @@ public class PreservationActionPluginTest {
     @Captor
     private ArgumentCaptor<List<PreservationReportModel>> captor;
 
+    private HandlerIO handler = new TestHandlerIO();
+
     @Before
     public void setup() throws Exception {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
-        parameter.setObjectNameList(Collections.singletonList(test_id));
 
-
-        PreservationDistributionLine preservationDistributionLine =
-            new PreservationDistributionLine("fmt/43", "photo.jpg",
-                Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId",
-                griffinId,
-                "objectId", true, 45, test_id);
-        parameter.setObjectMetadataList(
-            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
+        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg", Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId", "BinaryMaster");
+        parameter.setObjectNameList(Collections.singletonList("gotId"));
+        parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
         File inputFolder = tmpGriffinFolder.newFolder("input-folder");
         File execFolder = tmpGriffinFolder.newFolder("exec-folder");
-        plugin = new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(),
-            execFolder.toPath().toString());
+        plugin = new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(), execFolder.toPath().toString());
 
         Path target = Files.createDirectory(execFolder.toPath().resolve(griffinId));
         String src = Object.class.getResource("/preservation/griffin").toURI().getPath();
@@ -144,82 +143,81 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_copy_input_files() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
-        plugin.executeList(parameter, null);
+        plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog());
+        verify(storageClient).getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog());
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
-        plugin.executeList(parameter, null);
+        plugin.executeList(parameter, handler);
 
         // When
         verify(reportService).appendPreservationEntries(eq("REQUEST_ID"), captor.capture());
 
         // Then
-        assertThat(captor.getValue()).extracting(PreservationReportModel::getAnalyseResult).contains(NOT_VALID.name());
+        assertThat(captor.getValue()).extracting(PreservationReportModel::getAnalyseResult).contains(NOT_VALID);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_delete_batch_files_at_the_end() throws Exception {
+    public void should_delete_batch_files_in_case_of_error() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
+        doThrow(new VitamClientInternalException("error")).when(reportService).appendPreservationEntries(any(), any());
 
-        plugin.executeList(parameter, null);
 
         // When
+        ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
+
+        // Then
+        assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class);
+
         String[] filesInGriffinDir = Paths.get(tmpGriffinFolder.getRoot().getPath())
             .resolve("input-folder")
-            .resolve(griffinId)
             .toFile()
             .list();
 
-        // Then
         assertThat(filesInGriffinDir).isEmpty();
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_exec_workflow_and_return_buid_status_OK() throws Exception {
+    public void should_exec_workflow_and_return_build_status_OK() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
-        List<ItemStatus> status = plugin.executeList(parameter, null);
+        List<ItemStatus> status = plugin.executeList(parameter, handler);
 
         // Then
-        for (ItemStatus itemStatus : status) {
-            assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
-        }
+        assertThat(status).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_build_status_KO_when_any_error_occurs() throws Exception {
+    public void should_stop_process_when_any_exception() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
             .willThrow(new IllegalStateException("test"));
 
         // When
-        List<ItemStatus> status = plugin.executeList(parameter, null);
+        ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
 
         // Then
-        for (ItemStatus itemStatus : status) {
-            assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
-        }
+        assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class);
     }
 
     private Response createOkResponse(String entity) {

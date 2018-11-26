@@ -27,15 +27,15 @@
 package fr.gouv.vitam.worker.core.api;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -56,8 +56,9 @@ public interface WorkerAction {
      * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
-    ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException;
+    default ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+        throw new IllegalStateException("Not implemented.");
+    }
 
     /**
      *
@@ -102,6 +103,8 @@ public interface WorkerAction {
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */
-    default void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
+    default void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        throw new IllegalStateException("Not implemented.");
+    }
 
 }

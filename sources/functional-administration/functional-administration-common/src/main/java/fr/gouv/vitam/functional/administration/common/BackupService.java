@@ -27,8 +27,6 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
-import java.io.InputStream;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -42,11 +40,14 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.io.InputStream;
 
 /**
  * BackupService class for storing files in offers
@@ -75,7 +76,7 @@ public class BackupService {
     /**
      * Store file in offers
      */
-    public void backup(InputStream stream, DataCategory storageCollectionType, String uri)
+    public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri)
         throws BackupServiceException {
         WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
         StorageClient storageClient = storageClientFactory.getClient();
@@ -95,8 +96,7 @@ public class BackupService {
                 description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(uri);
 
-                storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
-
+                return storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
             } finally {
                 try {
                     // try delete container

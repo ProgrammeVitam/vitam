@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -62,6 +63,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
     private final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
+
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
@@ -75,8 +77,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
             return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
-                description.getObjectName(),
-                description);
+                description.getObjectName(), description);
 
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);

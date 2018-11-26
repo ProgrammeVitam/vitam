@@ -122,7 +122,6 @@ import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.io.File.separator;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -151,7 +150,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
     private static final String esName = elasticsearchRule.getClusterName();
-    private static final String GRI_000003 = "GRI-000003";
+    private static final String GRIFFIN_LIBREOFFICE = "griffin-libreoffice";
 
     @Rule
     public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
@@ -170,7 +169,6 @@ public class PreservationIT extends VitamRuleRunner {
         new DataLoader("integration-ingest-internal").prepareData();
 
     }
-
 
     @AfterClass
     public static void tearDownAfterClass() {
@@ -192,7 +190,7 @@ public class PreservationIT extends VitamRuleRunner {
         factory.changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
         factory.setVitamClientType(PRODUCTION);
 
-        Path griffinExecutable = griffinsExecFolder.toPath().resolve(GRI_000003 + "/griffin");
+        Path griffinExecutable = griffinsExecFolder.toPath().resolve("griffin-libreoffice/griffin");
         boolean griffinIsExecutable = griffinExecutable.toFile().setExecutable(true);
         if (!griffinIsExecutable) {
             throw new IllegalStateException("Wrong path");
@@ -217,6 +215,8 @@ public class PreservationIT extends VitamRuleRunner {
 
         doIngest("elimination/TEST_ELIMINATION.zip");
         doIngest("preservation/OG_with_3_parents.zip");
+
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
 
     private void doIngest(String zip) throws FileNotFoundException, VitamException {
@@ -257,7 +257,7 @@ public class PreservationIT extends VitamRuleRunner {
 
         ResultPreservation resultPreservation = new ResultPreservation();
 
-        resultPreservation.setId(GRI_000003);
+        resultPreservation.setId("batchId");
         resultPreservation.setRequestId(getVitamSession().getRequestId());
 
         Map<String, List<OutputPreservation>> values = new HashMap<>();
@@ -281,13 +281,8 @@ public class PreservationIT extends VitamRuleRunner {
         }
 
         resultPreservation.setOutputs(values);
-        tmpGriffinFolder.newFolder(GRI_000003);
-        String folder =
-            tmpGriffinFolder.getRoot().getAbsolutePath() + separator + GRI_000003;
-
-        File result = new File(folder + separator + "result.json");
-
-        writeAsFile(resultPreservation, result);
+        Path griffinIdDirectory = tmpGriffinFolder.newFolder(GRIFFIN_LIBREOFFICE).toPath();
+        writeAsFile(resultPreservation, griffinIdDirectory.resolve("result.json").toFile());
     }
 
     private Map<String, String> getAllBinariesIds() {
@@ -354,7 +349,6 @@ public class PreservationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_preservation_workflow_without_error() throws Exception {
         // Given
-
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();) {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             getVitamSession().setTenantId(tenantId);
@@ -371,7 +365,6 @@ public class PreservationIT extends VitamRuleRunner {
             ObjectNode finalSelect = select.getFinalSelect();
             PreservationRequest preservationRequest =
                 new PreservationRequest(finalSelect, "PSC-000001", usages, LAST);
-
             accessClient.startPreservation(preservationRequest);
 
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
@@ -386,7 +379,6 @@ public class PreservationIT extends VitamRuleRunner {
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
-
         }
     }
 }
