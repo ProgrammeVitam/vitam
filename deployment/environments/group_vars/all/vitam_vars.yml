@@ -96,6 +96,9 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         # log_level: "DEBUG"
         metrics_enabled: true
+        logback_rolling_policy: true
+        logback_max_file_size: "10MB"
+        logback_total_size_cap: "5GB"
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
