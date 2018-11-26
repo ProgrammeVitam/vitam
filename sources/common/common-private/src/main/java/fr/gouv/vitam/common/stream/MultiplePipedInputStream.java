@@ -118,6 +118,7 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
 
         try (BoundedByteBuffer.Writer writer = boundedByteBuffer.getWriter()) {
 
+            // Buffer size should not be greater than buffer size.
             byte[] buffer = new byte[VitamConfiguration.getChunkSize()];
 
             int n;

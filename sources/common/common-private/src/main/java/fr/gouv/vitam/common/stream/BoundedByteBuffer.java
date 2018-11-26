@@ -28,11 +28,18 @@ package fr.gouv.vitam.common.stream;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Buffer with buffering allowing One Writer and Multiple Readers.
+ *
+ * - Storage is done in a fixed size circular buffer (https://en.wikipedia.org/wiki/Circular_buffer)
+ * - Reader & writers are synchronized using multiple Producer-Consumer locks : (https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem)
+ * - Writer can write till circular buffer is full. Then it blocks until free space is available (ALL readers have read some data)
+ * - Reader cannot read till the Writer writes data to the circular buffer.
+ */
 public class BoundedByteBuffer implements AutoCloseable {
 
     private final int bufferSize;
@@ -69,6 +76,9 @@ public class BoundedByteBuffer implements AutoCloseable {
     }
 
     public InputStream getReader(int index) {
+        if (index < 0 || index >= readerCount) {
+            throw new IllegalArgumentException("Invalid index");
+        }
         return readers[index];
     }
 
@@ -80,6 +90,13 @@ public class BoundedByteBuffer implements AutoCloseable {
         }
     }
 
+    /**
+     * Writes data to the {@link BoundedByteBuffer}
+     * At the end of data, should write and End Of File (EOF) using the writeEOF() method
+     * Closing the Writer without EOF would throw a IOException (Broken stream)
+     *
+     * Non thread safe. Writer should be used by a single thread.
+     */
     public class Writer implements AutoCloseable {
 
         private int writePos;
@@ -90,6 +107,10 @@ public class BoundedByteBuffer implements AutoCloseable {
             closed = false;
         }
 
+        /**
+         * Writes data to buffer.
+         * Cannot write more than buffer size
+         */
         public void write(byte[] src, int offset, int length) throws InterruptedException, IOException {
 
             if (offset < 0 || length < 0 || offset + length > src.length || length > bufferSize) {
@@ -140,10 +161,17 @@ public class BoundedByteBuffer implements AutoCloseable {
             }
         }
 
+        /**
+         * Signals that stream ended successfully.
+         */
         public void writeEOF() {
             endOfStream.set(true);
         }
 
+        /**
+         * Closes the writer & all associated resources.
+         * If close() is invoked without writeEOF() the reader side will get an IOException (broken stream).
+         */
         public void close() {
             this.closed = true;
             for (ProducerConsumerLock lock : locks) {
@@ -153,6 +181,12 @@ public class BoundedByteBuffer implements AutoCloseable {
     }
 
 
+    /**
+     * Reader InputStream.
+     * Every reader has a read index from the circular buffer.
+     *
+     * Non thread safe. A Reader should be used by a single thread.
+     */
     private class Reader extends InputStream implements AutoCloseable {
 
         private final ProducerConsumerLock lock;
@@ -168,6 +202,12 @@ public class BoundedByteBuffer implements AutoCloseable {
             this.closed = false;
         }
 
+        /**
+         * Reads next byte
+         *
+         * @return 0-255 if byte read successfully. -1 if EOF (writer stream is closed AFTER writeEOF method invoked).
+         * @throws IOException is reader stream is closed, or writer stream is closed WITHOUT writeEOF method invocation.
+         */
         @Override
         public int read() throws IOException {
             byte[] buffer = new byte[1];
@@ -178,11 +218,26 @@ public class BoundedByteBuffer implements AutoCloseable {
             return buffer[0] & 0xFF;
         }
 
+        /**
+         * Reads from stream and fills buffer
+         *
+         * @return Read data length, if any. -1 if EOF (writer stream is closed AFTER writeEOF method invoked).
+         * @throws IOException is reader stream is closed, or writer stream is closed WITHOUT writeEOF method invocation.
+         */
         @Override
         public int read(byte[] buffer) throws IOException {
             return read(buffer, 0, buffer.length);
         }
 
+        /**
+         * Reads from stream and fills buffer
+         *
+         * @param buffer the buffer into which the data is written.
+         * @param offset the start offset at which the data is written.
+         * @param length the maximum number of bytes to read.
+         * @return the total number of bytes read into the buffer, if any. OR -1 if EndOfFile (writer stream is closed AFTER writeEOF method invoked).
+         * @throws IOException is reader stream is closed, or writer stream is closed WITHOUT writeEOF method invocation.
+         */
         @Override
         public int read(byte[] buffer, int offset, int length) throws IOException {
 
@@ -242,6 +297,10 @@ public class BoundedByteBuffer implements AutoCloseable {
             lock.endConsume(availableLength);
         }
 
+        /**
+         * Closes the reader & all associated resources.
+         * If all readers are closed, the writer might get an IOException (broken stream) if it tries to write to buffer.
+         */
         @Override
         public void close() {
             this.closed = true;

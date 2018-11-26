@@ -30,6 +30,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Producer-Consumer lock implementation : (https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem)
+ * Inspired from https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/locks/Condition.html implementation
+ * Implements {@link AutoCloseable} - When closed, all locks are unlocked.
+ */
 public class ProducerConsumerLock implements AutoCloseable {
 
     private final Lock lock = new ReentrantLock();
