@@ -77,47 +77,54 @@ public class LifecycleFromWorker {
      * @param aggregateItemStatus
      * @throws InvalidGuidOperationException
      */
-    public void generateLifeCycle(List<ItemStatus> pluginResponse, WorkerParameters workParams, Action action, DistributionType distributionType, ItemStatus aggregateItemStatus) throws InvalidGuidOperationException {
+    public void generateLifeCycle(List<ItemStatus> pluginResponse, WorkerParameters workParams, Action action,
+        DistributionType distributionType, ItemStatus aggregateItemStatus) throws InvalidGuidOperationException {
         int i = 0;
         String handlerName = action.getActionDefinition().getActionKey();
 
         for (ItemStatus itemStatus : pluginResponse) {
             String objectName = workParams.getObjectNameList().get(i);
             i++;
-            if (!StatusCode.ALREADY_EXECUTED.equals(itemStatus.getGlobalStatus())) {
+            if (!StatusCode.ALREADY_EXECUTED.equals(itemStatus.getGlobalStatus()) && itemStatus.isLifecycleEnable()) {
                 workParams.setObjectName(objectName);
                 LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(distributionType, handlerName, workParams);
-                List<LogbookLifeCycleParameters> logbookParamList = createLogbookLifeCycleParameters(handlerName, itemStatus, lfcParam);
+                List<LogbookLifeCycleParameters> logbookParamList =
+                    createLogbookLifeCycleParameters(handlerName, itemStatus, lfcParam);
                 String objectId = objectName.replace(".json", "");
                 if (action.getActionDefinition().lifecycleState() == LifecycleState.TEMPORARY) {
-                    logbookLifeCycleParametersTemporaryBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
+                        logbookLifeCycleParametersTemporaryBulks
+                            .add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 } else {
-                    logbookLifeCycleParametersBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
+                        logbookLifeCycleParametersBulks
+                            .add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 }
-
             }
             aggregateItemStatus.setItemId(itemStatus.getItemId());
             aggregateItemStatus.setItemsStatus(itemStatus);
         }
-
     }
 
     /**
      * sauvegarde des LFC
+     *
      * @param distributionType unit or GOT
      * @throws VitamClientInternalException
      */
+
     public void saveLifeCycles(DistributionType distributionType) throws VitamClientInternalException {
         if (!logbookLifeCycleParametersTemporaryBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType, logbookLifeCycleParametersTemporaryBulks);
+            logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
+                logbookLifeCycleParametersTemporaryBulks);
         }
         if (!logbookLifeCycleParametersBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycle(VitamThreadUtils.getVitamSession().getRequestId(), distributionType, logbookLifeCycleParametersBulks);
+            logbookLfcClient.bulkLifeCycle(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
+                logbookLifeCycleParametersBulks);
         }
 
     }
 
-    private LogbookLifeCycleParameters createStartLogbookLfc(DistributionType distributionType, String handlerName, WorkerParameters workParams)
+    private LogbookLifeCycleParameters createStartLogbookLfc(DistributionType distributionType, String handlerName,
+        WorkerParameters workParams)
         throws InvalidGuidOperationException {
         LogbookLifeCycleParameters lfcParam = null;
         switch (distributionType) {
@@ -153,12 +160,14 @@ public class LifecycleFromWorker {
 
                 break;
         }
-        lfcParam.putParameterValue(LogbookParameterName.agentIdentifier, ServerIdentity.getInstance().getJsonIdentity());
+        lfcParam
+            .putParameterValue(LogbookParameterName.agentIdentifier, ServerIdentity.getInstance().getJsonIdentity());
 
         return lfcParam;
     }
 
-    private List<LogbookLifeCycleParameters> createLogbookLifeCycleParameters(String handlerName, ItemStatus actionResponse, LogbookLifeCycleParameters logbookParam) {
+    private List<LogbookLifeCycleParameters> createLogbookLifeCycleParameters(String handlerName,
+        ItemStatus actionResponse, LogbookLifeCycleParameters logbookParam) {
         logbookParam.putParameterValue(LogbookParameterName.eventDateTime, null);
         List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
