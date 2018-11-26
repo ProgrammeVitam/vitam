@@ -41,6 +41,8 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 
 .. warning:: Il n'est pas possible de colocaliser "kibana-data" et "kibana-log".
 
+.. info:: Pour les composants considérés par l'exploitant comme étant "hors :term:`VITAM`" (typiquement, le composant ``ihm-demo``), il est possible de désactiver la création du servcie consul associé. Pour cela, après chaque hostname impliqué, il faut rajouter la directive suivante : ``consul_disabled=true``.
+
 Fichier ``vitam_security.yml``
 -------------------------------
 
