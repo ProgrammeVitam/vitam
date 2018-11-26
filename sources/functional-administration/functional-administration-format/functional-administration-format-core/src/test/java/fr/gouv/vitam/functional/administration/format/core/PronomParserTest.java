@@ -28,10 +28,10 @@ package fr.gouv.vitam.functional.administration.format.core;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
 import org.junit.Test;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -43,11 +43,12 @@ public class PronomParserTest {
 
     private static final String FILE_TO_TEST = "FF-vitam.xml";
     private static final String FILE_TO_TEST_KO = "FF-vitam-KO.xml";
+    private static final String FILE_TO_TEST_FORMAT_KO = "FF-vitam-format-KO.xml";
 
     @Test
     public void testPronomFormat() throws FileFormatException, FileNotFoundException {
         List<FileFormatModel> jsonFileFormat =
-            PronomParser.getPronom(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST)));
+            PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST));
         final FileFormatModel fileFormatModel = jsonFileFormat.get(jsonFileFormat.size() - 1);
         assertTrue(fileFormatModel.getName().contains("RDF/XML"));
         assertEquals(fileFormatModel.getPuid(), "fmt/875");
@@ -57,8 +58,13 @@ public class PronomParserTest {
         assertEquals(fileFormatModel.getComment(), "");
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test(expected = InvalidFileFormatParseException.class)
     public void testPronomFormatFileKO() throws FileNotFoundException, FileFormatException {
-        PronomParser.getPronom(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+        PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST_FORMAT_KO));
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testPronomFileNotFound() throws FileNotFoundException, FileFormatException {
+        PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST_KO));
     }
 }

@@ -30,11 +30,13 @@ package fr.gouv.vitam.functional.administration.format.core;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.xml.sax.SAXException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -45,6 +47,9 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,15 +83,17 @@ public class PronomParser {
     /**
      * Parse the file Pronom and transform it to an ArrayNode
      *
-     * @param xmlPronom as InputStream
+     * @param xmlPronomFile pronom file
      * @return : the list of file format as ArrayNode
      * @throws FileFormatException if exception occurred when get pronom data
      */
     @SuppressWarnings("unchecked")
-    public static List<FileFormatModel> getPronom(InputStream xmlPronom) throws FileFormatException {
+    public static List<FileFormatModel> getPronom(File xmlPronomFile) throws FileFormatException {
         boolean bExtension = false;
         boolean bFileFormat = false;
         boolean bPriorityOverId = false;
+
+        validateSchema(xmlPronomFile);
 
         List<FileFormatModel> fileFormatModels = new ArrayList<>();
 
@@ -100,8 +107,10 @@ public class PronomParser {
 
         String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-        try {
+        try (InputStream xmlPronom = new FileInputStream(xmlPronomFile)) {
+
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+
             final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {
                 final XMLEvent event = eventReader.nextEvent();
@@ -192,6 +201,8 @@ public class PronomParser {
             }
         } catch (final XMLStreamException e) {
             throw new InvalidFileFormatParseException("Invalid xml file format", e);
+        } catch (IOException e) {
+            throw new InvalidFileFormatParseException("Could not load xml file format", e);
         }
 
         for (FileFormatModel formatModel : fileFormatModels) {
@@ -201,5 +212,18 @@ public class PronomParser {
         }
 
         return fileFormatModels;
+    }
+
+    private static void validateSchema(File xmlPronomFile) throws InvalidFileFormatParseException {
+
+        try (FileInputStream fis = new FileInputStream(xmlPronomFile)) {
+            if (!ValidationXsdUtils.checkWithXSD(fis, "DROID_SignatureFile.xsd")) {
+                throw new InvalidFileFormatParseException("Schema validation failed for xml file format");
+            }
+        } catch (SAXException | XMLStreamException e) {
+            throw new InvalidFileFormatParseException("Invalid xml file format", e);
+        } catch (IOException e) {
+            throw new InvalidFileFormatParseException("Could not load xml file format", e);
+        }
     }
 }
