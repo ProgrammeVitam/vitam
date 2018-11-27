@@ -82,7 +82,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static com.jayway.restassured.RestAssured.get;
+import static io.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;

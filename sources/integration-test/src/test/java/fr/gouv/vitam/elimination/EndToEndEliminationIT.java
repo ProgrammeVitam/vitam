@@ -126,9 +126,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
+import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -137,7 +137,6 @@ import static org.junit.Assert.assertNotNull;
  * Ingest Internal integration test
  */
 public class EndToEndEliminationIT extends VitamRuleRunner {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndToEndEliminationIT.class);
     private static final String DEFAULT_STRATEGY = "default";
 
     @ClassRule
