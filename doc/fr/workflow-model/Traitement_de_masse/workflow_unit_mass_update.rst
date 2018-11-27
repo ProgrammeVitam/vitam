@@ -243,7 +243,7 @@ Préparation de la liste des unités archivistiques à mettre à jour MASS_UPDAT
 -----------------------------------------------------------------------------------------
 
 
-+ **Règle** : mise à jour des règles de gestion des unités archivistiques
++ **Règle** : mise à jour des métadonnées (règles de gestion et profil d'unité archivistique) des unités archivistiques
 
 + **Type** : bloquant
 
@@ -281,7 +281,7 @@ Mise à jour en masse des métadonnées des règles de gestion des unités archi
 ==========================================================================================================
 
 
-+ **Règle** : Processus de mise à jour des métadonnées des règles de gestion des unités archivistiques de masse 
++ **Règle** : Processus de mise à jour des métadonnées de gestion (règle de gestion et profil d'unité archivistique) des unités archivistiques de masse 
 
 + **Type** : bloquant
 

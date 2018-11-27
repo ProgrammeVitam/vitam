@@ -93,6 +93,14 @@ Il est possible de modifier les règles de gestion des unités archivistiques en
 
 .. note :: Il est nécessaire de disposer de droits spécifiques dans le contrat d'accès pour intervenir sur les règles de gestion
 
+Associer un profil d'unité archivistique
+----------------------------------------
+
+Pour associer un profil d'unité archivistique à un lot d'unités archivistiques, il suffit d'indiquer l'identifiant de celui-ci, présent dans le référentiel des profil d'unité archivistique. ex : AUP-000001. En cliquant sur le bouton supprimer le profil d'unité archivistique associé aux unités archivistiques concernées par la modification en masse, est supprimé.
+
+.. image :: images/DetailAUP.png
+  	
+
 Eléments communs relatifs à l'ajout, la modification et la suppression de règles de gestion
 ---------------------------------------------------------------------------------------------
 
@@ -103,39 +111,85 @@ Pour accéder à ces fonctionnalités l'utilisateur doit sélectionner une caté
 
 L'ajout, la modification et la suppression de métadonnées de règles de gestion sont disponibles dans les différentes catégories : 
 
+
+.. image :: images/ajout_modif_suppression.png 
+    	:scale: 50
+
+|
+
+.. note :: les identifiants des règles de gestion indiqués doivent appartenir à la bonne catégorie de règles et doivent être contenus dans le référentiel des règles de gestion. 
+
 - Délai de communicabilité / Règle d’accès /  ACC
 - Durée d’utilité administrative (DUA) / Durée de rétention - conservation / APP
 - Règle de diffusion /  DIS
 - Règle de réutilisation / REU
 - Durée d’utilité courante / STO  
+- Durée de classification / CLASS
 
-- Pour les règles de classification / CLASS, cette catégorie apparaît dans l'IHM mais n'est pas pleinement opérationnelle, un certain nombre de contrôle ne sont pas effectués dans cette release et le seront dans la version suivante. Vous pouvez ajouter, modifier ou supprimer un niveau de classification et le propriétaire de la classification si celui-ci est déjà défini dans le fichier de configuration. 
+.. image :: images/MJ_metadonneesGestion.png 
 
-.. image :: images/meta_gestion.png 
+Catégories disposant de propriétés spécifiques
+----------------------------------------------	
 
-**Les règles relatives à la durée d’utilité administrative et la durée d’utilité courante disposent de propriétés spécifiques. Pour ces deux catégories de règles, il est nécessaire d'indiquer un sort final, les valeurs acceptées sont spécifiques et apparaissent dans une liste déroulante pour chacune des catégories.** 
+Les règles relatives à la durée d’utilité administrative et la durée d’utilité courante disposent de propriétés spécifiques. Pour ces deux catégories de règles, il est nécessaire d'indiquer un sort final, les valeurs acceptées sont spécifiques et apparaissent dans une liste déroulante pour chacune des catégories. Il est possible de modifier les propriétés d'une catégorie de règles en sélectionnant directement le sort final et l'appliquer à cette catégorie.
 
-**Pour les règles relatives à la durée d’utilité administrative, le sort final des unités archivistiques est conserver ou détruire, pour les règles relatives à la durée d’utilité courante, le sort final des unités archivistiques est copier, accès restreint ou transférer.**
+- Durée d’utilité administrative (DUA) / Durée de rétention - conservation / APP. Le sort final des unités archivistiques est conserver ou détruire.
 
-Il est possible de modifier les propriétés d'une catégorie de règles en sélectionnant directement le sort final et l'appliquer à cette catégorie. 
+.. image :: images/Detail_DUA.png
+	
+- Durée d’utilité courante / STO. Le sort final des unités archivistiques est copier, accès restreint ou transférer.
 
-.. note :: les identifiants des règles de gestion indiqués doivent appartenir à la bonne catégorie de règles et doivent être contenus dans le référentiel des règles de gestion. 
+.. image :: images/Detail_DUC.png
+
+- Durée de classification / CLASS
+
+	- Niveau de la classification : les valeurs acceptables pour ce champ sont soit Confidentiel Défense soit Secret Défense (celui-ci doit être défini dans le fichier de configuration de la plateforme).
+
+	- Propriétaire de la classification : champ libre 
+	- Champ de diffusion : champ libre 
+	- Date de réévaluation : champ libre 
+
+.. note :: En cliquant sur le bouton supprimer, la valeur contenue dans les unités archivistiques concernées par la modification en masse, est supprimée.
+
+
+.. image :: images/Detail_Classification.png
+
 
 Modification des propriétés d'héritage
-------------------------------------------
+---------------------------------------
 
 Pour chaque catégorie de règles, il est possible d'en modifier l'héritage.
-- Pour bloquer l'héritage des règles de gestion, il est nécessaire de cliquer sur le bouton "Hériter des parents". Lorsque le blocage est enclenché le nom et la couleur du champ change et devient "Bloquer l'héritage" sur fond violet. Il est nécessaire de spécifier par la suite la, ou les règles concernées. Pour que ces informations soient prises en compte il est nécessaire d'appuyer sur la touche entrée après l'ajout de chaque identifiant. Comme precisé ci-dessus les modifications seront effectives après avoir lancé l'action sur tout, ou partie du panier.
 
-.. image:: images/bloquer_heritage.png
+Le statut relatif au blocage de l'héritage des règles de gestion est indiqué en cochant la case concernée : 
 
-- Pour annuler le blocage des règles, il suffit de désélectionner le bouton "Bloquer l'héritage", entrer l'identifiant des règles et valider sa demande en sélectionnant le périmètre d'action : tout ou partie du panier. 
- 
+- Aucune modification (situation par défaut l'héritage est activé) 
+
+.. image :: images/AucuneModif.png
+	:scale: 50
+
+- Bloquer l'héritage (le blocage est activé)
+
+.. image :: images/Detail_bloquer.png
+	:scale: 50
+
+- Hériter des parents (lever le blocage de l'héritage)
+
+.. image :: images/herite_parents.png
+	:scale: 50
+
+Il est nécessaire de spécifier par la suite la, ou les règles concernées. Les identifiants des règles de gestion indiqués doivent appartenir à la bonne catégorie de règles et doivent être contenus dans le référentiel des règles de gestion. Pour que ces informations soient prises en compte il est nécessaire d'appuyer sur la touche entrée après l'ajout de chaque identifiant. Comme precisé ci-dessus les modifications seront effectives après avoir lancé l'action sur tout, ou partie du panier.
+
+.. image :: images/bloquer_heritage.png
+	:scale: 50
+
+- Pour annuler le blocage des règles, la coche doit être désélectionnée, il faut ensuite spécifier l'identifiant des règles et enfin valider sa demande en sélectionnant le périmètre d'action : tout ou partie du panier. 
+
 .. image :: images/annuler_blocage_heritage.png
+	:scale: 50
 
 
 Ajouter une règle de gestion 
------------------------------
+============================
 
 Pour ajouter une règle de gestion, il est nécessaire de sélectionner une catégorie en cliquant sur le pictogramme "+", puis de cliquer sur le bloc "Ajouter une règle".
 Lors de l'ajout d'une nouvelle règle, il est nécessaire de compléter deux champs "Nouvel identifiant" et "Date de début". 
@@ -146,7 +200,7 @@ Ex: pour la catégorie délai de communicabilité, ajout de la règle ACC-00002,
 
 
 Modifier une règle de gestion 
-------------------------------
+=============================
 
 Pour modifier une règle de gestion, il est nécessaire de sélectionner une catégorie en cliquant sur le pictogramme "+", puis de cliquer sur le bloc "Modifier une règle".
 Lors de la modification d'une règle existante, il est nécessaire de compléter l'"Identifiant d'origine", le "Nouvel identifiant" et la "Date de début". 
@@ -170,7 +224,7 @@ Lors de la modification d'une règle existante, il est nécessaire de compléter
 +--------------------------+-----------------------------------+-------------------------+ 
 
 Supprimer une règle de gestion 
---------------------------------
+==============================
 
 Pour supprimer une règle de gestion, il est nécessaire de sélectionner une catégorie en cliquant sur le pictogramme "+", puis de cliquer sur le bloc "Supprimer une règle".
 Entrez ensuite l'identifiant de la règle à supprimer dans le champ "nouvel identifiant" et validez la demande en lançant l'action sur tout ou partie du panier. 
