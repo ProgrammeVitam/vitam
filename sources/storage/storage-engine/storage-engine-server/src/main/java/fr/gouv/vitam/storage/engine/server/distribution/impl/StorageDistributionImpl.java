@@ -103,6 +103,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
@@ -387,10 +388,10 @@ public class StorageDistributionImpl implements StorageDistribution {
                 offerIdString = data.getKoOffers().get(i);
                 OfferReference offerReference = new OfferReference(offerIdString);
                 final Driver driver = retrieveDriverInternal(offerReference.getId());
-                StoragePutRequest request =
+                InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));                StoragePutRequest request =
                     new StoragePutRequest(dataContext.getTenantId(), dataContext.getCategory().getFolder(),
                         dataContext.getObjectId(), digestType.name(),
-                        streams.getInputStream(rank));
+                        inputStream);
                 futureMap.put(offerReference.getId(),
                     executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
                         size)));
@@ -584,7 +585,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
-        Digest digest) throws IOException {
+        Digest digest) {
 
         DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
 

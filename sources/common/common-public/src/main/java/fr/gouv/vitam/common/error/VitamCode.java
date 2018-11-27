@@ -141,11 +141,11 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Request agency validation error"),
 
-    PRESERVATION_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "13",
+    PRESERVATION_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "50",
         Status.BAD_REQUEST,
         "Request griffin validation error"),
 
-    PRESERVATION_INTERNAL_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "13",
+    PRESERVATION_INTERNAL_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "51",
         Status.INTERNAL_SERVER_ERROR,
         "Request griffin validation error"),
 
