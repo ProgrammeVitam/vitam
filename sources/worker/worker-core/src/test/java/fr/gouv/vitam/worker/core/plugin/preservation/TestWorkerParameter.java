@@ -1,7 +1,10 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -99,22 +102,45 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public List<String> getObjectNameList() {
-        throw new IllegalStateException("Not implemented");
+        String objectList = params.get(WorkerParameterName.objectNameList.name());
+        try {
+            return JsonHandler.getFromString(objectList, List.class, String.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
     public WorkerParameters setObjectNameList(List<String> objectNameList) {
-        throw new IllegalStateException("Not implemented");
+        try {
+            params.put(WorkerParameterName.objectNameList.name(), JsonHandler.writeAsString(objectNameList));
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return this;
     }
 
     @Override
     public List<JsonNode> getObjectMetadataList() {
-        throw new IllegalStateException("Not implemented");
+        String objectList = params.get(WorkerParameterName.objectMetadataList.name());
+        if (objectList == null) {
+            return null;
+        }
+        try {
+            return JsonHandler.getFromString(objectList, List.class, JsonNode.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
     public WorkerParameters setObjectMetadataList(List<JsonNode> objectMetadataList) {
-        throw new IllegalStateException("Not implemented");
+        try {
+            params.put(WorkerParameterName.objectMetadataList.name(), JsonHandler.writeAsString(objectMetadataList));
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return this;
     }
 
     @Override

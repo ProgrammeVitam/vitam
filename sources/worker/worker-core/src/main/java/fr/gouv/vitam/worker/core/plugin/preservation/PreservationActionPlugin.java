@@ -27,33 +27,15 @@
 
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.io.FileUtils;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -64,27 +46,39 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.io.FileUtils;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
+    private static final int DISTRIB_GROUP_NOT_USED = 2;
 
     public static final String DEFAULT_STORAGE_STRATEGY = "default";
-    public static final String DISTRIBUTION_FILE = "distributionFile.jsonl";
 
     private static final String PRESERVATION_ACTION = "PRESERVATION_ACTION";
     private static final String TIMEOUT = "timeout";
@@ -102,13 +96,11 @@ public class PreservationActionPlugin extends ActionHandler {
     private final String griffinInputFolder;
     private final String execFolder;
 
-    private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
     private final PreservationReportService preservationReportService;
 
     public PreservationActionPlugin() {
-        this(WorkspaceClientFactory.getInstance(),
-            StorageClientFactory.getInstance(),
+        this(StorageClientFactory.getInstance(),
             new PreservationReportService(),
             VitamConfiguration.getVitamGriffinInputFilesFolder(),
             VitamConfiguration.getVitamGriffinExecFolder()
@@ -116,9 +108,8 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public PreservationActionPlugin(WorkspaceClientFactory workspace, StorageClientFactory storage,
+    public PreservationActionPlugin(StorageClientFactory storage,
         PreservationReportService report, String inputFolder, String execFolder) {
-        this.workspaceClientFactory = workspace;
         this.storageClientFactory = storage;
         this.preservationReportService = report;
         this.griffinInputFolder = inputFolder;
@@ -127,13 +118,16 @@ public class PreservationActionPlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        List<JsonLineModel> entries;
-        try {
-            entries = loadEntriesToPreserve(param.getContainerName());
-        } catch (ContentAddressableStorageException e) {
-            LOGGER.error(String.format("Preservation action failed with status [%s]", FATAL), e);
-            return buildItemStatus(PRESERVATION_ACTION, FATAL, eventDetails(e));
-        }
+        throw new ProcessingException("No need to implements method");
+    }
+
+    @Override
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+        List<JsonLineModel> entries = IntStream.range(0, workerParameters.getObjectNameList().size())
+            .mapToObj(index -> mapToJsonLineModel(workerParameters, index))
+            .collect(Collectors.toList());
+
         String griffinId = entries.get(0).getParams().get(GRIFFIN_ID).asText();
         String batchId = generateBatchId();
 
@@ -141,7 +135,7 @@ public class PreservationActionPlugin extends ActionHandler {
             Path batchDirectory = createBatchDirectory(griffinId, batchId);
 
             copyInputFiles(batchDirectory, entries);
-            createParametersBatchFile(entries, batchDirectory, param.getRequestId(), batchId);
+            createParametersBatchFile(entries, batchDirectory, workerParameters.getRequestId(), batchId);
 
             int timeout = entries.get(0).getParams().get(TIMEOUT).asInt();
             ResultPreservation result = launchGriffin(griffinId, batchDirectory, timeout);
@@ -150,11 +144,16 @@ public class PreservationActionPlugin extends ActionHandler {
             mapResultAction(result);
         } catch (Exception e) {
             LOGGER.error(String.format("Preservation action failed with status [%s]", KO), e);
-            return buildItemStatus(PRESERVATION_ACTION, KO, eventDetails(e));
+            return buildBulkItemStatus(workerParameters, PRESERVATION_ACTION, KO);
         } finally {
             deleteLocalFiles(griffinId, batchId);
         }
-        return buildItemStatus(PRESERVATION_ACTION, OK, null);
+        return buildBulkItemStatus(workerParameters, PRESERVATION_ACTION, OK);
+    }
+
+    private JsonLineModel mapToJsonLineModel(WorkerParameters workerParameters, int index) {
+        return new JsonLineModel(workerParameters.getObjectNameList().get(index),
+            DISTRIB_GROUP_NOT_USED, workerParameters.getObjectMetadataList().get(index));
     }
 
     private void deleteLocalFiles(String griffinId, String batchId) throws ProcessingException {
@@ -163,10 +162,6 @@ public class PreservationActionPlugin extends ActionHandler {
         } catch (IOException e) {
             throw new ProcessingException("Something bad happens", e);
         }
-    }
-
-    private ObjectNode eventDetails(Throwable e) {
-        return JsonHandler.createObjectNode().put("error", e.getMessage());
     }
 
     private Path createBatchDirectory(String griffinId, String batchId) throws Exception {
@@ -186,20 +181,10 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private List<JsonLineModel> loadEntriesToPreserve(String processId) throws ContentAddressableStorageException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            Response reportResponse = workspaceClient.getObject(processId, DISTRIBUTION_FILE);
-
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
-            ArrayList<JsonLineModel> jsonLineModels = new ArrayList<>();
-            jsonLineIterator.forEachRemaining(jsonLineModels::add);
-
-            return jsonLineModels;
-        }
-    }
-
-    private void copyBinaryFile(JsonLineModel jsonLineModel, StorageClient storageClient, Path inputFilesDirectory) throws Exception {
-        final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, jsonLineModel.getId(), OBJECT, getNoLogAccessLog());
+    private void copyBinaryFile(JsonLineModel jsonLineModel, StorageClient storageClient, Path inputFilesDirectory)
+        throws Exception {
+        final Response response = storageClient
+            .getContainerAsync(DEFAULT_STORAGE_STRATEGY, jsonLineModel.getId(), OBJECT, getNoLogAccessLog());
         try (InputStream src = response.readEntity(InputStream.class)) {
             Path target = inputFilesDirectory.resolve(jsonLineModel.getId());
             Files.copy(src, target, REPLACE_EXISTING);
@@ -275,10 +260,12 @@ public class PreservationActionPlugin extends ActionHandler {
         List<InputPreservation> inputPreservations = jsonLineModels.stream()
             .map(this::mapToInput)
             .collect(Collectors.toList());
-        List<ActionPreservation> actionPreservations = jsonLineModels.stream().map(this::mapToActions).collect(Collectors.toList());
+        List<ActionPreservation> actionPreservations =
+            jsonLineModels.stream().map(this::mapToActions).collect(Collectors.toList());
 
         boolean debug = jsonLineModels.get(0).getParams().get(DEBUG).asBoolean();
-        ParametersPreservation parametersPreservation = new ParametersPreservation(requestId, batchId, inputPreservations, actionPreservations, debug);
+        ParametersPreservation parametersPreservation =
+            new ParametersPreservation(requestId, batchId, inputPreservations, actionPreservations, debug);
         Path parametersPath = batchDirectory.resolve(PARAMETERS_JSON);
         JsonHandler.writeAsFile(parametersPreservation, parametersPath.toFile());
     }
