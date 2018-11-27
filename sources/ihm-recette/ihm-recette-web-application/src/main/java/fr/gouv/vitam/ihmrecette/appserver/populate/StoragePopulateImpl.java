@@ -66,6 +66,7 @@ import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -208,9 +209,10 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     offerId2 = offerId;
                     OfferReference offerReference = new OfferReference(offerId);
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
+                    InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                     StoragePutRequest request =
                         new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
-                            streams.getInputStream(rank));
+                            inputStream);
                     futureMap.put(offerReference.getId(),
                         executor
                             .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
