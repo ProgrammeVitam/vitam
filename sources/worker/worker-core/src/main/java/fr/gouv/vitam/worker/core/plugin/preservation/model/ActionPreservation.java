@@ -25,62 +25,45 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation;
+package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.batch.report.model.ActionTypePreservation;
 
-import java.util.List;
-import java.util.Map;
+public class ActionPreservation {
+    @JsonProperty("type")
+    private ActionTypePreservation type;
+    @JsonProperty("values")
+    private ValuesPreservation values;
 
-public class ResultPreservation {
-    @JsonProperty("requestId")
-    private String requestId;
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("outputs")
-    private Map<String, List<OutputPreservation>> outputs;
-
-    public ResultPreservation() {
+    public ActionPreservation() {
     }
 
-    public static ResultPreservation of(String requestId, String id, Map<String, List<OutputPreservation>> outputList) {
-        ResultPreservation outputs = new ResultPreservation();
-        outputs.setId(id);
-        outputs.setOutputs(outputList);
-        outputs.setRequestId(requestId);
-        return outputs;
+    public ActionPreservation(ActionTypePreservation type) {
+        this.type = type;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public ActionTypePreservation getType() {
+        return type;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setType(ActionTypePreservation type) {
+        this.type = type;
     }
 
-    public String getId() {
-        return id;
+    public ValuesPreservation getValuesPreservation() {
+        return values;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Map<String, List<OutputPreservation>> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(Map<String, List<OutputPreservation>> outputs) {
-        this.outputs = outputs;
+    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
+        this.values = valuesPreservation;
     }
 
     @Override
     public String toString() {
-        return "ResultPreservation{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", outputs=" + outputs +
+        return "Action{" +
+            "type=" + type +
+            ", values=" + values +
             '}';
     }
 }

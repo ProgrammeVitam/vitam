@@ -25,45 +25,86 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation;
+package fr.gouv.vitam.worker.core.plugin.preservation.model;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class InputPreservation {
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("formatId")
-    private String formatId;
+import java.util.List;
 
-    public InputPreservation() {
+public class ParametersPreservation {
+    @JsonProperty("requestId")
+    private String requestId;
+    @JsonProperty("id")
+    private String id;
+    @JsonProperty("actions")
+    private List<ActionPreservation> actions;
+    @JsonProperty("inputs")
+    private List<InputPreservation> inputs;
+    @JsonProperty("debug")
+    private boolean debug;
+
+    public ParametersPreservation() {
     }
 
-    public InputPreservation(String name, String formatId) {
-        this.name = name;
-        this.formatId = formatId;
+    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
+        List<ActionPreservation> actions, boolean debug) {
+        this.requestId = requestId;
+        this.id = batchId;
+        this.inputs = input;
+        this.actions = actions;
+        this.debug = debug;
     }
 
-    public String getName() {
-        return name;
+    public String getRequestId() {
+        return requestId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
-    public String getFormatId() {
-        return formatId;
+    public String getId() {
+        return id;
     }
 
-    public void setFormatId(String formatId) {
-        this.formatId = formatId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public List<ActionPreservation> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<ActionPreservation> actions) {
+        this.actions = actions;
+    }
+
+    public List<InputPreservation> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(List<InputPreservation> inputs) {
+        this.inputs = inputs;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     @Override
     public String toString() {
-        return "Input{" +
-            "name='" + name + '\'' +
-            ", formatId='" + formatId + '\'' +
+        return "Parameters{" +
+            "requestId='" + requestId + '\'' +
+            ", id='" + id + '\'' +
+            ", actions=" + actions +
+            ", inputs=" + inputs +
+            ", debug=" + debug +
             '}';
     }
 }
+
