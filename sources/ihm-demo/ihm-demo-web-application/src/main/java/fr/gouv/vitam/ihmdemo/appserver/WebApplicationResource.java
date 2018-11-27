@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
@@ -3553,5 +3554,122 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAdminTenant() {
         return Response.status(Status.OK).entity(VitamConfiguration.getAdminTenant()).build();
+    }
+
+    /**
+     * @param request needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param sessionId json session id from shiro
+     * @param criteria criteria search for units
+     * @return Reponse
+     */
+    @POST
+    @Path("/objectssearch/objects")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("objects:read")
+    public Response getObjectsSearchResult(@Context HttpServletRequest request,
+                                           @CookieParam("JSESSIONID") String sessionId,
+                                           String criteria) {
+
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
+        String requestId;
+        RequestResponse result;
+        RequestResponse resultUnits;
+        OffsetBasedPagination pagination;
+        try {
+            Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
+            while (headersReqId.hasMoreElements()) {
+                SanityChecker.checkParameter(headersReqId.nextElement());
+            }
+            pagination = new OffsetBasedPagination(request);
+        } catch (final VitamException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+        final List<String> requestIds = Collections.list(request.getHeaders(IhmWebAppHeader.REQUEST_ID.name()));
+        if (!requestIds.isEmpty()) {
+            requestId = requestIds.get(0);
+            // get result from shiro session
+            try {
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
+
+                if (!result.isOk()) {
+                    return result.toResponse();
+                }
+
+                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                        .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+                        .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+            } catch (final VitamException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
+            }
+        } else {
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
+
+                final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
+                final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
+
+                result = UserInterfaceTransactionManager.searchObjects(preparedQueryDsl,
+                        UserInterfaceTransactionManager.getVitamContext(request));
+
+                if (!result.isOk()) {
+                    return result.toResponse();
+                }
+
+                ArrayNode results = (ArrayNode)result.toJsonNode().get("$results");
+                if(results != null && results.size() > 0) {
+                    StringBuilder unitsTitleCriteria = new StringBuilder();
+                    unitsTitleCriteria.append("{\"$roots\": [],\"$query\": [{\"$in\": {\"#object\": [");
+                    for(JsonNode res : results) {
+                        unitsTitleCriteria.append(res.get("#id").toString()).append(",");
+                    }
+                    unitsTitleCriteria.deleteCharAt(unitsTitleCriteria.length()-1);
+                    unitsTitleCriteria.append("]}}],\"$filter\": {\"$limit\": 10000},\"$projection\": {\"$fields\": {\"Title\": 1,\"#object\": 1}},\"$facets\": []}");
+                    ObjectMapper mapper = new ObjectMapper();
+                    final JsonNode preparedQueryDslUnits = mapper.readTree(unitsTitleCriteria.toString());
+                    resultUnits = UserInterfaceTransactionManager.searchUnits(preparedQueryDslUnits,
+                            UserInterfaceTransactionManager.getVitamContext(request));
+                    if(resultUnits.isOk()) {
+                        ArrayNode resultsUnits = (ArrayNode)resultUnits.toJsonNode().get("$results");
+                        for(JsonNode resU : resultsUnits) {
+                            String currentObjectId = resU.get("#object").toString();
+                            for(JsonNode res : results) {
+                                if(currentObjectId.equals(res.get("#id").toString())) {
+                                    if(res.get("UnitsTitle") != null) {
+                                        ((ArrayNode)res.get("UnitsTitle")).add(resU.get("Title"));
+                                    } else {
+                                        ((ObjectNode)res).putArray("UnitsTitle").add(resU.get("Title"));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // save result
+                ObjectNode finalResult = (ObjectNode)result.toJsonNode();
+                finalResult.putArray("$results").addAll(results);
+                PaginationHelper.setResult(sessionId, (JsonNode) finalResult);
+                // pagination
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult((JsonNode) finalResult, pagination));
+
+                return Response.status(Status.OK).entity(result).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessExternalClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final AccessUnauthorizedException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.UNAUTHORIZED).build();
+            } catch (final VitamClientException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
     }
 }

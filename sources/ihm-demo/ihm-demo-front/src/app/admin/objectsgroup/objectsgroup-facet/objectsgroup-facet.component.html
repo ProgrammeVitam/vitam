@@ -1,0 +1,44 @@
+<p-panel [header]="label" [toggleable]="true" [(collapsed)]="isCollapsed" *ngIf="label">
+  <div class="ui-g">
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="OriginatingAgencyFacet" label="Service producteur" [(ngModel)]="selectedFacets" inputId="oa" #oaFacet></p-checkbox>
+          <div *ngIf="facetOAResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetOAResults" style="margin-right:10px">
+              <a (click)="research(item.value, oaFacet.value)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="FormatIdFacet" label="Format" [(ngModel)]="selectedFacets" inputId="fid" #fidFacet></p-checkbox>
+          <div *ngIf="facetFormatIdResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetFormatIdResults" style="margin-right:10px">
+              <a (click)="research(item.value, fidFacet.value)" *ngIf="(item.count > 0)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="UsageFacet" label="Usage" [(ngModel)]="selectedFacets" inputId="ud" #uFacet></p-checkbox>
+          <div *ngIf="facetUsageResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetUsageResults" style="margin-right:10px">
+              <a (click)="research(item.value, uFacet.value)" *ngIf="(item.count > 0)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+    <div class="ui-g-12">
+      <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFacets()" [disabled]="disabledFacet"></button>
+      <button pButton type="button" (click)="searchFacets()" label="Rechercher" icon="fa-search" [disabled]="disabledFacet"></button>
+    </div>
+  </div>
+</p-panel>

@@ -1,0 +1,11 @@
+<vitam-search label="Recherche de groupes d'objets" [service]="service" [data]="advancedSearchFieldsGot" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" (clearResults)="onClear($event)"
+              (onChangedSearchRequest)="onChangedSearchRequest($event)" (onChangedSearchMode)="onChangedSearchMode($event)"
+              (onDisabledFiled)="onDisabledFiled($event)"></vitam-search>
+
+<vitam-objectsgroup-facet label="Affiner la recherche" [data]="response" [searchRequest]="searchRequest" [advancedMode]="advancedMode"
+                          [disabledFacet]="disabledFacet" [service]="service" (responseEvent)="onNotify($event)" [preSearch]="preSearchFunction" [submitFunction]="initialSearch"></vitam-objectsgroup-facet>
+
+
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [addToBasketAllowed]="true" [service]="service" [searchFunction]="paginationSearch"
+               [searchForm]="searchForm" [path]="'/admin/objectsgroup'"></vitam-results>

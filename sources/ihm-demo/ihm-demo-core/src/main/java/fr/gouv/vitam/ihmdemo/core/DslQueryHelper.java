@@ -27,6 +27,28 @@
 
 package fr.gouv.vitam.ihmdemo.core;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nestedSearch;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static java.time.ZoneOffset.UTC;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,7 +59,12 @@ import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
 import fr.gouv.vitam.common.database.builder.facet.FiltersFacet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
-import fr.gouv.vitam.common.database.builder.query.*;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.RangeQuery;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.SetregexAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
@@ -52,17 +79,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestFacetItem;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
-import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
  * Helper class to create DSL queries
@@ -162,6 +178,16 @@ public final class DslQueryHelper {
 
     private static final String FACET_WITH_OBJECT = "FacetWithObject";
     private static final String FACET_WITHOUT_OBJECT = "FacetWithoutObject";
+
+    private static final String GOT_FILE_FORMAT_ID = "fileFormatId";
+    private static final String GOT_FILE_USAGE = "fileUsage";
+    private static final String GOT_FILE_SIZE = "fileSize";
+    private static final String GOT_FILE_SIZE_OPERATOR = "fileSizeOperator";
+    private static final String GOT_FILE_SIZE_OPERATOR_LOWER = "<";
+    private static final String GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL = ">=";
+    private static final String FILE_FORMAT_ID_GOT_FIELD = "#qualifiers.versions.FormatIdentification.FormatId";
+    private static final String FILE_USAGE_GOT_FIELD = "#qualifiers.versions.DataObjectVersion";
+    private static final String FILE_SIZE_GOT_FIELD = "#qualifiers.versions.Size";
 
 
     // empty constructor
@@ -508,6 +534,7 @@ public final class DslQueryHelper {
 
         final SelectMultiQuery select = new SelectMultiQuery();
         final BooleanQuery andQuery = and();
+        final BooleanQuery nestedSubQuery = and();
         final BooleanQuery booleanQueries = or();
         boolean advancedFacetQuery = false;
         String startDate = null;
@@ -516,6 +543,8 @@ public final class DslQueryHelper {
         String ruleCategory = null;
         String ruleFinalAction = null;
         String ruleEndDate = null;
+        String fileSize = null;
+        String fileSizeOperator = null;
 
         for (final Entry<String, Object> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
@@ -651,6 +680,37 @@ public final class DslQueryHelper {
                 continue;
             }
 
+            if (searchKeys.equalsIgnoreCase(GOT_FILE_FORMAT_ID)) {
+                nestedSubQuery.add(eq(FILE_FORMAT_ID_GOT_FIELD, (String) searchValue));
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(GOT_FILE_USAGE)) {
+                nestedSubQuery.add(eq(FILE_USAGE_GOT_FIELD, (String) searchValue));
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(GOT_FILE_SIZE)) {
+                fileSize = (String) searchValue;
+                if(fileSizeOperator != null) {
+                    if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, (String) searchValue));
+                    } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, (String) searchValue));
+                    }
+                }
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(GOT_FILE_SIZE_OPERATOR)) {
+                fileSizeOperator = (String) searchValue;
+                if(fileSize != null) {
+                    if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, fileSize));
+                    } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, fileSize));
+                    }
+                }
+                continue;
+            }
+
             if (searchKeys.equalsIgnoreCase(RULE_CATEGORY)) {
                 ruleCategory = (String) searchValue;
             }
@@ -740,6 +800,8 @@ public final class DslQueryHelper {
                 andQuery.add(lte(managmentRuleCategory + ".Rules.EndDate", ruleEndDate));
             }
         }
+
+        andQuery.add(nestedSearch("#qualifiers.versions", nestedSubQuery.getCurrentQuery()));
 
         boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
 

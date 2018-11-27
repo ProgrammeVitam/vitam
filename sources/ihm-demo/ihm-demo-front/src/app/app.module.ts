@@ -17,6 +17,7 @@ import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
 import { BreadcrumbComponent } from './common/breadcrumb/breadcrumb.component';
 import { ArchiveUnitHelper } from './archive-unit/archive-unit.helper';
+import {ObjectsGroupHelper} from './admin/objectsgroup/objectsgroup.helper';
 import { ReferentialHelper } from './referentials/referential.helper';
 import { ResourcesService } from './common/resources.service';
 import { BreadcrumbService } from './common/breadcrumb.service';
@@ -69,6 +70,8 @@ import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive
 import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
+import {ObjectsGroupComponent} from './admin/objectsgroup/objectsgroup.component';
+import {ObjectsGroupService} from './admin/objectsgroup/objectsgroup.service';
 import { AccessionRegisterSearchComponent } from './admin/accession-register/accession-register.component';
 import { LogbookDetailsDescriptionComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component';
 import { LogbookHelperService } from './common/logbook-operation-events/logbook-helper.service';
@@ -103,6 +106,7 @@ import { RulesUpdateModeComponent } from './archive-unit/archive-unit-details/ar
 import { NgArrayPipesModule } from 'ngx-pipes';
 import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
 import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
+import { ObjectsGroupFacetComponent } from './admin/objectsgroup/objectsgroup-facet/objectsgroup-facet.component';
 import {AccessionRegisterSymbolicComponent} from './referentials/details/accession-register-symbolic/accession-register-symbolic.component';
 
 const appRoutes: Routes = [
@@ -221,6 +225,9 @@ const appRoutes: Routes = [
     path: 'admin/audits', component: AuditComponent, data: {permission: 'admin:audit'}
   },
   {
+    path: 'admin/objectsgroup', component: ObjectsGroupComponent, data: {permission: 'admin:audit'}
+  },
+  {
     path: 'archiveManagement/eliminationSearch', component: EliminationSearchComponent, data: {permission: 'archivesearch:units:read'}
   },
   {
@@ -283,6 +290,7 @@ const appRoutes: Routes = [
     EventDisplayComponent,
     LogbookDetailsDescriptionComponent,
     AuditComponent,
+    ObjectsGroupComponent,
     AccessionRegisterComponent,
     AccessionRegisterSearchComponent,
     AccessionRegisterSymbolicComponent,
@@ -298,6 +306,7 @@ const appRoutes: Routes = [
     ArchiveUnitSelectionComponent,
     EliminationSearchComponent,
     ArchiveUnitFacetComponent,
+    ObjectsGroupFacetComponent,
     MassiveUpdateFormComponent,
     FacetsComponent,
     ArchiveRuleBlocComponent,
@@ -365,6 +374,7 @@ const appRoutes: Routes = [
     IngestUtilsService,
     UploadService,
     ArchiveUnitHelper,
+    ObjectsGroupHelper,
     ReferentialHelper,
     ArchiveUnitService,
     ReferentialsService,
@@ -372,6 +382,7 @@ const appRoutes: Routes = [
     AccessContractService,
     ConfirmationService,
     ObjectsService,
+    ObjectsGroupService,
     AuditService,
     DialogService,
     TraceabilityOperationService,
