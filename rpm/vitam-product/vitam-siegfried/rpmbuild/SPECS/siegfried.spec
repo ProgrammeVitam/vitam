@@ -1,5 +1,5 @@
 Name:          vitam-siegfried
-Version:       1.7.8
+Version:       1.7.10
 Release:       1%{?dist}
 Summary:       Siegfried is a signature-based file format identification tool
 Group:         Applications/File
