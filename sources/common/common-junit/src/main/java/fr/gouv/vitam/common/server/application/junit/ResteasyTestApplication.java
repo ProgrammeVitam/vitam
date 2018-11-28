@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,51 +23,61 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.worker.client;
+ */
+package fr.gouv.vitam.common.server.application.junit;
 
-import com.google.common.base.Objects;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Response;
+import java.util.Set;
 
 /**
- * worker client configuration
+ *
  */
-public class WorkerClientConfiguration extends ClientConfigurationImpl {
-
-    /**
-     * Empty constructor used by YAMLFactory to instanciate the object
-     */
-    public WorkerClientConfiguration() {
-        // Emtpy constructor
-    }
-
-    /**
-     * Construct a configuration with all parameters at once
-     *
-     * @param serverHost the server hostname
-     * @param serverPort the server port
-     */
-    public WorkerClientConfiguration(String serverHost, int serverPort) {
-        super(serverHost, serverPort);
-    }
+@ApplicationPath("/")
+public abstract class ResteasyTestApplication extends Application {
+    public static final String DEFAULT_XML_CONFIGURATION_FILE = "jetty-config-base-test.xml";
 
     @Override
-    public int hashCode(){
-        return  Objects.hashCode(this.getServerHost(),this.getServerPort());
+    public Set<Object> getSingletons() {
+        return getResources();
     }
-    @Override
-    public boolean equals (Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (other == this) {
-            return true;
-        }
-        if (other.getClass() != getClass()) {
-            return false;
-        }
-        WorkerClientConfiguration conf =  (WorkerClientConfiguration) other;
-        return  Objects.equal(this.getServerHost(),conf.getServerHost()) &&  Objects.equal(this.getServerPort(),conf.getServerPort())  ;
 
+    /**
+     * Default ExpectedResults
+     */
+    public interface ExpectedResults {
+        /**
+         * @return Mock Response
+         */
+        Response post();
+
+        /**
+         * @return Mock Response
+         */
+        Response get();
+
+        /**
+         * @return Mock Response
+         */
+        Response put();
+
+        /**
+         * @return Mock Response
+         */
+        Response delete();
+
+        /**
+         * @return Mock Response
+         */
+        Response head();
+
+        /**
+         * @return Mock Response
+         */
+        Response options();
     }
+
+    public abstract Set<Object> getResources();
+
 }

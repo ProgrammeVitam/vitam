@@ -106,7 +106,7 @@ public class OntologyResource {
      *
      * @param ontologyModelList as InputStream
      * @param uri the uri info
-     * @return Response jersey response
+     * @return Response
      */
     @Path(ONTOLOGY_URI)
     @POST

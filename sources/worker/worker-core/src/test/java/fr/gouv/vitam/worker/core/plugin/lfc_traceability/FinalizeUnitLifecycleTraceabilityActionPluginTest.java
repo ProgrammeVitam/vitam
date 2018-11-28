@@ -256,7 +256,7 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
     private void saveWorkspacePutObject(String filenameContains, String extension)
         throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Path file =
                 java.nio.file.Paths
                     .get(System.getProperty("vitam.tmp.folder") + "/" + handlerIO.getContainerName() + "_" +

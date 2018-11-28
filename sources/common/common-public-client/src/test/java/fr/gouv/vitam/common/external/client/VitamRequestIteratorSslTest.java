@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest.ExpectedResults;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;

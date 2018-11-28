@@ -131,7 +131,7 @@ public class ProfileResource {
      *
      * @param profileModelList as InputStream
      * @param uri the uri info
-     * @return Response jersey response
+     * @return Response
      */
     @Path(PROFILE_URI)
     @POST

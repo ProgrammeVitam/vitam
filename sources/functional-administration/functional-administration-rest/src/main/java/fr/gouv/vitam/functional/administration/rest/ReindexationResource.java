@@ -130,7 +130,7 @@ public class ReindexationResource {
      * Reindex a collection
      *
      * @param indexParameters parameters specifying what to reindex
-     * @return Response response
+     * @return Response
      */
     @Path(REINDEX_URI)
     @POST
@@ -226,7 +226,7 @@ public class ReindexationResource {
      * Switch indexes
      *
      * @param switchIndexParameters specifying how to switch indexes
-     * @return Response response
+     * @return Response
      */
     @Path(ALIASES_URI)
     @POST

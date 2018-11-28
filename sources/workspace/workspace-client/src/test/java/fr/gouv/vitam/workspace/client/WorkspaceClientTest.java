@@ -26,84 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import static org.mockito.Mockito.mock;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 
 import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.server.ResourceConfig;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 
 /**
  * This class is only an utility class for other tests
  */
-public abstract class WorkspaceClientTest extends VitamJerseyTest {
+public abstract class WorkspaceClientTest extends ResteasyTestApplication {
     protected static final String HOST = "http://localhost";
     protected static final String PATH = "/workspace/v1";
-    protected WorkspaceClient client;
+    protected static WorkspaceClient client;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public WorkspaceClientTest() {
-        super(WorkspaceClientFactory.getInstance());
-    }
+    protected static ExpectedResults mock;
 
-    // Override the beforeTest if necessary
-    @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (WorkspaceClient) getClient();
-    }
-
-    @Override
-    public void setup() {
-        mock = mock(ExpectedResults.class);
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(getMockResource());
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-
-    }
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
-    }
-
-    protected ExpectedResults mock;
 
     interface ExpectedResults {
         Response post();
@@ -120,10 +62,6 @@ public abstract class WorkspaceClientTest extends VitamJerseyTest {
 
         Response put();
     }
-
-
     static abstract class MockResource {
     }
-
-    abstract MockResource getMockResource();
 }

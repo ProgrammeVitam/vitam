@@ -26,14 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.io.InputStream;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.external.client.IngestCollection;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.LocalFile;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -45,39 +63,23 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.external.client.AbstractMockClient;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.LocalFile;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("rawtypes")
-public class IngestExternalClientRestTest extends VitamJerseyTest {
+public class IngestExternalClientRestTest extends ResteasyTestApplication {
 
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/ingest-external/v1";
-    protected IngestExternalClientRest client;
+    protected static IngestExternalClientRest client;
     private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     final int TENANT_ID = 0;
@@ -85,58 +87,35 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     private static final String EXECUTION_MODE = "defaultContext";
     private static final String ID = "id1";
 
+    protected static ExpectedResults mock;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    @SuppressWarnings("unchecked")
-    public IngestExternalClientRestTest() {
-        super(IngestExternalClientFactory.getInstance());
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(IngestExternalClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (IngestExternalClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
     }
 
     @Override
-    public void beforeTest() {
-        client = (IngestExternalClientRest) getClient();
-    }
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
 
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse startVitamApplication(int reservedPort) throws IllegalStateException {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/ingest-external/v1")

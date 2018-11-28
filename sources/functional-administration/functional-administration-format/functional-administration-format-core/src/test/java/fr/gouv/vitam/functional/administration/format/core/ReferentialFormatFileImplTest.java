@@ -306,7 +306,8 @@ public class ReferentialFormatFileImplTest {
 
         ByteArrayOutputStream reportStream = new ByteArrayOutputStream();
         doAnswer((args) -> {
-            IOUtils.copy(args.getArgumentAt(0, InputStream.class), reportStream);
+            InputStream is = args.getArgument(0);
+            IOUtils.copy(is, reportStream);
             return null;
         }).when(functionalBackupService).saveFile(
             any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));

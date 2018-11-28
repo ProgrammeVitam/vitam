@@ -109,7 +109,7 @@ public class ContractResource {
      *
      * @param ingestContractModelList as InputStream
      * @param uri the uri info
-     * @return Response jersey response
+     * @return Response
      */
     @Path(INGEST_CONTRACTS_URI)
     @POST
@@ -185,7 +185,7 @@ public class ContractResource {
      *
      * @param accessContractModelList
      * @param uri
-     * @return Response jersey response
+     * @return Response
      */
     @Path(ACCESS_CONTRACTS_URI)
     @POST

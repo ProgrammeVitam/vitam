@@ -26,15 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -49,19 +56,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
@@ -74,15 +79,37 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     private static final DigestType ALGO = DigestType.MD5;
     private static final String MESSAGE_DIGEST = "DigestHex";
 
-    private InputStream stream = null;
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
 
+    static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
+
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(WorkspaceClientObjectTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (WorkspaceClient) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
+    private InputStream stream = null;
     @Override
-    MockResource getMockResource() {
-        return new MockObjectResource(mock);
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+        return Sets.newHashSet(new MockObjectResource(mock));
     }
 
     @Path("workspace/v1/containers")
-    public static class MockObjectResource extends MockResource {
+    public static class MockObjectResource {
 
         private final ExpectedResults expectedResponse;
 
@@ -400,7 +427,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     @Test(expected = ContentAddressableStorageServerException.class)
     public void givenObjectNotExistingWhenCheckObjectThenOK()
         throws ContentAddressableStorageException, IOException {       
-        when(mock.headContainer()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5);
     }
     

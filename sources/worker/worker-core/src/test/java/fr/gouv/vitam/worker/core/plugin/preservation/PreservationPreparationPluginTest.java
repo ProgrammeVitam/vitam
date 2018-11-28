@@ -107,7 +107,7 @@ public class PreservationPreparationPluginTest {
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
             File file = temporaryFolder.newFile();
-            files.put(args.getArgumentAt(0, String.class), file);
+            files.put(args.getArgument(0), file);
             return file;
         }).when(handler).getNewLocalFile(anyString());
 

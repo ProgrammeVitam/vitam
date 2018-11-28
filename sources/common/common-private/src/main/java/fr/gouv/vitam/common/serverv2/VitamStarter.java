@@ -254,8 +254,7 @@ public class VitamStarter {
         return stats;
     }
 
-    protected Handler buildAdminHandler(String configurationFile, VitamApplicationConfiguration configuration)
-        throws VitamApplicationServerException {
+    protected Handler buildAdminHandler(String configurationFile, VitamApplicationConfiguration configuration) {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
         servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());

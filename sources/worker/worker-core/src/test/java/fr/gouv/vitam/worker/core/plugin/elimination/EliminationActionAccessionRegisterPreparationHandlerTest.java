@@ -52,7 +52,7 @@ public class EliminationActionAccessionRegisterPreparationHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
-        doAnswer(args -> tempFolder.newFile(args.getArgumentAt(0, String.class))).when(handler).getNewLocalFile(any());
+        doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())

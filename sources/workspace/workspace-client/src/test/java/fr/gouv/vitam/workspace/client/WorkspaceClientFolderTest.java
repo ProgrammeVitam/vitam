@@ -26,15 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -47,26 +53,49 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
 
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
+
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(WorkspaceClientFolderTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (WorkspaceClient) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
     @Override
-    MockResource getMockResource() {
-        return new MockFolderResource(mock);
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+        return Sets.newHashSet(new MockFolderResource(mock));
     }
 
     @Path("workspace/v1/containers")
@@ -218,13 +247,15 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris =
             JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+            });
         assertTrue(uris.isEmpty());
     }
 
     @Test
     public void given_FolderExists_When_FindingUriObjects_Then_ReturnURIList()
-        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException, InvalidFormatException {
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException,
+        InvalidFormatException {
         List<URI> uriListWorkspaceOK = new ArrayList<>();
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -232,7 +263,8 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
             Response.status(Status.OK).entity(uriListWorkspaceOK).build());
         final List<URI> uris =
             JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+            });
         assertTrue(!uris.isEmpty());
         for (final URI uriWorkspace : uris) {
             assertTrue(uriWorkspace.toString().contains("content/"));

@@ -26,10 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -38,83 +50,50 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Set;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.Driver;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-
-public class DriverImplTest extends VitamJerseyTest {
+public class DriverImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImplTest.class);
 
     protected static final String HOSTNAME = "localhost";
     private static final String DRIVER_NAME = "DefaultOfferDriver";
     private static StorageOffer offer = new StorageOffer();
 
-    public DriverImplTest() {
-        super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
+
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static TestVitamClientFactory factory = new TestVitamClientFactory(serverPortNumber, "/offer/v1", mock(Client.class));
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(DriverImplTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
     }
 
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
 
-    // Define the getApplication to return your Application using the correct
-    // Configuration
     @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+
+        return Sets.newHashSet(new MockResource(mock));
     }
 
-    // Define your Application class if necessary
-    public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            // None
-            VitamConfiguration.setSecret("vitamsecret");
-            VitamConfiguration.setFilterActivation(false);
-        }
-
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-    }
 
     @Path("/offer/v1")
     public static class MockResource {
@@ -141,7 +120,7 @@ public class DriverImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
         try {
-            offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+            offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
             offer.setId("default");
             when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
             Driver driver = DriverImpl.getInstance();
@@ -156,7 +135,7 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
-        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
         offer.setId("default2");
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         Driver driver = DriverImpl.getInstance();

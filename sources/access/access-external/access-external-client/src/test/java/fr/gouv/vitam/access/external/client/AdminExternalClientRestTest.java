@@ -1,21 +1,50 @@
 package fr.gouv.vitam.access.external.client;
 
-import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
+import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -32,112 +61,66 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import fr.gouv.vitam.common.model.ProbativeValueRequest;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Assert;
-import org.junit.Test;
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.external.client.AbstractMockClient;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.model.processing.ProcessDetail;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-
-public class AdminExternalClientRestTest extends VitamJerseyTest {
+public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     private static final String ID = "id";
     protected static final String HOSTNAME = "localhost";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
-    protected AdminExternalClientRest client;
+    protected static AdminExternalClientRest client;
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
 
-    public AdminExternalClientRestTest() {
-        super(AdminExternalClientFactory.getInstance());
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static AdminExternalClientFactory factory = AdminExternalClientFactory.getInstance();
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(AdminExternalClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
     }
 
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (AdminExternalClientRest) getClient();
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+
+        return Sets.newHashSet(new MockResource(mock));
     }
-
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-    }
-
 
     @Path("/admin-external/v1/")
     public static class MockResource {
@@ -839,7 +822,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(
             client.findAccessionRegister(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
                 JsonHandler.getFromString(queryDsql)).getHttpCode())
-                    .isEqualTo(Status.OK.getStatusCode());
+            .isEqualTo(Status.OK.getStatusCode());
     }
 
     @Test
@@ -895,7 +878,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         assertThat(
             client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption).getHttpCode())
-                .isEqualTo(Status.OK.getStatusCode());
+            .isEqualTo(Status.OK.getStatusCode());
     }
 
     @Test
@@ -931,7 +914,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         assertThat(client.updateProfile(
             new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                .isTrue();
+            .isTrue();
     }
 
     @Test
@@ -963,14 +946,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void givenNotFoundWhenGetOperationDetailThenReturnNotFound() throws VitamClientException, IllegalArgumentException {
+    public void givenNotFoundWhenGetOperationDetailThenReturnNotFound()
+        throws VitamClientException, IllegalArgumentException {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
         RequestResponse<ItemStatus> result =
             client.getOperationProcessExecutionDetails(new VitamContext(TENANT_ID), ID);
         assertEquals(result.getHttpCode(), Status.NOT_FOUND.getStatusCode());
     }
-    
+
     @Test
     public void givenOKWhenCancelOperationThenReturnOK() throws VitamClientException, IllegalArgumentException {
         when(mock.delete()).thenReturn(Response.status(Status.OK.getStatusCode())
@@ -1118,7 +1102,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         RequestResponse<ArchiveUnitProfileModel> resp =
-            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null),
+                JsonHandler.createObjectNode());
         assertThat(resp.isOk()).isTrue();
         assertThat(((RequestResponseOK<ArchiveUnitProfileModel>) resp).getResults()).hasSize(0);
     }
@@ -1133,9 +1118,11 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws VitamClientException {
 
         when(mock.get()).thenReturn(
-            Response.status(Status.OK).entity(ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode())).build());
+            Response.status(Status.OK).entity(ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode()))
+                .build());
         RequestResponse<ArchiveUnitProfileModel> resp =
-            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null),
+                JsonHandler.createObjectNode());
         assertThat(resp.isOk()).isTrue();
         assertThat(((RequestResponseOK<ArchiveUnitProfileModel>) resp).getResults()).hasSize(1);
     }
@@ -1162,7 +1149,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         assertThat(client.updateArchiveUnitProfile(
             new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                .isTrue();
+            .isTrue();
     }
 
     @Test
@@ -1180,7 +1167,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void rectificationAuditTest()
         throws VitamClientException, InvalidParseOperationException {
 
-        String operationId ="id";
+        String operationId = "id";
         when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
         RequestResponse<ItemStatus> result = client.rectificationAudit(new VitamContext(TENANT_ID), operationId);
@@ -1195,7 +1182,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         JsonNode dsl = JsonHandler.getFromString(queryDsql);
         when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
-        RequestResponse<ItemStatus> result = client.exportProbativeValue(new VitamContext(TENANT_ID), new ProbativeValueRequest(dsl,Collections.singletonList("BinaryMaster")));
+        RequestResponse<ItemStatus> result = client.exportProbativeValue(new VitamContext(TENANT_ID),
+            new ProbativeValueRequest(dsl, Collections.singletonList("BinaryMaster")));
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
     }
 
@@ -1265,7 +1253,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(resp.isOk()).isTrue();
         assertThat(((RequestResponseOK<OntologyModel>) resp).getResults()).hasSize(0);
     }
-
 
 
 

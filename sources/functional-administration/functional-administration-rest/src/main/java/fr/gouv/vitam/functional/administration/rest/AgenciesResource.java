@@ -192,7 +192,7 @@ public class AgenciesResource {
      * check the agencie file
      * @param agencyStream the stream containing agencies to be checked
      *
-     * @return Response response jersey
+     * @return Response
      * @throws IOException convert inputstream agency to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
      * @throws InvalidParseOperationException if parsing json data exception occurred

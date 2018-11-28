@@ -99,12 +99,12 @@ public class EliminationAnalysisPreparationHandlerTest {
 
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
-        doAnswer((args) -> folder.newFile(args.getArgumentAt(0, String.class)))
+        doAnswer((args) -> folder.newFile(args.getArgument(0)))
             .when(handlerIO).getNewLocalFile(any());
 
         doAnswer((args) -> {
-            writtenFiles.put(args.getArgumentAt(0, String.class),
-                new ByteArrayInputStream(FileUtils.readFileToByteArray(args.getArgumentAt(1, File.class))));
+            writtenFiles.put(args.getArgument(0),
+                new ByteArrayInputStream(FileUtils.readFileToByteArray(args.getArgument(1))));
             return null;
         }).when(handlerIO).transferFileToWorkspace(any(), any(), eq(true), eq(false));
 

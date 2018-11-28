@@ -31,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
@@ -54,7 +56,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,81 +77,36 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 
-public class VitamRequestIteratorTest extends VitamJerseyTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorTest.class);
-
+public class VitamRequestIteratorTest extends ResteasyTestApplication {
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
-    private DefaultClient client;
     private static boolean startup = true;
+    protected static ExpectedResults mock;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public VitamRequestIteratorTest() {
-        super(new TestVitamClientFactory<DefaultClient>(1234, RESOURCE_PATH));
+    private static DefaultClient client;
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static TestVitamClientFactory factory = new TestVitamClientFactory<DefaultClient>(serverPortNumber, RESOURCE_PATH);
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(VitamRequestIteratorTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (DefaultClient) getClient();
-    }
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
 
-    // Override the afterTest if necessary
-    @Override
-    public void afterTest() throws VitamApplicationServerException {
-        // Nothing
-    }
-
-    // Create the setup application to setup anything necessary
-    @Override
-    public void setup() {
-        // nothing
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig("jetty-config-benchmark-test.xml");
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     // Define your Resource class if necessary
@@ -170,9 +133,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
 
 
     }
-    // ************************************ //
-    // End of VitamJerseyTest configuration //
-    // ************************************ //
 
     @Test
     public void testIterator() {
