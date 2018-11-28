@@ -139,7 +139,7 @@ public class StorageLogAdministration {
     private void storeLogFile(LogbookOperationsClientHelper helper, Integer tenantId, GUID eip,
         LogInformation logInformation, StorageLog storageLogService, String evType, boolean isWriteOperation)
         throws LogbookClientNotFoundException, StorageLogException {
-        LOGGER.info("Storing log file " + logInformation.getPath());
+        LOGGER.info("Storing log file " + logInformation.getPath() + " -- " + isWriteOperation);
 
         String fileName = tenantId + "_" + storageLogService.getFileName(isWriteOperation) + "_"
             + logInformation.getBeginTime().format(getDateTimeFormatter()) + "_"

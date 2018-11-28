@@ -299,6 +299,19 @@ documentation:
         Accept:
             required: true
             enum: [ "application/octet-stream" ]
+    body:
+        application/json:
+            description: Requête de récupération de fichiers de log d'accès
+            type: object
+            properties:
+              StartDate:
+                description: Date de début des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
+                type: date
+                example: 2018-11-14
+              EndDate:
+                description: Date de fin des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
+                type: date
+                example: 2018-11-14
     description:
         Lancer la récupération des journaux sous la forme d'un ZIP contenant des fichiers de log au format Json Lines.
         La requête prend en paramètre un objet Json pouvant contenir une date de début (StartDate) ou de fin (EndDate) pour filtrer les journaux.
