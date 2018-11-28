@@ -1,0 +1,16 @@
+{
+  "processId": "aeaaaaaaaagw45nxaannialhchkfv4yaaaaq",
+  "reportType":"PRESERVATION",
+  "entries": {
+    "_id": "aeeaaaaaacgw45nxaaopkalhchkfk7iaaaaq",
+    "processId": "aeaaaaaaaagw45nxaannialhchkfv4yaaaaq",
+    "_tenant": 0,
+    "creationDateTime": "2018-11-14T10:46:29.525",
+    "status": "OK",
+    "unitId": "Bobi",
+    "objectGroupId": "bobiObject",
+    "action": "ANALYSE",
+    "analyseResult": "VALID_ALL",
+    "inputName": "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq"
+  }
+}

@@ -1,12 +1,5 @@
 package fr.gouv.vitam.common;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.Set;
-
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
@@ -26,11 +19,16 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.Set;
+
 public class VitamRuleRunner {
 
     public static final String OFFER_FOLDER = "offer";
-
-
 
     // Rules
     @ClassRule
@@ -52,14 +50,13 @@ public class VitamRuleRunner {
             FunctionalAdminCollections.CONTEXT.getName(),
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(),
             FunctionalAdminCollections.ACCESS_CONTRACT.getName(),
             FunctionalAdminCollections.FORMATS.getName(),
             FunctionalAdminCollections.INGEST_CONTRACT.getName(),
             FunctionalAdminCollections.SECURITY_PROFILE.getName(),
             FunctionalAdminCollections.ONTOLOGY.getName(),
             FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getName(),
-            //FunctionalAdminCollections.VITAM_SEQUENCE.getName(),
             OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION,
             OffsetRepository.COLLECTION_NAME,
             OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME,
@@ -82,7 +79,7 @@ public class VitamRuleRunner {
             FunctionalAdminCollections.CONTEXT.getName().toLowerCase(),
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase(),
             FunctionalAdminCollections.ACCESS_CONTRACT.getName().toLowerCase(),
             FunctionalAdminCollections.FORMATS.getName().toLowerCase(),
             FunctionalAdminCollections.INGEST_CONTRACT.getName().toLowerCase(),

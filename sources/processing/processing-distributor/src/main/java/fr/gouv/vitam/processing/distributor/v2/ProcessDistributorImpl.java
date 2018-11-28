@@ -857,7 +857,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         try {
             return JsonHandler.getFromString(value, JsonLineModel.class);
         } catch (InvalidParseOperationException e) {
-            throw new ProcessingException("Invalid Model");
+            throw new ProcessingException("Invalid Model", e);
         }
     }
 

@@ -424,15 +424,15 @@ public final class JsonHandler {
 
     /**
      * @param jsonNode the json object to transform
-     * @param clasz    the instance of target class
+     * @param clazz    the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clasz)
+    public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clazz)
         throws InvalidParseOperationException {
         try {
-            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
-            return OBJECT_MAPPER.treeToValue(jsonNode, clasz);
+            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
+            return OBJECT_MAPPER.treeToValue(jsonNode, clazz);
         } catch (final JsonProcessingException e) {
             throw new InvalidParseOperationException(e);
         }

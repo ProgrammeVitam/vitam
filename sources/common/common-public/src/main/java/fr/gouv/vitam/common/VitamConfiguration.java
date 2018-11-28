@@ -156,6 +156,14 @@ public class VitamConfiguration {
      * Default Vitam Config Folder
      */
     private static String vitamTmpFolderDefault = "/vitam/data/tmp";
+    /**
+     * Default Vitam griffin Folder executor
+     */
+    private static String vitamGriffinExecFolder = "/vitam/bin/worker/griffins";
+    /**
+     * Default Vitam griffin folder for transformed data
+     */
+    private static String vitamGriffinInputFilesFolder = "/vitam/tmp/griffins";
 
     private static String workspaceWorkflowsFolder = "workflows";
 
@@ -2194,5 +2202,21 @@ public class VitamConfiguration {
 
     public static void setClassificationLevel(ClassificationLevel classificationLevel) {
         VitamConfiguration.classificationLevel = classificationLevel;
+    }
+
+    public static String getVitamGriffinExecFolder() {
+        return vitamGriffinExecFolder;
+    }
+
+    public static void setVitamGriffinExecFolder(String vitamGriffinExecFolder) {
+        VitamConfiguration.vitamGriffinExecFolder = vitamGriffinExecFolder;
+    }
+
+    public static String getVitamGriffinInputFilesFolder() {
+        return vitamGriffinInputFilesFolder;
+    }
+
+    public static void setVitamGriffinInputFilesFolder(String vitamGriffinInputFilesFolder) {
+        VitamConfiguration.vitamGriffinInputFilesFolder = vitamGriffinInputFilesFolder;
     }
 }

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+java -Dfile.encoding=UTF-8 -jar /vitam/bin/worker/griffins/imagemagick-griffin-vitam/imagemagick-jar-with-dependencies.jar $1

@@ -26,30 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.service;
 
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECTS;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
+import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
+import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -65,6 +54,26 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECTS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
+
 /**
  * BatchReportService
  */
@@ -73,50 +82,89 @@ public class BatchReportServiceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportServiceImpl.class);
     private static final String JSONL_EXTENSION = ".jsonl";
     private static final String OPI_GOT = "opi_got";
+    private static final String STATUS = "status";
 
     private EliminationActionUnitRepository eliminationActionUnitRepository;
     private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
+    private PreservationReportRepository preservationReportRepository;
     private WorkspaceClientFactory workspaceClientFactory;
+    private String id;
 
     public BatchReportServiceImpl(EliminationActionUnitRepository eliminationActionUnitRepository,
-                                  EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository,
-                                  WorkspaceClientFactory workspaceClientFactory) {
+        EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository,
+        WorkspaceClientFactory workspaceClientFactory,
+        PreservationReportRepository preservationReportRepository) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.eliminationActionObjectGroupRepository = eliminationActionObjectGroupRepository;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.preservationReportRepository = preservationReportRepository;
     }
 
     public void appendEliminationActionUnitReport(String processId, List<JsonNode> entries, int tenantId) {
         List<EliminationActionUnitModel> documents =
-                entries.stream()
-                        .map(entry -> new EliminationActionUnitModel(
-                                GUIDFactory.newGUID().toString(), processId, tenantId,
-                                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
-                                entry))
-                        .collect(Collectors.toList());
+            entries.stream()
+                .map(entry -> new EliminationActionUnitModel(
+                    GUIDFactory.newGUID().toString(), processId, tenantId,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+                    entry))
+                .collect(Collectors.toList());
         eliminationActionUnitRepository.bulkAppendReport(documents);
     }
 
     public void appendEliminationActionObjectGroupReport(String processId, List<JsonNode> entries, int tenantId) {
 
         List<EliminationActionObjectGroupModel> documents =
-                entries.stream()
-                        .map(entry -> new EliminationActionObjectGroupModel(
-                                GUIDFactory.newGUID().toString(), processId,
-                                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), entry, tenantId))
-                        .collect(Collectors.toList());
+            entries.stream()
+                .map(entry -> new EliminationActionObjectGroupModel(
+                    GUIDFactory.newGUID().toString(), processId,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), entry, tenantId))
+                .collect(Collectors.toList());
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
     }
 
+    public void appendPreservationReport(String processId, List<JsonNode> entries, int tenantId)
+        throws BatchReportException {
+        List<PreservationReportModel> documents = entries.stream()
+            .map(entry -> createPreservationReportModel(processId, tenantId, entry))
+            .collect(Collectors.toList());
+        preservationReportRepository.bulkAppendReport(documents);
+    }
+
+    private PreservationReportModel createPreservationReportModel(String processId, int tenantId, JsonNode entry)
+        throws BatchReportException {
+        JsonNode outputName = entry.get("outputName");
+        String output = "";
+        if (outputName != null && !outputName.isNull()) {
+            output = outputName.asText();
+        }
+        id = GUIDFactory.newGUID().toString();
+        return new PreservationReportModel(id, processId, tenantId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            PreservationStatus.valueOf(entry.get(STATUS).asText()),
+            checkValuePresent("unitId", entry).asText(),
+            checkValuePresent("objectGroupId", entry).asText(),
+            checkValuePresent("action", entry).asText(),
+            checkValuePresent("analyseResult", entry).asText(),
+            checkValuePresent("inputName", entry).asText(), output);
+    }
+
+    private JsonNode checkValuePresent(String fieldName, JsonNode entry) throws BatchReportException {
+        if (entry.get(fieldName) == null) {
+            throw new BatchReportException(String.format("field Name mandatory %s", fieldName));
+        }
+        return entry.get(fieldName);
+    }
+
+
     public void exportEliminationActionUnitReport(String processId, String fileName, int tenantId)
-            throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
+        throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
         File tempFile =
-                File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
         try (MongoCursor<Document> iterator =
-                     eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId)) {
+            eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId)) {
 
             createFileFromMongoCursorWithDocument(tempFile, iterator);
-            transferFileToWorkspace(processId, fileName, tempFile);
+            transferDocumentToWorkspace(processId, fileName, tempFile);
 
         } finally {
             deleteQuietly(tempFile);
@@ -124,28 +172,62 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
-            throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
+        throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
         File tempFile =
-                File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
         try (MongoCursor<Document> iterator = eliminationActionObjectGroupRepository
-                .findCollectionByProcessIdTenant(processId, tenantId)) {
+            .findCollectionByProcessIdTenant(processId, tenantId)) {
 
             createFileFromMongoCursorWithDocument(tempFile, iterator);
 
-            transferFileToWorkspace(processId, fileName, tempFile);
+            transferDocumentToWorkspace(processId, fileName, tempFile);
 
         } finally {
             deleteQuietly(tempFile);
         }
     }
 
+    public void exportPreservationReport(String processId, String fileName, int tenantId)
+        throws IOException, ContentAddressableStorageServerException {
+        File file = Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName)).toFile();
+        try  {
+            createDocument(processId, tenantId, file);
+            transferDocumentToWorkspace(processId, fileName, file);
+        } finally {
+            deleteQuietly(file);
+        }
+    }
+
+    private void createDocument(String processId, int tenantId, File file) throws IOException {
+        try (FileOutputStream fileOut = new FileOutputStream(file);
+            OutputStreamWriter streamOut = new OutputStreamWriter(fileOut);
+            BufferedWriter writer = new BufferedWriter(streamOut)) {
+
+            PreservationStatsModel stats = preservationReportRepository.stats(processId, tenantId);
+            addDocumentToFile(stats, writer);
+
+            try (MongoCursor<PreservationReportModel> reports = preservationReportRepository.findCollectionByProcessIdTenant(processId, tenantId)){
+                reports.forEachRemaining(d -> addDocumentToFile(d, writer));
+            }
+        }
+    }
+
+    private <T> void addDocumentToFile(T d, BufferedWriter writer) {
+        try {
+            writer.append(JsonHandler.unprettyPrint(d));
+            writer.append("\n");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void createFileFromMongoCursorWithDocument(File tempFile, MongoCursor<Document> iterator)
-            throws IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException {
         try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
             while (iterator.hasNext()) {
                 Document document = iterator.next();
                 JsonLineModel jsonLineModel =
-                        JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), JsonLineModel.class);
+                    JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), JsonLineModel.class);
                 jsonLineWriter.addEntry(jsonLineModel);
             }
         }
@@ -161,21 +243,21 @@ public class BatchReportServiceImpl {
      * @throws InvalidParseOperationException
      */
     private void createFileFromTwoMongoCursorWithDocument(File tempFile, MongoCursor<Document> unitCursor,
-                                                          MongoCursor<Document> objectGroupCursor)
-            throws IOException, InvalidParseOperationException {
+        MongoCursor<Document> objectGroupCursor)
+        throws IOException, InvalidParseOperationException {
 
         Comparator<Document> comparator = compareDocument();
 
         BiFunction<Document, Document, EliminationActionAccessionRegisterModel> mergeFunction = mergeDocuments();
 
         MergeSortedIterator<Document, EliminationActionAccessionRegisterModel> mergeSortedIterator =
-                new MergeSortedIterator(unitCursor, objectGroupCursor, comparator, mergeFunction);
+            new MergeSortedIterator(unitCursor, objectGroupCursor, comparator, mergeFunction);
 
         try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
 
             while (mergeSortedIterator.hasNext()) {
                 EliminationActionAccessionRegisterModel eliminationActionAccessionRegisterModel =
-                        mergeSortedIterator.next();
+                    mergeSortedIterator.next();
                 JsonLineModel jsonLineModel = new JsonLineModel();
                 jsonLineModel.setId(eliminationActionAccessionRegisterModel.getOpi());
 
@@ -189,7 +271,7 @@ public class BatchReportServiceImpl {
     private BiFunction<Document, Document, EliminationActionAccessionRegisterModel> mergeDocuments() {
         return (unit, objectGroup) -> {
             EliminationActionAccessionRegisterModel eliminationAccessionRegisterModel =
-                    new EliminationActionAccessionRegisterModel();
+                new EliminationActionAccessionRegisterModel();
 
             if (unit != null) {
                 eliminationAccessionRegisterModel.setOpi(unit.getString(OPI));
@@ -201,9 +283,9 @@ public class BatchReportServiceImpl {
                 eliminationAccessionRegisterModel.setOpi(objectGroup.getString(OPI));
                 eliminationAccessionRegisterModel.setOriginatingAgency(objectGroup.getString(ORIGINATING_AGENCY));
                 eliminationAccessionRegisterModel
-                        .setTotalObjectGroups(((Number) objectGroup.get(TOTAL_OBJECT_GROUPS)).longValue());
+                    .setTotalObjectGroups(((Number) objectGroup.get(TOTAL_OBJECT_GROUPS)).longValue());
                 eliminationAccessionRegisterModel
-                        .setTotalObjects(((Number) objectGroup.get(TOTAL_OBJECTS)).longValue());
+                    .setTotalObjects(((Number) objectGroup.get(TOTAL_OBJECTS)).longValue());
                 eliminationAccessionRegisterModel.setTotalSize(((Number) objectGroup.get(TOTAL_SIZE)).longValue());
 
             }
@@ -222,7 +304,7 @@ public class BatchReportServiceImpl {
 
 
     private void createFileFromMongoCursorWithString(File tempFile, MongoCursor<String> iterator)
-            throws IOException {
+        throws IOException {
         try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
             while (iterator.hasNext()) {
                 String objectGroupId = iterator.next();
@@ -236,39 +318,38 @@ public class BatchReportServiceImpl {
         return new JsonLineModel(next, null, null);
     }
 
-    private void transferFileToWorkspace(String processId, String fileName, File tempFile)
-            throws IOException, ContentAddressableStorageServerException {
+    private void transferDocumentToWorkspace(String processId, String fileName, File tempFile) throws IOException, ContentAddressableStorageServerException {
         try (WorkspaceClient client = workspaceClientFactory.getClient();
-             FileInputStream fileInputStream = new FileInputStream(tempFile)) {
+            FileInputStream fileInputStream = new FileInputStream(tempFile)) {
             client.putObject(processId, fileName, fileInputStream);
         }
     }
 
     public void exportEliminationActionDistinctObjectGroupOfDeletedUnits(String processId, String filename,
-                                                                         int tenantId)
-            throws IOException, ContentAddressableStorageServerException {
+        int tenantId)
+        throws IOException, ContentAddressableStorageServerException {
         File tempFile =
-                File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
         try (MongoCursor<String> iterator = eliminationActionUnitRepository
-                .distinctObjectGroupOfDeletedUnits(processId, tenantId)) {
+            .distinctObjectGroupOfDeletedUnits(processId, tenantId)) {
             createFileFromMongoCursorWithString(tempFile, iterator);
-            transferFileToWorkspace(processId, filename, tempFile);
+            transferDocumentToWorkspace(processId, filename, tempFile);
         } finally {
             deleteQuietly(tempFile);
         }
     }
 
     public void exportEliminationActionAccessionRegister(String processId, String filename, int tenantId)
-            throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
         File tempFile =
-                File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
         try (MongoCursor<Document> unitCursor = eliminationActionUnitRepository
-                .computeOwnAccessionRegisterDetails(processId, tenantId);
-             MongoCursor<Document> gotCursor = eliminationActionObjectGroupRepository
-                     .computeOwnAccessionRegisterDetails(processId, tenantId)) {
+            .computeOwnAccessionRegisterDetails(processId, tenantId);
+            MongoCursor<Document> gotCursor = eliminationActionObjectGroupRepository
+                .computeOwnAccessionRegisterDetails(processId, tenantId)) {
 
             createFileFromTwoMongoCursorWithDocument(tempFile, unitCursor, gotCursor);
-            transferFileToWorkspace(processId, filename, tempFile);
+            transferDocumentToWorkspace(processId, filename, tempFile);
         } finally {
             deleteQuietly(tempFile);
         }
@@ -281,6 +362,10 @@ public class BatchReportServiceImpl {
 
     public void deleteEliminationObjectGroupByIdAndTenant(String processId, int tenantId) {
         eliminationActionObjectGroupRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deletePreservationByIdAndTenant(String processId, int tenantId) {
+        preservationReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     private void deleteQuietly(File tempFile) {

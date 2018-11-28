@@ -27,6 +27,7 @@
 package fr.gouv.vitam.batch.report.rest.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
@@ -62,6 +63,8 @@ import java.io.IOException;
 public class BatchReportResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EliminationActionUnitRepository.class);
+    private static final String BATCH_REPORT = "batchReportModule";
+    private static final String CODE_VITAM = "code_vitam";
     private BatchReportServiceImpl batchReportServiceImpl;
 
 
@@ -85,6 +88,15 @@ public class BatchReportResource extends ApplicationStatusResource {
                 batchReportServiceImpl
                     .appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
                         tenantId);
+                break;
+            case PRESERVATION:
+                try {
+                    batchReportServiceImpl
+                        .appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
+                } catch (BatchReportException e) {
+                    LOGGER.error(e.getMessage());
+                    Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
+                }
                 break;
             default:
                 throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());
@@ -163,6 +175,25 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
+    @Path("/preservation/export/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportPreservation(@PathParam("processId") String processId, JsonNode body) throws Exception {
+        try {
+            ParametersChecker.checkParameter("processId should be filed", processId);
+            ReportExportRequest reportExportRequest = JsonHandler.getFromJsonNode(body, ReportExportRequest.class);
+            ParametersChecker.checkParameter(reportExportRequest.getFilename());
+
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            batchReportServiceImpl.exportPreservationReport(processId, reportExportRequest.getFilename(), tenantId);
+
+            return Response.status(Response.Status.OK).build();
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+            throw new BadRequestException(e);
+        }
+    }
+
     @Path("/elimination_action/accession_register_export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -213,6 +244,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case ELIMINATION_ACTION_OBJECTGROUP:
                     batchReportServiceImpl.deleteEliminationObjectGroupByIdAndTenant(processId, tenantId);
+                    break;
+                case PRESERVATION:
+                    batchReportServiceImpl.deletePreservationByIdAndTenant(processId, tenantId);
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;

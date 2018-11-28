@@ -663,7 +663,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * Mass update of archive units rules with json request.
-     * 
+     *
      * @param massUpdateUnitRuleRequest the mass update rules request (null not allowed)
      * @return
      */
@@ -685,8 +685,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             LOGGER.warn("Can not read Dsl query", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                    .entity(VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
-                            "Can not read Dsl query").setHttpCode(status.getStatusCode())).build();
+                .entity(VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
+                    "Can not read Dsl query").setHttpCode(status.getStatusCode())).build();
         }
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -695,37 +695,37 @@ public class AccessExternalResource extends ApplicationStatusResource {
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
-                        error);
+                    error);
             }
             return Response.status(Status.OK).entity(response).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
-                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                    .build();
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Internal request error ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
-                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                    .build();
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (NoWritingPermissionException e) {
             LOGGER.error("Writing permission invalid", e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
-                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
-                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                    .build();
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                    .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
-                            e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                    .build();
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -1008,4 +1008,26 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
+
+    @Path("/preservation")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "preservation:update:binary", description = "Lancer le processus de préservation")
+    public Response startPreservation(InputStream distributionFile) {
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.startPreservation(distributionFile);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (AccessInternalClientServerException e) {
+            LOGGER.error("Error on preservation request", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
 }

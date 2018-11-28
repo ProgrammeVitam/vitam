@@ -227,5 +227,14 @@
   "FINALIZE_OG_LFC_TRACEABILITY": {
     "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",
     "propertiesFile": "object_group_lfc_traceability_finalization_plugin.properties"
+  },
+  "PRESERVATION_PREPARATION":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin"
+  },
+  "PRESERVATION_ACTION":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin"
+  },
+  "PRESERVATION_FINALIZATION":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin"
   }
 }

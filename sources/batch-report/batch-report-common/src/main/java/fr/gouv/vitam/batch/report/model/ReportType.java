@@ -32,5 +32,6 @@ package fr.gouv.vitam.batch.report.model;
 public enum ReportType {
 
     ELIMINATION_ACTION_UNIT,
-    ELIMINATION_ACTION_OBJECTGROUP
+    ELIMINATION_ACTION_OBJECTGROUP,
+    PRESERVATION
 }

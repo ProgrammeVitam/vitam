@@ -43,6 +43,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Access client interface
@@ -365,7 +366,17 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param eliminationRequestBody Dsl request for elimination.
      * @return Response given response
+     * @throws AccessInternalClientServerException AccessInternalClientServerException
      */
     RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
         throws AccessInternalClientServerException;
+
+    /**
+     * Perform a preservation workflow
+     *
+     * @param distributionFile static file for handle distribution
+     * @return the given RequestResponse
+     * @throws AccessInternalClientServerException AccessInternalClientServerException
+     */
+    RequestResponse<JsonNode> startPreservation(InputStream distributionFile) throws AccessInternalClientServerException;
 }
