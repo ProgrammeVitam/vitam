@@ -26,35 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -62,10 +36,11 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -77,71 +52,78 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
-public class LogbookOperationsClientRestTest extends VitamJerseyTest {
+public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/logbook/v1";
-    protected LogbookOperationsClientRest client;
+    protected static LogbookOperationsClientRest client;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public LogbookOperationsClientRestTest() {
-        super(LogbookOperationsClientFactory.getInstance());
+
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static LogbookOperationsClientFactory factory = LogbookOperationsClientFactory.getInstance();
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(LogbookOperationsClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (LogbookOperationsClientRest) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (LogbookOperationsClientRest) getClient();
-    }
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
 
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/logbook/v1")
@@ -464,33 +446,39 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (final LogbookClientAlreadyExistsException e) {}
+        } catch (final LogbookClientAlreadyExistsException e) {
+        }
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {
+        }
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
             fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {
+        }
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (final LogbookClientNotFoundException e) {}
+        } catch (final LogbookClientNotFoundException e) {
+        }
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {
+        }
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
             fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {
+        }
 
     }
 
@@ -518,9 +506,9 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void traceabilityAuditTest()
-            throws InvalidParseOperationException, LogbookClientServerException {
+        throws InvalidParseOperationException, LogbookClientServerException {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
-                .build());
+            .build());
         client.traceabilityAudit(0, new AuditLogbookOptions());
     }
 

@@ -34,6 +34,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
@@ -143,7 +144,7 @@ public class ProbativeValueResourceTest {
         Select select = new Select();
         select.setQuery(QueryHelper.eq("name", "dd"));
         ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(select.getFinalSelect(), singletonList("BinaryMaster"));
-        willThrow(VitamClientException.class).given(workspaceClient).putObject(anyString(), any(), any());
+        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(anyString(), any(), any());
         Response probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 

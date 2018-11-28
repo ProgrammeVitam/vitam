@@ -2111,7 +2111,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Reindex a collection
      *
      * @param indexParameters parameters specifying what to reindex
-     * @return Response response
+     * @return Response
      */
     @Path("/reindex")
     @POST
@@ -2157,7 +2157,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Switch indexes
      *
      * @param switchIndexParameters
-     * @return Response response
+     * @return Response
      */
     @Path("/alias")
     @POST

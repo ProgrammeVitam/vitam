@@ -26,52 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -80,19 +42,20 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
@@ -102,13 +65,47 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
-public class ConnectionImplTest extends VitamJerseyTest {
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import com.google.common.collect.Sets;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class ConnectionImplTest extends ResteasyTestApplication {
 
     private static final Integer TENANT_ID = 1;
     protected static final String HOSTNAME = "localhost";
     protected static final String DEFAULT_GUID = "GUID";
-    private static JunitHelper junitHelper;
     private static int tenant;
     private static AbstractConnection connection;
     private static StorageOffer offer = new StorageOffer();
@@ -117,22 +114,44 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private static final String TYPE = "object";
     private static Driver driver;
 
-    public ConnectionImplTest() {
-        super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
-    }
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static TestVitamClientFactory factory =
+        new TestVitamClientFactory(serverPortNumber, "/offer/v1", mock(Client.class));
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class, factory, serverPortNumber);
+
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
+    public static void init() throws VitamApplicationServerException {
+
         tenant = Instant.now().getNano();
         driver = DriverImpl.getInstance();
+        beforeTest();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
     }
 
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+
+        return Sets.newHashSet(new MockResource(mock));
+    }
+
+    public static void beforeTest() throws VitamApplicationServerException {
         String offerId = "default" + new Random().nextDouble();
         offer.setId(offerId);
-        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
         driver.addOffer(offer, null);
         try {
             connection = (AbstractConnection) driver.connect(offer.getId());
@@ -140,55 +159,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
             throw new VitamApplicationServerException(e);
         }
     }
-
-    // Define the getApplication to return your Application using the correct
-    // Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            // None
-            VitamConfiguration.setSecret("vitamsecret");
-            VitamConfiguration.setFilterActivation(false);
-        }
-
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-    }
-
 
     @Path("/offer/v1")
     public static class MockResource {
@@ -702,8 +672,9 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void getObjectMetadataTestOK() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
-        final StorageGetMetadataRequest request = new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid",
-            false);
+        final StorageGetMetadataRequest request =
+            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid",
+                false);
         final StorageMetadataResult result = connection.getMetadatas(request);
         assertNotNull(result);
 
@@ -742,7 +713,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
         requestResponse.setHttpCode(Status.OK.getStatusCode());
 
         when(mock.get()).thenReturn(
-            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, tenant).entity(JsonHandler.writeAsString(requestResponse)).build());
+            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, tenant)
+                .entity(JsonHandler.writeAsString(requestResponse)).build());
 
         StorageOfferLogRequest offerLogRequest =
             new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
@@ -775,7 +747,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void getOfferLogsInvalidRequestOrder() throws Exception {
-        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, null);
+        StorageOfferLogRequest offerLogRequest =
+            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, null);
         connection.getOfferLogs(offerLogRequest);
     }
 

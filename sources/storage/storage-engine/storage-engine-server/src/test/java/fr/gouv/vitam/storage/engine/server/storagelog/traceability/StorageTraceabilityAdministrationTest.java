@@ -184,16 +184,16 @@ public class StorageTraceabilityAdministrationTest {
         doAnswer(invocation -> {
             int call = atomicInteger.incrementAndGet();
             if (call == 1) {
-                InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+                InputStream argumentAt = invocation.getArgument(2);
                 Files.copy(argumentAt, archive);
             } else {
-                InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+                InputStream argumentAt = invocation.getArgument(2);
                 Files.copy(argumentAt, archive2);
             }
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
         doAnswer(invocation -> {
-            String container = invocation.getArgumentAt(0, String.class);
+            String container = invocation.getArgument(0);
             System.out.println("Test in createContainer: " + container);
             return null;
         }).when(workspaceClient).createContainer(anyString());

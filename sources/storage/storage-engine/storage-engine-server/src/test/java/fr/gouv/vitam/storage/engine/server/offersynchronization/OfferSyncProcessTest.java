@@ -74,9 +74,9 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            Long offsetLong = args.getArgumentAt(3, Long.class);
+            Long offsetLong = args.getArgument(3);
             long offset = (offsetLong == null) ? 0L : offsetLong;
-            int limit = args.getArgumentAt(4, Integer.class);
+            int limit = args.getArgument(4);
 
             return sourceOfferLogs.stream()
                 .filter(offerLog -> offerLog.getSequence() >= offset)
@@ -88,7 +88,7 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            String filename = args.getArgumentAt(1, String.class);
+            String filename = args.getArgument(1);
             byte[] data = sourceDataFiles.get(filename);
             if (data == null) {
                 throw new StorageNotFoundException("not found");
@@ -99,8 +99,8 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            String filename = args.getArgumentAt(1, String.class);
-            Response response = args.getArgumentAt(5, Response.class);
+            String filename = args.getArgument(1);
+            Response response = args.getArgument(5);
 
             targetDataFiles.put(filename, (byte[]) response.getEntity());
             return null;
@@ -111,7 +111,7 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            DataContext dataContext = args.getArgumentAt(1, DataContext.class);
+            DataContext dataContext = args.getArgument(1);
             assertThat(dataContext.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(dataContext.getRequester()).isNull();
             assertThat(dataContext.getCategory()).isEqualTo(DATA_CATEGORY);

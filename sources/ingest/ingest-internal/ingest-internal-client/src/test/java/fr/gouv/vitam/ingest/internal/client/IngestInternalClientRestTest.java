@@ -26,19 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -46,9 +48,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -58,7 +59,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -82,6 +84,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -92,14 +95,12 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("rawtypes")
 @RunWithCustomExecutor
-public class IngestInternalClientRestTest extends VitamJerseyTest {
+public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     private static final String PATH = "/ingest/v1";
     private static final String WROKFLOW_ID = "PROCESS_SIP_UNITARY";
     private static final String WROKFLOW_IDENTIFIER = "DEFAULT_WORKFLOW";
     private static final String X_ACTION = "RESUME";
-    private static final String CONTAINERID = "containerId";
-    private static final String WORKFLOWID = "workFlowId";
     private static final String ID = "id1";
     public static final String INGEST = "INGEST";
 
@@ -108,61 +109,40 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    private IngestInternalClientRest client;
+    private static IngestInternalClientRest client;
 
-    public ExpectedResults mockLogbook;
+    private static ExpectedResults mock;
+    private static ExpectedResults mockLogbook;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    @SuppressWarnings("unchecked")
-    public IngestInternalClientRestTest() {
-        super(IngestInternalClientFactory.getInstance());
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static IngestInternalClientFactory factory = IngestInternalClientFactory.getInstance();
+
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(IngestInternalClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (IngestInternalClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
     }
 
     @Override
-    public void beforeTest() {
-        client = (IngestInternalClientRest) getClient();
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            mockLogbook = mock(ExpectedResults.class);
-            resourceConfig.registerInstances(new MockRessource(mock, mockLogbook));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
-    }
-
-    @Override
-    public StartApplicationResponse startVitamApplication(int reservedPort) throws IllegalStateException {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
+    public Set<Object> getResources() {
+        mockLogbook = mock(ExpectedResults.class);
+        mock = mock(ExpectedResults.class);
+        return Sets.newHashSet(new MockRessource(mock, mockLogbook));
     }
 
     @Path(PATH)
@@ -178,7 +158,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         @Path("/ingests")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
+            CommonMediaType.TAR})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             InputStream uploadedInputStream) {
@@ -202,7 +183,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         @Path("/operations/{id}")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
+            CommonMediaType.TAR,
             CommonMediaType.BZIP2})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,

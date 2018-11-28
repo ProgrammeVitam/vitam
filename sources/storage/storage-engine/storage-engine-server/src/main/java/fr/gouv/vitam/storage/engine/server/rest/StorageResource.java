@@ -669,7 +669,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param headers http header
      * @param objectId the id of the object
      * @param createObjectDescription the object description
-     * @return Response response
+     * @return Response
      */
     // TODO P1 : remove httpServletRequest when requester information sent by
     // header (X-Requester)

@@ -160,8 +160,8 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
         doAnswer(invocation -> {
-            String filename = invocation.getArgumentAt(1, String.class);
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            String filename = invocation.getArgument(1);
+            InputStream inputStream = invocation.getArgument(2);
             Path filePath = Paths.get(storedFilesDirectory.getAbsolutePath(), filename);
             java.nio.file.Files.copy(inputStream, filePath);
             return null;

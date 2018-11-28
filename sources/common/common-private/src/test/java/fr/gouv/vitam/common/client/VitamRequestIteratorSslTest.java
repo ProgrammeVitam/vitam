@@ -56,6 +56,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -83,7 +85,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest.ExpectedResults;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
 
@@ -101,7 +103,7 @@ public class VitamRequestIteratorSslTest {
     private static boolean startup = true;
     private static final ExpectedResults mock = mock(ExpectedResults.class);
     private static VitamClientFactory<DefaultClient> factory;
-    
+
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
     public static class SslResource extends ApplicationStatusResource {

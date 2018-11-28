@@ -2487,7 +2487,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * launch a traceability audit for the query
      *
      * @param select the query select
-     * @return Response response
+     * @return Response
      */
     @Path("/evidenceaudit")
     @POST
@@ -2513,7 +2513,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * launch a rectification  audit for the operation
      *
      * @param operationId the operation id
-     * @return Response response
+     * @return Response
      */
     @Path(RECTIFICATION_AUDIT)
     @POST

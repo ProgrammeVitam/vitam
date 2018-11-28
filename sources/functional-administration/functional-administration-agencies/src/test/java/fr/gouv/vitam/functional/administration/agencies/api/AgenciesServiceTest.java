@@ -187,7 +187,7 @@ public class AgenciesServiceTest {
 
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
         doAnswer(invocation -> {
-            InputStream argumentAt = invocation.getArgumentAt(0, InputStream.class);
+            InputStream argumentAt = invocation.getArgument(0);
             Files.copy(argumentAt, reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT),

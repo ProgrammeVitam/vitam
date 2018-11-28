@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.external.client;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;

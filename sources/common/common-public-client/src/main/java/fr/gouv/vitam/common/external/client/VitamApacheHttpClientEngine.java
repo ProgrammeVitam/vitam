@@ -343,7 +343,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
 
                 @Override
-                public void releaseConnection() throws IOException {
+                public void releaseConnection(boolean b) throws IOException {
                     // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
                     // otherwise the connection is never released. There is, of course, no close() method on response
                     // to make this easier.
@@ -357,6 +357,11 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                         StreamUtils.closeSilently(response.getEntity().getContent());
                     }
                     response.close();
+                }
+
+                @Override
+                public void releaseConnection() throws IOException {
+                    releaseConnection(true);
                 }
             };
             responseContext.setProperties(clientInvocation.getMutableProperties());

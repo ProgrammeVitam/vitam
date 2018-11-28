@@ -93,7 +93,7 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
-        doAnswer(args -> tempFolder.newFile(args.getArgumentAt(0, String.class))).when(handler).getNewLocalFile(any());
+        doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
@@ -103,7 +103,7 @@ public class EliminationActionUnitPreparationHandlerTest {
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
-        doAnswer((args) -> reportEntries.addAll(args.getArgumentAt(1, List.class)))
+        doAnswer((args) -> reportEntries.addAll(args.getArgument(1)))
             .when(eliminationActionReportService)
             .appendUnitEntries(any(), any());
     }

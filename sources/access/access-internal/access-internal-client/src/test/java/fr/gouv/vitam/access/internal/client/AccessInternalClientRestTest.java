@@ -28,31 +28,33 @@ package fr.gouv.vitam.access.internal.client;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -70,16 +72,45 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AccessInternalClientRestTest extends VitamJerseyTest {
+public class AccessInternalClientRestTest extends ResteasyTestApplication {
     private static final String DUMMY_REQUEST_ID = "reqId";
-    protected AccessInternalClientRest client;
+    private static AccessInternalClientRest client;
+    protected static ExpectedResults mock;
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(AccessInternalClientRestTest.class, AccessInternalClientFactory.getInstance(), serverPortNumber);
+
+    @BeforeClass
+    public static void init() {
+        client = (AccessInternalClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
+    @Override
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+
+        return Sets.newHashSet(new MockResource(mock));
+    }
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -99,59 +130,6 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
     final String UNIT_ID = "unitId";
-
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public AccessInternalClientRestTest() {
-        super(AccessInternalClientFactory.getInstance());
-    }
-
-    @Override
-    public void beforeTest() {
-        client = (AccessInternalClientRest) getClient();
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
-    }
 
 
     @Path("/access-internal/v1")
@@ -301,10 +279,12 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
         /**
          * Mass update of archive units rules
+         *
          * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
          * @return the response
          */
-        @Override public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+        @Override
+        public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
             return null;
         }
 

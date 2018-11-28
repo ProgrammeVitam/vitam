@@ -88,7 +88,7 @@ public class EliminationActionDeleteUnitPluginTest {
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
-        doAnswer((args) -> reportEntries.addAll(args.getArgumentAt(1, List.class)))
+        doAnswer((args) -> reportEntries.addAll(args.getArgument(1)))
             .when(eliminationActionReportService)
             .appendUnitEntries(any(), any());
 

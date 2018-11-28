@@ -100,13 +100,11 @@ public class ObjectGroupDipServiceImpl implements DipService {
 
         } catch (JsonProcessingException | JAXBException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Response.Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         } catch (InternalServerException e) {
             status = Status.BAD_REQUEST;
-            // Unprocessable Entity not implemented by Jersey
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         }

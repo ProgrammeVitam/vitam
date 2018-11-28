@@ -26,11 +26,27 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClientTest;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRestTestClient;
+import fr.gouv.vitam.common.client.VitamRestTestClient.VitamRestTest;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,105 +62,51 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.Set;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamRestTestClient;
-import fr.gouv.vitam.common.client.VitamRestTestClient.VitamRestTest;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Model for equivalent to JerseyTest and/or usage of restassured like VitamRestTestClient
  */
-public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
+public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRestApplicationAndClientTest.class);
 
     private static final String RESOURCE_PATH = "/vitam-test/v1";
+    protected static ExpectedResults mock;
 
-    private BasicClient client;
-    private VitamRestTestClient testClient;
+    private static BasicClient client;
+    private static VitamRestTestClient testClient;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public VitamRestApplicationAndClientTest() {
-        super(new TestVitamClientFactory<DefaultClient>(VitamServerFactory.getDefaultPort(), RESOURCE_PATH));
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static TestVitamClientFactory factory = new TestVitamClientFactory<>(serverPortNumber, RESOURCE_PATH);
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(VitamRestApplicationAndClientTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (DefaultClient) vitamServerTestRunner.getClient();
+        testClient = new VitamRestTestClient(factory);
+
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (BasicClient) getClient();
-        testClient = new VitamRestTestClient(getFactory());
-    }
-
-    // Override the afterTest if necessary
-    @Override
-    public void afterTest() throws VitamApplicationServerException {
-        // Nothing
-        if (null != testClient) testClient.close();
-    }
-
-    // Create the setup application to setup anything necessary, among the factory
-    @Override
-    public void setup() {
-        // Empty
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig("jetty-config-benchmark-test.xml");
-
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-                .setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     // Define your Resource class if necessary
@@ -229,10 +191,6 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
             }
         }
     }
-    // ************************************ //
-    // End of VitamJerseyTest configuration //
-    // ************************************ //
-
 
     // Now write your tests
     @Test

@@ -102,25 +102,21 @@ public class UnitDipServiceImpl implements DipService {
             }
         } catch (JsonProcessingException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         } catch (JAXBException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         } catch (DatatypeConfigurationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         } catch (NullPointerException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();

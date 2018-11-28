@@ -82,7 +82,13 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
         }
     }
 
-    @Override public Class<? extends Annotation> annotationType() {
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public Class<? extends Annotation> annotationType() {
         return RunWithCustomExecutor.class;
     }
 
