@@ -336,20 +336,6 @@ vitam_tests_gitrepo_protocol=
 vitam_tests_gitrepo_baseurl=
 vitam_tests_gitrepo_url=
 
-# Curator configuration
-#	Days before deletion for packetbeat index only on log management cluster
-days_to_delete_packetbeat_indexes=5
-#	Days before deletion for metricbeat index only on log management cluster; 30 for production environment
-days_to_delete_metricbeat_indexes=30
-# Days before closing metrics elasticsearch indexes
-days_to_close_metrics_indexes=7
-# Days before deleting metrics elasticsearch indexes
-days_to_delete_metrics_indexes=30
-days_to_delete_packetbeat_indexes=20
-days_to_delete_metricbeat_indexes=20
-
-
-
 # Used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
 vitam_reverse_external_dns=
 # For reverse proxy use
