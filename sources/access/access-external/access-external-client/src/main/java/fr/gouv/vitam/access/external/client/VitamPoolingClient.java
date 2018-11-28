@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.concurrent.TimeUnit;
 
@@ -73,7 +74,7 @@ public class VitamPoolingClient {
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
             throws VitamException {
 
-        boolean unknownRetry = false;
+        StopWatch stopWatch = StopWatch.createStarted();
         do {
             final RequestResponse<ItemStatus> requestResponse = this.operationStatusClient.getOperationProcessStatus(
                     new VitamContext(tenantId), processId);
@@ -98,16 +99,8 @@ public class VitamPoolingClient {
                             return true;
                         }
                         // If StatusCode UNKNOWN
-                        // Wait 1 minutes and retry. If the status code not changed then return false (fail)
-                        if (!unknownRetry) {
-                            try {
-                                Thread.sleep(TimeUnit.MINUTES.toMillis(1));
-                            } catch (InterruptedException e) {
-                                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                            } finally {
-                                unknownRetry = true;
-                            }
-                        } else {
+                        // If elapsed time is higher than 1 minute then
+                        if (stopWatch.getTime(TimeUnit.MINUTES) >= 1) {
                             return false;
                         }
                         break;
