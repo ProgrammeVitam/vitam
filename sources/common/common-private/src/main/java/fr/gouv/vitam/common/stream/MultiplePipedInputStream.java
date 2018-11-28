@@ -2,8 +2,8 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
- * This software is a computer program whose purpose is to implement a digital 
+ *
+ * This software is a computer program whose purpose is to implement a digital
  * archiving back-office system managing high volumetry securely and efficiently.
  *
  * This software is governed by the CeCILL 2.1 license under French law and
@@ -34,74 +34,57 @@
  */
 package fr.gouv.vitam.common.stream;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.concurrent.ExecutorService;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
+
 /**
  * Generate multiples InputStreams from one to many using Pipe
  */
 public class MultiplePipedInputStream implements VitamAutoCloseable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MultiplePipedInputStream.class);
+
     /**
      * Global Thread pool for Reader
      */
-    private static final ExecutorService EXECUTOR_THREADREADER = new VitamThreadPoolExecutor();
-    /**
-     * Real InputStream
-     */
-    private final InputStream source;
-    /**
-     * Number of substreams
-     */
+    private static final ExecutorService EXECUTOR_THREAD_READER = new VitamThreadPoolExecutor();
+
     private final int nbCopy;
-    /**
-     * All inputStream clones
-     */
-    private final PipedInputStream[] ins;
+    private final BoundedByteBuffer boundedByteBuffer;
+    private final InputStream source;
     private volatile IOException lastException = null;
-    private volatile boolean closed = false;
-    
+
     /**
      * Create one MultipleInputStreamHandler from one InputStream and make nbCopy linked InputStreams
      *
      * @param source
      * @param nbCopy
-     * @throws IOException if any error in IO occurs
      * @throws IllegalArgumentException if source is null or nbCopy <= 0 or global service is down
      */
-    public MultiplePipedInputStream(InputStream source, int nbCopy) throws IOException {
+    public MultiplePipedInputStream(InputStream source, int nbCopy) {
         ParametersChecker.checkParameter("InputStream cannot be null", source);
         ParametersChecker.checkValue("nbCopy", nbCopy, 1);
-        
-        this.source = source;
+
         this.nbCopy = nbCopy;
-        ins = new PipedInputStream[nbCopy];
-        final PipedOutputStream[] outs = new PipedOutputStream[nbCopy];
+        this.source = source;
 
-        for (int i = 0; i < nbCopy; i++) {
-            ins[i] = new PipedInputStream(VitamConfiguration.getChunkSize() * VitamConfiguration.getBufferNumber());
-            outs[i] = new PipedOutputStream(ins[i]);
-        }
+        int bufferSize = VitamConfiguration.getChunkSize() * VitamConfiguration.getBufferNumber();
+        this.boundedByteBuffer = new BoundedByteBuffer(bufferSize, nbCopy);
 
-        EXECUTOR_THREADREADER.execute(new Runnable() {
-            public void run() {
-                try {
-                    copy(source, outs);
-                } catch (IOException e) {
-                    LOGGER.error(e);
-                    lastException = e;
-                }
+        EXECUTOR_THREAD_READER.execute(() -> {
+            try {
+                copy();
+            } catch (IOException e) {
+                LOGGER.error(e);
+                lastException = e;
             }
         });
     }
@@ -118,55 +101,40 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
         if (rank < 0 || rank >= nbCopy) {
             throw new IllegalArgumentException("Rank is invalid");
         }
-        if (!closed && ins[rank] != null && lastException == null) {
-            return ins[rank];
-        } else if (lastException != null) {
-            throw lastException;
-        }
-        throw new IllegalArgumentException("Stream is already closed");
+        return this.boundedByteBuffer.getReader(rank);
     }
-    
+
     /**
-     * 
      * @throws IOException if any exception is found during multiple streams
      */
-    public void hasException() throws IOException {
+    public void throwLastException() throws IOException {
         if (lastException != null) {
             throw lastException;
         }
     }
 
-    protected final void copy(final InputStream source, final PipedOutputStream[] outs) throws IOException {
-        byte[] buffer = new byte[VitamConfiguration.getChunkSize()];
-        int n = 0;
-        try {
+    protected final void copy()
+        throws IOException {
+
+        try (BoundedByteBuffer.Writer writer = boundedByteBuffer.getWriter()) {
+
+            // Buffer size should not be greater than buffer size.
+            byte[] buffer = new byte[VitamConfiguration.getChunkSize()];
+
+            int n;
             while (-1 != (n = source.read(buffer))) {
-                //write each chunk to all output streams
-                for (PipedOutputStream out : outs) {
-                    out.write(buffer, 0, n);
-                }
+                writer.write(buffer, 0, n);
             }
-        } finally {
-            //close all output streams
-            for (int i = 0; i < nbCopy; i++) {
-                outs[i].flush();
-                try {
-                    outs[i].close();
-                    outs[i] = null;
-                } catch (IOException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            }
+            writer.writeEOF();
+
+        } catch (InterruptedException e) {
+            throw new IOException("Interrupted thread", e);
         }
     }
 
     @Override
     public void close() {
-        closed = true;
-        for (int i = 0; i < nbCopy; i++) {
-            StreamUtils.closeSilently(ins[i]);
-            ins[i] = null;
-        }
+        boundedByteBuffer.close();
         StreamUtils.closeSilently(source);
     }
 }
