@@ -28,6 +28,7 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -81,13 +82,13 @@ import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DeleteThread;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.ThreadResponseData;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TryAndRetryData;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 
 /**
  * StoragePopulateImpl populate binary file
@@ -206,9 +207,10 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     OfferReference offerReference = new OfferReference();
                     offerReference.setId(offerId);
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
+                    InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                     StoragePutRequest request =
                         new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
-                            streams.getInputStream(rank));
+                            inputStream);
                     futureMap.put(offerReference.getId(),
                         executor
                             .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
@@ -240,7 +242,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
                 final Future<ThreadResponseData> future = entry.getValue();
                 // Check if any has one IO Exception
-                streams.hasException();
+                streams.throwLastException();
                 String offerId = entry.getKey();
                 try {
                     ThreadResponseData threadResponseData = future
@@ -280,7 +282,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 }
             }
             // Check if any has one IO Exception
-            streams.hasException();
+            streams.throwLastException();
         } catch (IOException e1) {
             LOGGER.error("Cannot create multipleInputStream", e1);
             throw new StorageTechnicalException("Cannot create multipleInputStream", e1);
