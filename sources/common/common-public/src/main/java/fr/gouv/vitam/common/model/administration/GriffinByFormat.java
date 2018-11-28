@@ -24,47 +24,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.model.administration;
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
-public class ActionPreservation {
-    @JsonProperty("type")
-    private ActionTypePreservation type;
-    @JsonProperty("values")
-    private ValuesPreservation values;
+import java.util.List;
+import java.util.Set;
 
-    public ActionPreservation() {
+/**
+ * GriffinByFormat class
+ */
+public class GriffinByFormat {
+
+    private Set<String> formatList;
+
+    private String griffinIdentifier;
+
+    private int timeOut;
+
+    private int maxSize;
+
+    private List<ActionDetail> actionDetail;
+
+    @JsonCreator
+    public GriffinByFormat(@JsonProperty("FormatList") Set<String> formatList,
+        @JsonProperty("GriffinIdentifier") String griffinIdentifier,
+        @JsonProperty("Timeout") int timeOut, @JsonProperty("MaxSize") int maxSize,
+        @JsonProperty("ActionDetail") List<ActionDetail> actionDetail) {
+        this.formatList = formatList;
+        this.griffinIdentifier = griffinIdentifier;
+        this.timeOut = timeOut;
+        this.maxSize = maxSize;
+        this.actionDetail = actionDetail;
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public Set<String> getFormatList() {
+        return formatList;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
+    public String getGriffinIdentifier() {
+        return griffinIdentifier;
     }
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    public ValuesPreservation getValuesPreservation() {
-        return values;
+    public int getMaxSize() {
+        return maxSize;
     }
 
-    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
-        this.values = valuesPreservation;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
+    public List<ActionDetail> getActionDetail() {
+        return actionDetail;
     }
 }
-

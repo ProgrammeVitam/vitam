@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
@@ -230,10 +231,15 @@ public class GriffinService {
 
     private void formatDateForMongo(GriffinModel griffinModel) {
 
-        String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
+        String lastUpdate = getFormattedDateForMongo(now());
         griffinModel.setLastUpdate(lastUpdate);
 
-        String creationDate = getFormattedDateForMongo(griffinModel.getCreationDate());
+        String creationDate = griffinModel.getCreationDate();
+
+        if (creationDate == null) {
+            creationDate = now().toString();
+        }
+        creationDate = getFormattedDateForMongo(griffinModel.getCreationDate());
         griffinModel.setCreationDate(creationDate);
     }
 

@@ -326,8 +326,5 @@ public class PreservationActionPlugin extends ActionHandler {
         return textBuilder.toString();
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
-    }
+
 }

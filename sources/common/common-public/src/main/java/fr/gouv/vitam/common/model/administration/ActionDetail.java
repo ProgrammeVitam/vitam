@@ -24,47 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.model.administration;
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class ActionPreservation {
-    @JsonProperty("type")
-    private ActionTypePreservation type;
-    @JsonProperty("values")
-    private ValuesPreservation values;
+/**
+ * ActionDetail class
+ */
+public class ActionDetail {
 
-    public ActionPreservation() {
+    ActionTypePreservation actionTypePreservation;
+
+    JsonNode values;
+
+    @JsonCreator
+    public ActionDetail(@JsonProperty("Action") ActionTypePreservation actionTypePreservation,
+        @JsonProperty("Values") JsonNode values) {
+        this.actionTypePreservation = actionTypePreservation;
+        this.values = values;
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public ActionTypePreservation getActionTypePreservation() {
+        return actionTypePreservation;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
-    }
-
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
-    }
-
-    public ValuesPreservation getValuesPreservation() {
+    public JsonNode getValues() {
         return values;
     }
-
-    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
-        this.values = valuesPreservation;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
-    }
 }
-

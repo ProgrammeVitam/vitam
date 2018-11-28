@@ -30,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 
+import java.util.List;
+
 /**
  * PreservationScenarioModel class
  */
@@ -45,6 +47,15 @@ public class PreservationScenarioModel {
     private static final String TAG_CREATION_DATE = "CreationDate";
 
     private static final String TAG_LAST_UPDATE = "LastUpdate";
+
+    private static final String TAG_ACTION_LIST = "ActionList";
+
+    private static final String TAG_GRIFFIN_BY_FORMAT = "GriffinByFormat";
+
+    private static final String TAG_GRIFFIN_DEFAULT = "GriffinDefault";
+
+    private static final String TAG_METADATA_FILTER = "MetadataFilter";
+
 
     public static String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
 
@@ -71,6 +82,18 @@ public class PreservationScenarioModel {
 
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
+
+    @JsonProperty(TAG_ACTION_LIST)
+    private List<ActionTypePreservation> actionList;
+
+    @JsonProperty(TAG_METADATA_FILTER)
+    private List<String> metadataFilter ;
+
+    @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
+    private List<GriffinByFormat> griffinByFormat;
+
+    @JsonProperty(TAG_GRIFFIN_DEFAULT)
+    private GriffinByFormat defaultGriffin;
 
     public String getId() {
         return id;
@@ -134,5 +157,37 @@ public class PreservationScenarioModel {
 
     public void setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public List<ActionTypePreservation> getActionList() {
+        return actionList;
+    }
+
+    public void setActionList(List<ActionTypePreservation> actionList) {
+        this.actionList = actionList;
+    }
+
+    public List<String> getMetadataFilter() {
+        return metadataFilter;
+    }
+
+    public void setMetadataFilter(List<String> metadataFilter) {
+        this.metadataFilter = metadataFilter;
+    }
+
+    public List<GriffinByFormat> getGriffinByFormat() {
+        return griffinByFormat;
+    }
+
+    public void setGriffinByFormat(List<GriffinByFormat> griffinByFormat) {
+        this.griffinByFormat = griffinByFormat;
+    }
+
+    public GriffinByFormat getDefaultGriffin() {
+        return defaultGriffin;
+    }
+
+    public void setDefaultGriffin(GriffinByFormat defaultGriffin) {
+        this.defaultGriffin = defaultGriffin;
     }
 }

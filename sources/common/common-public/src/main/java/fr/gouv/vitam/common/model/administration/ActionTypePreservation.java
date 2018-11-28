@@ -25,46 +25,11 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
-
-public class ActionPreservation {
-    @JsonProperty("type")
-    private ActionTypePreservation type;
-    @JsonProperty("values")
-    private ValuesPreservation values;
-
-    public ActionPreservation() {
-    }
-
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
-    }
-
-    public ActionTypePreservation getType() {
-        return type;
-    }
-
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
-    }
-
-    public ValuesPreservation getValuesPreservation() {
-        return values;
-    }
-
-    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
-        this.values = valuesPreservation;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
-    }
+public enum ActionTypePreservation {
+    GENERATE,
+    IDENTIFY,
+    ANALYSE,
+    EXTRACT
 }
-

@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -202,9 +203,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, vitamContext.getHeaders(),
-                select, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+            response =
+                performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, vitamContext.getHeaders(),
+                    select, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
 
         } catch (IllegalStateException e) {
@@ -272,7 +274,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.POST, AccessExtAPI.DIP_API, vitamContext.getHeaders(),
-                    dslRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                dslRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
             LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
@@ -294,8 +296,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Response response;
 
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.DIP_API + "/" + dipId + "/dip", vitamContext.getHeaders(),
-                null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+            response =
+                performRequest(HttpMethod.GET, AccessExtAPI.DIP_API + "/" + dipId + "/dip", vitamContext.getHeaders(),
+                    null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
@@ -307,7 +310,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /**
      * Performs a reclassification workflow.
      *
-     * @param vitamContext the vitam context
+     * @param vitamContext            the vitam context
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      */
     public RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
@@ -428,6 +431,22 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
+        PreservationRequest preservationRequest) throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/preservation", vitamContext.getHeaders(),
+                preservationRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 

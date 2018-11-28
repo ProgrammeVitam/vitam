@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -1011,13 +1012,13 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     @Path("/preservation")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "preservation:update:binary", description = "Lancer le processus de préservation")
-    public Response startPreservation(InputStream distributionFile) {
+    @Secured(permission = "preservation:update", description = "Lancer le processus de préservation")
+    public Response startPreservation(PreservationRequest preservationRequest) {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> requestResponse = client.startPreservation(distributionFile);
+            RequestResponse<JsonNode> requestResponse = client.startPreservation(preservationRequest);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
         } catch (AccessInternalClientServerException e) {

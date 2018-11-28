@@ -1694,6 +1694,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
 
                 String entity = response.readEntity(String.class);
+                @SuppressWarnings("unchecked")
                 RequestResponseOK<GriffinModel> requestResponseOK =
                     getFromString(entity, RequestResponseOK.class, GriffinModel.class);
 
@@ -1733,6 +1734,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
 
                 String entity = response.readEntity(String.class);
+                @SuppressWarnings("unchecked")
                 RequestResponseOK<PreservationScenarioModel> requestResponseOK =
                     getFromString(entity, RequestResponseOK.class, PreservationScenarioModel.class);
 

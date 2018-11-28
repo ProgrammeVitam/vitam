@@ -48,10 +48,6 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
 
     public static final String IDENTIFIER = "Identifier";
 
-    private static final String NAME = "Name";
-
-    private static final String DESCRIPTION = "Description";
-
     @Override
     public VitamDocument<PreservationScenario> newInstance(JsonNode content) {
         return new PreservationScenario(content);
@@ -68,24 +64,6 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
 
     public PreservationScenario setIdentifier(String identifier) {
         append(IDENTIFIER, identifier);
-        return this;
-    }
-
-    public String getName() {
-        return getString(NAME);
-    }
-
-    public PreservationScenario setName(String name) {
-        append(NAME, name);
-        return this;
-    }
-
-    public String getDescription() {
-        return getString(DESCRIPTION);
-    }
-
-    public PreservationScenario setDescription(String description) {
-        append(DESCRIPTION, description);
         return this;
     }
 }

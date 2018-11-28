@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.preservation;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -39,23 +41,24 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessManagementWaiter;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -69,17 +72,22 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.MOCK;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -113,7 +121,8 @@ public class PreservationIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        String configurationPath = PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        String configurationPath =
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -132,8 +141,8 @@ public class PreservationIT extends VitamRuleRunner {
 
     @Before
     public void setUpBefore() throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        getVitamSession().setRequestId(newOperationLogbookGUID(0));
+        getVitamSession().setTenantId(tenantId);
         File griffinsExecFolder = PropertiesUtils.getResourceFile("preservation/");
         VitamConfiguration.setVitamGriffinExecFolder(griffinsExecFolder.getAbsolutePath());
         VitamConfiguration.setVitamGriffinInputFilesFolder(tmpGriffinFolder.getRoot().getAbsolutePath());
@@ -145,6 +154,37 @@ public class PreservationIT extends VitamRuleRunner {
         Path griffinExecutable = griffinsExecFolder.toPath().resolve("griffinId").resolve("griffin");
         griffinExecutable.toFile().setExecutable(true);
 
+        AccessContractModel contract = getAccessContractModel();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        client.importAccessContracts(singletonList(contract));
+
+        getVitamSession().setTenantId(0);
+        getVitamSession().setRequestId(newGUID());
+        List<GriffinModel> griffinModelList = getGriffinModels();
+        client.importGriffins(griffinModelList);
+
+
+        getVitamSession().setRequestId(newGUID());
+        List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
+
+        client.importPreservationScenarios(preservationScenarioModelList);
+    }
+
+    private List<PreservationScenarioModel> getPreservationScenarioModels() throws Exception {
+        File resourceFile = PropertiesUtils.getResourceFile("preservation/scenarios.json");
+        return getFromFileAsTypeRefence(resourceFile, new TypeReference<List<PreservationScenarioModel>>() {
+        });
+    }
+
+    private List<GriffinModel> getGriffinModels() throws FileNotFoundException, InvalidParseOperationException {
+
+        File resourceFile = PropertiesUtils.getResourceFile("preservation/griffins.json");
+
+        return getFromFileAsTypeRefence(resourceFile, new TypeReference<List<GriffinModel>>() {
+        });
+    }
+
+    private AccessContractModel getAccessContractModel() {
         AccessContractModel contract = new AccessContractModel();
         contract.setName(contractId);
         contract.setIdentifier(contractId);
@@ -153,10 +193,7 @@ public class PreservationIT extends VitamRuleRunner {
         contract.setCreationdate("10/12/1800");
         contract.setActivationdate("10/12/1800");
         contract.setDeactivationdate("31/12/4200");
-
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-
-        client.importAccessContracts(Collections.singletonList(contract));
+        return contract;
     }
 
     @Test
@@ -170,43 +207,35 @@ public class PreservationIT extends VitamRuleRunner {
 
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
-            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            getVitamSession().setTenantId(tenantId);
+            getVitamSession().setContractId(contractId);
+            getVitamSession().setContextId("Context_IT");
+            getVitamSession().setRequestId(operationGuid);
 
-            FileInputStream distributionFile = new FileInputStream(PropertiesUtils.getResourceFile("preservation/distribution_preservation_test.jsonL"));
+            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+            selectMultiQuery.setQuery(eq("Title", "test"));
+            ObjectNode finalSelect = selectMultiQuery.getFinalSelect();
 
-            client.startPreservation(distributionFile);
-            wait(operationGuid.toString());
+            List<String> usages = singletonList("BinaryMAster");
+            PreservationRequest preservationRequest = new PreservationRequest(finalSelect, "scenario1", usages, "Last");
 
-        // When
-            ArrayNode jsonNode = (ArrayNode) accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+            client.startPreservation(preservationRequest);
+
+            ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // When
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
                 .get("$results")
                 .get(0)
                 .get("events");
 
-         // Then
-            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText()).allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+            // Then
+            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
         } finally {
             accessClient.close();
             client.close();
         }
     }
-
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isOperationCompleted(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
 }
