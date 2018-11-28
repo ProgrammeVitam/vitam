@@ -26,22 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
@@ -57,6 +42,18 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Profile Step
@@ -100,7 +97,7 @@ public class ProfileStep {
     @When("^j'importe le profile d'archivage$")
     public void create_profile() throws AccessExternalClientException, IOException, InvalidParseOperationException {
 
-        create_profile(false);
+        create_profile(true);
     }
 
     /**
@@ -109,13 +106,20 @@ public class ProfileStep {
      * @throws AccessExternalClientException
      */
     @When("^j'importe le profile d'archivage sans échec$")
-    public void create_profile_without_failure()
+    public void create_profile_ignoring_failure()
         throws AccessExternalClientException, IOException, InvalidParseOperationException {
 
-        create_profile(true);
+        create_profile(null);
     }
 
-    private void create_profile(boolean withoutFailure)
+    @When("^j'importe le profile d'archivage incorrect$")
+    public void create_profile_with_expected_failure()
+        throws AccessExternalClientException, IOException, InvalidParseOperationException {
+
+        create_profile(false);
+    }
+
+    private void create_profile(Boolean expectedSuccessStatus)
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
@@ -132,15 +136,15 @@ public class ProfileStep {
         world.setResults(result);
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        if (!withoutFailure) {
-            assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
-            world.setOperationId(operationId);
-            if (response.isOk()) {
+        world.setOperationId(operationId);
+        if (expectedSuccessStatus != null) {
+            if (expectedSuccessStatus) {
+                assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
                 RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
                 Object o = (res.getResults().stream().findFirst()).get();
                 this.model = (JsonNode) o;
             } else {
-                fail("Fail to import profile :" + response.toString());
+                assertThat(response.getStatus()).isNotEqualTo(Response.Status.CREATED.getStatusCode());
             }
         }
     }
@@ -153,13 +157,18 @@ public class ProfileStep {
     }
 
     @When("^je rattache un ficher à ce profil d'archivage sans échec$")
-    public void import_profile_withoutFailure()
+    public void import_profile_ignoring_failure()
+        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+        import_profile(null);
+    }
+
+    @When("^je rattache un ficher incorrect à ce profil d'archivage")
+    public void import_profile_with_expected_failure()
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         import_profile(false);
     }
 
-
-    private void import_profile(boolean withoutFailure)
+    private void import_profile(Boolean expectedSuccessStatus)
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profile = Paths.get(world.getBaseDirectory(), fileName);
         RequestResponse response = null;
@@ -170,10 +179,9 @@ public class ProfileStep {
                     this.model.get("Identifier").asText(),
                     Files.newInputStream(profile, StandardOpenOption.READ));
         }
-        if (withoutFailure) {
-
+        if (expectedSuccessStatus != null) {
             assertThat(response).isNotNull();
-            assertThat(response.isOk()).isTrue();
+            assertThat(response.isOk()).isEqualTo(expectedSuccessStatus);
         }
     }
 
@@ -195,10 +203,14 @@ public class ProfileStep {
         }
     }
 
-
     @Then("^le profil existe$")
-    public void contract_found_are() {
+    public void profile_found() {
         assertThat(this.model).isNotNull();
+    }
+
+    @Then("^le profil n'existe pas$")
+    public void profile_not_found() {
+        assertThat(this.model).isNull();
     }
 
     @Then("^les métadonnées du profil sont$")

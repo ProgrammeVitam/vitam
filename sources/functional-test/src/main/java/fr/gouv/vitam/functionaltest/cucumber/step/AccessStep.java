@@ -290,7 +290,7 @@ public class AccessStep {
 
             if (changed) {
                 ContractsStep.updateContext(world.getAdminClient(), world.getApplicationSessionId(), CONTEXT_IDENTIFIER,
-                    permissions, false);
+                    permissions, true);
             }
 
         }
@@ -1029,7 +1029,7 @@ public class AccessStep {
     public void search_in_admin_collection(String collection) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         AdminCollections adminCollection = AdminCollections.valueOf(collection);
-        RequestResponse requestResponse = null;
+        RequestResponse requestResponse;
         switch (adminCollection) {
             case FORMATS:
                 requestResponse = world.getAdminClient().findFormats(
@@ -1067,8 +1067,26 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
                 break;
-            default:
+            case ARCHIVE_UNIT_PROFILE:
+                requestResponse = world.getAdminClient().findArchiveUnitProfiles(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
                 break;
+            case SECURITY_PROFILES:
+                requestResponse = world.getAdminClient().findSecurityProfiles(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
+                break;
+            case AGENCIES:
+            requestResponse = world.getAdminClient().findAgencies(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
+                break;
+            default:
+                throw new RuntimeException("Unknown collection " + adminCollection);
         }
 
         if (requestResponse != null && requestResponse.isOk()) {
@@ -1080,24 +1098,6 @@ public class AccessStep {
         } else {
             Fail.fail("Collection not found " + collection);
         }
-    }
-
-
-    @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
-    public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
-        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        String query = FileUtil.readFile(queryFile.toFile());
-        if (world.getOperationId() != null) {
-            query = replaceOperationIds(query);
-        }
-        world.setQuery(query);
-
-        JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
-        RequestResponse requestResponse = world.getAdminClient().updateAccessContract(
-            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-            get_contract_id_by_name(name), queryDsl);
-        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        world.setOperationId(operationId);
     }
 
     private String get_contract_id_by_name(String name)
