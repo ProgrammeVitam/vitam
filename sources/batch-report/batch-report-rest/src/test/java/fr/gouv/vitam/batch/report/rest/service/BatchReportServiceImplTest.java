@@ -296,7 +296,7 @@ public class BatchReportServiceImplTest {
 
     private void initialiseMockWhenPutObjectInWorkspace(Path report) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+            InputStream argumentAt = invocation.getArgument(2);
             Files.copy(argumentAt, report);
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));

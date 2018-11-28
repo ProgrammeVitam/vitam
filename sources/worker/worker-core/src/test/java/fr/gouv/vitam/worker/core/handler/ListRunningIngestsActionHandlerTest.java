@@ -196,7 +196,7 @@ public class ListRunningIngestsActionHandlerTest {
 
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Path file =
                 java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
                     action.getWorkerId() + "/" + filename.replaceAll("/", "_"));

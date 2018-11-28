@@ -24,50 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.client;
+package fr.gouv.vitam.common.server.application.junit;
 
-import com.google.common.base.Objects;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
+import io.undertow.Undertow;
+import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+import org.junit.rules.ExternalResource;
 
-/**
- * worker client configuration
- */
-public class WorkerClientConfiguration extends ClientConfigurationImpl {
+import javax.ws.rs.core.Application;
 
-    /**
-     * Empty constructor used by YAMLFactory to instanciate the object
-     */
-    public WorkerClientConfiguration() {
-        // Emtpy constructor
-    }
+import static org.mockito.Mockito.mock;
 
-    /**
-     * Construct a configuration with all parameters at once
-     *
-     * @param serverHost the server hostname
-     * @param serverPort the server port
-     */
-    public WorkerClientConfiguration(String serverHost, int serverPort) {
-        super(serverHost, serverPort);
+public class VitamServerTestRunner extends ExternalResource {
+    private final UndertowJaxrsServer server;
+    final MockOrRestClient _client;
+    final VitamClientFactoryInterface<?> factory;
+
+    public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory, int serverPortNumber) {
+
+        this.factory = factory;
+        Undertow.Builder builder =
+            Undertow.builder().addHttpListener(serverPortNumber, "localhost");
+        server = new UndertowJaxrsServer().start(builder);
+        server.deploy(application);
+        factory.changeServerPort(serverPortNumber);
+        _client = factory.getClient();
     }
 
     @Override
-    public int hashCode(){
-        return  Objects.hashCode(this.getServerHost(),this.getServerPort());
+    protected void after() throws Throwable {
+        server.stop();
     }
-    @Override
-    public boolean equals (Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (other == this) {
-            return true;
-        }
-        if (other.getClass() != getClass()) {
-            return false;
-        }
-        WorkerClientConfiguration conf =  (WorkerClientConfiguration) other;
-        return  Objects.equal(this.getServerHost(),conf.getServerHost()) &&  Objects.equal(this.getServerPort(),conf.getServerPort())  ;
 
+    public MockOrRestClient getClient() {
+        return _client;
+    }
+
+    public void runAfter() throws Throwable {
+        after();
+    }
+
+    public ExpectedResults getExpectedResultsMock() {
+       return mock(ExpectedResults.class);
     }
 }

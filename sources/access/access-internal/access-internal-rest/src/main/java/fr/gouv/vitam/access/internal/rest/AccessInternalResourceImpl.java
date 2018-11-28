@@ -262,7 +262,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -309,7 +308,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -392,7 +390,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -474,7 +471,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -574,7 +570,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -669,7 +664,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Un-processable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
@@ -710,7 +704,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalExecutionException e) {
@@ -744,7 +737,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return responseXmlFormat;
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
@@ -785,7 +777,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalRuleExecutionException e) {
@@ -889,7 +880,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return responseXmlFormat;
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
@@ -1273,7 +1263,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {

@@ -42,7 +42,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties;
+import org.jclouds.openstack.keystone.config.KeystoneProperties;
 import org.jclouds.openstack.swift.v1.SwiftApi;
 import org.jclouds.openstack.swift.v1.domain.Account;
 import org.jclouds.openstack.swift.v1.domain.SwiftObject;

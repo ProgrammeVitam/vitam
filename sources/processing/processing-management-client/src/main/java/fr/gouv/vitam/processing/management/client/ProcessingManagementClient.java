@@ -187,7 +187,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      *
      * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
      * @param operationId : operation identifier
-     * @return Response response containing message and status
+     * @return Response containing message and status
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws VitamClientException

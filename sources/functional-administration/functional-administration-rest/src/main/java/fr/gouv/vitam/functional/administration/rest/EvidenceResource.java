@@ -224,7 +224,6 @@ public class EvidenceResource {
             }
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
             status = Response.Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {

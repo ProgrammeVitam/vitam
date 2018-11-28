@@ -32,7 +32,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.ForbiddenException;
@@ -53,7 +53,14 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -64,80 +71,38 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 
-public class DefaultClientTest extends VitamJerseyTest {
+public class DefaultClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
     private static final String RESOURCE_PATH = "/vitam-test/v1";
+    protected static ExpectedResults mock;
 
-    private DefaultClient client;
+    private static DefaultClient client;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public DefaultClientTest() {
-        // The port will be overridden by the VitamJerseyTest
-        super(new TestVitamClientFactory<DefaultClient>(1234, RESOURCE_PATH));
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static TestVitamClientFactory factory = new TestVitamClientFactory<DefaultClient>(serverPortNumber, RESOURCE_PATH);
+    @ClassRule
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(DefaultClientTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (DefaultClient) getClient();
-    }
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
 
-    // Override the afterTest if necessary
-    @Override
-    public void afterTest() throws VitamApplicationServerException {
-        // Nothing
-    }
-
-    // Create the setup application to setup anything necessary
-    @Override
-    public void setup() {
-        // nothing
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig("jetty-config-benchmark-test.xml");
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     // Define your Resource class if necessary
@@ -158,10 +123,6 @@ public class DefaultClientTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
     }
-    // ************************************ //
-    // End of VitamJerseyTest configuration //
-    // ************************************ //
-
 
     // Now write your tests
     @Test
@@ -174,10 +135,10 @@ public class DefaultClientTest extends VitamJerseyTest {
     public void constructorWithGivenClient() throws VitamClientException {
         final Client mock = mock(Client.class);
         final TestVitamClientFactory<DefaultClient> testMockFactory =
-            new TestVitamClientFactory<>(getServerPort(), RESOURCE_PATH, mock);
+            new TestVitamClientFactory<>(serverPortNumber, RESOURCE_PATH, mock);
         try (DefaultClient testClient = testMockFactory.getClient()) {
             assertEquals(mock, testClient.getHttpClient());
-            assertEquals("http://" + HOSTNAME + ":" + getServerPort() + client.getResourcePath(),
+            assertEquals("http://localhost:" + serverPortNumber + client.getResourcePath(),
                 testClient.getServiceUrl());
         }
     }
@@ -190,8 +151,8 @@ public class DefaultClientTest extends VitamJerseyTest {
         assertTrue("no exception".length() > 0);
         assertTrue(client.getChunkedMode());
         assertTrue(client.getHttpClient() == client.getHttpClient(true));
-        String map1 = getFactory().getDefaultConfigCient().toString();
-        String map2 = getFactory().getDefaultConfigCient(true).toString();
+        String map1 = factory.getDefaultConfigCient().toString();
+        String map2 = factory.getDefaultConfigCient(true).toString();
         LOGGER.warn(map1);
         assertTrue(map1.equals(map2));
     }
@@ -304,7 +265,7 @@ public class DefaultClientTest extends VitamJerseyTest {
     }
 
     @Test
-    public void testVariousFails() throws Exception {
+    public void testVariousFails() throws Throwable {
         Response response;
         try {
             when(mock.get()).thenThrow(new ForbiddenException());
@@ -357,7 +318,7 @@ public class DefaultClientTest extends VitamJerseyTest {
             // Ignore
         }
         // try to get the retry when unavailable host
-        endApplication();
+        vitamServerTestRunner.runAfter();
         try {
             response =
                 client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
@@ -367,7 +328,7 @@ public class DefaultClientTest extends VitamJerseyTest {
             LOGGER.info(e);
         }
         try {
-            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null, 
+            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null,
                 "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
                 MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
@@ -377,7 +338,7 @@ public class DefaultClientTest extends VitamJerseyTest {
             LOGGER.info(e);
         }
         try {
-            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null, 
+            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null,
                 "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
                 MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, true);

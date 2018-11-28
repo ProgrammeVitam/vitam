@@ -87,8 +87,8 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
             .setObjectName(objectId).setCurrentStep("StepName");
 
         doAnswer((args) -> {
-            String path = args.getArgumentAt(0, String.class);
-            InputStream is = args.getArgumentAt(1, InputStream.class);
+            String path = args.getArgument(0);
+            InputStream is = args.getArgument(1);
             File file = tempFolder.newFile();
             Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             transferredFiles.put(path, file);

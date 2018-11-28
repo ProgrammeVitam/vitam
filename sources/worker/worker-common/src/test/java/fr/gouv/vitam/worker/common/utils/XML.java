@@ -396,9 +396,11 @@ public class XML {
      * @throws JSONException Thrown if there is an errors while parsing the string
      */
     public static JSONObject toJSONObject(String string, boolean keepStrings) throws JSONException {
+
         final JSONObject jo = new JSONObject();
         final XMLTokener x = new XMLTokener(string);
-        while (x.more() && x.skipPast("<")) {
+        while (x.more()) {
+            x.skipPast("<");
             parse(x, jo, null, keepStrings);
         }
         return jo;

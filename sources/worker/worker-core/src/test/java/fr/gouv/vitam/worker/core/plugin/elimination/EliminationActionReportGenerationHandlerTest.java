@@ -77,7 +77,7 @@ public class EliminationActionReportGenerationHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
-        doAnswer(args -> tempFolder.newFile(args.getArgumentAt(0, String.class))).when(handler).getNewLocalFile(any());
+        doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
@@ -118,7 +118,7 @@ public class EliminationActionReportGenerationHandlerTest {
         AtomicReference<String> reportReference = new AtomicReference<>();
         doAnswer((args) -> {
 
-            InputStream is = args.getArgumentAt(0, InputStream.class);
+            InputStream is = args.getArgument(0);
             reportReference.set(IOUtils.toString(is, StandardCharsets.UTF_8));
             return null;
         }).when(backupService)

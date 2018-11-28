@@ -402,7 +402,7 @@ public class ProcessDistributorImplTest {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
-            DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
+            DescriptionStep descriptionStep = invocation.getArgument(0);
             System.err.println("descriptionStep.getWorkParams().getObjectNameList()" +
                 descriptionStep.getWorkParams().getObjectNameList());
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
@@ -440,7 +440,7 @@ public class ProcessDistributorImplTest {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
-            DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
+            DescriptionStep descriptionStep = invocation.getArgument(0);
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
                 //throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.WARNING);
@@ -931,7 +931,7 @@ public class ProcessDistributorImplTest {
         final CountDownLatch countDownLatchException = new CountDownLatch(1);
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
-            DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
+            DescriptionStep descriptionStep = invocation.getArgument(0);
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("d.json")) {
                 countDownLatchException.countDown();
                 throw new RuntimeException("Exception While Executing d");

@@ -323,7 +323,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
             return false;
         }
         final List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
-        if (cidlist == null) {
+        if (cidlist == null || cidlist.isEmpty()) {
             return xcursor;
         }
         return isNewCursor(xcursor, cidlist.get(0));

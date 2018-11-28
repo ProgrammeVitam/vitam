@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -115,7 +115,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         MY_KEEP_ALIVE_STRATEGY = (response, context) -> {
             // Honor 'keep-alive' header
             final HeaderElementIterator it =
-                new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+                    new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
             while (it.hasNext()) {
                 final HeaderElement he = it.nextElement();
                 final String param = he.getName();
@@ -159,7 +159,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         if (cm0 != null && !(cm0 instanceof HttpClientConnectionManager)) {
             LOGGER.error(VitamRestEasyConfiguration.CONNECTION_MANAGER.name() + " missing");
             throw new IllegalArgumentException(
-                VitamRestEasyConfiguration.CONNECTION_MANAGER.name() + " will be ignored");
+                    VitamRestEasyConfiguration.CONNECTION_MANAGER.name() + " will be ignored");
         }
         httpClientConnectionManager = (HttpClientConnectionManager) cm0;
         final Object reqConfig = VitamRestEasyConfiguration.REQUEST_CONFIG.getObject(config);
@@ -172,12 +172,12 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         final HttpClientBuilder clientBuilder;
         if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
             CacheConfig cacheConfig = CacheConfig.custom()
-                .setMaxCacheEntries(VitamConfiguration.getMaxCacheEntries())
-                .setMaxObjectSize(8192)
-                .setSharedCache(true)
-                .build();
+                    .setMaxCacheEntries(VitamConfiguration.getMaxCacheEntries())
+                    .setMaxObjectSize(8192)
+                    .setSharedCache(true)
+                    .build();
             clientBuilder = CachingHttpClientBuilder.create()
-                .setCacheConfig(cacheConfig);
+                    .setCacheConfig(cacheConfig);
             clientBuilder.useSystemProperties();
         } else {
             clientBuilder = HttpClientBuilder.create();
@@ -191,7 +191,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         }
         clientBuilder.setConnectionManager(httpClientConnectionManager);
         clientBuilder.setConnectionManagerShared(
-            VitamRestEasyConfiguration.CONNECTION_MANAGER_SHARED.isTrue(config));
+                VitamRestEasyConfiguration.CONNECTION_MANAGER_SHARED.isTrue(config));
 
         final RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
 
@@ -210,13 +210,13 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
             if (userName != null) {
                 final String password;
                 password =
-                    VitamRestEasyConfiguration.PROXY_PASSWORD.getString(config, null);
+                        VitamRestEasyConfiguration.PROXY_PASSWORD.getString(config, null);
 
                 if (password != null) {
                     final CredentialsProvider credsProvider = new BasicCredentialsProvider();
                     credsProvider.setCredentials(
-                        new AuthScope(u.getHost(), u.getPort()),
-                        new UsernamePasswordCredentials(userName, password));
+                            new AuthScope(u.getHost(), u.getPort()),
+                            new UsernamePasswordCredentials(userName, password));
                     clientBuilder.setDefaultCredentialsProvider(credsProvider);
                 }
             }
@@ -231,7 +231,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         }
 
         if (requestConfig.getCookieSpec() == null ||
-            !requestConfig.getCookieSpec().equals(CookieSpecs.IGNORE_COOKIES)) {
+                !requestConfig.getCookieSpec().equals(CookieSpecs.IGNORE_COOKIES)) {
             cookieStore = new BasicCookieStore();
             clientBuilder.setDefaultCookieStore(cookieStore);
         } else {
@@ -249,7 +249,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         bufferSize = VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE.getInt(config, 8192);
         responseBufferSize = VitamRestEasyConfiguration.RECV_BUFFER_SIZE.getInt(config, 0);
         bufferingEnabled = VitamRestEasyConfiguration.BUFFERED.equalsIgnoreCase(
-            VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING.getString(config, VitamRestEasyConfiguration.CHUNKED));
+                VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING.getString(config, VitamRestEasyConfiguration.CHUNKED));
 
         httpClient = clientBuilder.build();
         closed = false;
@@ -259,8 +259,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
     @Override
     public String toString() {
         return "connectTimeout: " + connectTimeout + " socketTimeout: " + socketTimeout + " bufferSize: " + bufferSize +
-            " responseBufferSize: " + responseBufferSize + " bufferingEnabled: " + bufferingEnabled + " config: " +
-            config;
+                " responseBufferSize: " + responseBufferSize + " bufferingEnabled: " + bufferingEnabled + " config: " +
+                config;
     }
 
     private static URI getProxyUri(final Object proxy) {
@@ -305,26 +305,26 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 switch (responseStatus) {
                     case CACHE_HIT:
                         LOGGER.debug("A response was generated from the cache with " +
-                            "no requests sent upstream");
+                                "no requests sent upstream");
                         break;
                     case CACHE_MODULE_RESPONSE:
                         LOGGER.debug("The response was generated directly by the " +
-                            "caching module");
+                                "caching module");
                         break;
                     case CACHE_MISS:
                         LOGGER.debug("The response came from an upstream server");
                         break;
                     case VALIDATED:
                         LOGGER.debug("The response was generated from the cache " +
-                            "after validating the entry with the origin server");
+                                "after validating the entry with the origin server");
                         break;
                 }
             }
 
             // FIXME P0 : remove jersey dependancy in vitam client
             final Response.StatusType status = response.getStatusLine().getReasonPhrase() == null
-                ? Statuses.from(response.getStatusLine().getStatusCode())
-                : Statuses.from(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+                    ? Statuses.from(response.getStatusLine().getStatusCode())
+                    : Statuses.from(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
 
             final ClientResponse responseContext = new ClientResponse(clientInvocation.getClientConfiguration()) {
                 InputStream stream = getNativeInputStream(response);
@@ -346,6 +346,11 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
                 @Override
                 public void releaseConnection() throws IOException {
+                    releaseConnection(true);
+                }
+
+                @Override
+                public void releaseConnection(boolean b) throws IOException {
                     // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
                     // otherwise the connection is never released. There is, of course, no close() method on response
                     // to make this easier.
@@ -373,7 +378,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
 
     private static CaseInsensitiveMap<String> extractHeaders(
-        HttpResponse response) {
+            HttpResponse response) {
         final CaseInsensitiveMap<String> headers = new CaseInsensitiveMap<String>();
 
         for (Header header : response.getAllHeaders()) {
@@ -401,15 +406,15 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         final HttpEntity entity = getHttpEntity(clientInvocation, bufferingEnabled, bufferSize);
 
         return RequestBuilder
-            .create(clientInvocation.getMethod())
-            .setUri(clientInvocation.getUri())
-            .setConfig(requestConfigBuilder.build())
-            .setEntity(entity)
-            .build();
+                .create(clientInvocation.getMethod())
+                .setUri(clientInvocation.getUri())
+                .setConfig(requestConfigBuilder.build())
+                .setEntity(entity)
+                .build();
     }
 
     private HttpEntity getHttpEntity(final ClientInvocation clientInvocation, final boolean bufferingEnabled,
-        final int bufferSize) {
+                                     final int bufferSize) {
         final Object entity = clientInvocation.getEntity();
 
         if (entity == null) {
@@ -464,7 +469,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
     }
 
     private static void writeOutBoundHeaders(final ClientRequestHeaders clientRequestHeaders,
-        final HttpUriRequest request) {
+                                             final HttpUriRequest request) {
 
         for (final Entry<String, List<String>> e : clientRequestHeaders.asMap().entrySet()) {
             StringBuilder builder = new StringBuilder();
@@ -562,7 +567,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         // see interface ConnectionReuseStrategy
         @Override
         public boolean keepAlive(final HttpResponse response,
-            final HttpContext context) {
+                                 final HttpContext context) {
             Args.notNull(response, "HTTP response");
             Args.notNull(context, "HTTP context");
 
@@ -685,7 +690,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
             }
             final int status = response.getStatusLine().getStatusCode();
             return status >= HttpStatus.SC_ACCEPTED && status != HttpStatus.SC_NO_CONTENT &&
-                status != HttpStatus.SC_NOT_MODIFIED && status != HttpStatus.SC_RESET_CONTENT;
+                    status != HttpStatus.SC_NOT_MODIFIED && status != HttpStatus.SC_RESET_CONTENT;
         }
 
     }

@@ -195,7 +195,7 @@ public class UnitGraphInfoLoaderTest {
         when(metaDataClient.selectUnits(any())).then(args -> {
 
             // Parse { $in: "#id": [] } query
-            JsonNode dsl = args.getArgumentAt(0, JsonNode.class);
+            JsonNode dsl = args.getArgument(0);
             SelectParserMultiple parserMultiple = new SelectParserMultiple();
             parserMultiple.parse(dsl);
             ArrayNode jsonIds = (ArrayNode) parserMultiple.getRequest().getQueries().get(0).getNode("$in").get(VitamFieldsHelper.id());

@@ -27,20 +27,22 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -52,7 +54,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -68,71 +72,52 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
+public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/logbook/v1";
-    protected LogbookLifeCyclesClientRest client;
+    protected static LogbookLifeCyclesClientRest client;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public LogbookLifeCyclesClientRestTest() {
-        super(LogbookLifeCyclesClientFactory.getInstance());
+
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static LogbookLifeCyclesClientFactory factory = LogbookLifeCyclesClientFactory.getInstance();
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(LogbookLifeCyclesClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (LogbookLifeCyclesClientRest) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (LogbookLifeCyclesClientRest) getClient();
-    }
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
 
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/logbook/v1")
@@ -651,7 +636,8 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
 
     @Test
     public void selectExecution() throws Exception {
-        final String BODY_WITH_ID = "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
+        final String BODY_WITH_ID =
+            "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
 
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
@@ -700,8 +686,10 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         } catch (final LogbookClientException e) {
 
         }
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode()));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode()));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode()));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode()));
     }
 
     @Test

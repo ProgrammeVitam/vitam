@@ -27,24 +27,25 @@
 package fr.gouv.vitam.functional.administration.ontologies.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,75 +57,52 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AdminManagementOntologiesClientRestTest extends VitamJerseyTest {
+public class AdminManagementOntologiesClientRestTest extends ResteasyTestApplication {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    protected AdminManagementOntologiesClientRest client;
+    protected static AdminManagementOntologiesClientRest client;
     private static final Integer TENANT_ID = 1;
-    
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public AdminManagementOntologiesClientRestTest() {
-        super(AdminManagementOntologiesClientFactory.getInstance());
+
+    protected static ExpectedResults mock;
+
+
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+    static int serverPortNumber = junitHelper.findAvailablePort();
+
+    static AdminManagementOntologiesClientFactory factory = AdminManagementOntologiesClientFactory.getInstance();
+    @ClassRule
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(AdminManagementOntologiesClientRestTest.class, factory, serverPortNumber);
+
+
+    @BeforeClass
+    public static void init() {
+        client = (AdminManagementOntologiesClientRest) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        JunitHelper.getInstance().releasePort(serverPortNumber);
+        VitamClientFactory.resetConnections();
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (AdminManagementOntologiesClientRest) getClient();
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+
+        return Sets.newHashSet(new MockResource(mock));
     }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
-    }
-
 
     @Path("/adminmanagement/v1")
     public static class MockResource {
@@ -147,22 +125,22 @@ public class AdminManagementOntologiesClientRestTest extends VitamJerseyTest {
     /**
      * Test that profiles is reachable and does not return elements
      *
-     * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws VitamClientException
      */
     @Test
     @RunWithCustomExecutor
     public void findAllOntologiesThenReturnEmpty()
-            throws FileNotFoundException, InvalidParseOperationException, VitamClientException {
+        throws InvalidParseOperationException, VitamClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(new RequestResponseOK<OntologyModel>()).build());
+        when(mock.get())
+            .thenReturn(Response.status(Response.Status.OK).entity(new RequestResponseOK<OntologyModel>()).build());
         RequestResponse resp = client.findOntologiesForCache(JsonHandler.createObjectNode());
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
-    
+
     /**
      * Test that ontologies is reachable and return two elements as expected
      *
@@ -173,16 +151,16 @@ public class AdminManagementOntologiesClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void findAllOntologiesThenReturnTwo()
-            throws FileNotFoundException, InvalidParseOperationException, VitamClientException {
+        throws FileNotFoundException, InvalidParseOperationException, VitamClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Response.Status.OK)
-                .entity(new RequestResponseOK<OntologyModel>().addAllResults(getOntologies())).build());
+            .entity(new RequestResponseOK<OntologyModel>().addAllResults(getOntologies())).build());
         RequestResponse resp = client.findOntologiesForCache(JsonHandler.createObjectNode());
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(2);
         assertThat(((RequestResponseOK) resp).getResults().iterator().next()).isInstanceOf(OntologyModel.class);
     }
-    
+
     private List<OntologyModel> getOntologies() throws FileNotFoundException, InvalidParseOperationException {
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_ok.json");
         return JsonHandler.getFromFileAsTypeRefence(fileOntologies, new TypeReference<List<OntologyModel>>() {

@@ -231,7 +231,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * check the file format
      *
      * @param xmlPronom as InputStream
-     * @return Response response
+     * @return Response
      */
     @Path("format/check")
     @POST
@@ -260,7 +260,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param headers   http headers
      * @param xmlPronom as InputStream
-     * @return Response jersey response
+     * @return response
      */
     @Path("format/import")
     @POST
@@ -299,7 +299,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param formatId path param as String
      * @param request
-     * @return Response jersey response
+     * @return Response
      */
     @GET
     @Path("format/{id_format:.+}")
@@ -346,7 +346,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve all the file format inserted in the collection fileFormat
      *
      * @param select as String the query to get format
-     * @return Response jersey Response
+     * @return Response
      */
     @Path("format/document")
     @POST
@@ -376,7 +376,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * check the rules file
      *
      * @param rulesStream as InputStream
-     * @return Response response jersey
+     * @return Response
      */
     @Path("rules/check")
     @POST
@@ -455,7 +455,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param headers     http headers
      * @param rulesStream as InputStream
-     * @return Response jersey response
+     * @return Response
      */
     @Path("rules/import")
     @POST
@@ -495,7 +495,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param ruleId  path param as String
      * @param request the request
-     * @return Response jersey response
+     * @return Response
      */
     @GET
     @Path("rules/{id_rule}")
@@ -543,7 +543,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * show all file rules inserted in the collection fileRules
      *
      * @param select as String
-     * @return Response jersey Response
+     * @return Response
      */
     @Path("rules/document")
     @POST
@@ -575,7 +575,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * create or update an accession register
      *
      * @param accessionRegister AccessionRegisterDetail object
-     * @return Response jersey response
+     * @return Response
      */
     @Path("accession-register")
     @POST
@@ -621,7 +621,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve all accession summary from accession summary collection
      *
      * @param select as String the query to find accession register
-     * @return Response jersey Response
+     * @return Response
      */
     @Path("accession-register/document")
     @POST
@@ -689,7 +689,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param documentId
      * @param select     as String the query to find the accession register
-     * @return Response jersey Response
+     * @return Response
      */
     @Path("accession-register/detail/{id}")
     @POST
@@ -772,7 +772,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * Launch audit with options
      *
      * @param options
-     * @return Response jersey response
+     * @return Response
      */
     @Path(AUDIT_URI)
     @POST

@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 
 import javax.ws.rs.core.MediaType;
 
+import com.google.common.collect.ImmutableMap;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.model.ResourceMethod;
 import org.glassfish.jersey.server.monitoring.ApplicationEvent;
@@ -44,7 +45,6 @@ import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListene
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
  * A fork of the {@link InstrumentedResourceMethodApplicationListener}
