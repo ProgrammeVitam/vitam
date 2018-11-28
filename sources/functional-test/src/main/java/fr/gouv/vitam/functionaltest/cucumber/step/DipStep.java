@@ -28,6 +28,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -36,7 +37,22 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import org.apache.commons.collections.EnumerationUtils;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 
+import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -52,32 +68,125 @@ public class DipStep {
         this.world = world;
     }
 
-        @When("^j'exporte le dip$")
-        public void exportDip() throws VitamException {
+    @When("^j'exporte le dip$")
+    public void exportDip() throws VitamException {
 
-            VitamContext vitamContext = new VitamContext(world.getTenantId());
-            vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-            vitamContext.setAccessContract(world.getContractId());
+        world.setDipFile(null);
 
-            String query = world.getQuery();
-            JsonNode jsonNode = JsonHandler.getFromString(query);
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
 
-            DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
-            RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+        String query = world.getQuery();
+        JsonNode jsonNode = JsonHandler.getFromString(query);
 
-            assertThat(response.isOk()).isTrue();
+        DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
+        RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
-            final String operationId = response.getHeaderString(X_REQUEST_ID);
-            world.setOperationId(operationId);
+        assertThat(response.isOk()).isTrue();
 
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean processTimeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
 
-            if (!processTimeout) {
-                fail("dip processing not finished. Timeout exceeded.");
-            }
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
 
-            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
         }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+    @When("^je télécharge le dip$")
+    public void downloadDip() throws Exception {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        Response response = world.getAccessClient().getDIPById(vitamContext, world.getOperationId());
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+
+        File tempFile = new File("DIP-" + world.getOperationId() + ".zip");
+        try (InputStream dipInputStream = response.readEntity(InputStream.class)) {
+            Files.copy(dipInputStream, tempFile.toPath());
+        }
+        response.close();
+
+        world.setDipFile(tempFile.toPath());
+    }
+
+    @Then("^le dip contient (\\d+) unités archivistiques$")
+    public void checkDipUnitCount(int nbUnits) throws Exception {
+
+        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        // Check manifest
+        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+        try (InputStream is = zipFile.getInputStream(manifest)) {
+            int cpt =
+                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+            assertThat(cpt).isEqualTo(nbUnits);
+        }
+    }
+
+    @Then("^le dip contient (\\d+) groupes d'objets$")
+    public void checkDipObjectGroupCount(int nbObjectGroups) throws Exception {
+
+        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        // Check manifest
+        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+        try (InputStream is = zipFile.getInputStream(manifest)) {
+            int cpt = countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup");
+            assertThat(cpt).isEqualTo(nbObjectGroups);
+        }
+    }
+
+    @Then("^le dip contient (\\d+) objets dont (\\d+) sont binaires$")
+    public void checkDipObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
+
+        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        // Check manifest
+        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+        try (InputStream is = zipFile.getInputStream(manifest)) {
+            int cpt =
+                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+            assertThat(cpt).isEqualTo(nbObjects);
+        }
+
+        List<ZipArchiveEntry> entries = EnumerationUtils.toList(zipFile.getEntries());
+        long binaryFiles = entries.stream()
+            .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
+            .count();
+
+        assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
+    }
+
+    private int countElements(InputStream inputStream, String path) throws XMLStreamException {
+        int cpt = 0;
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        Stack<String> elementNames = new Stack<>();
+        final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(inputStream);
+        while (eventReader.hasNext()) {
+            final XMLEvent event = eventReader.nextEvent();
+            switch (event.getEventType()) {
+                case XMLStreamConstants.START_ELEMENT:
+                    final StartElement startElement = event.asStartElement();
+                    String qName = startElement.getName().getLocalPart();
+                    elementNames.add(qName);
+
+                    String fullElementName = String.join("/", elementNames);
+
+                    if (fullElementName.equals(path)) {
+                        cpt++;
+                    }
+                    break;
+                case XMLStreamConstants.END_ELEMENT:
+                    elementNames.pop();
+                    break;
+            }
+        }
+        return cpt;
+    }
 }
