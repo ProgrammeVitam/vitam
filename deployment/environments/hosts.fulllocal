@@ -227,12 +227,6 @@ vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/vitam/vitam-itests.git
 
-# curator configuration
-days_to_close_metrics_indexes=7
-days_to_delete_metrics_indexes=30
-days_to_delete_packetbeat_indexes=20
-days_to_delete_metricbeat_indexes=20
-
 ### proxy & reverse proxy configuration ###
 vitam_reverse_external_dns=localhost
 vitam_reverse_external_protocol=http
