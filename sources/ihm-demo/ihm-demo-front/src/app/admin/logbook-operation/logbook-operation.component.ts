@@ -129,7 +129,7 @@ export class LogbookOperationComponent extends PageComponent {
     const evType = item.evTypeProc.toUpperCase();
     if (['AUDIT', 'EXPORT_DIP', 'INGEST', 'MASS_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
-      || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY'
+      || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION') {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
@@ -233,15 +233,17 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES'|| item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
+        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
           logbookService.downloadReport(item.evIdProc);
           break;
         } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {
           logbookService.downloadObject(item.evIdProc);
           break;
+        } else if (item.evType === 'STP_REFERENTIAL_FORMAT_IMPORT') {
+          logbookService.downloadReport(item.evIdProc);
+          break;
         }
     }
-
   }
 
   static isOperationInProgress(item): boolean {
