@@ -6,3 +6,4 @@
     state: latest
   tags:
     - update_package_vitam
+  when:  vitam_struct.vitam_component == "ihm-demo"
