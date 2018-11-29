@@ -26,7 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
+import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -36,7 +59,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
@@ -49,46 +71,25 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
-import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DISTRIBUTION_FILE;
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
 public class PreservationActionPluginTest {
 
     private final String test_id = "TEST_ID";
     private final String griffinId = "griffinId-my-test";
-    private final TestWorkerParameter parameter = workerParameterBuilder()
-        .withContainerName("CONTAINER_NAME_TEST")
-        .withRequestId("REQUEST_ID_TEST")
-        .build();
+    private final TestWorkerParameter parameter =
+        workerParameterBuilder()
+            .withContainerName("CONTAINER_NAME_TEST")
+            .withRequestId("REQUEST_ID_TEST")
+            .build();
+
 
     private PreservationActionPlugin plugin;
 
     @Rule
-    public  MockitoRule rule = MockitoJUnit.rule();
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
@@ -115,10 +116,21 @@ public class PreservationActionPluginTest {
     public void setup() throws Exception {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
+        parameter.setObjectNameList(Collections.singletonList(test_id));
+
+
+        ParamsPreservationDistributionFile paramsPreservationDistributionFile =
+            new ParamsPreservationDistributionFile("fmt/43", "photo.jpg",
+                Collections.singletonList(new Action("ANALYSE", null)), "unitId",
+                griffinId,
+                "objectId", true, 45);
+        parameter.setObjectMetadataList(
+            Collections.singletonList(JsonHandler.toJsonNode(paramsPreservationDistributionFile)));
 
         File inputFolder = tmpGriffinFolder.newFolder("input-folder");
         File execFolder = tmpGriffinFolder.newFolder("exec-folder");
-        plugin = new PreservationActionPlugin(workspaceClientFactory, storageClientFactory, reportService, inputFolder.toPath().toString(), execFolder.toPath().toString());
+        plugin = new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(),
+            execFolder.toPath().toString());
 
         Path target = Files.createDirectory(execFolder.toPath().resolve(griffinId));
         String src = Object.class.getResource("/preservation/griffin").toURI().getPath();
@@ -129,29 +141,13 @@ public class PreservationActionPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_read_distribution_file() throws Exception {
-        // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
-
-        // When
-        plugin.execute(parameter, null);
-
-        // Then
-        verify(workspaceClient).getObject(parameter.getContainerName(), DISTRIBUTION_FILE);
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void should_copy_input_files() throws Exception {
         // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
         given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
-        plugin.execute(parameter, null);
+        plugin.executeList(parameter, null);
 
         // Then
         verify(storageClient).getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog());
@@ -161,11 +157,10 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
         given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
-        plugin.execute(parameter, null);
+        plugin.executeList(parameter, null);
 
         // When
         verify(reportService).appendPreservationEntries(eq("REQUEST_ID"), captor.capture());
@@ -178,11 +173,10 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_delete_batch_files_at_the_end() throws Exception {
         // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
         given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
-        plugin.execute(parameter, null);
+        plugin.executeList(parameter, null);
 
         // When
         String[] filesInGriffinDir = Paths.get(tmpGriffinFolder.getRoot().getPath())
@@ -199,65 +193,80 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_exec_workflow_and_return_buid_status_OK() throws Exception {
         // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
         given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
-        ItemStatus status = plugin.execute(parameter, null);
+        List<ItemStatus> status = plugin.executeList(parameter, null);
 
         // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(OK);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_return_build_status_FATAL_when_read_distribution_file_error_error() throws Exception {
-        // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willThrow(new ContentAddressableStorageServerException("test"));
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
-
-        // When
-        ItemStatus status = plugin.execute(parameter, null);
-
-        // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(FATAL);
+        for (ItemStatus itemStatus : status) {
+            assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+        }
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_return_build_status_KO_when_any_error_occurs() throws Exception {
         // Given
-        given(workspaceClient.getObject(parameter.getContainerName(), DISTRIBUTION_FILE)).willReturn(createOkResponse(getDistribLine()));
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog())).willThrow(new IllegalStateException("test"));
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, test_id, OBJECT, getNoLogAccessLog()))
+            .willThrow(new IllegalStateException("test"));
 
         // When
-        ItemStatus status = plugin.execute(parameter, null);
+        List<ItemStatus> status = plugin.executeList(parameter, null);
 
         // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(KO);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_check_mandatory_parameters_do_nothing() throws Exception {
-        // Given / When
-        plugin.checkMandatoryIOParameter(null);
-
-        // Then
-        verifyZeroInteractions(workspaceClientFactory, workspaceClient, storageClientFactory, storageClient, reportService);
+        for (ItemStatus itemStatus : status) {
+            assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+        }
     }
 
     private Response createOkResponse(String entity) {
-        return new VitamAsyncInputStreamResponse(new ByteArrayInputStream(entity.getBytes()), Response.Status.OK, Collections.emptyMap());
+        return new VitamAsyncInputStreamResponse(new ByteArrayInputStream(entity.getBytes()), Response.Status.OK,
+            Collections.emptyMap());
     }
 
-    private String getDistribLine() {
-        return String.format(
-            "{\"id\": \"%s\", \"distribGroup\":1, \"params\": {\"formatId\": \"fmt/43\", \"griffinId\": \"%s\", \"actions\":[{\"type\":\"ANALYSE\", \"values\":null}], \"unitId\":\"Bobi\", \"objectId\": \"bobiObject\", \"debug\":true, \"timeout\":45 } }",
-                test_id,
-            griffinId
-        );
+    private class ParamsPreservationDistributionFile {
+        @JsonProperty("formatId")
+        private String formatId;
+        @JsonProperty("filename")
+        private String filename;
+        @JsonProperty("actions")
+        private List<Action> actions;
+        @JsonProperty("unitId")
+        private String unitId;
+        @JsonProperty("griffinId")
+        private String griffinId;
+        @JsonProperty("objectId")
+        private String objectId;
+        @JsonProperty("debug")
+        private boolean debug;
+        @JsonProperty("timeout")
+        private int timeout;
+
+        public ParamsPreservationDistributionFile(String formatId, String filename,
+            List<Action> actions, String unitId, String griffinId, String objectId, boolean debug, int timeout) {
+            this.formatId = formatId;
+            this.filename = filename;
+            this.actions = actions;
+            this.unitId = unitId;
+            this.griffinId = griffinId;
+            this.objectId = objectId;
+            this.debug = debug;
+            this.timeout = timeout;
+        }
+    }
+
+
+    private class Action {
+        @JsonProperty("type")
+        private String type;
+        @JsonProperty("values")
+        private String values;
+
+        public Action(String type, String values) {
+            this.type = type;
+            this.values = values;
+        }
     }
 }
