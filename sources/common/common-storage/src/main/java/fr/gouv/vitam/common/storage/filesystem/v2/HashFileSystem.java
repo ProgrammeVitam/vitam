@@ -115,13 +115,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
-        if (super.isExistingContainer(containerName)) {
+        if (super.isExistingContainerInCache(containerName)) {
             return true;
         }
 
         boolean exists = fsHelper.isContainer(containerName);
-
-        return cacheExistsContainer(containerName, exists);
+        cacheExistsContainer(containerName, exists);
+        return exists;
     }
 
     // FIXME : This method doesn't implement the contract of ContentAdressableStorage interface

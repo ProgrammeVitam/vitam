@@ -78,7 +78,16 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @return boolean type
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    default boolean isExistingContainer(String containerName) {
+    boolean isExistingContainer(String containerName);
+
+    /**
+     * Determines if a container exists in cache
+     *
+     * @param containerName name of container
+     * @return boolean type
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     */
+    default boolean isExistingContainerInCache(String containerName) {
         // If existing containers are already checked, this help just an in memory check
         return existingContainer.contains(containerName);
     }
@@ -91,14 +100,11 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param exists
      * @return
      */
-    default boolean cacheExistsContainer(String containerName, boolean exists) {
+    default void cacheExistsContainer(String containerName, boolean exists) {
         if (exists) {
             existingContainer.add(containerName);
         }
-        return exists;
     }
-
-    // Object
 
     /**
      * Adds an object representing the data at location containerName/objectName

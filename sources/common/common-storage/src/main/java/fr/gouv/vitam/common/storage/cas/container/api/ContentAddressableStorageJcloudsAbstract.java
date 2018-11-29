@@ -106,11 +106,12 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     @Override
     public boolean isExistingContainer(String containerName) {
         try {
-            if (super.isExistingContainer(containerName)) {
+            if (super.isExistingContainerInCache(containerName)) {
                 return true;
             }
             boolean exists = context.getBlobStore().containerExists(containerName);
-            return cacheExistsContainer(containerName, exists);
+            cacheExistsContainer(containerName, exists);
+            return exists;
         } finally {
             closeContext();
         }
