@@ -157,7 +157,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             String computedDigest = computeObjectDigest(containerName, objectName, digestType);
             if (!streamDigest.equals(computedDigest)) {
                 throw new ContentAddressableStorageException(
-                    "Illegal state. Stream digest " + streamDigest + " is not equal to computed digest " +
+                    "Illegal state for container "+containerName+" and object "+objectName+". Stream digest " + streamDigest + " is not equal to computed digest " +
                         computedDigest);
             }
         }
