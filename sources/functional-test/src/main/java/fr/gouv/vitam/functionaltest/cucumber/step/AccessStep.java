@@ -33,8 +33,6 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -54,7 +52,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -62,13 +59,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.JsonSorter;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;
@@ -100,9 +95,6 @@ import java.util.regex.Pattern;
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -290,7 +282,7 @@ public class AccessStep {
 
             if (changed) {
                 ContractsStep.updateContext(world.getAdminClient(), world.getApplicationSessionId(), CONTEXT_IDENTIFIER,
-                    permissions, false);
+                    permissions, true);
             }
 
         }
@@ -1029,7 +1021,7 @@ public class AccessStep {
     public void search_in_admin_collection(String collection) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         AdminCollections adminCollection = AdminCollections.valueOf(collection);
-        RequestResponse requestResponse = null;
+        RequestResponse requestResponse;
         switch (adminCollection) {
             case FORMATS:
                 requestResponse = world.getAdminClient().findFormats(
@@ -1067,8 +1059,26 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
                 break;
-            default:
+            case ARCHIVE_UNIT_PROFILE:
+                requestResponse = world.getAdminClient().findArchiveUnitProfiles(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
                 break;
+            case SECURITY_PROFILES:
+                requestResponse = world.getAdminClient().findSecurityProfiles(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
+                break;
+            case AGENCIES:
+            requestResponse = world.getAdminClient().findAgencies(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
+                break;
+            default:
+                throw new RuntimeException("Unknown collection " + adminCollection);
         }
 
         if (requestResponse != null && requestResponse.isOk()) {
@@ -1080,24 +1090,6 @@ public class AccessStep {
         } else {
             Fail.fail("Collection not found " + collection);
         }
-    }
-
-
-    @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
-    public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
-        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        String query = FileUtil.readFile(queryFile.toFile());
-        if (world.getOperationId() != null) {
-            query = replaceOperationIds(query);
-        }
-        world.setQuery(query);
-
-        JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
-        RequestResponse requestResponse = world.getAdminClient().updateAccessContract(
-            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-            get_contract_id_by_name(name), queryDsl);
-        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        world.setOperationId(operationId);
     }
 
     private String get_contract_id_by_name(String name)

@@ -102,21 +102,32 @@ public class AgenciesStep {
 
     @Then("^j'importe les services producteurs$")
     public void uploadAgency() {
-        uploadAgency(false);
-    }
-    @Then("^j'importe les services producteurs sans échec$")
-    public void uploadAgency_without_failure() {
         uploadAgency(true);
     }
-    private void uploadAgency(boolean withoutFailure) {
+
+    @Then("^j'importe les services producteurs sans échec$")
+    public void uploadAgency_without_failure() {
+        uploadAgency(null);
+    }
+
+    @Then("^j'importe les services producteurs incorrects")
+    public void uploadAgency_with_failure() {
+        uploadAgency(false);
+    }
+
+    private void uploadAgency(Boolean expectedStatus) {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response =
                 world.getAdminClient()
                     .createAgencies(new VitamContext(world.getTenantId()), inputStream,
                         fileName);
-            if (!withoutFailure) {
-                assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
+            if (expectedStatus != null) {
+                if(expectedStatus) {
+                    assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
+                } else {
+                    assertThat(response.getHttpCode()).isNotEqualTo(Response.Status.CREATED.getStatusCode());
+                }
             }
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
@@ -138,16 +149,25 @@ public class AgenciesStep {
         RequestResponse<AgenciesModel> ingestResponse =
             world.getAdminClient()
                 .findAgencies(new VitamContext(world.getTenantId()).setAccessContract("ContratTNR"), query);
-        if (ingestResponse.isOk()) {
-            this.setModel(
-                ((RequestResponseOK<AgenciesModel>) ingestResponse).getResultsAsJsonNodes().get(0));
-        }
 
+        assertThat(ingestResponse.isOk()).isTrue();
+
+        List<JsonNode> results = ((RequestResponseOK<AgenciesModel>) ingestResponse).getResultsAsJsonNodes();
+        if(!results.isEmpty()) {
+            this.setModel(results.get(0));
+        } else {
+            this.setModel(null);
+        }
     }
 
     @Then("^le service producteur existe$")
-    public void contract_found_are() {
+    public void agencies_found() {
         assertThat(this.getModel()).isNotNull();
+    }
+
+    @Then("^le service producteur n'existe pas$")
+    public void agencies_not_found() {
+        assertThat(this.getModel()).isNull();
     }
 
     @Then("^les métadonnées du service sont$")

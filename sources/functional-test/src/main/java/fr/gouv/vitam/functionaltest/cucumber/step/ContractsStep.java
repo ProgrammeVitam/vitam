@@ -27,23 +27,6 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -71,6 +54,20 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContractsStep {
 
@@ -130,12 +127,8 @@ public class ContractsStep {
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat de type (.*)")
-    public void upload_contract(String type) throws IOException {
-        try {
-            uploadContract(type, CONTEXT_IDENTIFIER, false);
-        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException | InvalidCreateOperationException | VitamClientException e) {
-            fail("should not produce an exception", e);
-        }
+    public void upload_contract(String type) throws Exception {
+        uploadContract(type, CONTEXT_IDENTIFIER, true);
     }
 
     /**
@@ -145,15 +138,15 @@ public class ContractsStep {
      * @throws IOException
      */
     @Then("^j'importe ce contrat sans échec de type (.*)")
-    public void upload_contract_without_fail(String type) throws IOException {
+    public void upload_contract_without_failure(String type) {
         try {
-            uploadContract(type, CONTEXT_IDENTIFIER, true);
+            uploadContract(type, CONTEXT_IDENTIFIER, null);
         } catch (Exception e) {
             // catch nothing
         }
     }
 
-    private void uploadContract(String type, String contextIdentifier, boolean withoutFailure)
+    private void uploadContract(String type, String contextIdentifier, Boolean expectedSuccessStatus)
         throws IOException, InvalidParseOperationException, AccessExternalClientException, VitamClientException,
         InvalidCreateOperationException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
@@ -178,32 +171,35 @@ public class ContractsStep {
                 final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 world.setOperationId(operationId);
 
-                if (!withoutFailure) {
-                    assertThat(response.isOk()).isTrue();
+                if (expectedSuccessStatus != null) {
+                    assertThat(response.isOk()).isEqualTo(expectedSuccessStatus);
                 }
 
-                final List<IngestContractModel> accessContractModelList =
-                    JsonHandler.getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
-                    });
+                if (expectedSuccessStatus == null || expectedSuccessStatus) {
+                    final List<IngestContractModel> accessContractModelList =
+                        JsonHandler
+                            .getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                            });
 
-                if (accessContractModelList != null && !accessContractModelList.isEmpty()) {
-                    Set<String> contractIdentifier =
-                        accessContractModelList.stream().map(ac -> ac.getIdentifier()).collect(Collectors.toSet());
+                    if (accessContractModelList != null && !accessContractModelList.isEmpty()) {
+                        Set<String> contractIdentifier =
+                            accessContractModelList.stream().map(ac -> ac.getIdentifier()).collect(Collectors.toSet());
 
-                    boolean changed = false;
-                    for (PermissionModel p : permissions) {
-                        if (p.getTenant() != world.getTenantId()) {
-                            continue;
+                        boolean changed = false;
+                        for (PermissionModel p : permissions) {
+                            if (p.getTenant() != world.getTenantId()) {
+                                continue;
+                            }
+                            if (null == p.getAccessContract()) {
+                                p.setAccessContract(new HashSet<>());
+                            }
+                            changed = p.getAccessContract().addAll(contractIdentifier) || changed;
                         }
-                        if (null == p.getAccessContract()) {
-                            p.setAccessContract(new HashSet<>());
-                        }
-                        changed = p.getAccessContract().addAll(contractIdentifier) || changed;
-                    }
 
-                    if (changed) {
-                        updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                            permissions, withoutFailure);
+                        if (changed) {
+                            updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
+                                permissions, expectedSuccessStatus);
+                        }
                     }
                 }
 
@@ -213,48 +209,50 @@ public class ContractsStep {
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
 
-                if (!withoutFailure) {
-                    assertThat(response.isOk()).isTrue();
+                if (expectedSuccessStatus != null) {
+                    assertThat(response.isOk()).isEqualTo(expectedSuccessStatus);
                 }
                 final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 world.setOperationId(operationId);
 
+                if (expectedSuccessStatus == null || expectedSuccessStatus) {
 
-                final List<IngestContractModel> ingestContractModelList =
-                    JsonHandler.getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
-                    });
+                    final List<IngestContractModel> ingestContractModelList =
+                        JsonHandler
+                            .getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                            });
 
-                if (ingestContractModelList != null && !ingestContractModelList.isEmpty()) {
-                    Set<String> contractIdentifier =
-                        ingestContractModelList.stream().map(ic -> ic.getIdentifier()).collect(Collectors.toSet());
+                    if (ingestContractModelList != null && !ingestContractModelList.isEmpty() && response.isOk()) {
+                        Set<String> contractIdentifier =
+                            ingestContractModelList.stream().map(ic -> ic.getIdentifier()).collect(Collectors.toSet());
 
-                    // Remove, because TNR testing security control on ingest contract
-                    contractIdentifier.remove(INGEST_CONTRACT_NOT_IN_CONTEXT);
+                        // Remove, because TNR testing security control on ingest contract
+                        contractIdentifier.remove(INGEST_CONTRACT_NOT_IN_CONTEXT);
 
-                    boolean changed = false;
-                    for (PermissionModel p : permissions) {
-                        if (p.getTenant() != world.getTenantId()) {
-                            continue;
+                        boolean changed = false;
+                        for (PermissionModel p : permissions) {
+                            if (p.getTenant() != world.getTenantId()) {
+                                continue;
+                            }
+
+                            if (null == p.getIngestContract()) {
+                                p.setIngestContract(new HashSet<>());
+                            }
+                            changed = p.getIngestContract().addAll(contractIdentifier) || changed;
                         }
 
-                        if (null == p.getIngestContract()) {
-                            p.setIngestContract(new HashSet<>());
+                        if (changed) {
+                            updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
+                                permissions, expectedSuccessStatus);
                         }
-                        changed = p.getIngestContract().addAll(contractIdentifier) || changed;
-                    }
-
-                    if (changed) {
-                        updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                            permissions, withoutFailure);
                     }
                 }
             }
-
         }
     }
 
     public static void updateContext(AdminExternalClient adminExternalClient, String applicationSessionId,
-        String contextIdentifier, List<PermissionModel> permissions, boolean withoutFailure)
+        String contextIdentifier, List<PermissionModel> permissions, Boolean expectedSuccessStatus)
         throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientException {
         // update contexte
         ObjectNode permissionsNode = JsonHandler.createObjectNode();
@@ -269,8 +267,8 @@ public class ContractsStep {
         RequestResponse<ContextModel> requestResponse =
             adminExternalClient.updateContext(context, contextIdentifier, queryDsl);
 
-        if (!withoutFailure) {
-            assertThat(requestResponse.isOk()).isTrue();
+        if (expectedSuccessStatus != null) {
+            assertThat(requestResponse.isOk()).isEqualTo(expectedSuccessStatus);
         }
     }
 
@@ -282,39 +280,9 @@ public class ContractsStep {
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat incorrect de type (.*)")
-    public void upload_incorrect_contract(String type) {
-        Path sip = Paths.get(world.getBaseDirectory(), fileName);
-        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            AdminCollections collection = AdminCollections.valueOf(type);
-            this.setContractType(collection.getName());
-            if (AdminCollections.ACCESS_CONTRACTS.equals(collection)) {
-                RequestResponse response =
-                    world.getAdminClient().createAccessContracts(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        inputStream);
-
-                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                world.setOperationId(operationId);
-
-
-                // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
-                assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
-            } else if (AdminCollections.INGEST_CONTRACTS.equals(collection)) {
-                RequestResponse response =
-                    world.getAdminClient().createIngestContracts(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        inputStream);
-
-                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                world.setOperationId(operationId);
-                // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
-                assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
-            }
-        } catch (IllegalStateException e) {
-            // Do nothing
-        } catch (Exception e) {
-            fail("should not produce this exception", e);
-        }
+    public void upload_incorrect_contract(String type)
+        throws Exception {
+        uploadContract(type, CONTEXT_IDENTIFIER, false);
     }
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")
@@ -335,9 +303,17 @@ public class ContractsStep {
                         new VitamContext(world.getTenantId()).setAccessContract(null)
                             .setApplicationSessionId(world.getApplicationSessionId()),
                         query);
-                if (accessResponse.isOk()) {
-                    this.setModel(
-                        ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes().get(0));
+
+
+                assertThat(accessResponse.isOk()).isTrue();
+
+                List<JsonNode> accessContracts =
+                    ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes();
+
+                if (!accessContracts.isEmpty()) {
+                    this.setModel(accessContracts.get(0));
+                } else {
+                    this.setModel(null);
                 }
                 break;
             case INGEST_CONTRACTS:
@@ -346,9 +322,16 @@ public class ContractsStep {
                         new VitamContext(world.getTenantId()).setAccessContract(null)
                             .setApplicationSessionId(world.getApplicationSessionId()),
                         query);
-                if (ingestResponse.isOk()) {
-                    this.setModel(
-                        ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes().get(0));
+
+                assertThat(ingestResponse.isOk()).isTrue();
+
+                List<JsonNode> ingestContracts =
+                    ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes();
+
+                if (!ingestContracts.isEmpty()) {
+                    this.setModel(ingestContracts.get(0));
+                } else {
+                    this.setModel(null);
                 }
                 break;
             default:
@@ -357,8 +340,13 @@ public class ContractsStep {
     }
 
     @Then("^le contrat existe$")
-    public void contract_found_are() {
+    public void contract_found() {
         assertThat(this.getModel()).isNotNull();
+    }
+
+    @Then("^le contrat n'existe pas$")
+    public void contract_not_found() {
+        assertThat(this.getModel()).isNull();
     }
 
     @Then("^les métadonnées du contrat sont$")
@@ -414,8 +402,8 @@ public class ContractsStep {
         RequestResponse requestResponse = null;
 
         requestResponse = world.getAdminClient().updateAccessContract(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                contractIdentifier, queryDsl);
+            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+            contractIdentifier, queryDsl);
         assertThat(statusCode).isEqualTo(requestResponse.getStatus());
 
 

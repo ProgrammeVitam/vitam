@@ -28,6 +28,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,8 @@ public class World {
     private String applicationSessionId;
     private List<JsonNode> results;
     private LogbookEvent logbookEvent;
+    private Path dipFile;
+
     /**
      * id of the operation
      */
@@ -479,5 +482,12 @@ public class World {
         return adminClientV2;
     }
 
+    public Path getDipFile() {
+        return dipFile;
+    }
 
+    public World setDipFile(Path dipFile) {
+        this.dipFile = dipFile;
+        return this;
+    }
 }
