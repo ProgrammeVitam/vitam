@@ -25,35 +25,30 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation;
-
+package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 
-public class ParametersPreservation {
+public class ResultPreservation {
     @JsonProperty("requestId")
     private String requestId;
     @JsonProperty("id")
     private String id;
-    @JsonProperty("actions")
-    private List<ActionPreservation> actions;
-    @JsonProperty("inputs")
-    private List<InputPreservation> inputs;
-    @JsonProperty("debug")
-    private boolean debug;
+    @JsonProperty("outputs")
+    private Map<String, List<OutputPreservation>> outputs;
 
-    public ParametersPreservation() {
+    public ResultPreservation() {
     }
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
-        this.requestId = requestId;
-        this.id = batchId;
-        this.inputs = input;
-        this.actions = actions;
-        this.debug = debug;
+    public static ResultPreservation of(String requestId, String id, Map<String, List<OutputPreservation>> outputList) {
+        ResultPreservation outputs = new ResultPreservation();
+        outputs.setId(id);
+        outputs.setOutputs(outputList);
+        outputs.setRequestId(requestId);
+        return outputs;
     }
 
     public String getRequestId() {
@@ -72,38 +67,20 @@ public class ParametersPreservation {
         this.id = id;
     }
 
-    public List<ActionPreservation> getActions() {
-        return actions;
+    public Map<String, List<OutputPreservation>> getOutputs() {
+        return outputs;
     }
 
-    public void setActions(List<ActionPreservation> actions) {
-        this.actions = actions;
-    }
-
-    public List<InputPreservation> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(List<InputPreservation> inputs) {
-        this.inputs = inputs;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setOutputs(Map<String, List<OutputPreservation>> outputs) {
+        this.outputs = outputs;
     }
 
     @Override
     public String toString() {
-        return "Parameters{" +
+        return "ResultPreservation{" +
             "requestId='" + requestId + '\'' +
             ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
+            ", outputs=" + outputs +
             '}';
     }
 }

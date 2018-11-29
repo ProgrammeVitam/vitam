@@ -25,46 +25,45 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation;
+package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.ActionTypePreservation;
 
-public class ActionPreservation {
-    @JsonProperty("type")
-    private ActionTypePreservation type;
-    @JsonProperty("values")
-    private ValuesPreservation values;
+public class InputPreservation {
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("formatId")
+    private String formatId;
 
-    public ActionPreservation() {
+    public InputPreservation() {
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public InputPreservation(String name, String formatId) {
+        this.name = name;
+        this.formatId = formatId;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
+    public String getName() {
+        return name;
     }
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public ValuesPreservation getValuesPreservation() {
-        return values;
+    public String getFormatId() {
+        return formatId;
     }
 
-    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
-        this.values = valuesPreservation;
+    public void setFormatId(String formatId) {
+        this.formatId = formatId;
     }
 
     @Override
     public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
+        return "Input{" +
+            "name='" + name + '\'' +
+            ", formatId='" + formatId + '\'' +
             '}';
     }
 }
-

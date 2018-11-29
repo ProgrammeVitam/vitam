@@ -47,7 +47,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.batch.report.model.ActionTypePreservation;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -58,6 +58,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ActionPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -119,13 +121,13 @@ public class PreservationActionPluginTest {
         parameter.setObjectNameList(Collections.singletonList(test_id));
 
 
-        ParamsPreservationDistributionFile paramsPreservationDistributionFile =
-            new ParamsPreservationDistributionFile("fmt/43", "photo.jpg",
-                Collections.singletonList(new Action("ANALYSE", null)), "unitId",
+        PreservationDistributionLine preservationDistributionLine =
+            new PreservationDistributionLine("fmt/43", "photo.jpg",
+                Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId",
                 griffinId,
-                "objectId", true, 45);
+                "objectId", true, 45, test_id);
         parameter.setObjectMetadataList(
-            Collections.singletonList(JsonHandler.toJsonNode(paramsPreservationDistributionFile)));
+            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
         File inputFolder = tmpGriffinFolder.newFolder("input-folder");
         File execFolder = tmpGriffinFolder.newFolder("exec-folder");
@@ -226,47 +228,4 @@ public class PreservationActionPluginTest {
             Collections.emptyMap());
     }
 
-    private class ParamsPreservationDistributionFile {
-        @JsonProperty("formatId")
-        private String formatId;
-        @JsonProperty("filename")
-        private String filename;
-        @JsonProperty("actions")
-        private List<Action> actions;
-        @JsonProperty("unitId")
-        private String unitId;
-        @JsonProperty("griffinId")
-        private String griffinId;
-        @JsonProperty("objectId")
-        private String objectId;
-        @JsonProperty("debug")
-        private boolean debug;
-        @JsonProperty("timeout")
-        private int timeout;
-
-        public ParamsPreservationDistributionFile(String formatId, String filename,
-            List<Action> actions, String unitId, String griffinId, String objectId, boolean debug, int timeout) {
-            this.formatId = formatId;
-            this.filename = filename;
-            this.actions = actions;
-            this.unitId = unitId;
-            this.griffinId = griffinId;
-            this.objectId = objectId;
-            this.debug = debug;
-            this.timeout = timeout;
-        }
-    }
-
-
-    private class Action {
-        @JsonProperty("type")
-        private String type;
-        @JsonProperty("values")
-        private String values;
-
-        public Action(String type, String values) {
-            this.type = type;
-            this.values = values;
-        }
-    }
 }

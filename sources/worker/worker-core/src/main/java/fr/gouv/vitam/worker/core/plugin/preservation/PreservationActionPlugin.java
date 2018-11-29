@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
@@ -67,8 +68,13 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ActionPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ParametersPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.IterableUtils;
@@ -76,21 +82,13 @@ import org.apache.commons.io.FileUtils;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
-    private static final int DISTRIB_GROUP_NOT_USED = 2;
 
     public static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String PRESERVATION_ACTION = "PRESERVATION_ACTION";
-    private static final String TIMEOUT = "timeout";
-    private static final String FORMAT_ID = "formatId";
     private static final String INPUT_FILES = "input-files";
-    private static final String DEBUG = "debug";
-    private static final String ACTION = "actions";
     private static final String PARAMETERS_JSON = "parameters.json";
     private static final String RESULT_JSON = "result.json";
-    private static final String UNIT_ID = "unitId";
-    private static final String OBJECT_ID = "objectId";
-    private static final String GRIFFIN_ID = "griffinId";
     private static final String EXECUTABLE_FILE_NAME = "griffin";
 
     private final String griffinInputFolder;
@@ -124,11 +122,13 @@ public class PreservationActionPlugin extends ActionHandler {
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
-        List<JsonLineModel> entries = IntStream.range(0, workerParameters.getObjectNameList().size())
-            .mapToObj(index -> mapToJsonLineModel(workerParameters, index))
-            .collect(Collectors.toList());
+        List<PreservationDistributionLine> entries =
+            IntStream.range(0, workerParameters.getObjectNameList().size())
+                .mapToObj(index -> mapToParamsPreservationDistributionFile(workerParameters, index))
+                .collect(Collectors.toList());
 
-        String griffinId = entries.get(0).getParams().get(GRIFFIN_ID).asText();
+        String griffinId = entries.get(0).getGriffinId();
+
         String batchId = generateBatchId();
 
         try {
@@ -137,7 +137,7 @@ public class PreservationActionPlugin extends ActionHandler {
             copyInputFiles(batchDirectory, entries);
             createParametersBatchFile(entries, batchDirectory, workerParameters.getRequestId(), batchId);
 
-            int timeout = entries.get(0).getParams().get(TIMEOUT).asInt();
+            int timeout = entries.get(0).getTimeout();
             ResultPreservation result = launchGriffin(griffinId, batchDirectory, timeout);
 
             createReport(result, entries, VitamThreadUtils.getVitamSession().getTenantId());
@@ -151,9 +151,18 @@ public class PreservationActionPlugin extends ActionHandler {
         return buildBulkItemStatus(workerParameters, PRESERVATION_ACTION, OK);
     }
 
-    private JsonLineModel mapToJsonLineModel(WorkerParameters workerParameters, int index) {
-        return new JsonLineModel(workerParameters.getObjectNameList().get(index),
-            DISTRIB_GROUP_NOT_USED, workerParameters.getObjectMetadataList().get(index));
+    private PreservationDistributionLine mapToParamsPreservationDistributionFile(
+        WorkerParameters workerParameters, int index) {
+        PreservationDistributionLine preservationDistributionLine;
+        try {
+            preservationDistributionLine = JsonHandler
+                .getFromJsonNode(workerParameters.getObjectMetadataList().get(index),
+                    PreservationDistributionLine.class);
+            preservationDistributionLine.setId(workerParameters.getObjectNameList().get(index));
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+        return preservationDistributionLine;
     }
 
     private void deleteLocalFiles(String griffinId, String batchId) throws ProcessingException {
@@ -172,21 +181,23 @@ public class PreservationActionPlugin extends ActionHandler {
         return Files.createDirectory(griffinDirectory.resolve(batchId));
     }
 
-    private void copyInputFiles(Path batchDirectory, List<JsonLineModel> jsonLineModels) throws Exception {
+    private void copyInputFiles(Path batchDirectory, List<PreservationDistributionLine> entries)
+        throws Exception {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             Path inputFilesDirectory = Files.createDirectory(batchDirectory.resolve(INPUT_FILES));
-            for (JsonLineModel jsonLineModel : jsonLineModels) {
-                copyBinaryFile(jsonLineModel, storageClient, inputFilesDirectory);
+            for (PreservationDistributionLine entryParams : entries) {
+                copyBinaryFile(entryParams, storageClient, inputFilesDirectory);
             }
         }
     }
 
-    private void copyBinaryFile(JsonLineModel jsonLineModel, StorageClient storageClient, Path inputFilesDirectory)
+    private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient,
+        Path inputFilesDirectory)
         throws Exception {
         final Response response = storageClient
-            .getContainerAsync(DEFAULT_STORAGE_STRATEGY, jsonLineModel.getId(), OBJECT, getNoLogAccessLog());
+            .getContainerAsync(DEFAULT_STORAGE_STRATEGY, entryParams.getId(), OBJECT, getNoLogAccessLog());
         try (InputStream src = response.readEntity(InputStream.class)) {
-            Path target = inputFilesDirectory.resolve(jsonLineModel.getId());
+            Path target = inputFilesDirectory.resolve(entryParams.getId());
             Files.copy(src, target, REPLACE_EXISTING);
         } finally {
             if (response != null) {
@@ -208,18 +219,21 @@ public class PreservationActionPlugin extends ActionHandler {
                         case GENERATE:
                             break;
                         default:
-                            throw new RuntimeException("action must be of type: IDENTIFY | EXTRACT | ANALYSE | GENERATE");
+                            throw new RuntimeException(
+                                "action must be of type: IDENTIFY | EXTRACT | ANALYSE | GENERATE");
                     }
                 })));
     }
 
-    private void createReport(ResultPreservation resultPreservation, List<JsonLineModel> request, int tenant)
+    private void createReport(ResultPreservation resultPreservation, List<PreservationDistributionLine> request,
+        int tenant)
         throws VitamClientInternalException {
         List<PreservationReportModel> reportModels = toReportModel(resultPreservation, request, tenant, now());
         preservationReportService.appendPreservationEntries(resultPreservation.getRequestId(), reportModels);
     }
 
-    private List<PreservationReportModel> toReportModel(ResultPreservation outputs, List<JsonLineModel> requests,
+    private List<PreservationReportModel> toReportModel(ResultPreservation outputs,
+        List<PreservationDistributionLine> requests,
         int tenant, LocalDateTime now) {
         return outputs.getOutputs().entrySet()
             .stream()
@@ -230,9 +244,8 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private PreservationReportModel getPreservationReportModel(ResultPreservation outputs, int tenant,
-        LocalDateTime now, OutputPreservation value,
-        List<JsonLineModel> requests) {
-        JsonLineModel model =
+        LocalDateTime now, OutputPreservation value, List<PreservationDistributionLine> requests) {
+        PreservationDistributionLine model =
             IterableUtils.find(requests, j -> j.getId().equals(value.getInputPreservation().getName()));
 
         return new PreservationReportModel(
@@ -241,8 +254,8 @@ public class PreservationActionPlugin extends ActionHandler {
             tenant,
             now.toString(),
             value.getStatus(),
-            model.getParams().get(UNIT_ID).asText(),
-            model.getParams().get(OBJECT_ID).asText(),
+            model.getUnitId(),
+            model.getObjectId(),
             value.getAction().toString(),
             value.getAnalyseResult().toString(),
             value.getInputPreservation().getName(),
@@ -255,33 +268,29 @@ public class PreservationActionPlugin extends ActionHandler {
             .getId();
     }
 
-    private void createParametersBatchFile(List<JsonLineModel> jsonLineModels, Path batchDirectory, String requestId,
-        String batchId) throws Exception {
-        List<InputPreservation> inputPreservations = jsonLineModels.stream()
+    private void createParametersBatchFile(List<PreservationDistributionLine> entryParams, Path batchDirectory,
+        String requestId, String batchId) throws Exception {
+        List<InputPreservation> inputPreservations = entryParams.stream()
             .map(this::mapToInput)
             .collect(Collectors.toList());
-        List<ActionPreservation> actionPreservations =
-            jsonLineModels.stream().map(this::mapToActions).collect(Collectors.toList());
+        List<ActionPreservation> preservationActions =
+            entryParams.stream().flatMap(this::mapToActions).collect(Collectors.toList());
 
-        boolean debug = jsonLineModels.get(0).getParams().get(DEBUG).asBoolean();
+        boolean debug = entryParams.get(0).isDebug();
         ParametersPreservation parametersPreservation =
-            new ParametersPreservation(requestId, batchId, inputPreservations, actionPreservations, debug);
+            new ParametersPreservation(requestId, batchId, inputPreservations, preservationActions, debug);
         Path parametersPath = batchDirectory.resolve(PARAMETERS_JSON);
         JsonHandler.writeAsFile(parametersPreservation, parametersPath.toFile());
     }
 
 
-    private ActionPreservation mapToActions(JsonLineModel jsonLineModel) throws RuntimeException {
-        try {
-            return JsonHandler
-                .getFromString(jsonLineModel.getParams().get(ACTION).toString(), ActionPreservation.class);
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
-        }
+    private Stream<ActionPreservation> mapToActions(PreservationDistributionLine entryParams) {
+        return entryParams.getActionPreservations().stream();
+
     }
 
-    private InputPreservation mapToInput(JsonLineModel jsonLineModel) {
-        return new InputPreservation(jsonLineModel.getId(), jsonLineModel.getParams().get(FORMAT_ID).asText());
+    private InputPreservation mapToInput(PreservationDistributionLine entryParams) {
+        return new InputPreservation(entryParams.getId(), entryParams.getFormatId());
     }
 
     private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout) throws Exception {
