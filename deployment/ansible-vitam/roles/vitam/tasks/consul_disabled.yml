@@ -1,0 +1,37 @@
+---
+
+- name: Remove Consul package
+  package:
+    name: vitam-consul
+    state: absent
+
+- block:
+
+  # For Debian
+  - name: Remove resolvconf package
+    package:
+      name: resolvconf
+      state: absent
+
+  when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
+
+- block:
+
+  # For Centos
+  - name: Remove vitam-resolvconf package
+    package:
+      name: vitam-resolvconf
+      state: absent
+
+  when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
+
+- name: Remove 127.0.0.1 nameserver to resolv.conf
+  blockinfile:
+    backup: yes
+    dest: /etc/resolv.conf
+    insertbefore: BOF # necessary or this entry won't be asked
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      nameserver 127.0.0.1
+    state: absent
+  when: inventory_hostname != 'localhost'

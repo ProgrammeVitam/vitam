@@ -245,6 +245,9 @@
 
 - import_tasks: consul.yml
 
+- include_tasks: consul_disabled.yml
+  when: consul_disabled is defined and consul_disabled |lower == "true"
+
 - import_tasks: ihm_demo.yml
 
 - name: flush_handlers
