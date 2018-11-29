@@ -38,9 +38,9 @@ import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -157,9 +157,9 @@ public class BatchReportServiceImpl {
 
 
     public void exportEliminationActionUnitReport(String processId, String fileName, int tenantId)
-        throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
+            throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
         File tempFile =
-            File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+                FileUtil.createFileInTempDirectoryWithPathCheck(fileName, JSONL_EXTENSION);
         try (MongoCursor<Document> iterator =
             eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId)) {
 
@@ -172,9 +172,10 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
-        throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
-        File tempFile =
-            File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
+
+        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(fileName, JSONL_EXTENSION);
+
         try (MongoCursor<Document> iterator = eliminationActionObjectGroupRepository
             .findCollectionByProcessIdTenant(processId, tenantId)) {
 
@@ -189,7 +190,8 @@ public class BatchReportServiceImpl {
 
     public void exportPreservationReport(String processId, String fileName, int tenantId)
         throws IOException, ContentAddressableStorageServerException {
-        File file = Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName)).toFile();
+        File file = FileUtil.createFileInTempDirectoryWithPathCheck(fileName, null);
+
         try  {
             createDocument(processId, tenantId, file);
             transferDocumentToWorkspace(processId, fileName, file);
@@ -326,10 +328,11 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionDistinctObjectGroupOfDeletedUnits(String processId, String filename,
-        int tenantId)
-        throws IOException, ContentAddressableStorageServerException {
-        File tempFile =
-            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+                                                                         int tenantId)
+            throws IOException, ContentAddressableStorageServerException {
+
+        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(filename, JSONL_EXTENSION);
+
         try (MongoCursor<String> iterator = eliminationActionUnitRepository
             .distinctObjectGroupOfDeletedUnits(processId, tenantId)) {
             createFileFromMongoCursorWithString(tempFile, iterator);
@@ -340,9 +343,10 @@ public class BatchReportServiceImpl {
     }
 
     public void exportEliminationActionAccessionRegister(String processId, String filename, int tenantId)
-        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
-        File tempFile =
-            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+            throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
+
+        File tempFile = FileUtil.createFileInTempDirectoryWithPathCheck(filename, JSONL_EXTENSION);
+
         try (MongoCursor<Document> unitCursor = eliminationActionUnitRepository
             .computeOwnAccessionRegisterDetails(processId, tenantId);
             MongoCursor<Document> gotCursor = eliminationActionObjectGroupRepository

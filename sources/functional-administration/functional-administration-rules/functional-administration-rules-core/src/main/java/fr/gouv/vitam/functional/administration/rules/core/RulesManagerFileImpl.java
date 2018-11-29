@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.FileUtil;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -1440,7 +1441,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     private File convertInputStreamToFile(InputStream rulesStream, String extension) throws IOException {
         try {
-            final File csvFile = File.createTempFile(TMP, extension, new File(VitamConfiguration.getVitamTmpFolder()));
+            final File csvFile = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
             Files.copy(rulesStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return csvFile;
         } finally {
