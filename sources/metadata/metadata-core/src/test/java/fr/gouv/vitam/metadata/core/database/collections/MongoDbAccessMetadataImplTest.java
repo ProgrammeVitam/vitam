@@ -54,11 +54,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.FacetBucket;
@@ -292,98 +294,8 @@ public class MongoDbAccessMetadataImplTest {
         // Given
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
-        SearchResponse archiveUnitResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 3\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
-        );
-        SearchResponse objectGroupResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
-        );
+        SearchResponse archiveUnitResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_1.data"));
+        SearchResponse objectGroupResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_1.data"));
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(archiveUnitResponse);
@@ -412,98 +324,8 @@ public class MongoDbAccessMetadataImplTest {
         // Given
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
-        SearchResponse archiveUnitResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 3\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
-        );
-        SearchResponse objectGroupResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 3,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier1\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
-        );
+        SearchResponse archiveUnitResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_2.data"));
+        SearchResponse objectGroupResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_2.data"));
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(archiveUnitResponse);
@@ -537,105 +359,18 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link() throws IOException {
+    public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link() throws IOException, InvalidParseOperationException {
         // Given
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         long numberOfOriginatingAgencies = 12;
         long numberOfOriginatingAgency = 1;
         SearchResponse archiveUnitResponse = searchResult(
-            String.format(
-                    "{\n" +
-                            "  \"took\": 6,\n" +
-                            "  \"timed_out\": false,\n" +
-                            "  \"_shards\": {\n" +
-                            "    \"total\": 1,\n" +
-                            "    \"successful\": 1,\n" +
-                            "    \"skipped\": 0,\n" +
-                            "    \"failed\": 0\n" +
-                            "  },\n" +
-                            "  \"aggregations\": {\n" +
-                            "    \"sterms#originatingAgencies\": {\n" +
-                            "      \"doc_count_error_upper_bound\": 0,\n" +
-                            "      \"sum_other_doc_count\": 0,\n" +
-                            "      \"buckets\": [\n" +
-                            "        {\n" +
-                            "          \"key\": \"Identifier0\",\n" +
-                            "          \"doc_count\": %d,\n" +
-                            "          \"nested#nestedVersions\": {\n" +
-                            "            \"doc_count\": 3\n" +
-                            "          }\n" +
-                            "        }\n" +
-                            "      ]\n" +
-                            "    },\n" +
-                            "    \"sterms#originatingAgency\": {\n" +
-                            "      \"doc_count_error_upper_bound\": 0,\n" +
-                            "      \"sum_other_doc_count\": 0,\n" +
-                            "      \"buckets\": [\n" +
-                            "        {\n" +
-                            "          \"key\": \"Identifier0\",\n" +
-                            "          \"doc_count\": %d,\n" +
-                            "          \"nested#nestedVersions\": {\n" +
-                            "            \"doc_count\": 1\n" +
-                            "          }\n" +
-                            "        }\n" +
-                            "      ]\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}",
+            String.format(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_3.data"),
                 numberOfOriginatingAgencies, numberOfOriginatingAgency)
         );
         SearchResponse objectGroupResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier1\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_3.data")
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -669,44 +404,7 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 3,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 3\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                String.format(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_4.data"))
         );
         double binarySize = 88209;
         long binaryCount = 2;
@@ -715,57 +413,8 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                    "{\n" +
-                            "  \"took\": 6,\n" +
-                            "  \"timed_out\": false,\n" +
-                            "  \"_shards\": {\n" +
-                            "    \"total\": 1,\n" +
-                            "    \"successful\": 1,\n" +
-                            "    \"skipped\": 0,\n" +
-                            "    \"failed\": 0\n" +
-                            "  },\n" +
-                            "  \"aggregations\": {\n" +
-                            "    \"sterms#originatingAgencies\": {\n" +
-                            "      \"doc_count_error_upper_bound\": 0,\n" +
-                            "      \"sum_other_doc_count\": 0,\n" +
-                            "      \"buckets\": [\n" +
-                            "        {\n" +
-                            "          \"key\": \"Identifier0\",\n" +
-                            "          \"doc_count\": %d,\n" +
-                            "          \"nested#nestedVersions\": {\n" +
-                            "            \"doc_count\": 1,\n" +
-                            "            \"value_count#binaryObjectCount\": {\n" +
-                            "              \"value\": %d\n" +
-                            "            },\n" +
-                            "            \"sum#binaryObjectSize\": {\n" +
-                            "              \"value\": %f\n" +
-                            "            }\n" +
-                            "          }\n" +
-                            "        }\n" +
-                            "      ]\n" +
-                            "    },\n" +
-                            "    \"sterms#originatingAgency\": {\n" +
-                            "      \"doc_count_error_upper_bound\": 0,\n" +
-                            "      \"sum_other_doc_count\": 0,\n" +
-                            "      \"buckets\": [\n" +
-                            "        {\n" +
-                            "          \"key\": \"Identifier1\",\n" +
-                            "          \"doc_count\": %d,\n" +
-                            "          \"nested#nestedVersions\": {\n" +
-                            "            \"doc_count\": 1,\n" +
-                            "            \"value_count#binaryObjectCount\": {\n" +
-                            "              \"value\": %d\n" +
-                            "            },\n" +
-                            "            \"sum#binaryObjectSize\": {\n" +
-                            "              \"value\": %f\n" +
-                            "            }\n" +
-                            "          }\n" +
-                            "        }\n" +
-                            "      ]\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}",
-                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
+                    PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_4.data"),
+                    objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -802,44 +451,7 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-            "{\n" +
-                    "  \"took\": 6,\n" +
-                    "  \"timed_out\": false,\n" +
-                    "  \"_shards\": {\n" +
-                    "    \"total\": 1,\n" +
-                    "    \"successful\": 1,\n" +
-                    "    \"skipped\": 0,\n" +
-                    "    \"failed\": 0\n" +
-                    "  },\n" +
-                    "  \"aggregations\": {\n" +
-                    "    \"sterms#originatingAgencies\": {\n" +
-                    "      \"doc_count_error_upper_bound\": 0,\n" +
-                    "      \"sum_other_doc_count\": 0,\n" +
-                    "      \"buckets\": [\n" +
-                    "        {\n" +
-                    "          \"key\": \"Identifier0\",\n" +
-                    "          \"doc_count\": 3,\n" +
-                    "          \"nested#nestedVersions\": {\n" +
-                    "            \"doc_count\": 3\n" +
-                    "          }\n" +
-                    "        }\n" +
-                    "      ]\n" +
-                    "    },\n" +
-                    "    \"sterms#originatingAgency\": {\n" +
-                    "      \"doc_count_error_upper_bound\": 0,\n" +
-                    "      \"sum_other_doc_count\": 0,\n" +
-                    "      \"buckets\": [\n" +
-                    "        {\n" +
-                    "          \"key\": \"Identifier0\",\n" +
-                    "          \"doc_count\": 1,\n" +
-                    "          \"nested#nestedVersions\": {\n" +
-                    "            \"doc_count\": 1\n" +
-                    "          }\n" +
-                    "        }\n" +
-                    "      ]\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}"
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_5.data")
         );
         double binarySize = 0;
         long binaryCount = 0;
@@ -848,56 +460,7 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": %d,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": %d\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": %.2f\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": %d,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": %d\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": %.2f\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}",
+                    PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_5.data"),
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
@@ -934,96 +497,10 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
 
         SearchResponse archiveUnitResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_6.data")
         );
         SearchResponse objectGroupResponse = searchResult(
-                "{\n" +
-                        "  \"took\": 6,\n" +
-                        "  \"timed_out\": false,\n" +
-                        "  \"_shards\": {\n" +
-                        "    \"total\": 1,\n" +
-                        "    \"successful\": 1,\n" +
-                        "    \"skipped\": 0,\n" +
-                        "    \"failed\": 0\n" +
-                        "  },\n" +
-                        "  \"aggregations\": {\n" +
-                        "    \"sterms#originatingAgencies\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    },\n" +
-                        "    \"sterms#originatingAgency\": {\n" +
-                        "      \"doc_count_error_upper_bound\": 0,\n" +
-                        "      \"sum_other_doc_count\": 0,\n" +
-                        "      \"buckets\": [\n" +
-                        "        {\n" +
-                        "          \"key\": \"Identifier0\",\n" +
-                        "          \"doc_count\": 1,\n" +
-                        "          \"nested#nestedVersions\": {\n" +
-                        "            \"doc_count\": 1,\n" +
-                        "            \"sum#binaryObjectSize\": {\n" +
-                        "              \"value\": 88209\n" +
-                        "            },\n" +
-                        "            \"value_count#binaryObjectCount\": {\n" +
-                        "              \"value\": 2\n" +
-                        "            }\n" +
-                        "          }\n" +
-                        "        }\n" +
-                        "      ]\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}"
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_6.data")
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))

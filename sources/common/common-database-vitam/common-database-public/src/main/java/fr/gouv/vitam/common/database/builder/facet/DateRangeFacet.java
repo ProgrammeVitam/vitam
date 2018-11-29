@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.database.builder.facet;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -45,12 +46,32 @@ public class DateRangeFacet extends Facet {
      *
      * @param name
      * @param field
+     * @param nestdPath
+     * @param dateFormat
+     * @param ranges
+     * @throws InvalidCreateOperationException
+     */
+    public DateRangeFacet(String name, String field, String nestdPath, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
+        super(name);
+        populateFacet(name, field, nestdPath, dateFormat, ranges);
+    }
+
+    /**
+     * Date Range facet constructor
+     *
+     * @param name
+     * @param field
+     * @param nestdPath
      * @param dateFormat
      * @param ranges
      * @throws InvalidCreateOperationException
      */
     public DateRangeFacet(String name, String field, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
         super(name);
+        populateFacet(name, field, null, dateFormat, ranges);
+    }
+
+    private void populateFacet(String name, String field, String nestdPath, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
         setName(name);
         currentTokenFACET = FACET.DATE_RANGE;
         if (name == null || name.isEmpty()) {
@@ -68,6 +89,9 @@ public class DateRangeFacet extends Facet {
 
         ObjectNode facetNode = JsonHandler.createObjectNode();
         facetNode.put(FACETARGS.FIELD.exactToken(), field);
+        if(nestdPath != null) {
+            facetNode.put(FACETARGS.SUBOBJECT.exactToken(), nestdPath);
+        }
         facetNode.put(FACETARGS.FORMAT.exactToken(), dateFormat);
         ArrayNode rangesNode = JsonHandler.createArrayNode();
         for (RangeFacetValue item:ranges){
@@ -79,6 +103,7 @@ public class DateRangeFacet extends Facet {
             rangesNode.add(rangeNode);
         }
         facetNode.set(FACETARGS.RANGES.exactToken(), rangesNode);
+
         currentFacet = facetNode;
     }
 }

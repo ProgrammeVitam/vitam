@@ -30,24 +30,17 @@ import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.dateRange;
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
 import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.dateRange;
-import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.terms;
 import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.filters;
+import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.terms;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
@@ -57,6 +50,11 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class FacetParserHelperTest {
 
@@ -98,6 +96,19 @@ public class FacetParserHelperTest {
         }
     }
 
+    @Test
+    public void testTermsWithNestedField() {
+        try {
+            // basic terms
+            Facet facet1 = terms("facet1", "path.to.var1", "path.to", 2, FacetOrder.ASC);
+            Facet facet2 = terms(facet1.getCurrentFacet(), noAdapter);
+            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
+                    facet2.getCurrentFacet().toString());
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
     @Test
     public void testFilters() throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -143,6 +154,21 @@ public class FacetParserHelperTest {
         }
     }
 
+    @Test
+    public void testDateRangeOkWithNestedField() {
+        try {
+            List<RangeFacetValue> ranges = new ArrayList<>();
+            ranges.add(new RangeFacetValue("from", null));
+            Facet facet1 = dateRange("facet1", "path.to.EndDate", "path.to", "yyyy", ranges);
+            Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
+            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
+                    facet2.getCurrentFacet().toString());
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
     @Test(expected = InvalidCreateOperationException.class)
     public void testDateRangeKoNoRanges() throws InvalidParseOperationException, InvalidCreateOperationException {
         List<RangeFacetValue> ranges = new ArrayList<>();
@@ -161,6 +187,6 @@ public class FacetParserHelperTest {
     public void testDateRangeKoNoField() throws InvalidParseOperationException, InvalidCreateOperationException {
         List<RangeFacetValue> ranges = new ArrayList<>();
         ranges.add(new RangeFacetValue("from", "to"));
-        Facet facet1 = dateRange("facet1", null, "yyyy", ranges);
+        Facet facet1 = dateRange("facet1", "", "yyyy", ranges);
     }
 }

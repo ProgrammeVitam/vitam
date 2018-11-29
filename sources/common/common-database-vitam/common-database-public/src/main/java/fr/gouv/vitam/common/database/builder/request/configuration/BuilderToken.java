@@ -533,7 +533,8 @@ public abstract class BuilderToken {
         /**
          * Used in terms facet
          */
-        ORDER("order");
+        ORDER("order"),
+        SUBOBJECT("subobject"),;
 
         private final String exactToken;
 

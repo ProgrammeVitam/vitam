@@ -37,29 +37,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregator.KeyedFilter;
-import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -81,6 +62,23 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregator.KeyedFilter;
+import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 
 /**
  * Elasticsearch Translator
@@ -475,7 +473,7 @@ public class QueryToElasticsearch {
             logCommand(query, content);
         }
 
-        if(content == null || !content.fields().hasNext() || !content.fields().next().getValue().fields().hasNext()) {
+        if (content == null || !content.fields().hasNext() || !content.fields().next().getValue().fields().hasNext()) {
             throw new InvalidParseOperationException("$subobject query is not valid");
         }
 
@@ -1096,11 +1094,11 @@ public class QueryToElasticsearch {
      * Add date_range es facet from facet
      *
      * @param builders es facets
-     * @param facet facet
+     * @param facet    facet
      */
     private static void dateRangeFacet(List<AggregationBuilder> builders, Facet facet) {
-        DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(facet.getName());//
         JsonNode dateRange = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+        DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(facet.getName());
         dateRangeBuilder.field(dateRange.get(FACETARGS.FIELD.exactToken()).asText());
         dateRangeBuilder.format(dateRange.get(FACETARGS.FORMAT.exactToken()).asText());
         JsonNode ranges = dateRange.get(FACETARGS.RANGES.exactToken());
@@ -1115,6 +1113,13 @@ public class QueryToElasticsearch {
                 dateRangeBuilder.addUnboundedTo(to.asText());
             }
         });
+
+        if (dateRange.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+            builders.add(AggregationBuilders.nested(facet.getName(), dateRange.get(FACETARGS.SUBOBJECT.exactToken()).asText())
+                    .subAggregation(dateRangeBuilder));
+            return;
+        }
+
         builders.add(dateRangeBuilder);
     }
 
@@ -1122,15 +1127,23 @@ public class QueryToElasticsearch {
      * Add terms es facet from facet
      *
      * @param builders es facets
-     * @param facet facet
+     * @param facet    facet
      */
     private static void termsFacet(List<AggregationBuilder> builders, Facet facet) {
-        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
         JsonNode terms = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
-        termsBuilder.field(terms.get(FACETARGS.FIELD.exactToken()).asText());
+        String fieldName = terms.get(FACETARGS.FIELD.exactToken()).asText();
+        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
+        termsBuilder.field(fieldName);
         if (terms.has(FACETARGS.SIZE.exactToken())) {
             termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
         }
+
+        if (terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+            builders.add(AggregationBuilders.nested(facet.getName(), terms.get(FACETARGS.SUBOBJECT.exactToken()).asText())
+                    .subAggregation(termsBuilder));
+            return;
+        }
+
         builders.add(termsBuilder);
     }
 

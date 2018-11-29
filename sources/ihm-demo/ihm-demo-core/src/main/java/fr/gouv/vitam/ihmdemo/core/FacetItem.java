@@ -33,7 +33,12 @@ import fr.gouv.vitam.common.model.FacetDateRangeItem;
 import fr.gouv.vitam.common.model.FacetFiltersItem;
 import fr.gouv.vitam.common.model.FacetType;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Description of facet item model. <br/>
@@ -57,6 +62,12 @@ public class FacetItem {
      */
     @JsonProperty("field")
     private String field;
+
+    /**
+     * Subobject.
+     */
+    @JsonProperty("subobject")
+    private String subobject;
 
     /**
      * Size.
@@ -90,6 +101,13 @@ public class FacetItem {
     @JsonProperty("filters")
     private List<FacetFiltersItem> filters;
 
+    private static final Map<String, String> nestedFields = Stream.of(new String[][]{
+            {"#qualifiers.versions.FormatIdentification.FormatLitteral", "#qualifiers.versions"},
+            {"#qualifiers.versions.DataObjectVersion", "#qualifiers.versions"},
+        }).collect(Collectors.collectingAndThen(
+            Collectors.toMap(data -> data[0], data -> data[1]),
+            Collections::<String, String>unmodifiableMap));
+
     /**
      * Constructor.
      */
@@ -98,7 +116,7 @@ public class FacetItem {
     }
 
     public FacetItem(String name, FacetType facetType, String field, Integer size,
-        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters) {
+        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters, Optional<String> subobject) {
         this.name = name;
         this.facetType = facetType;
         this.field = field;
@@ -143,6 +161,9 @@ public class FacetItem {
      */
     public void setField(String field) {
         this.field = field;
+        if(nestedFields.containsKey(field)) {
+            this.subobject = nestedFields.get(field);
+        }
     }
 
     /**
@@ -241,5 +262,9 @@ public class FacetItem {
 
     public void setOrder(FacetOrder order) {
         this.order = order;
+    }
+
+    public String getSubobject() {
+        return subobject;
     }
 }

@@ -1,0 +1,38 @@
+{
+  "took": 6,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "aggregations": {
+    "sterms#originatingAgencies": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "Identifier0",
+          "doc_count": %d,
+          "nested#nestedVersions": {
+            "doc_count": 3
+          }
+        }
+      ]
+    },
+    "sterms#originatingAgency": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "Identifier0",
+          "doc_count": %d,
+          "nested#nestedVersions": {
+            "doc_count": 1
+          }
+        }
+      ]
+    }
+  }
+}

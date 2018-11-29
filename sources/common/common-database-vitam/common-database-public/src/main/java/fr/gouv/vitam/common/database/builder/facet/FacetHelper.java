@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.builder.facet;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
@@ -49,13 +50,29 @@ public class FacetHelper {
      * 
      * @param name name of the facet
      * @param field field of facet data
+     * @param nestdPath nested path of field of facet data
+     * @param size size of the facet
+     * @param order order of the facet
+     * @return a Facet
+     * @throws InvalidCreateOperationException when creating facet errors
+     */
+    public static final Facet terms(String name, String field, String nestdPath, Integer size, FacetOrder order)
+        throws InvalidCreateOperationException {
+        return new TermsFacet(name, field, nestdPath, size, order);
+    }
+
+    /**
+     * Create a facet
+     *
+     * @param name name of the facet
+     * @param field field of facet data
      * @param size size of the facet
      * @param order order of the facet
      * @return a Facet
      * @throws InvalidCreateOperationException when creating facet errors
      */
     public static final Facet terms(String name, String field, Integer size, FacetOrder order)
-        throws InvalidCreateOperationException {
+            throws InvalidCreateOperationException {
         return new TermsFacet(name, field, size, order);
     }
 
@@ -65,13 +82,29 @@ public class FacetHelper {
      * 
      * @param name name of the facet
      * @param field field of facet data
+     * @param nestedPath nested path of field of facet data
+     * @param dateFormat the date format for the ranges of the facet
+     * @param ranges
+     * @return
+     * @throws InvalidCreateOperationException
+     */
+    public static final Facet dateRange(String name, String field, String nestedPath, String dateFormat, List<RangeFacetValue> ranges)
+        throws InvalidCreateOperationException {
+        return new DateRangeFacet(name, field, nestedPath, dateFormat, ranges);
+    }
+
+    /**
+     * Create a date range facet
+     *
+     * @param name name of the facet
+     * @param field field of facet data
      * @param dateFormat the date format for the ranges of the facet
      * @param ranges
      * @return
      * @throws InvalidCreateOperationException
      */
     public static final Facet dateRange(String name, String field, String dateFormat, List<RangeFacetValue> ranges)
-        throws InvalidCreateOperationException {
+            throws InvalidCreateOperationException {
         return new DateRangeFacet(name, field, dateFormat, ranges);
     }
 

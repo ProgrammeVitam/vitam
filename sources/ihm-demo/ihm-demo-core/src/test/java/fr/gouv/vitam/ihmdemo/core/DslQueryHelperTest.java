@@ -26,6 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -41,17 +52,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.FacetDateRangeItem;
 import fr.gouv.vitam.common.model.FacetFiltersItem;
 import fr.gouv.vitam.common.model.FacetType;
-import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.*;
 
 /**
  * DslQueryHelper junit test
@@ -200,22 +202,24 @@ public class DslQueryHelperTest {
                 );
 
         List<FacetItem> facetItems = Arrays.asList(
+                new FacetItem("NestedFacet", FacetType.TERMS, "#qualifiers.versions.FormatIdentification.FormatLitteral",100, FacetOrder.ASC, null,
+                        null, null, Optional.empty()),
                 new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
-                        null, null),
+                        null, null, Optional.empty()),
                 new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
-                        null, null),
+                        null, null, Optional.empty()),
 
-                new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null),
-                new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null),
+                new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null, Optional.empty()),
+                new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null, Optional.empty()),
 
-                new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters),
+                new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters, Optional.empty()),
 
                 new FacetItem("LanguageFacet", FacetType.TERMS, "Language", 100, FacetOrder.ASC, null,
-                        null, null),
+                        null, null, Optional.empty()),
 
-                new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters),
+                new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters, Optional.empty()),
 
-                new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters)
+                new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters, Optional.empty())
 
         );
 
@@ -238,30 +242,33 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
         assertTrue(selectParser.getRequest().getProjection().size() == 1);
 
-        assertTrue(selectParser.getRequest().getFacets().size() == 8);
+        assertTrue(selectParser.getRequest().getFacets().size() == 9);
 
         assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
-                "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"NestedFacet\",\"$terms\":{\"$field\":\"#qualifiers.versions.FormatIdentification.FormatLitteral\",\"$subobject\":\"#qualifiers.versions\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(1).toString().contains(
-                "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(2).toString().contains(
-                "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+                "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(3).toString().contains(
-                "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+                "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(4).toString().contains(
-                "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
+                "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(5).toString().contains(
-                "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
+                "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(6).toString().contains(
-                "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+                "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(7).toString().contains(
+                "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(8).toString().contains(
                 "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"));
 
     }

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -346,5 +347,30 @@ public final class PropertiesUtils {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.writeValue(outputStream, config);
         }
+    }
+
+    /**
+     * Get the String content from the Resources directory
+     *
+     * @param resourcesFile properties file from resources directory
+     * @return the associated File content as a String
+     * @throws FileNotFoundException if the resource file not found
+     */
+    public static final String getResourceAsString(String resourcesFile) throws FileNotFoundException {
+        if (resourcesFile == null) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+        }
+
+        String fileAsString = null;
+        try {
+            fileAsString = new String(Files.readAllBytes(getResourcePath(resourcesFile)));
+        } catch (final SecurityException e) {
+            // since another exception is thrown
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        } catch (final IOException e) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+        }
+
+        return fileAsString;
     }
 }

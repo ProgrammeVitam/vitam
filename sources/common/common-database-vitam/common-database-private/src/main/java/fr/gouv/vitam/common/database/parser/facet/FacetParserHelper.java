@@ -34,7 +34,6 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
@@ -82,15 +81,26 @@ public class FacetParserHelper extends FacetHelper {
                 String.format("facet must contain a %s parameter", FACETARGS.SIZE.exactToken()));
         }
 
-        String field = terms.get(FACETARGS.FIELD.exactToken()).asText();
-        String translatedField = adapter.getVariableName(field);
-        if (translatedField == null) {
-            translatedField = field;
+        String translatedNestedPath = null;
+        if(terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+            String nestedPath = terms.get(FACETARGS.SUBOBJECT.exactToken()).asText();
+            translatedNestedPath = adapter.getVariableName(nestedPath);
+            if(translatedNestedPath == null) {
+                translatedNestedPath = nestedPath;
+            }
         }
+
+        String fieldName = terms.get(FACETARGS.FIELD.exactToken()).asText();
+        String translatedFieldName = adapter.getVariableName(fieldName);
+        if(translatedFieldName == null) {
+            translatedFieldName = fieldName;
+        }
+
         Integer size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
         FacetOrder order = FacetOrder.valueOf(terms.get(FACETARGS.ORDER.exactToken()).asText());
-        return FacetHelper.terms(name, translatedField, size, order);
 
+
+        return FacetHelper.terms(name, translatedFieldName, translatedNestedPath, size, order);
     }
 
     /**
@@ -109,11 +119,7 @@ public class FacetParserHelper extends FacetHelper {
         ArrayNode ranges = (ArrayNode) dateRange.get(FACETARGS.RANGES.exactToken());
 
         String dateFormat = dateRange.get(FACETARGS.FORMAT.exactToken()).asText();
-        String field = dateRange.get(FACETARGS.FIELD.exactToken()).asText();
-        String translatedField = adapter.getVariableName(field);
-        if (translatedField == null) {
-            translatedField = field;
-        }
+
         List<RangeFacetValue> rangesList = new ArrayList<>();
         ranges.forEach(item -> {
             JsonNode from = item.get(FACETARGS.FROM.exactToken());
@@ -121,7 +127,23 @@ public class FacetParserHelper extends FacetHelper {
             rangesList.add(new RangeFacetValue(from != null && !from.isNull() ? from.asText() : null,
                 to != null && !to.isNull() ? to.asText() : null));
         });
-        return FacetHelper.dateRange(name, translatedField, dateFormat, rangesList);
+
+        String translatedNestedPath = null;
+        if(dateRange.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
+            String nestedPath = dateRange.get(FACETARGS.SUBOBJECT.exactToken()).asText();
+            translatedNestedPath = adapter.getVariableName(nestedPath);
+            if(translatedNestedPath == null) {
+                translatedNestedPath = nestedPath;
+            }
+        }
+
+        String fieldName = dateRange.get(FACETARGS.FIELD.exactToken()).asText();
+        String translatedFieldName = adapter.getVariableName(fieldName);
+        if(translatedFieldName == null) {
+            translatedFieldName = fieldName;
+        }
+
+        return FacetHelper.dateRange(name, translatedFieldName, translatedNestedPath, dateFormat, rangesList);
 
     }
 
