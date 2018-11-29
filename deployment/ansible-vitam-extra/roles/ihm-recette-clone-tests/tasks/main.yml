@@ -93,7 +93,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: 
+  when:
     - http_proxy_environnement is defined
     - http_proxy_environnement != ''
 
@@ -115,6 +115,12 @@
 
 - name: fetch repo
   shell: git fetch
+  become_user: "{{ vitam_defaults.users.vitam }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+
+- name: Reset branch
+  shell: "git reset --hard && git clean -fd"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
