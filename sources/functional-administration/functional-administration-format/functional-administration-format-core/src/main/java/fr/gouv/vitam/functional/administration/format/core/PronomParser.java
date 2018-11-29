@@ -27,12 +27,14 @@
 
 package fr.gouv.vitam.functional.administration.format.core;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -43,21 +45,12 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
-import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCreationException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * PronomParser parse the xml pronom file to get the info on file format
@@ -65,25 +58,18 @@ import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCr
 
 public class PronomParser {
 
-    /**
-     * FileFormat prefix which indicate Inheritance
-     */
-    private static final String FMT = "fmt/";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
 
-    private static final String VERSION_PRONOM = "VersionPronom";
     private static final String TAG_FFSIGNATUREFILE = "FFSignatureFile";
     private static final String TAG_FILEFORMAT = "FileFormat";
     private static final String TAG_EXTENSION = "Extension";
     private static final String TAG_HASPRIORITYOVERFILEFORMATID = "HasPriorityOverFileFormatID";
     private static final String ATTR_PUID = "PUID";
+    private static final String ATTR_NAME = "Name";
     private static final String ATTR_ID = "ID";
-    private static final String CREATED_DATE = "CreatedDate";
     private static final String ATTR_VERSION = "Version";
     private static final String ATTR_CREATEDDATE = "DateCreated";
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
     private static final String EXTERNAL_MIME_TYPE = "MIMEType";
-    private static final String INTERNAL_MIME_TYPE = "MimeType";
 
     private PronomParser() {
         // Empty
@@ -97,19 +83,22 @@ public class PronomParser {
      * @throws FileFormatException if exception occurred when get pronom data
      */
     @SuppressWarnings("unchecked")
-    public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {
-        FileFormat pronomFormat = new FileFormat();
-        final FileFormat fileFormat0 = new FileFormat();
+    public static List<FileFormatModel> getPronom(InputStream xmlPronom) throws FileFormatException {
         boolean bExtension = false;
         boolean bFileFormat = false;
         boolean bPriorityOverId = false;
 
-        JsonNode jsonPronom = null;
-        final ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
+        List<FileFormatModel> fileFormatModels = new ArrayList<>();
 
-        final List<String> extensions = new ArrayList<>();
-        final List<String> priorityOverIdList = new ArrayList<>();
         final Map<String, String> idToPUID = new HashMap<>();
+
+        String creationDate = null;
+        String pronomVersion = null;
+
+        FileFormatModel fileFormatModel = new FileFormatModel();
+        MultiValuedMap<String, String> hasPriorityOverFileFormatIDByPuid = new ArrayListValuedHashMap<>();
+
+        String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -127,45 +116,52 @@ public class PronomParser {
                                 switch (attribute.getName().toString()) {
                                     case ATTR_CREATEDDATE:
                                         // Depend on the date format in the file
-                                        fileFormat0.setCreatedDate(attribute.getValue());
+                                        creationDate = LocalDateUtil.getFormattedDateForMongo(attribute.getValue());
                                         break;
                                     case ATTR_VERSION:
-                                        fileFormat0.setPronomVersion(attribute.getValue());
+                                        pronomVersion = attribute.getValue();
                                         break;
                                 }
-
                             }
                         } else if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
-                            extensions.clear();
-                            priorityOverIdList.clear();
+
+                            fileFormatModel = new FileFormatModel()
+                                .setVersionPronom(pronomVersion)
+                                .setCreatedDate(creationDate)
+                                .setUpdateDate(updateDate);
+
                             bFileFormat = true;
 
                             final Iterator<Attribute> attributes = startElement.getAttributes();
-                            final Map<String, Object> attributesMap = new HashMap<>();
+                            String id = null;
                             while (attributes.hasNext()) {
                                 final Attribute attribute = attributes.next();
                                 String value = attribute.getValue();
-                                if (EXTERNAL_MIME_TYPE.equals(attribute.getName().getLocalPart()) &&
-                                    value.contains(",")) {
-                                    value = value.replace(",", ";");
-
-                                }
-                                if (EXTERNAL_MIME_TYPE.equals(attribute.getName().getLocalPart())) {
-                                    attributesMap.put(INTERNAL_MIME_TYPE, value);
-                                } else {
-                                    attributesMap.put(attribute.getName().toString(), value);
+                                switch (attribute.getName().getLocalPart()) {
+                                    case EXTERNAL_MIME_TYPE:
+                                        fileFormatModel.setMimeType(value.replace(",", ";"));
+                                        break;
+                                    case ATTR_VERSION:
+                                        fileFormatModel.setVersion(value);
+                                        break;
+                                    case ATTR_NAME:
+                                        fileFormatModel.setName(value);
+                                        break;
+                                    case ATTR_PUID:
+                                        fileFormatModel.setPuid(value);
+                                        break;
+                                    case ATTR_ID:
+                                        id = value;
+                                        break;
                                 }
                             }
-                            idToPUID.put(attributesMap.get(ATTR_ID).toString(),
-                                attributesMap.get(ATTR_PUID).toString());
-                            attributesMap.remove(ATTR_ID);
-                            pronomFormat = getNewFileFormatFromAttributes(fileFormat0, attributesMap);
+
+                            idToPUID.put(id, fileFormatModel.getPuid());
                         } else if (qName.equalsIgnoreCase(TAG_EXTENSION)) {
                             bExtension = true;
 
                         } else if (qName.equalsIgnoreCase(TAG_HASPRIORITYOVERFILEFORMATID)) {
                             bPriorityOverId = true;
-
                         }
 
                         break;
@@ -173,12 +169,12 @@ public class PronomParser {
                     case XMLStreamConstants.CHARACTERS:
                         final Characters characters = event.asCharacters();
                         if (bExtension && bFileFormat) {
-                            extensions.add(characters.getData());
+                            fileFormatModel.getExtension().add(characters.getData());
                             bExtension = false;
                         }
 
                         if (bPriorityOverId && bFileFormat) {
-                            priorityOverIdList.add(characters.getData());
+                            hasPriorityOverFileFormatIDByPuid.put(fileFormatModel.getPuid(), characters.getData());
                             bPriorityOverId = false;
                         }
 
@@ -188,88 +184,22 @@ public class PronomParser {
                         final EndElement endElement = event.asEndElement();
                         qName = endElement.getName().getLocalPart();
                         if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
-                            pronomFormat.setExtension(extensions);
-                            pronomFormat.setPriorityOverIdList(priorityOverIdList);
-                            // Add default value
-                            pronomFormat.cleanNullValues();
-
-                            copyAttributesFromFileFormat(pronomFormat, fileFormat0);
-                            jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
-                            jsonFileFormatList.add(jsonPronom);
-                            bFileFormat = false;
+                            fileFormatModels.add(fileFormatModel);
+                            fileFormatModel = null;
                         }
                         break;
                 }
             }
         } catch (final XMLStreamException e) {
-            LOGGER.error(e.getMessage());
-            throw new InvalidFileFormatParseException("Invalid xml file format");
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
-            throw new JsonNodeFormatCreationException("Invalid object to create a json");
+            throw new InvalidFileFormatParseException("Invalid xml file format", e);
         }
 
-        for (final Iterator<JsonNode> it = jsonFileFormatList.elements(); it.hasNext();) {
-            final ObjectNode node = (ObjectNode) it.next();
-            final ArrayNode priorityVersionList = (ArrayNode) node.get(TAG_HASPRIORITYOVERFILEFORMATID);
-            if (priorityVersionList != null) {
-                final ArrayNode newPriorityVersionList = JsonHandler.createArrayNode();
-                for (final Iterator<JsonNode> iterator = priorityVersionList.elements(); iterator.hasNext();) {
-                    final TextNode childId = (TextNode) iterator.next();
-                    newPriorityVersionList.add(idToPUID.get(childId.asText()));
-                }
-                node.set(TAG_HASPRIORITYOVERFILEFORMATID, newPriorityVersionList);
+        for (FileFormatModel formatModel : fileFormatModels) {
+            for (String id : hasPriorityOverFileFormatIDByPuid.get(formatModel.getPuid())) {
+                formatModel.getHasPriorityOverFileFormatID().add(idToPUID.get(id));
             }
         }
 
-        return jsonFileFormatList;
-    }
-
-    /**
-     * Construct a FileFormat from a given Map
-     *
-     *
-     * @param fileFormat
-     * @param attributes
-     * @return
-     */
-
-    private static FileFormat getNewFileFormatFromAttributes(FileFormat fileFormat, Map<String, Object> attributes) {
-        final FileFormat newFileFormat = new FileFormat();
-        if (attributes.get(ATTR_PUID).toString().startsWith(FMT)) {
-            for (final String i : fileFormat.keySet()) {
-                newFileFormat.put(i, fileFormat.get(i));
-            }
-            newFileFormat.putAll(attributes);
-        } else {
-            newFileFormat.append(CREATED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(fileFormat.getString(CREATED_DATE)));
-            newFileFormat.append(VERSION_PRONOM, fileFormat.getString(VERSION_PRONOM));
-            newFileFormat.putAll(attributes);
-        }
-        return newFileFormat;
-    }
-
-    /**
-     * Copy attributes from a FileFormat Destination to FilaFormat Source
-     *
-     *
-     * @param fileFormatSource
-     * @param fileFormatDest
-     */
-    private static void copyAttributesFromFileFormat(FileFormat fileFormatSource, FileFormat fileFormatDest) {
-        if (fileFormatSource.getString(ATTR_PUID).startsWith(FMT)) {
-            for (final String i : fileFormatSource.keySet()) {
-                if (!ATTR_PUID.equals(i) && !TAG_HASPRIORITYOVERFILEFORMATID.equals(i)) {
-                    fileFormatDest.put(i, fileFormatSource.get(i));
-                }
-            }
-        } else {
-            fileFormatDest.clear();
-            fileFormatDest.append(CREATED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(fileFormatSource.getString(CREATED_DATE)));
-            fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
-            fileFormatDest.cleanNullValues();
-        }
+        return fileFormatModels;
     }
 }

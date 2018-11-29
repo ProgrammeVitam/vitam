@@ -57,9 +57,14 @@ public class FileFormat extends VitamDocument<FileFormat> {
     public static final String VERSION = "Version";
 
     /**
-     * FileFormat Création date
+     * FileFormat Creation date
      */
     public static final String CREATED_DATE = "CreatedDate";
+
+    /**
+     * Last update date
+     */
+    public static final String UPDATE_DATE = "UpdateDate";
 
     /**
      * manage document priority
@@ -265,45 +270,4 @@ public class FileFormat extends VitamDocument<FileFormat> {
         append(GROUP, group);
         return this;
     }
-
-    /**
-     * Before database insertion, uses this method to clean all null fields (set to empty string or to empty list
-     * instead of null)
-     *
-     * @return return the current instance of FileFormat;
-     */
-    public FileFormat cleanNullValues() {
-        if (get(VERSION_PRONOM) == null) {
-            append(VERSION_PRONOM, EMPTY_STRING);
-        }
-        if (get(VERSION) == null) {
-            append(VERSION, EMPTY_STRING);
-        }
-        if (get(CREATED_DATE) == null) {
-            append(CREATED_DATE, EMPTY_STRING);
-        }
-        if (get(HAS_PRIORITY_OVER_FILE_FORMAT_ID) == null) {
-            append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, new ArrayList<String>());
-        }
-        if (get(MIME_TYPE) == null) {
-            append(MIME_TYPE, EMPTY_STRING);
-        }
-        if (get(NAME) == null) {
-            append(NAME, EMPTY_STRING);
-        }
-        if (get(GROUP) == null) {
-            append(GROUP, EMPTY_STRING);
-        }
-        if (get(ALERT) == null) {
-            append(ALERT, false);
-        }
-        if (get(COMMENT) == null) {
-            append(COMMENT, EMPTY_STRING);
-        }
-        if (get(EXTENSION) == null) {
-            append(EXTENSION, new ArrayList<String>());
-        }
-        return this;
-    }
-
 }

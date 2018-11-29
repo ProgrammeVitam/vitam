@@ -26,20 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.format.core;
 
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -47,26 +59,53 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
-import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatImportEventDetails;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatOperationModel;
+import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.collections4.SetUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.functional.administration.common.FileFormat.CREATED_DATE;
+import static fr.gouv.vitam.functional.administration.common.FileFormat.PUID;
+import static fr.gouv.vitam.functional.administration.common.FileFormat.UPDATE_DATE;
+import static fr.gouv.vitam.functional.administration.common.FileFormat.VERSION_PRONOM;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
@@ -75,9 +114,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private static final String BACKUP_FORMAT_EVENT = "STP_BACKUP_REFERENTIAL_FORMAT";
+    private static final int UPDATE_THREAD_POOL_SIZE = 16;
     private final MongoDbAccessAdminImpl mongoAccess;
-    private static final String COLLECTION_NAME = "FileFormat";
-
+    public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
@@ -87,7 +126,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     /**
      * Constructor
      *
-     * @param dbConfiguration     the mongo access for reference format configuration
+     * @param dbConfiguration the mongo access for reference format configuration
      * @param vitamCounterService
      */
     public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
@@ -96,7 +135,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
     }
 
-    @VisibleForTesting ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration,
+    @VisibleForTesting
+    ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration,
         FunctionalBackupService backupService, LogbookOperationsClient logbookOperationsClient) {
         this.mongoAccess = dbConfiguration;
         this.logbookOperationsClient = logbookOperationsClient;
@@ -108,46 +148,281 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public void importFile(InputStream xmlPronom, String filename)
         throws VitamException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        final ArrayNode pronomList = checkFile(xmlPronom);
+        final List<FileFormatModel> newFileFormalModels = checkFile(xmlPronom);
 
         final GUID eip = createLogbook();
 
         final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         try {
 
-            if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+            final ObjectNode selectAll = new Select().getFinalSelect();
+            DbRequestResult result = mongoAccess.findDocuments(selectAll, FORMATS);
+            List<FileFormat> documents = result.getDocuments(FileFormat.class);
 
+            List<FileFormatModel> currentFileFormatModels =
+                documents.stream()
+                    .map(this::toFileFormatModel)
+                    .collect(Collectors.toList());
 
-                mongoAccess.insertDocuments(pronomList, FORMATS).close();
+            FormatImportReport report = generateReport(currentFileFormatModels, newFileFormalModels);
 
-                backupService.saveCollectionAndSequence(eip, BACKUP_FORMAT_EVENT, FORMATS, eip.toString());
-                //store collection
+            deleteRemovedFormats(report);
 
-                final LogbookOperationParameters logbookParametersEnd =
-                    crateLogbookOperationParametersImport(filename, pronomList, eip, eip1);
+            insertAddedFormats(report, newFileFormalModels);
 
-                updateLogbook(logbookParametersEnd);
+            updateExistingFormats(report, newFileFormalModels);
 
-            } else {
+            //store collection
+            backupService.saveCollectionAndSequence(eip, BACKUP_FORMAT_EVENT, FORMATS, eip.toString());
 
-                final LogbookOperationParameters logbookParametersEnd = createLogbookOperationParametersKo(eip, eip1);
-
-                ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
-
-                updateLogbook(logbookParametersEnd);
-
-                throw new DatabaseConflictException("File format collection is not empty");
+            try (InputStream reportInputStream = JsonHandler.writeToInpustream(report)) {
+                final String fileName = eip + ".json";
+                backupService.saveFile(reportInputStream, eip, FILE_FORMAT_REPORT, DataCategory.REPORT, fileName);
+            } catch (IOException | VitamException e) {
+                throw new StorageException(e.getMessage(), e);
             }
 
-        } catch (final ReferentialException e) {
-
-            LOGGER.error(e.getMessage());
-
-            LogbookOperationParameters logbookParametersEnd = createLogbookOperationParametersKo(eip1, eip);
+            final LogbookOperationParameters logbookParametersEnd =
+                createLogbookOperationParametersImport(filename, newFileFormalModels, eip, eip1,
+                    report);
 
             updateLogbook(logbookParametersEnd);
 
-            throw new ReferentialException(e);
+        } catch (final ReferentialException e) {
+
+            LOGGER.error(e);
+
+            LogbookOperationParameters logbookParametersEnd = createLogbookOperationParametersKo(eip, eip1);
+
+            updateLogbook(logbookParametersEnd);
+
+            throw e;
+        }
+    }
+
+    private void deleteRemovedFormats(FormatImportReport report) throws ReferentialException {
+
+        if (report.getRemovedPuids().isEmpty()) {
+            return;
+        }
+
+        try {
+            Delete delete = new Delete();
+            delete.setQuery(in(PUID, report.getRemovedPuids().toArray(new String[0])));
+
+            mongoAccess.deleteDocument(delete.getFinalDelete(), FORMATS);
+        } catch (InvalidCreateOperationException | BadRequestException | ReferentialException | SchemaValidationException e) {
+            throw new ReferentialException("Could not delete removed formats", e);
+        }
+    }
+
+    private void insertAddedFormats(FormatImportReport report, List<FileFormatModel> newFileFormatModels)
+        throws ReferentialException {
+
+        if (report.getAddedPuids().isEmpty()) {
+            return;
+        }
+
+        try {
+            List<FileFormatModel> fileFormatsToAdd = newFileFormatModels.stream()
+                .filter(fileFormatModel -> report.getAddedPuids().contains(fileFormatModel.getPuid()))
+                .collect(Collectors.toList());
+
+            mongoAccess.insertDocuments((ArrayNode) JsonHandler.toJsonNode(fileFormatsToAdd), FORMATS).close();
+
+        } catch (ReferentialException | SchemaValidationException | InvalidParseOperationException e) {
+            throw new ReferentialException("Could not insert added formats", e);
+        }
+    }
+
+    private void updateExistingFormats(FormatImportReport report, List<FileFormatModel> newFileFormatModels)
+        throws ReferentialException {
+
+        List<FileFormatModel> existingFormatsToUpdate = newFileFormatModels.stream()
+            .filter(fileFormatModel -> !report.getAddedPuids().contains(fileFormatModel.getPuid()))
+            .filter(fileFormatModel -> !report.getRemovedPuids().contains(fileFormatModel.getPuid()))
+            .collect(Collectors.toList());
+
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(UPDATE_THREAD_POOL_SIZE, VitamThreadFactory.getInstance());
+
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        for (FileFormatModel fileFormatModel : existingFormatsToUpdate) {
+            CompletableFuture<Void> completableFuture =
+                CompletableFuture.runAsync(() -> updateExistingFormat(fileFormatModel), executorService);
+            completableFutures.add(completableFuture);
+        }
+
+        try {
+            sequence(completableFutures).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new ReferentialException("An error occurred during format referential update", e);
+        }
+    }
+
+    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
+        CompletableFuture<Void> allDoneFuture =
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        return allDoneFuture
+            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+    }
+
+    private void updateExistingFormat(FileFormatModel fileFormatModel) {
+        try {
+
+            final UpdateParserSingle
+                updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+            Update update = new Update();
+            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(fileFormatModel);
+            update.addActions(set(jsonNode));
+            update.setQuery(QueryHelper.eq(PUID, fileFormatModel.getPuid()));
+
+            updateParserActive.parse(update.getFinalUpdate());
+
+            mongoAccess.updateData(update.getFinalUpdate(), FORMATS);
+        } catch (ReferentialException | SchemaValidationException | BadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            throw new RuntimeException(
+                "Could not update format document with puid " + fileFormatModel.getPuid(), e);
+        }
+    }
+
+    private FormatImportReport generateReport(List<FileFormatModel> currentFileFormatModels,
+        List<FileFormatModel> newFileFormatModels) {
+
+
+        FormatImportReport report = new FormatImportReport();
+
+        FileFormatOperationModel operationModel = retrieveOperationModel();
+
+        report.setOperation(operationModel);
+
+        if (!currentFileFormatModels.isEmpty()) {
+            report.setPreviousPronomVersion(currentFileFormatModels.get(0).getVersionPronom());
+            report.setPreviousPronomCreationDate(currentFileFormatModels.get(0).getCreatedDate());
+        }
+        if (!newFileFormatModels.isEmpty()) {
+            report.setNewPronomVersion(newFileFormatModels.get(0).getVersionPronom());
+            report.setNewPronomCreationDate(newFileFormatModels.get(0).getCreatedDate());
+        }
+
+        Map<String, FileFormatModel> currentFileFormatModelsByPuid = mapByPuid(currentFileFormatModels);
+        Map<String, FileFormatModel> newFileFormatModelsByPuid = mapByPuid(newFileFormatModels);
+
+        SetUtils.SetView<String> removedPuids =
+            SetUtils.difference(currentFileFormatModelsByPuid.keySet(), newFileFormatModelsByPuid.keySet());
+        for (String removedPuid : removedPuids) {
+            LOGGER.warn("Removed puid: " + removedPuid);
+            report.addRemovedPuids(removedPuid);
+        }
+
+        SetUtils.SetView<String> addedPuids =
+            SetUtils.difference(newFileFormatModelsByPuid.keySet(), currentFileFormatModelsByPuid.keySet());
+        for (String addedPuid : addedPuids) {
+            LOGGER.debug("Added puid: " + addedPuid);
+            report.addAddedPuid(addedPuid);
+        }
+
+        SetUtils.SetView<String> commonPuids =
+            SetUtils.intersection(newFileFormatModelsByPuid.keySet(), currentFileFormatModelsByPuid.keySet());
+
+        for (String commonPuid : commonPuids) {
+            FileFormatModel currentFileFormatModel = currentFileFormatModelsByPuid.get(commonPuid);
+            FileFormatModel newFileFormatModel = newFileFormatModelsByPuid.get(commonPuid);
+            List<String> diff = diff(currentFileFormatModel, newFileFormatModel);
+
+            if (diff.isEmpty()) {
+                LOGGER.debug("Unchanged puid: " + commonPuid);
+                continue;
+            }
+
+            LOGGER.debug("Updated puid: " + commonPuid);
+            report.addUpdatedPuids(commonPuid, diff);
+        }
+
+        if (report.getPreviousPronomVersion() != null && report.getNewPronomVersion() != null) {
+
+            int previousVersion = Integer.parseInt(report.getPreviousPronomVersion());
+            int newVersion = Integer.parseInt(report.getNewPronomVersion());
+
+            if (previousVersion == newVersion) {
+                report.addWarning("Same referential version: " + newVersion);
+            } else if (previousVersion > newVersion) {
+                report.addWarning("New imported referential version " + previousVersion +
+                    " is older than previous referential version " + newVersion);
+            }
+        }
+
+        if (report.getPreviousPronomCreationDate() != null && report.getNewPronomCreationDate() != null) {
+
+            String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousPronomCreationDate());
+            String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewPronomCreationDate());
+
+            if (previousDate.equals(newDate)) {
+                report.addWarning("Same referential date: " + report.getNewPronomCreationDate());
+            } else if (previousDate.compareTo(newDate) > 0) {
+                report.addWarning("New imported referential date " + report.getNewPronomCreationDate() +
+                    " is older than previous report date " + report.getPreviousPronomCreationDate());
+            }
+        }
+
+        if (!removedPuids.isEmpty()) {
+            report.addWarning(removedPuids.size() + " puids removed.");
+        }
+
+        if (report.getWarnings().isEmpty()) {
+            report.setStatusCode(StatusCode.OK);
+        } else {
+            report.setStatusCode(StatusCode.WARNING);
+        }
+
+        return report;
+    }
+
+    private FileFormatOperationModel retrieveOperationModel() {
+        try {
+            JsonNode result = logbookOperationsClient.selectOperationById(
+                VitamThreadUtils.getVitamSession().getRequestId());
+
+            return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FileFormatOperationModel.class);
+        } catch (LogbookClientException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException("Could not load operation data", e);
+        }
+    }
+
+    private Map<String, FileFormatModel> mapByPuid(List<FileFormatModel> fileFormatModels) {
+        return fileFormatModels.stream()
+            .collect(Collectors.toMap(FileFormatModel::getPuid, fileFormatModel -> fileFormatModel));
+    }
+
+    private List<String> diff(FileFormatModel currentFileFormatModel, FileFormatModel newFileFormatModel) {
+        String before = toComparableString(currentFileFormatModel);
+        String after = toComparableString(newFileFormatModel);
+
+        List<String> unifiedDiff = VitamDocument.getUnifiedDiff(before, after);
+
+        List<String> concernedDiffLines = VitamDocument.getConcernedDiffLines(unifiedDiff);
+        concernedDiffLines.sort(Comparator.naturalOrder());
+        return concernedDiffLines;
+    }
+
+    private String toComparableString(FileFormatModel currentFileFormatModel) {
+        try {
+            ObjectNode currentJsonNode = (ObjectNode) JsonHandler.toJsonNode(currentFileFormatModel);
+            // Exclude ignored fields from comparison
+            currentJsonNode.remove(VERSION_PRONOM);
+            currentJsonNode.remove(CREATED_DATE);
+            currentJsonNode.remove(UPDATE_DATE);
+            return JsonHandler.prettyPrint(currentJsonNode);
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private FileFormatModel toFileFormatModel(FileFormat fileFormat) {
+        try {
+            return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(fileFormat), FileFormatModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException("Could parse current file formats", e);
         }
     }
 
@@ -170,16 +445,26 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         }
     }
 
-    private LogbookOperationParameters crateLogbookOperationParametersImport(String filename, ArrayNode pronomList,
-        GUID eip, GUID eip1) throws InvalidParseOperationException {
+    private LogbookOperationParameters createLogbookOperationParametersImport(String filename,
+        List<FileFormatModel> pronomList,
+        GUID eip, GUID eip1, FormatImportReport report) throws InvalidParseOperationException {
 
         final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
             .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
-                    pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
+                LogbookTypeProcess.MASTERDATA, report.getStatusCode(),
+                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, report.getStatusCode()) + VERSION +
+                    pronomList.get(0).getVersionPronom() + FILE_PRONOM,
                 eip);
-        ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+
+        FileFormatImportEventDetails eventDetails = new FileFormatImportEventDetails()
+            .setFilename(filename);
+        if (!report.getWarnings().isEmpty()) {
+            eventDetails.setWarnings(report.getWarnings());
+        }
+
+        ObjectNode evDetData = (ObjectNode) JsonHandler.toJsonNode(eventDetails);
+        logbookParametersEnd.putParameterValue(LogbookParameterName.eventDetailData,
+            JsonHandler.unprettyPrint(evDetData));
 
         return logbookParametersEnd;
     }
@@ -189,7 +474,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip;
         try {
-           eip = GUIDReader.getGUID(operationId);
+            eip = GUIDReader.getGUID(operationId);
             final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                     LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -197,7 +482,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             logbookOperationsClient.create(logbookParametersStart);
 
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException| InvalidGuidOperationException e) {
+            LogbookClientServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             throw new ReferentialException(e);
         }
@@ -211,21 +496,21 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
      * @return arraynode of format
      * @throws ReferentialException
      */
-    public ArrayNode checkFile(InputStream xmlPronom)
+    public List<FileFormatModel> checkFile(InputStream xmlPronom)
         throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         /*
          * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is
          * thrown
          */
-        final ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
+        final List<FileFormatModel> fileFormatModels = PronomParser.getPronom(xmlPronom);
         StreamUtils.closeSilently(xmlPronom);
-        return deserializeFormatsAsJson;
+        return fileFormatModels;
     }
 
     @Override
     public FileFormat findDocumentById(String id) {
-        return (FileFormat)mongoAccess.getDocumentByUniqueId(id, FORMATS, FileFormat.PUID);
+        return (FileFormat) mongoAccess.getDocumentByUniqueId(id, FORMATS, PUID);
     }
 
     @Override
@@ -242,4 +527,5 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         // Empty
         logbookOperationsClient.close();
     }
+
 }

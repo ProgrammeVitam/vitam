@@ -231,7 +231,7 @@ public abstract class VitamDocument<E> extends Document {
                 if (line.endsWith(",")) {
                     result.add(line.substring(0, line.length() - 1).replace("\"", ""));
                 } else {
-                    result.add(line.substring(0, line.length()).replace("\"", ""));
+                    result.add(line.replace("\"", ""));
                 }
             }
 

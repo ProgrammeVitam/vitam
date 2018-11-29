@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,42 +23,50 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- **/
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.format.model;
 
-package fr.gouv.vitam.functional.administration.common;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+public class FileFormatOperationModel {
 
-import org.junit.Test;
+    @JsonProperty("evType")
+    private String evType;
 
-public class FileFormatTest {
+    @JsonProperty("evDateTime")
+    private String evDateTime;
 
-    @Test
-    public void cleanNullFileFormatFieldValues() {
-        final FileFormat fm = new FileFormat();
-        // theoretically never null
-        fm.setPUID("PUID");
-        assertNull(fm.get(FileFormat.VERSION_PRONOM));
-        assertNull(fm.get(FileFormat.VERSION));
-        assertNull(fm.get(FileFormat.CREATED_DATE));
-        assertNull(fm.get(FileFormat.HAS_PRIORITY_OVER_FILE_FORMAT_ID));
-        assertNull(fm.get(FileFormat.MIME_TYPE));
-        assertNull(fm.get(FileFormat.NAME));
-        assertNull(fm.get(FileFormat.GROUP));
-        assertNull(fm.get(FileFormat.ALERT));
-        assertNull(fm.get(FileFormat.COMMENT));
-        assertNull(fm.get(FileFormat.EXTENSION));
-        fm.cleanNullValues();
-        assertNotNull(fm.get(FileFormat.VERSION_PRONOM));
-        assertNotNull(fm.get(FileFormat.VERSION));
-        assertNotNull(fm.get(FileFormat.CREATED_DATE));
-        assertNotNull(fm.get(FileFormat.HAS_PRIORITY_OVER_FILE_FORMAT_ID));
-        assertNotNull(fm.get(FileFormat.MIME_TYPE));
-        assertNotNull(fm.get(FileFormat.NAME));
-        assertNotNull(fm.get(FileFormat.GROUP));
-        assertNotNull(fm.get(FileFormat.ALERT));
-        assertNotNull(fm.get(FileFormat.COMMENT));
-        assertNotNull(fm.get(FileFormat.EXTENSION));
+    @JsonProperty("evId")
+    private String evId;
+
+    public FileFormatOperationModel() {
+        // Empty constructor for deserialization
+    }
+
+    public String getEvType() {
+        return evType;
+    }
+
+    public FileFormatOperationModel setEvType(String evType) {
+        this.evType = evType;
+        return this;
+    }
+
+    public String getEvDateTime() {
+        return evDateTime;
+    }
+
+    public FileFormatOperationModel setEvDateTime(String evDateTime) {
+        this.evDateTime = evDateTime;
+        return this;
+    }
+
+    public String getEvId() {
+        return evId;
+    }
+
+    public FileFormatOperationModel setEvId(String evId) {
+        this.evId = evId;
+        return this;
     }
 }
