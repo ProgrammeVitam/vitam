@@ -39,10 +39,12 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -59,6 +61,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -66,6 +69,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -96,6 +100,8 @@ import static org.mockito.Mockito.doReturn;
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
     String FILE_TO_TEST_OK = "FF-vitam.xml";
+    String FILE_TO_TEST_OK_V1 = "FF-vitam-V1.xml";
+    String FILE_TO_TEST_OK_V2 = "FF-vitam-V2.xml";
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -165,6 +171,12 @@ public class ReferentialFormatFileImplTest {
         VitamClientFactory.resetConnections();
     }
 
+    @After
+    public void cleanup() throws Exception {
+        VitamRepositoryFactory.get().getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()).purge();
+        VitamRepositoryFactory.get().getVitamESRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()).purge();
+    }
+
     @Test
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
         formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
@@ -179,7 +191,137 @@ public class ReferentialFormatFileImplTest {
     @RunWithCustomExecutor
     public void testImportFormat() throws Exception {
 
-        // Given
+        // Given / When
+        FormatImportReport report = importFormatFileAndDownloadReport(FILE_TO_TEST_OK);
+
+        // Then
+        checkFormatsInDb(1328);
+        final Select select = new Select();
+        select.setQuery(QueryHelper.eq("PUID", "fmt/163"));
+        final RequestResponseOK<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
+        final String id = fileList.getResults().get(0).getString("PUID");
+        final FileFormat file = formatFile.findDocumentById(id);
+        assertEquals("[wps]", file.get("Extension").toString());
+        assertEquals(file.get("#id"), fileList.getResults().get(0).getId());
+        assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
+        assertEquals(fileList.getResults().get(0).getString("Group"), "");
+        assertEquals(fileList.getResults().get(0).getString("Comment"), "");
+
+
+        assertThat(report.getOperation().getEvType()).isEqualTo("STP_IMPORT_RULES");
+        assertThat(report.getOperation().getEvDateTime()).isEqualTo("2018-11-28T15:41:10.752");
+        assertThat(report.getOperation().getEvId()).isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+        assertThat(report.getPreviousPronomCreationDate()).isNull();
+        assertThat(report.getPreviousPronomVersion()).isNull();
+        assertThat(report.getNewPronomCreationDate()).isEqualTo("2016-01-21T10:36:46.000");
+        assertThat(report.getNewPronomVersion()).isEqualTo("84");
+        assertThat(report.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report.getWarnings()).isEmpty();
+        assertThat(report.getRemovedPuids()).isEmpty();
+        assertThat(report.getUpdatedPuids()).isEmpty();
+        assertThat(report.getAddedPuids()).hasSize(1328);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testImportFormatAndReImport_UpgradeVersion() throws Exception {
+
+        // Given / When
+        FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+        FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V2);
+
+        // Then
+        checkFormatsInDb(6);
+
+        assertThat(report1.getPreviousPronomCreationDate()).isNull();
+        assertThat(report1.getPreviousPronomVersion()).isNull();
+        assertThat(report1.getNewPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report1.getNewPronomVersion()).isEqualTo("1");
+        assertThat(report1.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report1.getWarnings()).isEmpty();
+        assertThat(report1.getRemovedPuids()).isEmpty();
+        assertThat(report1.getUpdatedPuids()).isEmpty();
+        assertThat(report1.getAddedPuids()).hasSize(3);
+
+        assertThat(report2.getPreviousPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report2.getPreviousPronomVersion()).isEqualTo("1");
+        assertThat(report2.getNewPronomCreationDate()).isEqualTo("2018-02-02T02:02:02.000");
+        assertThat(report2.getNewPronomVersion()).isEqualTo("2");
+        assertThat(report2.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report2.getWarnings()).isEmpty();
+        assertThat(report2.getRemovedPuids()).isEmpty();
+        assertThat(report2.getUpdatedPuids()).containsOnlyKeys("x-fmt/1", "x-fmt/2");
+        assertThat(report2.getAddedPuids()).containsExactlyInAnyOrder("x-fmt/4", "x-fmt/5", "x-fmt/6");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testImportFormatAndReImport_DowngradeVersion() throws Exception {
+
+        // Given / When
+        FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V2);
+        FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+
+        // Then
+        checkFormatsInDb(3);
+
+        assertThat(report1.getPreviousPronomCreationDate()).isNull();
+        assertThat(report1.getPreviousPronomVersion()).isNull();
+        assertThat(report1.getNewPronomCreationDate()).isEqualTo("2018-02-02T02:02:02.000");
+        assertThat(report1.getNewPronomVersion()).isEqualTo("2");
+        assertThat(report1.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report1.getWarnings()).isEmpty();
+        assertThat(report1.getRemovedPuids()).isEmpty();
+        assertThat(report1.getUpdatedPuids()).isEmpty();
+        assertThat(report1.getAddedPuids()).hasSize(6);
+
+        assertThat(report2.getPreviousPronomCreationDate()).isEqualTo("2018-02-02T02:02:02.000");
+        assertThat(report2.getPreviousPronomVersion()).isEqualTo("2");
+        assertThat(report2.getNewPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report2.getNewPronomVersion()).isEqualTo("1");
+        assertThat(report2.getStatusCode()).isEqualTo(StatusCode.WARNING);
+        /* Warnings : Pronom version + pronom date + removed puids */
+        assertThat(report2.getWarnings()).hasSize(3);
+        assertThat(report2.getRemovedPuids()).containsExactlyInAnyOrder("x-fmt/4", "x-fmt/5", "x-fmt/6");
+        assertThat(report2.getUpdatedPuids()).containsOnlyKeys("x-fmt/1", "x-fmt/2");
+        assertThat(report2.getAddedPuids()).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testImportFormatAndReImport_SameVersion() throws Exception {
+
+        // Given / When
+        FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+        FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+
+        // Then
+        checkFormatsInDb(3);
+
+        assertThat(report1.getPreviousPronomCreationDate()).isNull();
+        assertThat(report1.getPreviousPronomVersion()).isNull();
+        assertThat(report1.getNewPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report1.getNewPronomVersion()).isEqualTo("1");
+        assertThat(report1.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report1.getWarnings()).isEmpty();
+        assertThat(report1.getRemovedPuids()).isEmpty();
+        assertThat(report1.getUpdatedPuids()).isEmpty();
+        assertThat(report1.getAddedPuids()).hasSize(3);
+
+        assertThat(report2.getPreviousPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report2.getPreviousPronomVersion()).isEqualTo("1");
+        assertThat(report2.getNewPronomCreationDate()).isEqualTo("2018-01-01T01:01:01.000");
+        assertThat(report2.getNewPronomVersion()).isEqualTo("1");
+        assertThat(report2.getStatusCode()).isEqualTo(StatusCode.WARNING);
+        /* Warnings : Pronom version + pronom date */
+        assertThat(report2.getWarnings()).hasSize(2);
+        assertThat(report2.getRemovedPuids()).isEmpty();
+        assertThat(report2.getAddedPuids()).isEmpty();
+    }
+
+    private FormatImportReport importFormatFileAndDownloadReport(String fileToTest)
+        throws VitamException, FileNotFoundException {
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -203,37 +345,16 @@ public class ReferentialFormatFileImplTest {
             any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));
 
         // When
-        formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
+        formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(fileToTest)), fileToTest);
 
-        // Then
+        return JsonHandler.getFromInputStream(
+            new ByteArrayInputStream(reportStream.toByteArray()), FormatImportReport.class);
+    }
+
+    private void checkFormatsInDb(int expected) {
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        assertEquals(1328, collection.count());
-        final Select select = new Select();
-        select.setQuery(QueryHelper.eq("PUID", "fmt/163"));
-        final RequestResponseOK<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
-        final String id = fileList.getResults().get(0).getString("PUID");
-        final FileFormat file = formatFile.findDocumentById(id);
-        assertEquals("[wps]", file.get("Extension").toString());
-        assertEquals(file.get("#id"), fileList.getResults().get(0).getId());
-        assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
-        assertEquals(fileList.getResults().get(0).getString("Group"), "");
-        assertEquals(fileList.getResults().get(0).getString("Comment"), "");
+        assertEquals(expected, collection.count());
         client.close();
-
-        FormatImportReport report = JsonHandler.getFromInputStream(
-            new ByteArrayInputStream(reportStream.toByteArray()), FormatImportReport.class);
-        assertThat(report.getOperation().getEvType()).isEqualTo("STP_IMPORT_RULES");
-        assertThat(report.getOperation().getEvDateTime()).isEqualTo("2018-11-28T15:41:10.752");
-        assertThat(report.getOperation().getEvId()).isEqualTo(requestId);
-        assertThat(report.getPreviousPronomCreationDate()).isNull();
-        assertThat(report.getPreviousPronomVersion()).isNull();
-        assertThat(report.getNewPronomCreationDate()).isEqualTo("2016-01-21T10:36:46.000");
-        assertThat(report.getNewPronomVersion()).isEqualTo("84");
-        assertThat(report.getStatusCode()).isEqualTo(StatusCode.OK);
-        assertThat(report.getWarnings()).isEmpty();
-        assertThat(report.getRemovedPuids()).isEmpty();
-        assertThat(report.getUpdatedPuids()).isEmpty();
-        assertThat(report.getAddedPuids()).hasSize(1328);
     }
 }

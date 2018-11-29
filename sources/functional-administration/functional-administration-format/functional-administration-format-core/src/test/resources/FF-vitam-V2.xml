@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FFSignatureFile DateCreated="2018-02-02T02:02:02" Version="2" xmlns="http://www.nationalarchives.gov.uk/pronom/SignatureFile">
+    <InternalSignatureCollection>
+        <InternalSignature ID="485" Specificity="Specific">
+            <ByteSequence Reference="BOFoffset">
+                <SubSequence MinFragLength="0" Position="1" SubSeqMaxOffset="0" SubSeqMinOffset="0">
+                    <Sequence>FE3400</Sequence>
+                    <DefaultShift>4</DefaultShift>
+                    <Shift Byte="00">1</Shift>
+                    <Shift Byte="34">2</Shift>
+                    <Shift Byte="FE">3</Shift>
+                    <RightFragment MaxOffset="0" MinOffset="0" Position="1">00</RightFragment>
+                    <RightFragment MaxOffset="0" MinOffset="0" Position="1">C1</RightFragment>
+                </SubSequence>
+            </ByteSequence>
+        </InternalSignature>
+        <InternalSignature ID="615" Specificity="Specific">
+            <ByteSequence Reference="BOFoffset">
+                <SubSequence MinFragLength="0" Position="1" SubSeqMaxOffset="0" SubSeqMinOffset="0">
+                    <Sequence>32BE000000AB0000000000000000</Sequence>
+                    <DefaultShift>15</DefaultShift>
+                    <Shift Byte="00">1</Shift>
+                    <Shift Byte="32">14</Shift>
+                    <Shift Byte="AB">9</Shift>
+                    <Shift Byte="BE">13</Shift>
+                    <RightFragment MaxOffset="82" MinOffset="82" Position="1">[!0000]</RightFragment>
+                </SubSequence>
+            </ByteSequence>
+        </InternalSignature>
+    </InternalSignatureCollection>
+    <FileFormatCollection>
+        <FileFormat ID="8" MIMEType="application/msword" Name="Microsoft Word for Macintosh Document V2" PUID="x-fmt/1"
+                    Version="3.0-V2">
+            <InternalSignatureID>485</InternalSignatureID>
+            <Extension>mcw-V2</Extension>
+        </FileFormat>
+        <FileFormat ID="11" Name="Microsoft Word for Macintosh Document V2" PUID="x-fmt/2" Version="6.0"/>
+        <FileFormat ID="13" Name="Online Description Tool Format" PUID="x-fmt/3">
+            <Extension>odt</Extension>
+        </FileFormat>
+        <FileFormat ID="14" Name="Write for Windows Document" PUID="x-fmt/4" Version="3.1">
+            <InternalSignatureID>615</InternalSignatureID>
+            <Extension>wri</Extension>
+        </FileFormat>
+        <FileFormat ID="15" Name="Works for Macintosh Document" PUID="x-fmt/5" Version="4.0"/>
+        <FileFormat ID="16" Name="FoxPro Database" PUID="x-fmt/6" Version="2.0">
+            <Extension>dbf</Extension>
+        </FileFormat>
+    </FileFormatCollection>
+</FFSignatureFile>
