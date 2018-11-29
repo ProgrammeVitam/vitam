@@ -26,38 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.format.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -66,26 +38,60 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.io.IOUtils;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl.FILE_FORMAT_REPORT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
@@ -142,7 +148,7 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                    new DbConfigurationImpl(nodes, DATABASE_NAME)), functionalBackupService, logbookOperationsClient);
+                new DbConfigurationImpl(nodes, DATABASE_NAME)), functionalBackupService, logbookOperationsClient);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
@@ -171,16 +177,40 @@ public class ReferentialFormatFileImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testimportFormat() throws Exception {
+    public void testImportFormat() throws Exception {
+
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
+        JsonNode result = JsonHandler.createObjectNode()
+            .set("$results", JsonHandler.createArrayNode().add(
+                JsonHandler.createObjectNode()
+                    .put("evType", "STP_IMPORT_RULES")
+                    .put("evDateTime", "2018-11-28T15:41:10.752")
+                    .put("evId", requestId)
+            ));
+
+        doReturn(result).when(logbookOperationsClient).selectOperationById(
+            requestId);
+
+        ByteArrayOutputStream reportStream = new ByteArrayOutputStream();
+        doAnswer((args) -> {
+            IOUtils.copy(args.getArgumentAt(0, InputStream.class), reportStream);
+            return null;
+        }).when(functionalBackupService).saveFile(
+            any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));
+
+        // When
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
+
+        // Then
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1328, collection.count());
         final Select select = new Select();
-        select.setQuery(eq("PUID", "fmt/164"));
+        select.setQuery(QueryHelper.eq("PUID", "fmt/163"));
         final RequestResponseOK<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
         final String id = fileList.getResults().get(0).getString("PUID");
         final FileFormat file = formatFile.findDocumentById(id);
@@ -190,5 +220,20 @@ public class ReferentialFormatFileImplTest {
         assertEquals(fileList.getResults().get(0).getString("Group"), "");
         assertEquals(fileList.getResults().get(0).getString("Comment"), "");
         client.close();
+
+        FormatImportReport report = JsonHandler.getFromInputStream(
+            new ByteArrayInputStream(reportStream.toByteArray()), FormatImportReport.class);
+        assertThat(report.getOperation().getEvType()).isEqualTo("STP_IMPORT_RULES");
+        assertThat(report.getOperation().getEvDateTime()).isEqualTo("2018-11-28T15:41:10.752");
+        assertThat(report.getOperation().getEvId()).isEqualTo(requestId);
+        assertThat(report.getPreviousPronomCreationDate()).isNull();
+        assertThat(report.getPreviousPronomVersion()).isNull();
+        assertThat(report.getNewPronomCreationDate()).isEqualTo("2016-01-21T10:36:46.000");
+        assertThat(report.getNewPronomVersion()).isEqualTo("84");
+        assertThat(report.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(report.getWarnings()).isEmpty();
+        assertThat(report.getRemovedPuids()).isEmpty();
+        assertThat(report.getUpdatedPuids()).isEmpty();
+        assertThat(report.getAddedPuids()).hasSize(1328);
     }
 }

@@ -116,7 +116,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private static final String BACKUP_FORMAT_EVENT = "STP_BACKUP_REFERENTIAL_FORMAT";
     private static final int UPDATE_THREAD_POOL_SIZE = 16;
     private final MongoDbAccessAdminImpl mongoAccess;
-    private static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
+    public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
