@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import com.jayway.restassured.RestAssured;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -104,6 +103,7 @@ import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObje
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.collections4.SetUtils;
 import org.assertj.core.util.Lists;
@@ -126,9 +126,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
+import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -137,7 +137,6 @@ import static org.junit.Assert.assertNotNull;
  * Ingest Internal integration test
  */
 public class EndToEndEliminationIT extends VitamRuleRunner {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndToEndEliminationIT.class);
     private static final String DEFAULT_STRATEGY = "default";
 
     @ClassRule

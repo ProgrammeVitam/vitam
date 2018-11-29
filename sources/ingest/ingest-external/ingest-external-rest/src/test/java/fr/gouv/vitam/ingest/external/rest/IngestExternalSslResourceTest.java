@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -43,7 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 public class IngestExternalSslResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);

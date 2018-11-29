@@ -28,16 +28,14 @@ package fr.gouv.vitam.metadata.core.trigger;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.jsonpath.PathNotFoundException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import net.minidev.json.JSONArray;
+import io.restassured.path.json.JsonPath;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
-
-import static com.jayway.jsonpath.JsonPath.parse;
+import java.util.List;
 
 
 public class ChangesHistoryTest {
@@ -51,13 +49,13 @@ public class ChangesHistoryTest {
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
 
         String unitAfterUpdateString = unitAfterUpdate.toString();
-
-        JSONArray histories = parse(unitAfterUpdateString).read("$._history");
+        JsonPath path = JsonPath.from(unitAfterUpdateString);
+        List histories = JsonPath.from(unitAfterUpdateString).getList("_history");
         Assert.assertEquals(1, histories.size());
 
-        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
-        Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(10, path.getInt("_history[0].data._v"));
+        Assert.assertEquals("Secret Défense",path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
     @Test
@@ -69,18 +67,19 @@ public class ChangesHistoryTest {
         changesHistory.addHistory(unitBeforeSecondUpdate, unitAfterSecondUpdate);
 
         String unitAfterSecondUpdateString = unitAfterSecondUpdate.toString();
+        JsonPath path = JsonPath.from(unitAfterSecondUpdateString);
 
-        JSONArray histories = parse(unitAfterSecondUpdateString).read("$._history");
+        List histories = path.getList("_history");
         Assert.assertEquals(2, histories.size());
 
 
-        Assert.assertNotNull(parse(unitAfterSecondUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(9, (int)parse(unitAfterSecondUpdateString).read("$._history[0].data._v"));
-        Assert.assertEquals("Secret Défense", parse(unitAfterSecondUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(9, path.getInt("_history[0].data._v"));
+        Assert.assertEquals("Secret Défense", path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
 
-        Assert.assertNotNull(parse(unitAfterSecondUpdateString).read("$._history[1].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterSecondUpdateString).read("$._history[1].data._v"));
-        Assert.assertEquals("Confidentiel Défense", parse(unitAfterSecondUpdateString).read("$._history[1].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertNotNull(path.get("_history[1].ud"));
+        Assert.assertEquals(10, path.getInt("_history[1].data._v"));
+        Assert.assertEquals("Confidentiel Défense", path.getString("_history[1].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
 
@@ -93,12 +92,12 @@ public class ChangesHistoryTest {
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
 
         String unitAfterUpdateString = unitAfterUpdate.toString();
-
-        JSONArray histories = parse(unitAfterUpdateString).read("$._history");
+        JsonPath path = JsonPath.from(unitAfterUpdateString);
+        List histories = path.getList("_history");
         Assert.assertEquals(1, histories.size());
 
-        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(10, path.getInt("_history[0].data._v"));
         Assert.assertNull(unitAfterUpdate.get("_history").get(0).get("data").get("_mgt").get("ClassificationRule"));
     }
 
@@ -111,13 +110,14 @@ public class ChangesHistoryTest {
         changesHistory.addHistory(unitBeforeUpdate, unitAfterUpdate);
 
         String unitAfterUpdateString = unitAfterUpdate.toString();
+        JsonPath path = JsonPath.from(unitAfterUpdateString);
 
-        JSONArray histories = parse(unitAfterUpdateString).read("$._history");
+        List histories = path.getList("_history");
         Assert.assertEquals(1, histories.size());
 
-        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
-        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
-        Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+        Assert.assertNotNull(path.get("_history[0].ud"));
+        Assert.assertEquals(10, path.getInt("_history[0].data._v"));
+        Assert.assertEquals("Secret Défense", path.getString("_history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
 
 }

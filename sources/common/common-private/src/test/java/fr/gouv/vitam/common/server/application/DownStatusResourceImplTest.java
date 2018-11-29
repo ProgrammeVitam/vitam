@@ -26,29 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.Map;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.AdminClient;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -60,6 +44,19 @@ import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -190,7 +187,7 @@ public class DownStatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
-        com.jayway.restassured.response.Response response;
+        Response response;
 
         final Map<String, String> headersMap =
                 AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
@@ -206,7 +203,7 @@ public class DownStatusResourceImplTest {
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals("false", result.get("status").toString());
-        AdminStatusMessage message = response.as(AdminStatusMessage.class);
+        AdminStatusMessage message = JsonHandler.getFromInputStream(response.asInputStream(), AdminStatusMessage.class);
         assertEquals(message.getStatus(), false);
         try (DefaultAdminClient client = factory.getClient()) {
             message = client.adminStatus();

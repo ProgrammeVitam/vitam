@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -39,9 +40,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class AdminStatusMessage {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminStatusMessage.class);
+    @JsonProperty("serverIdentity")
     private JsonNode serverIdentity;
+    @JsonProperty("status")
     private boolean status;
+    @JsonProperty("detail")
     private ObjectNode detail;
+    @JsonProperty("componentsVersions")
     private JsonNode componentsVersions;
 
     /**

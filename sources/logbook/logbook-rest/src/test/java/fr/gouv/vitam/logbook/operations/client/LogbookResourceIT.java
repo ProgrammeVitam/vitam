@@ -53,7 +53,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import com.mongodb.client.FindIterable;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;

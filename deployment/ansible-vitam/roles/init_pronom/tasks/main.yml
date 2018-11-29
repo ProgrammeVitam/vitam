@@ -29,7 +29,7 @@
   tags:
     - init_pronom
 
-- name: Ensure service is started 
+- name: Ensure service is started
   service:
     name: "vitam-access-external"
     state: started
@@ -53,7 +53,7 @@
       Content-Type: "application/octet-stream"
       Host: "{{ vitam_struct.host }}"
       # FIXME beurk : Transfer-Encoding badly handled
-      Transfer-Encoding: "anotherthanchunk"
+      #Transfer-Encoding: "anotherthanchunk"
     body: "{{ lookup('file', '{{inventory_dir}}/DROID_SignatureFile_V88.xml') }}"
     body_format: "raw"
     validate_certs: false

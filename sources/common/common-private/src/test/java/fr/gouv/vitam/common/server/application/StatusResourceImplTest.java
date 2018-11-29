@@ -26,32 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -61,6 +41,21 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -223,7 +218,7 @@ public class StatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
-        com.jayway.restassured.response.Response response;
+        Response response;
 
         final Map<String, String> headersMap =
                 AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
@@ -238,7 +233,7 @@ public class StatusResourceImplTest {
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals(result.get("status").toString(), "true");
-        AdminStatusMessage message = response.as(AdminStatusMessage.class);
+        AdminStatusMessage message = JsonHandler.getFromInputStream(response.asInputStream(), AdminStatusMessage.class);
         assertEquals(message.getStatus(), true);
         LOGGER.debug(message.toString());
 

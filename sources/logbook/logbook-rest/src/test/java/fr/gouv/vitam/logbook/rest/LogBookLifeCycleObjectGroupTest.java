@@ -27,8 +27,8 @@
 package fr.gouv.vitam.logbook.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -76,12 +76,13 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -506,12 +507,14 @@ public class LogBookLifeCycleObjectGroupTest {
 
 
         // When / Then
-        RequestResponseOK response = given()
+        InputStream stream = given()
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL + "aebaaaaaaaef6ys5absnuala7t4lfmiaaabq")
             .then()
             .statusCode(Status.OK.getStatusCode())
-            .extract().body().as(RequestResponseOK.class);
+            .extract().body().asInputStream();
+
+        RequestResponseOK response = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
 
         String expectedJson = JsonHandler.unprettyPrint(json);
         String actualJson = JsonHandler.unprettyPrint(JsonHandler.toJsonNode(response.getFirstResult()));

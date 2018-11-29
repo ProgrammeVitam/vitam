@@ -26,26 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * Access RequestResponseOK class contains list of results<br>
  * default results : is an empty list (immutable)
- * 
+ *
  * @param <T> Type of results
  */
 public final class RequestResponseOK<T> extends RequestResponse<T> {
@@ -88,7 +86,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
      * Initialize from a query
-     * 
+     *
      * @param query
      */
     public RequestResponseOK(JsonNode query) {
@@ -185,9 +183,9 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param total of units inserted/modified as integer
+     * @param total  of units inserted/modified as integer
      * @param offset of unit in database as integer
-     * @param limit of unit per response as integer
+     * @param limit  of unit per response as integer
      * @return the RequestReponseOK with the hits are setted
      */
     public RequestResponseOK<T> setHits(long total, int offset, int limit) {
@@ -197,10 +195,10 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
 
     /**
-     * @param total of units inserted/modified as integer
-     * @param offset of unit in database as integer
-     * @param limit of unit per response as integer
-     * @param size of unit per response
+     * @param total    of units inserted/modified as integer
+     * @param offset   of unit in database as integer
+     * @param limit    of unit per response as integer
+     * @param size     of unit per response
      * @param scrollId of response
      * @return the RequestReponseOK with the hits are setted
      */
@@ -210,10 +208,10 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param total of units inserted/modified as integer
+     * @param total  of units inserted/modified as integer
      * @param offset of unit in database as integer
-     * @param limit of unit per response as integer
-     * @param size of unit per response
+     * @param limit  of unit per response as integer
+     * @param size   of unit per response
      * @return the RequestReponseOK with the hits are setted
      */
     public RequestResponseOK<T> setHits(long total, int offset, int limit, int size) {
@@ -224,7 +222,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
      * Should be used only with hints of elasticsearch
-     * 
+     *
      * @param total
      * @return
      */
@@ -293,7 +291,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     *
      * @return True if the result is empty
      */
     @JsonIgnore
@@ -316,7 +313,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @throws InvalidParseOperationException if parse json object exception occurred
      */
     public static <T> RequestResponseOK<T> getFromJsonNode(JsonNode node, Class<T> clazz)
-        throws InvalidParseOperationException {
+            throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, clazz);
     }
 
@@ -338,7 +335,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
      * transform a RequestResponse to a standard response
-     * 
+     *
      * @return Response
      */
     @Override
