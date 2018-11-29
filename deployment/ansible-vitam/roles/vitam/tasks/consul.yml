@@ -1,31 +1,35 @@
 ---
 
-- name: Ensure consul config dir is OK
-  file:
-    path: "{{ consul_folder_conf }}"
-    state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
+- block:
 
-- name: Deploy consul agent service declaration for {{ package_name }} service
-  template:
-    src: "service-componentid.json.j2"
-    dest: "{{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - consul_conf
-  notify:
-   - reload consul configuration
+    - name: Ensure consul config dir is OK
+      file:
+        path: "{{ consul_folder_conf }}"
+        state: directory
+        owner: "{{ vitam_defaults.users.vitam }}"
+        group: "{{ vitam_defaults.users.group }}"
 
-- name: Ensure consul service is started
-  service:
-    name: "vitam-consul"
-    state: started
+    - name: Deploy consul agent service declaration for {{ package_name }} service
+      template:
+        src: "service-componentid.json.j2"
+        dest: "{{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
+        owner: "{{ vitam_defaults.users.vitam }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - consul_conf
+      notify:
+       - reload consul configuration
 
-- name: Check if consul is listening
-  wait_for:
-    host: "127.0.0.1"
-    port: "{{ consul.dns_port }}"
-    state: started
+    - name: Ensure consul service is started
+      service:
+        name: "vitam-consul"
+        state: started
+
+    - name: Check if consul is listening
+      wait_for:
+        host: "127.0.0.1"
+        port: "{{ consul.dns_port }}"
+        state: started
+
+  when:  consul_disabled is not defined or consul_disabled |lower != "true"
