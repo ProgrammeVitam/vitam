@@ -243,11 +243,9 @@
 - include_tasks: remove_metrics.yml
   when: vitam_struct.metrics_enabled |lower != "true"
 
-- include_tasks: consul.yml
-  when:  consul_disabled is not defined or consul_disabled |lower != "true"
+- import_tasks: consul.yml
 
-- include_tasks: ihm_demo.yml
-  when:  vitam_struct.vitam_component == "ihm-demo"
+- import_tasks: ihm_demo.yml
 
 - name: flush_handlers
   meta: flush_handlers
