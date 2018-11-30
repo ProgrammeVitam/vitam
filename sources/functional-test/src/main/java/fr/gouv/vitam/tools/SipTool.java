@@ -39,6 +39,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
@@ -51,9 +52,9 @@ public class SipTool {
 
 
     public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2, String replacement2) throws IOException {
-        File tempFile = new File(GUIDFactory.newGUID().toString());
+        File tempFile = Files.createTempFile(GUIDFactory.newGUID().toString(), ".zip").toFile();
         try (InputStream zipFile = new FileInputStream(zipPath.toFile())) {
-        	Files.copy(zipFile, tempFile.toPath());
+        	Files.copy(zipFile, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
             Path source = fs.getPath("manifest.xml");
