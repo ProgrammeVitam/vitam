@@ -29,7 +29,7 @@
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
 
 - name: Ensure Apache autostart && Apache is started
-  service: 
+  service:
     name: "{{ apache_service }}"
     enabled: yes
     state: started
@@ -82,5 +82,23 @@
   - "httpd-offer-view.conf"
   - "security.conf"
 
-- include_tasks: htaccess.yml
+- block:
+
+    - name: Make sure /vitam/conf/offer directory exists & don't modify initial permissions
+      file:
+        path: "{{vitam_defaults.folder.root_path}}/conf/offer/"
+        state: "directory"
+      tags:
+        - htaccess
+
+    - name: apply .htaccess to hide some files
+      copy:
+        src: .htaccess
+        dest: "{{vitam_defaults.folder.root_path}}/conf/offer/.htaccess"
+        owner: "{{ vitam_defaults.users.vitam }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - htaccess
+
   when: inventory_hostname in groups['hosts-storage-offer-default']
