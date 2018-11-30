@@ -137,7 +137,7 @@ public class VitamReporter implements Reporter, Formatter {
         Step step = steps.poll();
         System.out.printf("  * - %s - %s%s%n", Instant.now() ,result.getStatus().toUpperCase(), step != null ? " - " + step.getName() + " (line: " + step.getLine() + ")" : "");
 
-        if (result.getStatus().equals(Result.FAILED)) {
+        if (!result.getStatus().equals(Result.PASSED) && !result.getStatus().equals(Result.SKIPPED.getStatus())) {
             report.addError(result.getErrorMessage());
             reports.add(report);
         }

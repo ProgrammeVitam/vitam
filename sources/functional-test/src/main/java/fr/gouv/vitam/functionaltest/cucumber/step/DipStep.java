@@ -28,6 +28,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import cucumber.api.java.After;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
@@ -49,8 +51,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +76,7 @@ public class DipStep {
     @When("^j'exporte le dip$")
     public void exportDip() throws VitamException {
 
-        world.setDipFile(null);
+        cleanTempDipFile();
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
@@ -109,9 +114,9 @@ public class DipStep {
         Response response = world.getAccessClient().getDIPById(vitamContext, world.getOperationId());
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
-        File tempFile = new File("DIP-" + world.getOperationId() + ".zip");
+        File tempFile = Files.createTempFile("DIP-" + world.getOperationId(), ".zip").toFile();
         try (InputStream dipInputStream = response.readEntity(InputStream.class)) {
-            Files.copy(dipInputStream, tempFile.toPath());
+            Files.copy(dipInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         response.close();
 
@@ -188,5 +193,17 @@ public class DipStep {
             }
         }
         return cpt;
+    }
+
+    @After
+    public void afterScenario() throws IOException {
+        cleanTempDipFile();
+    }
+
+    private void cleanTempDipFile() {
+        if (world.getDipFile() != null) {
+            FileUtils.deleteQuietly(world.getDipFile().toFile());
+            world.setDipFile(null);
+        }
     }
 }

@@ -959,7 +959,7 @@ public class AccessStep {
             }
             world.setResults(results);
         } catch (Exception e) {
-            LOGGER.warn("Referentiels collection already imported");
+            LOGGER.warn("Referentiels collection already imported", e);
         }
     }
 
