@@ -74,6 +74,9 @@ public class ItemStatus {
     protected ProcessState globalState;
     @JsonProperty("globalOutcomeDetailSubcode")
     protected String globalOutcomeDetailSubcode;
+    @JsonProperty("lifecycleEnable")
+    protected boolean lifecycleEnable = true;
+
 
     @JsonIgnore
     private String logbookTypeProcess;
@@ -94,6 +97,7 @@ public class ItemStatus {
 
     /**
      * Constructor.
+     *
      * @param message
      * @param itemId
      * @param statusMeter
@@ -121,6 +125,7 @@ public class ItemStatus {
 
     /**
      * Constructor
+     *
      * @param itemId
      */
     public ItemStatus(String itemId) {
@@ -414,6 +419,7 @@ public class ItemStatus {
 
     /**
      * Get the global state
+     *
      * @return globalState as type ProcessState
      */
     public ProcessState getGlobalState() {
@@ -473,6 +479,7 @@ public class ItemStatus {
 
     /**
      * set EvDetailData
+     *
      * @param evDetailData
      * @return this
      */
@@ -549,12 +556,20 @@ public class ItemStatus {
         this.globalOutcomeDetailSubcode = globalOutcomeDetailSubcode;
     }
 
+    public boolean isLifecycleEnable() {
+        return lifecycleEnable;
+    }
+
+    public void disableLfc() {
+        this.lifecycleEnable = false;
+    }
+
     /**
      * Set the value of the specified statusCode in this statusMeter
+     *
      * @param statusCode
      * @param value
      */
-
     public void setStatusMeterValue(StatusCode statusCode, Integer value) {
         this.statusMeter.set(statusCode.getStatusLevel(), value);
     }
