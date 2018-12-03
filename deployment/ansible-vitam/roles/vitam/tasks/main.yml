@@ -1,15 +1,4 @@
 ---
-# Don't add package_version when set to '*' to install the package with his exact name
-
-- include_tasks: check_offers.yml
-  when:  inventory_hostname in groups['hosts-storage-offer-default']
-
-- include_tasks: check_strategies_offers.yml
-  when:  inventory_hostname in groups['hosts-storage-engine']
-
-- include_tasks: check_offers_mongo.yml
-  when:  ( inventory_hostname in groups['hosts-storage-offer-default'] and ansible_virtualization_type != "docker" and inventory_hostname != "localhost" )
-
 
 # FIXME : will need more testing to be sure it is mandatory here
 - name: install openjdk from jessie-backports only when Debian
@@ -222,9 +211,6 @@
   when: vitam_struct.metrics_enabled |lower != "true"
 
 - import_tasks: consul.yml
-
-- include_tasks: consul_disabled.yml
-  when: consul_disabled is defined and consul_disabled |lower == "true"
 
 - import_tasks: ihm_demo.yml
 
