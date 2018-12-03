@@ -295,7 +295,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
-            String containerName = VitamThreadUtils.getVitamSession() + "-Traceability";
+            String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
             try {
                 workspaceClient.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
