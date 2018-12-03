@@ -5,9 +5,9 @@
     name: vitam-consul
     state: absent
 
+# For Debian
 - block:
 
-  # For Debian
   - name: Remove resolvconf package
     package:
       name: resolvconf
@@ -15,9 +15,9 @@
 
   when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
 
+# For Centos
 - block:
 
-  # For Centos
   - name: Remove vitam-resolvconf package
     package:
       name: vitam-resolvconf

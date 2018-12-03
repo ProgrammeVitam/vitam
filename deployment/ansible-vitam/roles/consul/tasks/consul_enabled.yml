@@ -1,0 +1,123 @@
+---
+
+### TODO : check if vitam_site_name is correct (ie a-zA-Z0-9\-_ )
+- name: check vitam_site_name is correctly set
+  fail: msg="{{ vitam_site_name }} not correctly configured"
+  when: vitam_site_name|regex_search('[^a-zA-Z0-9\\-_]')
+
+- name: Install Consul package
+  package:
+    name: "{{ consul_service }}"
+    state: latest
+  notify:
+    - restart consul
+
+- name: Enable consul service
+  service:
+    name: "{{ consul_service }}"
+    enabled: true
+  notify:
+      - restart consul
+
+#### Configuration ####
+
+- name: Check that the consul directories exist
+  file:
+    path: "{{vitam_defaults.folder.root_path}}/{{ item }}/{{consul_component}}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log
+    - data
+    - tmp
+  notify:
+    - restart consul
+
+- name: Deploy consul common configuration files
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ consul_folder_conf }}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - "consul.json"
+  notify:
+      - reload consul
+
+# Ensure that the installation is complete and consul up before setting up the system-wide dns resolver...
+- meta: flush_handlers
+
+- name: Ensure service is started
+  service:
+    name: "{{ consul_service }}"
+    state: started
+
+# Changing the resolv.conf doesn't work into a docker container...
+- name: Add consul nameserver to resolv.conf
+  blockinfile:
+    backup: yes
+    dest: /etc/resolv.conf
+    insertbefore: BOF # necessary or this entry won't be asked
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      nameserver 127.0.0.1
+  when: inventory_hostname != 'localhost'
+
+- block:
+
+    # For Debian add nameserver 127.0.0.1 entry in /etc/resolvconf/resolv.conf.d/head
+    - name: Install resolvconf package
+      package:
+        name: "resolvconf"
+        state: latest
+
+    - name: Add nameserver entry in /etc/resolvconf/resolv.conf.d/head
+      blockinfile:
+        backup: yes
+        dest: /etc/resolvconf/resolv.conf.d/head
+        insertbefore: BOF
+        create: yes
+        block: |
+          nameserver 127.0.0.1
+
+    - name: Start the resolvconf service
+      systemd:
+        name: resolvconf
+        enabled: yes
+        state: started
+
+  when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
+
+- block:
+
+    # For Centos Install a package which controls /etc/resolv.conf file
+    - name: Install vitam-resolvconf package
+      package:
+        name: "vitam-resolvconf"
+        state: latest
+
+    - name: Start the vitam-resolvconf service
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - vitam_dns_localhost_enforce.path
+        - vitam_dns_localhost_enforce.service
+
+  when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
+
+- meta: flush_handlers
+
+- name: Wait for consul port to be open
+  wait_for:
+    host: "127.0.0.1"
+    port: "{{ consul.dns_port }}"
+    state: "started"
