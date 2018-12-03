@@ -208,10 +208,6 @@ vitam_tenant_admin=1
 ### logback ###
 days_to_delete_logback_logfiles=30
 
-# Curator
-days_to_delete_logstash_indexes=365
-days_to_close_logstash_indexes=20
-
 vitam_site_name=local
 primary_site=true
 
