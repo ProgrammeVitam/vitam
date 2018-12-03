@@ -36,10 +36,12 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -308,20 +310,26 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile))) {
 
-            workspaceClient.createContainer(fileName);
-            workspaceClient.putObject(fileName, uri, inputStream);
+            String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
+            try {
+                workspaceClient.createContainer(containerName);
+            } catch (ContentAddressableStorageAlreadyExistException e) {
+                // Already exists
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            workspaceClient.putObject(containerName, uri, inputStream);
 
             final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(fileName);
+            description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(uri);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
                     STRATEGY_ID, DataCategory.STORAGETRACEABILITY, fileName, description);
-                workspaceClient.deleteContainer(fileName, true);
+                workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);
 
@@ -331,8 +339,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, StatusCode.FATAL, event);
                 throw new TraceabilityException(e);
             }
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (ContentAddressableStorageServerException | IOException e) {
             LOGGER.error("unable to create container", e);
             createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, StatusCode.FATAL, event);
             throw new TraceabilityException(e);
