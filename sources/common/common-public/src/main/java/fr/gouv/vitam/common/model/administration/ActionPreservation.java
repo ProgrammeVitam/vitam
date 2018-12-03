@@ -25,15 +25,14 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 public class ActionPreservation {
-    @JsonProperty("type")
+    @JsonProperty("Type")
     private ActionTypePreservation type;
-    @JsonProperty("values")
+    @JsonProperty("Values")
     private ValuesPreservation values;
 
     public ActionPreservation() {

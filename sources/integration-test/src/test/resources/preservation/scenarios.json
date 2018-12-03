@@ -78,19 +78,28 @@
           "fmt/814",
           "fmt/130"
         ],
-        "GriffinIdentifier": "GRI-0000003",
+        "GriffinIdentifier": "GRI-000003",
         "TimeOut": 20,
         "MaxSize": 10000000,
+        "Debug":true,
         "ActionDetail": [
           {
-            "Action": "GENERATE",
+            "Type": "GENERATE",
             "Values": {
-              "extension": "pdf",
-              "args": [
+              "Extension": "pdf",
+              "Args": [
                 "-f",
                 "pdf",
                 "-e",
                 "SelectedPdfVersion=1"
+              ]
+            }
+          },
+          {
+            "Type": "ANALYSE",
+            "Values": {
+              "Args": [
+                "-strict"
               ]
             }
           }
@@ -128,13 +137,14 @@
           "fmt/567",
           "fmt/566"
         ],
-        "GriffinIdentifier": "GRI-0000001",
+        "GriffinIdentifier": "GRI-000001",
         "TimeOut": 10,
         "MaxSize": 10000000,
+        "Debug":true,
         "ActionDetail": [
           {
-            "Action": "GENERATE",
-            "Values": {
+            "type": "GENERATE",
+            "values": {
               "extension": "pdf",
               "args": [
                 "-quality",
@@ -178,20 +188,21 @@
           "fmt/293",
           "fmt/297"
         ],
-        "GriffinIdentifier": "GRI-0000023",
+        "GriffinIdentifier": "GRI-000023",
         "TimeOut": 20,
         "MaxSize": 10000000,
+        "Debug":true,
         "ActionDetail": [
           {
-            "Action": "ANALYSE",
-            "Values": {
+            "type": "ANALYSE",
+            "values": {
               "args": [
                 "-strict"
               ]
             }
           },
           {
-            "Action": "GENERATE",
+            "Type": "GENERATE",
             "Values": {
               "extension": "pdf",
               "args": [
@@ -235,16 +246,18 @@
           "fmt/567",
           "fmt/566"
         ],
-        "GriffinIdentifier": "GRI-0000012",
+        "GriffinIdentifier": "GRI-000012",
         "TimeOut": 10,
         "MaxSize": 10000000,
+        "Debug":true,
+
         "ActionDetail": [
           {
-            "Action": "ANALYSE",
+            "Type": "ANALYSE",
             "Values": null
           },
           {
-            "Action": "GENERATE",
+            "Type": "GENERATE",
             "Values": {
               "extension": "pdf",
               "args": [
@@ -257,14 +270,15 @@
       }
     ],
     "GriffinDefault": {
-      "GriffinIdentifier": "GRI-0000005",
+      "GriffinIdentifier": "GRI-000005",
       "TimeOut": 10,
       "MaxSize": 10000000,
+      "Debug":true,
       "ActionDetail": [
         {
-          "Action": "ANALYSE",
+          "Type": "ANALYSE",
           "Values": {
-            "args": [
+            "Args": [
               "-strict"
             ]
           }
@@ -301,14 +315,15 @@
           "fmt/293",
           "fmt/297"
         ],
-        "GriffinIdentifier": "GRI-0000034",
+        "GriffinIdentifier": "GRI-000034",
         "TimeOut": 20,
         "MaxSize": 10000000,
+        "Debug":true,
         "ActionDetail": [
           {
-            "Action": "ANALYSE",
+            "Type": "ANALYSE",
             "Values": {
-              "dataToExtract": {
+              "DataToExtract": {
                 "AU_TextContent": "text",
                 "AU_NamedEntity": "namedEntityList"
               }

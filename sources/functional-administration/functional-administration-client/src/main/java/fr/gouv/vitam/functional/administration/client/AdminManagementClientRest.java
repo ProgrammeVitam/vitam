@@ -1678,14 +1678,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<GriffinModel> findGriffinByID(String id)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-
-        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+    public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException {
         Response response = null;
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
 
             response = performRequest(GET, "/griffin", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
@@ -1700,20 +1696,29 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
                 if (requestResponseOK.getResults() == null ||
                     requestResponseOK.getResults().isEmpty()) {
-                    throw new ReferentialNotFoundException("Griffin not found with id: " + id);
+                    throw new ReferentialNotFoundException("Griffin not found ");
                 }
                 return requestResponseOK;
             }
             return RequestResponse.parseFromResponse(response, GriffinModel.class);
 
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffinByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+        try {
+            JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
+            return findGriffin(queryDsl);
+        } catch (InvalidCreateOperationException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -1727,7 +1732,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(PreservationScenarioModel.TAG_IDENTIFIER, id);
 
             response =
-                performRequest(GET, "/preservationScenario", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+                performRequest(GET, "/preservationScenario", null, queryDsl, APPLICATION_JSON_TYPE,
+                    APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
 

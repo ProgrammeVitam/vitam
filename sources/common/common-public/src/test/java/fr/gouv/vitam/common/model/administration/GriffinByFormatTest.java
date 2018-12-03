@@ -29,22 +29,22 @@ public class GriffinByFormatTest {
             "    \"fmt/297\"\n" +
             "  ],\n" +
             "  \"GriffinIdentifier\": \"GRI-0000023\",\n" +
-            "  \"TimeOut\": 20,\n" +
+            "  \"Timeout\": 20,\n" +
             "  \"MaxSize\": 10000000,\n" +
             "  \"ActionDetail\": [\n" +
             "    {\n" +
-            "      \"Action\": \"ANALYSE\",\n" +
+            "      \"Type\": \"ANALYSE\",\n" +
             "      \"Values\": {\n" +
-            "        \"args\": [\n" +
+            "        \"Args\": [\n" +
             "          \"-strict\"\n" +
             "        ]\n" +
             "      }\n" +
             "    },\n" +
             "    {\n" +
-            "      \"Action\": \"GENERATE\",\n" +
+            "      \"Type\": \"GENERATE\",\n" +
             "      \"Values\": {\n" +
-            "        \"extension\": \"pdf\",\n" +
-            "        \"args\": [\n" +
+            "        \"Extension\": \"pdf\",\n" +
+            "        \"Args\": [\n" +
             "          \"-f\",\n" +
             "          \"pdf\",\n" +
             "          \"-e\",\n" +
@@ -59,8 +59,8 @@ public class GriffinByFormatTest {
 
         assertThat(griffinByFormat.getMaxSize()).isEqualTo(10000000);
         assertThat(griffinByFormat.getTimeOut()).isEqualTo(20);
-        assertThat(griffinByFormat.getActionDetail().get(0).actionTypePreservation).isEqualTo(ANALYSE);
-        assertThat(griffinByFormat.getActionDetail().get(1).actionTypePreservation).isEqualTo(GENERATE);
+        assertThat(griffinByFormat.getActionDetail().get(0).getType()).isEqualTo(ANALYSE);
+        assertThat(griffinByFormat.getActionDetail().get(1).getType()).isEqualTo(GENERATE);
 
     }
 }

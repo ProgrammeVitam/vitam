@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -136,9 +137,12 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect;
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -256,8 +260,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             checkEmptyQuery(queryDsl);
             result =
                 accessModule
-                    .selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                        VitamThreadUtils.getVitamSession().getContract()));
+                    .selectUnit(applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                        getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -303,8 +307,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
             result = accessModule.selectUnitsWithInheritedRules(
-                AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                    VitamThreadUtils.getVitamSession().getContract()));
+                applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                    getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -348,7 +352,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         try {
             checkEmptyQuery(dslRequest);
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -368,13 +372,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 workspaceClient.createContainer(operationId);
                 workspaceClient.putObject(operationId, "query.json", writeToInpustream(
-                    AccessContractRestrictionHelper
-                        .applyAccessContractRestrictionForUnitForSelect(dslRequest,
-                            VitamThreadUtils.getVitamSession().getContract())));
+                    applyAccessContractRestrictionForUnitForSelect(dslRequest,
+                        getVitamSession().getContract())));
 
                 ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
                 Boolean mustLog =
-                    ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
+                    ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
                 processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), processingEntry);
@@ -423,7 +426,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         try {
             checkEmptyQuery(dipExportRequest.getDslRequest());
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -446,9 +449,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 workspaceClient.createContainer(operationId);
                 workspaceClient.putObject(operationId, "query.json", writeToInpustream(
-                    AccessContractRestrictionHelper
-                        .applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(),
-                            VitamThreadUtils.getVitamSession().getContract())));
+                    applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(),
+                        getVitamSession().getContract())));
 
                 if (dipExportRequest.getDataObjectVersionToExport() != null
                     && !dipExportRequest.getDataObjectVersionToExport().getDataObjectVersions().isEmpty()) {
@@ -458,7 +460,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 ProcessingEntry processingEntry = new ProcessingEntry(operationId, EXPORT_DIP);
                 Boolean mustLog =
-                    ActivationStatus.ACTIVE.equals(VitamThreadUtils.getVitamSession().getContract().getAccessLog());
+                    ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
                 processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), processingEntry);
@@ -491,7 +493,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
         ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
         rightsStatementIdentifier
-            .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+            .put(ACCESS_CONTRACT, getVitamSession().getContract().getIdentifier());
         initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
             rightsStatementIdentifier.toString());
     }
@@ -536,7 +538,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             ParametersChecker.checkParameter("Missing reclassification request", reclassificationRequestJson);
 
             // Start workflow
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -628,12 +630,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             EliminationRequestBody eliminationRequestBodyWithAccessContractRestriction =
                 new EliminationRequestBody(
                     eliminationRequestBody.getDate(),
-                    AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(
+                    applyAccessContractRestrictionForUnitForSelect(
                         eliminationRequestBody.getDslRequest(),
-                        VitamThreadUtils.getVitamSession().getContract()));
+                        getVitamSession().getContract()));
 
             // Start workflow
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -711,8 +713,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode result =
                 accessModule
                     .selectUnitbyId(
-                        AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                            VitamThreadUtils.getVitamSession().getContract()), idUnit);
+                        applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                            getVitamSession().getContract()), idUnit);
             resetQuery(result, queryDsl);
 
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -743,8 +745,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode result =
                 accessModule
                     .selectUnitbyId(
-                        AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                            VitamThreadUtils.getVitamSession().getContract()), idUnit);
+                        applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                            getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode unit = results.get(0);
             Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -789,7 +791,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule
                 .updateUnitbyId(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
-                    VitamThreadUtils.getVitamSession().getContract()), idUnit, requestId);
+                    getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -827,7 +829,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode result = accessModule
                 .selectObjectGroupById(AccessContractRestrictionHelper
                         .applyAccessContractRestrictionForObjectGroupForSelect(query,
-                            VitamThreadUtils.getVitamSession().getContract()),
+                            getVitamSession().getContract()),
                     idObjectGroup);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
@@ -854,7 +856,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(dslQuery);
             final JsonNode result = accessModule.selectObjectGroupById(
                 AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect(dslQuery,
-                    VitamThreadUtils.getVitamSession().getContract()),
+                    getVitamSession().getContract()),
                 objectId);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
@@ -887,8 +889,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode result =
                 accessModule
                     .selectUnitbyId(
-                        AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                            VitamThreadUtils.getVitamSession().getContract()), idUnit);
+                        applyAccessContractRestrictionForUnitForSelect(queryDsl,
+                            getVitamSession().getContract()), idUnit);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             // Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -936,7 +938,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
-        if (!VitamThreadUtils.getVitamSession().getContract().isEveryDataObjectVersion() &&
+        if (!getVitamSession().getContract().isEveryDataObjectVersion() &&
             !validUsage(xQualifier.split("_")[0])) {
             return Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier unallowed"))
@@ -965,7 +967,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private boolean validUsage(String s) {
-        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        final VitamSession vitamSession = getVitamSession();
         Set<String> versions = vitamSession.getContract().getDataObjectVersion();
 
         if (versions == null || versions.isEmpty()) {
@@ -1052,7 +1054,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
+            if (!getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
@@ -1073,7 +1075,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             boolean updateManagement = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
             Contexts context = updateManagement ? Contexts.MASS_UPDATE_UNIT_RULE : Contexts.MASS_UPDATE_UNIT_DESC;
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -1100,7 +1102,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .putObject(operationId, "query.json", writeToInpustream(
                         AccessContractRestrictionHelper.
                             applyAccessContractRestrictionForUnitForUpdate(queryDsl,
-                                VitamThreadUtils.getVitamSession().getContract())));
+                                getVitamSession().getContract())));
                 workspaceClient
                     .putObject(operationId, "actions.json",
                         writeToInpustream(JsonHandler.createObjectNode()));
@@ -1146,11 +1148,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
+            if (!getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -1176,7 +1178,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient
                     .putObject(operationId, "query.json", writeToInpustream(
                         AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
-                            VitamThreadUtils.getVitamSession().getContract())));
+                            getVitamSession().getContract())));
                 workspaceClient
                     .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
                 processingClient.initVitamProcess(Contexts.MASS_UPDATE_UNIT_RULE.name(), operationId,
@@ -1282,7 +1284,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 accessModule
                     .selectObjects(AccessContractRestrictionHelper
                         .applyAccessContractRestrictionForObjectGroupForSelect(queryDsl,
-                            VitamThreadUtils.getVitamSession().getContract()));
+                            getVitamSession().getContract()));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -1319,7 +1321,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private Response startPreservationWorkflow(PreservationRequest preservationRequest) {
         try {
             ParametersChecker.checkParameter("Missing request", preservationRequest);
-            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String operationId = getVitamSession().getRequestId();
+
+            AccessContractModel contract = getVitamSession().getContract();
+            JsonNode dslQuery = preservationRequest.getDslQuery();
+            JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
+
+            preservationRequest.setDslQuery(restrictedQuery);
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -1341,7 +1349,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
-                workspaceClient.putObject(operationId, "preservationRequest", writeToInpustream(preservationRequest));
+                workspaceClient.putObject(operationId, "preservationRequest",  writeToInpustream(preservationRequest));
+
+                workspaceClient
+                    .putObject(operationId, "query.json", writeToInpustream(preservationRequest.getDslQuery()));
 
                 processingClient.initVitamProcess(PRESERVATION.name(),
                     new ProcessingEntry(operationId, PRESERVATION.getEventType()));

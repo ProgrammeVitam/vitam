@@ -1,0 +1,81 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 8,
+    "offset": 0,
+    "limit": 10000,
+    "size": 8
+  },
+  "$results": [
+    {
+      "Title": "exempleidrissaautre",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaga",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtorrwyaaaaq"
+    },
+    {
+      "Title": "exempleidrissadeux",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaea",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+    },
+    {
+      "Title": "exempleidrissatrois",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxqaaaca",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+    },
+    {
+      "Title": "exempleidrissaun",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaba",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+    },
+    {
+      "Title": "exempleidrissaautre",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaga",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxbiaaaaq"
+    },
+    {
+      "Title": "exempleidrissaun",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaba",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+    },
+    {
+      "Title": "exempleidrissadeux",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaea",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+    },
+    {
+      "Title": "exempleidrissatrois",
+      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbqaaaca",
+      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$and": [
+          {
+            "$exists": "#object"
+          },
+          {
+            "$wildcard": {
+              "Title": "exempleidrissa*"
+            }
+          }
+        ]
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "#object": -1
+      }
+    },
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "#object": 1,
+        "Title": 1
+      }
+    }
+  }
+}

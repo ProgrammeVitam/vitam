@@ -34,6 +34,8 @@ import java.util.List;
 
 public class PreservationRequest {
 
+    public final static String DEFAULT_VERSION = "LAST";
+
     private JsonNode dslQuery;
 
     private String scenarioIdentifier;
@@ -51,6 +53,8 @@ public class PreservationRequest {
         this.scenarioIdentifier = scenarioIdentifier;
         this.usages = usages;
         this.version = version;
+
+        // TOdo Filter Version To Last Or FIRST
     }
 
     public JsonNode getDslQuery() {
@@ -67,5 +71,9 @@ public class PreservationRequest {
 
     public String getVersion() {
         return version;
+    }
+
+    public void setDslQuery(JsonNode dslQuery) {
+        this.dslQuery = dslQuery;
     }
 }

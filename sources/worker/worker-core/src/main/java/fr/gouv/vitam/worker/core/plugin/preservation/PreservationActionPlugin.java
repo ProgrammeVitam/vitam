@@ -27,31 +27,6 @@
 
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.concurrent.TimeUnit.MINUTES;
-
-import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -69,7 +44,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.ActionPreservation;
+import fr.gouv.vitam.common.model.administration.ActionPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ParametersPreservation;
@@ -79,6 +54,30 @@ import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportS
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
@@ -285,7 +284,7 @@ public class PreservationActionPlugin extends ActionHandler {
 
 
     private Stream<ActionPreservation> mapToActions(PreservationDistributionLine entryParams) {
-        return entryParams.getActionPreservations().stream();
+        return entryParams.getActionPreservationList().stream();
 
     }
 
@@ -307,24 +306,12 @@ public class PreservationActionPlugin extends ActionHandler {
                 "Griffin {} exited with value {}, stdErr: {}, stdOut: {}.",
                 griffinId,
                 griffin.exitValue(),
-                stdToString(griffin.getErrorStream()),
-                stdToString(griffin.getInputStream())
+                IOUtils.toString(griffin.getErrorStream(), UTF_8),
+                IOUtils.toString(griffin.getInputStream(), UTF_8)
+
             );
         }
 
         return JsonHandler.getFromFile(batchDirectory.resolve(RESULT_JSON).toFile(), ResultPreservation.class);
     }
-
-    private static String stdToString(InputStream std) throws IOException {
-        StringBuilder textBuilder = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(std, UTF_8))) {
-            String c;
-            while ((c = reader.readLine()) != null) {
-                textBuilder.append(c);
-            }
-        }
-        return textBuilder.toString();
-    }
-
-
 }

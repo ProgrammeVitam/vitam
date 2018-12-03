@@ -592,4 +592,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         throw new IllegalStateException("Cannot be used");
     }
+
+    @Override public RequestResponse findGriffin(JsonNode dslQuery) {
+        throw new IllegalStateException("Cannot be used");
+    }
 }

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -36,46 +35,64 @@ import java.util.Set;
  * GriffinByFormat class
  */
 public class GriffinByFormat {
-
+    @JsonProperty("FormatList")
     private Set<String> formatList;
-
+    @JsonProperty("GriffinIdentifier")
     private String griffinIdentifier;
-
+    @JsonProperty("Timeout")
     private int timeOut;
-
+    @JsonProperty("MaxSize")
     private int maxSize;
-
-    private List<ActionDetail> actionDetail;
-
-    @JsonCreator
-    public GriffinByFormat(@JsonProperty("FormatList") Set<String> formatList,
-        @JsonProperty("GriffinIdentifier") String griffinIdentifier,
-        @JsonProperty("Timeout") int timeOut, @JsonProperty("MaxSize") int maxSize,
-        @JsonProperty("ActionDetail") List<ActionDetail> actionDetail) {
-        this.formatList = formatList;
-        this.griffinIdentifier = griffinIdentifier;
-        this.timeOut = timeOut;
-        this.maxSize = maxSize;
-        this.actionDetail = actionDetail;
-    }
+    @JsonProperty("Debug")
+    private boolean debug;
+    @JsonProperty("ActionDetail")
+    private List<ActionPreservation> actionDetail;
 
     public Set<String> getFormatList() {
         return formatList;
+    }
+
+    public void setFormatList(Set<String> formatList) {
+        this.formatList = formatList;
     }
 
     public String getGriffinIdentifier() {
         return griffinIdentifier;
     }
 
+    public void setGriffinIdentifier(String griffinIdentifier) {
+        this.griffinIdentifier = griffinIdentifier;
+    }
+
     public int getTimeOut() {
         return timeOut;
+    }
+
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 
     public int getMaxSize() {
         return maxSize;
     }
 
-    public List<ActionDetail> getActionDetail() {
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public List<ActionPreservation> getActionDetail() {
         return actionDetail;
+    }
+
+    public void setActionDetail(List<ActionPreservation> actionDetail) {
+        this.actionDetail = actionDetail;
     }
 }

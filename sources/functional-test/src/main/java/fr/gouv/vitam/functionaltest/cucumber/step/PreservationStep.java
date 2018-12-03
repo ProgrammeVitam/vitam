@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.common.model.PreservationRequest.DEFAULT_VERSION;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -157,9 +158,8 @@ public class PreservationStep {
         JsonNode queryNode = JsonHandler.getFromString(query);
         List<String> usages = Collections.singletonList("BinaryMaster");
 
-        String version = "Last";
-
-        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages, version);
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages,
+            DEFAULT_VERSION);
         RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);

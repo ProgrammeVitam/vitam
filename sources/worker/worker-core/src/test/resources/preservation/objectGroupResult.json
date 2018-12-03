@@ -1,0 +1,158 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 10000,
+    "size": 2
+  },
+  "$results": [
+    {
+      "FileInfo": {
+        "LastModified": "2017-04-04T08:07:06.487+02:00"
+      },
+      "#id": "aebaaaaaaaha7hrkaatq6alhnucasraaaaaq",
+      "#nbobjects": 1,
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaaha7hrkaatq6alhnucasraaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:06.487+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID13.txt",
+              "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaaha7hrkaatq6alhnucasqyaaaaq",
+              "#opi": "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaaha7hrkaatq6alhnucatiaaaaaq"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaaha7hrkaatq6alhnucassyaaabq"
+      ],
+      "#operations": [
+        "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq"
+      ],
+      "#opi": "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq",
+      "#originating_agency": "FRAN_NP_009913",
+      "#originating_agencies": [
+        "FRAN_NP_009913"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-04-04T08:07:27.825+02:00"
+      },
+      "#id": "aebaaaaaaaha7hrkaatq6alhnucasryaaaaq",
+      "#nbobjects": 1,
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaaha7hrkaatq6alhnucasryaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:27.825+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID35.txt",
+              "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaaha7hrkaatq6alhnucasrqaaaaq",
+              "#opi": "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaaha7hrkaatq6alhnucatlyaaaaq"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaaha7hrkaatq6alhnucassyaaabq"
+      ],
+      "#operations": [
+        "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq"
+      ],
+      "#opi": "aeeaaaaaachg7kglaad4qalhnub7q7aaaaaq",
+      "#originating_agency": "FRAN_NP_009913",
+      "#originating_agencies": [
+        "FRAN_NP_009913"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 0
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "aebaaaaaaaha7hrkaatq6alhnucasraaaaaq",
+            "aebaaaaaaaha7hrkaatq6alhnucasryaaaaq"
+          ]
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {}
+  }
+}

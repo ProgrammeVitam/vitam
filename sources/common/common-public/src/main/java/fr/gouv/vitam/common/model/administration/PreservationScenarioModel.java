@@ -26,11 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Optional.empty;
 
 /**
  * PreservationScenarioModel class
@@ -55,7 +61,6 @@ public class PreservationScenarioModel {
     private static final String TAG_GRIFFIN_DEFAULT = "GriffinDefault";
 
     private static final String TAG_METADATA_FILTER = "MetadataFilter";
-
 
     public static String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
 
@@ -87,7 +92,7 @@ public class PreservationScenarioModel {
     private List<ActionTypePreservation> actionList;
 
     @JsonProperty(TAG_METADATA_FILTER)
-    private List<String> metadataFilter ;
+    private List<String> metadataFilter;
 
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
@@ -189,5 +194,51 @@ public class PreservationScenarioModel {
 
     public void setDefaultGriffin(GriffinByFormat defaultGriffin) {
         this.defaultGriffin = defaultGriffin;
+    }
+
+    public Optional<String> getGriffinIdentifierByFormat(String format) {
+
+        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
+            return empty();
+        }
+
+        for (GriffinByFormat element : griffinByFormat) {
+            if (element.getFormatList().contains(format)) {
+                return Optional.of(element.getGriffinIdentifier());
+            }
+        }
+        return empty();
+    }
+
+    public Optional<GriffinByFormat> getGriffinByFormat(String format) {
+
+        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
+            return empty();
+        }
+
+        for (GriffinByFormat element : griffinByFormat) {
+            if (element.getFormatList().contains(format)) {
+                return Optional.of(element);
+            }
+        }
+        return empty();
+    }
+
+    public Set<String> getAllGriffinIdentifiers() {
+
+        Set<String> identifierSet = new HashSet<>();
+
+        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
+            return identifierSet;
+        }
+
+        for (GriffinByFormat format : griffinByFormat) {
+            identifierSet.add(format.getGriffinIdentifier());
+        }
+
+        if (defaultGriffin != null)
+            identifierSet.add(defaultGriffin.getGriffinIdentifier());
+
+        return identifierSet;
     }
 }
