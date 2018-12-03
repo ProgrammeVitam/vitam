@@ -40,7 +40,6 @@
         <module>storage-integration-test</module>
         <module>storage-integration-nossl-test</module>
         <module>functional-test</module>
-        <module>functional-tnr</module>
         <module>internal-security</module>
         <module>elastic-kibana-interceptor</module>
         <module>batch-report</module>
