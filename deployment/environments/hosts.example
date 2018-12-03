@@ -311,12 +311,6 @@ vitam_tenant_admin=1
 # Days before deleting logback log files (java & access logs for vitam components)
 days_to_delete_logback_logfiles=
 
-# Configuration for Curator
-#	Days before deletion on log management cluster; 365 for production environment
-days_to_delete_logstash_indexes=
-#	Days before closing "old" indexes on log management cluster; 30 for production environment
-days_to_close_logstash_indexes=
-
 # Define local Consul datacenter name
 vitam_site_name=prod-dc1
 # EXAMPLE : vitam_site_name = prod-dc1
