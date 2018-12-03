@@ -951,7 +951,7 @@ public class AccessStep {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status)));
             }
         } catch (Exception e) {
-            LOGGER.warn("Referentiels collection already imported");
+            LOGGER.warn("Referentiels collection already imported", e);
         }
     }
 
