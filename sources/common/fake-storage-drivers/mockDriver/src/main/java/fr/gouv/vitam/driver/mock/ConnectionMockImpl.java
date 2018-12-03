@@ -337,7 +337,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
                 return response.readEntity(responseType);
             case INTERNAL_SERVER_ERROR:
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                throw new StorageDriverException(getDriverName(), status.getReasonPhrase());
+                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), false);
             case NOT_FOUND:
                 // FIXME P1 : clean useless case
                 LOGGER.error(status.getReasonPhrase());
@@ -348,11 +348,11 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
             case CONFLICT:
                 LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(),
-                    status.getReasonPhrase());
+                    status.getReasonPhrase(), false);
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(),
-                    INTERNAL_SERVER_ERROR);
+                    INTERNAL_SERVER_ERROR, false);
         }
     }
 
@@ -395,7 +395,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
             !offerMaps.FILES_MAP.containsKey(key)) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
             throw new StorageDriverException(getDriverName(),
-                "Object " + "not found");
+                "Object " + "not found", false);
         }
         return new StorageCheckResult(request.getTenantId(), request.getType(),
             request.getGuid(), request.getDigestAlgorithm(), request.getDigestHashBase16(),
@@ -415,7 +415,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
             !offerMaps.FILES_MAP.containsKey(key)) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
             throw new StorageDriverException(getDriverName(),
-                "Object " + "not found");
+                "Object " + "not found", false);
         }
         MetadatasStorageObject result = new MetadatasStorageObject();
         result.setObjectName(request.getGuid());

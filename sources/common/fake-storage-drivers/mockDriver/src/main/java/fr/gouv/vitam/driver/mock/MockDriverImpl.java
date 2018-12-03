@@ -146,7 +146,7 @@ public class MockDriverImpl extends AbstractDriver {
     public Connection connect(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
             throw new StorageDriverException(getName(),
-                "Intentionaly thrown");
+                "Intentionaly thrown", false);
         }
         if (connectionFactories.containsKey(offerId)) {
             final VitamClientFactoryInterface<? extends BasicClient> factory = connectionFactories.get(offerId);
@@ -156,14 +156,14 @@ public class MockDriverImpl extends AbstractDriver {
         StorageNotFoundException exception =
             new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offerId);
         throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
-            exception.getMessage(), exception);
+            exception.getMessage(), false, exception);
     }
 
     @Override
     public boolean isStorageOfferAvailable(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
             throw new StorageDriverException(getName(),
-                "Intentionaly thrown");
+                "Intentionaly thrown", false);
         }
         return true;
     }

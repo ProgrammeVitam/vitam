@@ -24,46 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.storage.exception;
 
-package fr.gouv.vitam.storage.driver.exception;
+import java.io.IOException;
 
-/**
- * Exceptions to be thrown by the storage drivers in case service requested is unavailable
- *
- */
-public class StorageDriverAlreadyExistsException extends StorageDriverException {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * Constructor with a message and additional info about the driver
-     *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param message a message to add
-     */
-    public StorageDriverAlreadyExistsException(String driverInfos, String message) {
-        super(driverInfos, message);
+public class StreamAlreadyConsumedException extends IOException {
+    public StreamAlreadyConsumedException(String s) {
+        super(s);
     }
-
-    /**
-     * Constructor with a message and an original exception and additional info about the driver
-     *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param message the exception message
-     * @param cause the original exception
-     */
-    public StorageDriverAlreadyExistsException(String driverInfos, String message, Throwable cause) {
-        super(driverInfos, message, cause);
-    }
-
-    /**
-     * Constructor with an original exception and additional info about the driver
-     *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param cause the original exception
-     */
-    public StorageDriverAlreadyExistsException(String driverInfos, Throwable cause) {
-        super(driverInfos, cause);
-    }
-
 }

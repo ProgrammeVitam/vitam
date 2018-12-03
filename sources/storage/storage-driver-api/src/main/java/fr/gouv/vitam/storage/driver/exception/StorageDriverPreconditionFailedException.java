@@ -42,7 +42,7 @@ public class StorageDriverPreconditionFailedException extends StorageDriverExcep
      * @param message a message to add
      */
     public StorageDriverPreconditionFailedException(String driverInfos, String message) {
-        super(driverInfos, message);
+        super(driverInfos, message, false);
     }
 
     /**
@@ -53,7 +53,7 @@ public class StorageDriverPreconditionFailedException extends StorageDriverExcep
      * @param cause the original exception
      */
     public StorageDriverPreconditionFailedException(String driverInfos, String message, Throwable cause) {
-        super(driverInfos, message, cause);
+        super(driverInfos, message, false, cause);
     }
 
     /**
@@ -63,7 +63,7 @@ public class StorageDriverPreconditionFailedException extends StorageDriverExcep
      * @param cause the original exception
      */
     public StorageDriverPreconditionFailedException(String driverInfos, Throwable cause) {
-        super(driverInfos, cause);
+        super(driverInfos, false, cause);
     }
 
 }

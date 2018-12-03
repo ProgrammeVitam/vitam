@@ -56,7 +56,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 public class DriverImpl extends AbstractDriver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
-    private static final String DRIVER_NAME = "WorkspaceDriver";
+    private static final String DRIVER_NAME = "DefaultOfferDriver";
     private static final String RESOURCE_PATH = "/offer/v1";
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
@@ -111,7 +111,7 @@ public class DriverImpl extends AbstractDriver {
             StorageNotFoundException exception =
                 new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offerId);
             throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
-                exception.getMessage(), exception);
+                exception.getMessage(), false, exception);
         }
 
         return factory.getClient();

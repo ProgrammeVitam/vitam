@@ -554,12 +554,17 @@ public class StorageDistributionImpl implements StorageDistribution {
                         status = Status.CONFLICT;
                         datas.changeStatus(offerId, status);
                     }
-                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, status);
-                    if (e.getCause() instanceof StorageDriverException ||
-                        e.getCause() instanceof StorageDriverPreconditionFailedException) {
-                        LOGGER.error("Error encountered is " + e.getCause().getClass() + ", no need to retry");
-                        attempt = NB_RETRY;
-                    }
+                    parameters =
+                        setLogbookStorageParameters(parameters, offerId, null, dataContext.getRequester(), attempt,
+                            status, dataContext.getCategory().getFolder());
+
+                    if (e.getCause() instanceof StorageDriverException) {
+                        StorageDriverException ex = (StorageDriverException) e.getCause();
+                        if (!ex.isShouldRetry()) {
+                            LOGGER.error(
+                                    StorageDistributionImpl.ERROR_ENCOUNTERED_IS + e.getCause().getClass() + NO_NEED_TO_RETRY, ex);
+                            needToRetry.set(false);
+                        }
                     // TODO: review this exception to manage errors correctly
                     // Take into account Exception class
                     // For example, for particular exception do not retry (because
@@ -570,6 +575,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                     LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
                         null);
+                    }
                 }
             }
             // Check if any has one IO Exception

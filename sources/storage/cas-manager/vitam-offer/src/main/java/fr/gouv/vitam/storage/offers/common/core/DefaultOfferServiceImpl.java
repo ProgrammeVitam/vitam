@@ -44,6 +44,9 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -72,6 +75,18 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default offer service implementation
@@ -134,11 +149,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        try {
+        if (!defaultStorage.isExistingContainer(containerName)) {
             defaultStorage.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
         }
+
         objectInit.setId(objectGUID);
         objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
         if (objectInit.getDigestAlgorithm() != null) {
@@ -160,11 +174,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return putObject(containerName, objectId, objectPart, type, size);
         } catch (ContentAddressableStorageNotFoundException ex) {
-            try {
-                defaultStorage.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
-            }
+            defaultStorage.createContainer(containerName);
             return putObject(containerName, objectId, objectPart, type, size);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
@@ -204,11 +214,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             containerInformation = defaultStorage.getContainerInformation(containerName);
         } catch (ContentAddressableStorageNotFoundException exc) {
-            try {
-                defaultStorage.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
-            }
+            defaultStorage.createContainer(containerName);
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
         result.put("usableSpace", containerInformation.getUsableSpace());
@@ -272,11 +278,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     public String createCursor(String containerName) throws ContentAddressableStorageServerException {
-        try {
-            defaultStorage.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
-        }
+        defaultStorage.createContainer(containerName);
         String cursorId = GUIDFactory.newGUID().toString();
         mapXCusor.put(getKeyMap(containerName, cursorId), null);
         return cursorId;

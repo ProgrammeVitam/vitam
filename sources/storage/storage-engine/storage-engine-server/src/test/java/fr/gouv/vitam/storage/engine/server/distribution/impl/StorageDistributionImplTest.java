@@ -161,7 +161,7 @@ public class StorageDistributionImplTest {
     public void testStoreData_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "id1";
-        StoredInfoResult storedInfoResult = null;
+        StoredInfoResult storedInfoResult;
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
@@ -415,7 +415,7 @@ public class StorageDistributionImplTest {
 
     private void checkInvalidArgumentException(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category)
-        throws StorageException, StorageAlreadyExistsException {
+        throws StorageException {
         try {
             simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category, "testRequester");
             fail("Parameter should be considered invalid");

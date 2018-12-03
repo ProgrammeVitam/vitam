@@ -156,7 +156,7 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
+    public void createContainer(String containerName) {
         LOGGER.info("- create container CEPH : " + containerName);
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         try {

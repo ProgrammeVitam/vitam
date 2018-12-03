@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String provider;
-    private boolean recomputeDigest = false;
     private String swiftKeystoneAuthUrl;
     private String swiftDomain;
     private String swiftUser;
@@ -44,12 +43,17 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private boolean authentication;
     private String swiftProjectName;
     private String swiftUrl;
-    private String swiftTrustStore;
-    private String swiftTrustStorePassword;
+    private String swiftTrustTore;
+    private String swiftTrustTorePassword;
     private int swiftMaxConnectionsPerRoute;
     private int swiftMaxConnections;
     private int swiftConnectionTimeout;
     private int swiftReadTimeout;
+    /**
+     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token renew before a token expiration occurs
+     */
+    private long swiftSoftRenewTokenDelayBeforeExpireTime;
+    private long swiftHardRenewTokenDelayBeforeExpireTime;
 
     /**
      * @return the swiftUrl
@@ -218,28 +222,20 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
-    public String getSwiftTrustStore() {
-        return swiftTrustStore;
+    public String getSwiftTrustTore() {
+        return swiftTrustTore;
     }
 
-    public void setSwiftTrustStore(String swiftTrustStore) {
-        this.swiftTrustStore = swiftTrustStore;
+    public void setSwiftTrustTore(String swiftTrustTore) {
+        this.swiftTrustTore = swiftTrustTore;
     }
 
-    public String getSwiftTrustStorePassword() {
-        return swiftTrustStorePassword;
+    public String getSwiftTrustTorePassword() {
+        return swiftTrustTorePassword;
     }
 
-    public void setSwiftTrustStorePassword(String swiftTrustStorePassword) {
-        this.swiftTrustStorePassword = swiftTrustStorePassword;
-    }
-
-    public boolean isRecomputeDigest() {
-        return recomputeDigest;
-    }
-
-    public void setRecomputeDigest(boolean recomputeDigest) {
-        this.recomputeDigest = recomputeDigest;
+    public void setSwiftTrustTorePassword(String swiftTrustTorePassword) {
+        this.swiftTrustTorePassword = swiftTrustTorePassword;
     }
 
     public int getSwiftMaxConnectionsPerRoute() {
@@ -272,5 +268,21 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public void setSwiftReadTimeout(int swiftReadTimeout) {
         this.swiftReadTimeout = swiftReadTimeout;
+    }
+
+    public long getSwiftSoftRenewTokenDelayBeforeExpireTime() {
+        return swiftSoftRenewTokenDelayBeforeExpireTime;
+    }
+
+    public void setSwiftSoftRenewTokenDelayBeforeExpireTime(long swiftSoftRenewTokenDelayBeforeExpireTime) {
+        this.swiftSoftRenewTokenDelayBeforeExpireTime = swiftSoftRenewTokenDelayBeforeExpireTime;
+    }
+
+    public long getSwiftHardRenewTokenDelayBeforeExpireTime() {
+        return swiftHardRenewTokenDelayBeforeExpireTime;
+    }
+
+    public void setSwiftHardRenewTokenDelayBeforeExpireTime(long swiftHardRenewTokenDelayBeforeExpireTime) {
+        this.swiftHardRenewTokenDelayBeforeExpireTime = swiftHardRenewTokenDelayBeforeExpireTime;
     }
 }

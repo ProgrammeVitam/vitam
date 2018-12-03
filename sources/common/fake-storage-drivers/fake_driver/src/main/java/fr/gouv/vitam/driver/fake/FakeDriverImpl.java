@@ -171,7 +171,7 @@ public class FakeDriverImpl extends AbstractDriver {
     public Connection connect(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
             throw new StorageDriverException(getName(),
-                "Intentionaly thrown");
+                "Intentionaly thrown", false);
         }
         return new FakeConnectionImpl();
     }
@@ -180,7 +180,7 @@ public class FakeDriverImpl extends AbstractDriver {
     public boolean isStorageOfferAvailable(String offerId) throws StorageDriverException {
         if (offerId.contains("fail")) {
             throw new StorageDriverException(getName(),
-                "Intentionaly thrown");
+                "Intentionaly thrown", false);
         }
         return true;
     }
@@ -211,7 +211,7 @@ public class FakeDriverImpl extends AbstractDriver {
             Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
                 throw new StorageDriverException("driverInfo",
-                    "ExceptionTest");
+                    "ExceptionTest", false);
             }
 
             final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
@@ -239,7 +239,7 @@ public class FakeDriverImpl extends AbstractDriver {
                     objectRequest.getGuid(), "different_digest_hash", 0);
             }
             if ("retry_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException(getName(), "retry_test");
+                throw new StorageDriverException(getName(), "retry_test", false);
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
@@ -248,7 +248,7 @@ public class FakeDriverImpl extends AbstractDriver {
                         objectRequest.getGuid(),
                         objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)), bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
-                    throw new StorageDriverException(getName(), "Digest or Storage Put in error", e);
+                    throw new StorageDriverException(getName(), "Digest or Storage Put in error", false, e);
                 }
             }
         }
@@ -275,7 +275,7 @@ public class FakeDriverImpl extends AbstractDriver {
         public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
             if ("digest_bad_test".equals(request.getGuid())) {
                 throw new StorageDriverException("checkObject",
-                    "ExceptionTest");
+                    "ExceptionTest", false);
             }
             return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
                 request.getDigestAlgorithm(), request.getDigestHashBase16(), true);

@@ -161,12 +161,12 @@ public class ConnectionImpl extends AbstractConnection {
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
                 default:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase());
+                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase(), true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR.getMessage(),
-                e);
+            throw new StorageDriverException(getDriverName(), VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR.getMessage(), true,
+                    e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -200,11 +200,11 @@ public class ConnectionImpl extends AbstractConnection {
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
                 default:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase());
+                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase(), true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
+            throw new StorageDriverException(getDriverName(), e.getMessage(), true);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -238,11 +238,11 @@ public class ConnectionImpl extends AbstractConnection {
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(), e1.getMessage());
+            throw new StorageDriverException(getDriverName(), true, e1);
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
@@ -279,7 +279,7 @@ public class ConnectionImpl extends AbstractConnection {
             throw new StorageDriverPreconditionFailedException(getDriverName(), exc.getMessage());
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
+            throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -320,11 +320,11 @@ public class ConnectionImpl extends AbstractConnection {
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
+            throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -354,11 +354,11 @@ public class ConnectionImpl extends AbstractConnection {
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
+            throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -381,7 +381,7 @@ public class ConnectionImpl extends AbstractConnection {
                 return response.readEntity(responseType);
             case INTERNAL_SERVER_ERROR:
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                throw new StorageDriverException(getDriverName(), status.getReasonPhrase());
+                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
             case NOT_FOUND:
                 // FIXME P1 : clean useless case
                 LOGGER.error(status.getReasonPhrase());
@@ -392,11 +392,10 @@ public class ConnectionImpl extends AbstractConnection {
             case CONFLICT:
                 LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(),
-                    status.getReasonPhrase());
+                        status.getReasonPhrase(), false);
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(),
-                    INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
         }
     }
 
@@ -454,11 +453,11 @@ public class ConnectionImpl extends AbstractConnection {
             // TODO G1 : deal with different types of errors
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 LOGGER.error("Error while performing put object operation");
-                throw new StorageDriverException(getDriverName(), "Error while performing put object operation");
+                throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage());
+            throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -493,20 +492,20 @@ public class ConnectionImpl extends AbstractConnection {
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverException(getDriverName(),
-                        "Object " + "not found");
+                        "Object " + "not found", false);
                 case PRECONDITION_FAILED:
                     LOGGER.error("Precondition failed");
                     throw new StorageDriverException(getDriverName(),
-                        "Precondition failed");
+                        "Precondition failed", false);
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(),
-                        INTERNAL_SERVER_ERROR);
+                        INTERNAL_SERVER_ERROR, true);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
             throw new StorageDriverException(getDriverName(),
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e1);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -534,12 +533,12 @@ public class ConnectionImpl extends AbstractConnection {
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(),
-                        INTERNAL_SERVER_ERROR);
+                            INTERNAL_SERVER_ERROR, true);
             }
         } catch (VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(),
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
+                    VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -565,7 +564,7 @@ public class ConnectionImpl extends AbstractConnection {
             return RequestResponse.<JsonNode>parseFromResponse(response);
         } catch (Exception exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
-            throw new StorageDriverException(getDriverName(), exc);
+            throw new StorageDriverException(getDriverName(), true, exc);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -593,7 +592,7 @@ public class ConnectionImpl extends AbstractConnection {
             return RequestResponse.parseFromResponse(response, OfferLog.class);
         } catch (Exception exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
-            throw new StorageDriverException(getDriverName(), exc);
+            throw new StorageDriverException(getDriverName(), true, exc);
         } finally {
             consumeAnyEntityAndClose(response);
         }
