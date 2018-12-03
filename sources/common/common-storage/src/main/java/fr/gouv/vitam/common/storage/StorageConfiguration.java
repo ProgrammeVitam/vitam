@@ -49,6 +49,11 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int swiftMaxConnections;
     private int swiftConnectionTimeout;
     private int swiftReadTimeout;
+    /**
+     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token renew before a token expiration occurs
+     */
+    private long swiftSoftRenewTokenDelayBeforeExpireTime;
+    private long swiftHardRenewTokenDelayBeforeExpireTime;
 
     /**
      * @return the swiftUrl
@@ -263,5 +268,21 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public void setSwiftReadTimeout(int swiftReadTimeout) {
         this.swiftReadTimeout = swiftReadTimeout;
+    }
+
+    public long getSwiftSoftRenewTokenDelayBeforeExpireTime() {
+        return swiftSoftRenewTokenDelayBeforeExpireTime;
+    }
+
+    public void setSwiftSoftRenewTokenDelayBeforeExpireTime(long swiftSoftRenewTokenDelayBeforeExpireTime) {
+        this.swiftSoftRenewTokenDelayBeforeExpireTime = swiftSoftRenewTokenDelayBeforeExpireTime;
+    }
+
+    public long getSwiftHardRenewTokenDelayBeforeExpireTime() {
+        return swiftHardRenewTokenDelayBeforeExpireTime;
+    }
+
+    public void setSwiftHardRenewTokenDelayBeforeExpireTime(long swiftHardRenewTokenDelayBeforeExpireTime) {
+        this.swiftHardRenewTokenDelayBeforeExpireTime = swiftHardRenewTokenDelayBeforeExpireTime;
     }
 }

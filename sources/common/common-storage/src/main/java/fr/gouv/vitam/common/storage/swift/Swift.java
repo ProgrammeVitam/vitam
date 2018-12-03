@@ -154,10 +154,11 @@ public class Swift extends ContentAddressableStorageAbstract {
         Digest digest = new Digest(digestType);
         InputStream digestInputStream = digest.getDigestInputStream(sis);
 
+        InputStream autoclose  = new VitamAutoCloseInputStream(digestInputStream);
         if (size != null && size > swiftLimit) {
-            bigFile(containerName, objectName, digestInputStream, size);
+            bigFile(containerName, objectName, autoclose, size);
         } else {
-            smallFile(containerName, objectName, digestInputStream);
+            smallFile(containerName, objectName, autoclose);
         }
 
         String streamDigest = digest.digestHex();
@@ -194,6 +195,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 boundedInputStream.setPropagateClose(false);
                 LOGGER.info("number of segment: " + objectNameToPut);
                 // for get the number of byte read to the stream
+                // TODO: 03/12/18 VitamAutoCloseInputStream
                 segmentInputStream = new CountingInputStream(boundedInputStream);
                 segmentTime.start();
                 osClient.get().objectStorage().objects()
@@ -212,7 +214,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             osClient.get().objectStorage().objects().put(
                 containerName,
                 objectName,
-                Payloads.create(new ByteArrayInputStream(dloManifest.getBytes())),
+                Payloads.create(new VitamAutoCloseInputStream(new ByteArrayInputStream(dloManifest.getBytes()))),
                 objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
