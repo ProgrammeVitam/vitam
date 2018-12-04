@@ -31,6 +31,7 @@ import java.nio.file.Path;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,6 +53,8 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SiegfriedClientRest.class);
 
+    private static  final String GET_URL_PARAM = "";//?base64=true";
+
     /**
      * Create a new Siegfried HTTP Client
      *
@@ -65,13 +68,13 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
     public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         LOGGER.debug("Path to analyze: " + filePath);
-        return handleCommonResponseIdentify(callSiegfried(filePath));
+        return handleCommonResponse(callSiegfried(filePath));
     }
 
     @Override
     public RequestResponse<JsonNode> status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        return handleCommonResponseStatus(callSiegfried(filePath));
+        return handleCommonResponse(callSiegfried(filePath));
     }
 
     private Response callSiegfried(Path filePath) throws FormatIdentifierTechnicalException {
@@ -80,7 +83,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, getQueryParameters(), MediaType.APPLICATION_JSON_TYPE);
         } catch (final Exception e) {
             LOGGER.error("While call Siegfried HTTP Client", e);
             consumeAnyEntityAndClose(response);
@@ -90,7 +93,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         return response;
     }
 
-    private RequestResponse handleCommonResponseIdentify(Response response)
+    private RequestResponse handleCommonResponse(Response response)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         try {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -108,21 +111,11 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         }
     }
 
-    private RequestResponse handleCommonResponseStatus(Response response)
-        throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        try {
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
-                case NOT_FOUND:
-                    throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
-                default:
-                    LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
-                    throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
-            }
-        } finally {
-            consumeAnyEntityAndClose(response);
+    private MultivaluedHashMap<String, Object> getQueryParameters() {
+        final MultivaluedHashMap<String, Object> queryParametersMap = new MultivaluedHashMap<>();
+        for(SiegfriedQueryParams parameter : SiegfriedQueryParams.values()) {
+            queryParametersMap.add(parameter.getParameter(), parameter.getValue());
         }
+        return queryParametersMap;
     }
 }
