@@ -116,11 +116,11 @@
     mode: 0665
 
 # Change default behavior in this fucking file
-- name: change default config ES_PATH_CONF value
-  lineinfile:
+- name: Remove all occurrences of 'ES_PATH_CONF' in default configuration for Elastic.
+  replace:
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
-    regexp: 'ES_PATH_CONF=/etc/elasticsearch'
-    line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
+    regexp: "^(\\s*)ES_PATH_CONF=(.*)"
+    replace: "#ES_PATH_CONF="
 #### Configuration ####
 
 - name: Ensure elasticsearch directories exist
