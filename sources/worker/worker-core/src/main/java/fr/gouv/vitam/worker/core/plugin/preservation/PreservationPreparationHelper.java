@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
-import fr.gouv.vitam.common.model.objectgroup.ObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -38,17 +37,20 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static fr.gouv.vitam.common.model.PreservationRequest.DEFAULT_VERSION;
+import static java.lang.Integer.parseInt;
+import static java.util.Comparator.comparing;
 import static java.util.Optional.empty;
 
 /**
  * PreservationPreparationHelper class
  */
-class PreservationPreparationHelper {
+public class PreservationPreparationHelper {
 
     private PreservationPreparationHelper() {
+        throw new IllegalStateException("Utility class");
     }
 
-    static Optional<FormatIdentificationModel> getFormatModelFromObjectGroupModelGivenQualifierAndVersion(
+    public static Optional<FormatIdentificationModel> getFormatModelFromObjectGroupModelGivenQualifierAndVersion(
         ObjectGroupResponse objectGroupModel, String qualifier, String version) {
 
         Optional<VersionsModel> modelOptional =
@@ -64,7 +66,7 @@ class PreservationPreparationHelper {
         return Optional.of(formatIdentification);
     }
 
-    static Optional<VersionsModel> getVersionsModelFromObjectGroupModelGivenQualifierAndVersion(
+    public static Optional<VersionsModel> getVersionsModelFromObjectGroupModelGivenQualifierAndVersion(
         ObjectGroupResponse objectGroupModel, String qualifier, String version) {
 
         Predicate<QualifiersModel> qualifierPredicate = q -> q.getQualifier().equals(qualifier);
@@ -78,17 +80,14 @@ class PreservationPreparationHelper {
 
         List<VersionsModel> versions = first.get().getVersions();
 
-        boolean checkSpecificVersion = !version.equals(DEFAULT_VERSION);
+        Comparator<VersionsModel> versionsModelComparator = comparing(VersionsModel::getDataVersion);
 
-        if (checkSpecificVersion) {
-
-            Predicate<VersionsModel> versionPredicate = v -> v.getDataObjectVersion().equals(qualifier + "_" + version);
-
-            return versions.stream().filter(versionPredicate).findFirst();
+        if (version.equals(DEFAULT_VERSION)) {
+            return versions.stream().max(versionsModelComparator);
         }
 
-        Comparator<VersionsModel> versionsModelComparator = Comparator.comparing(VersionsModel::getDataObjectVersion);
-
-        return versions.stream().max(versionsModelComparator);
+        return versions.stream().min(versionsModelComparator);
     }
+
+
 }

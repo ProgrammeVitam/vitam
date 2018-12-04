@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.ActionPreservation;
 
 /**
@@ -143,5 +144,10 @@ public class PreservationDistributionLine {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.unprettyPrint(this);
     }
 }

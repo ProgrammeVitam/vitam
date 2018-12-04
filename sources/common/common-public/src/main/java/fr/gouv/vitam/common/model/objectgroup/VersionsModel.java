@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model.objectgroup;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -34,6 +35,9 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import static java.lang.Integer.parseInt;
+import static java.util.Arrays.asList;
 
 /**
  * Object mapping VersionsResponse
@@ -230,5 +234,11 @@ public class VersionsModel {
 
     public void setOpi(String opi) {
         this.opi = opi;
+    }
+
+    @JsonIgnore
+    public int getDataVersion(){
+        List<String> split = asList(dataObjectVersion.split("_"));
+        return parseInt(split.get(1));
     }
 }

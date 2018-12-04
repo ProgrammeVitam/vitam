@@ -31,8 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -53,7 +51,6 @@ import fr.gouv.vitam.common.model.administration.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
-import fr.gouv.vitam.common.model.objectgroup.ObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -82,6 +79,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
@@ -160,7 +158,6 @@ public class PreservationPreparationPlugin extends ActionHandler {
             ObjectNode error = createObjectNode().put("error", e.getMessage());
             return buildItemStatus(PRESERVATION_PREPARATION, KO, error);
         }
-
     }
 
     private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient)
@@ -189,12 +186,12 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         return item -> {
 
-            String id = item.get(ID.exactToken()).asText();
+            String unitId = item.get(ID.exactToken()).asText();
             String objectGroupId = item.get(OBJECT.exactToken()).asText();
 
-            objectGroupIdToUnitId.put(objectGroupId, id);
+            objectGroupIdToUnitId.put(objectGroupId, unitId);
 
-            processIfBatchSizeReached(objectGroupIdToUnitId, id, objectGroupId);
+            processIfBatchSizeReached(objectGroupIdToUnitId, unitId, objectGroupId);
         };
     }
 
@@ -212,18 +209,23 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
-    private void createJsonLineModelPerBatchSize(final Map<String, String> objectGroupIdToUnitId,
+    private void createJsonLineModelPerBatchSize(final Map<String, String> objectGroupToUnitId,
         final PreservationRequest preservationRequest) {
 
-        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(objectGroupIdToUnitId);
+        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(objectGroupToUnitId);
+
         List<JsonLineModel> jsonLineModelListToDistribute = new ArrayList<>();
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
-            collectLineModelPerQualifier(preservationRequest, jsonLineModelListToDistribute, objectGroup,
-                objectGroupIdToUnitId.get(objectGroup.getId()));
+            String unitId = objectGroupToUnitId.get(objectGroup.getId());
+
+            List<JsonLineModel> modelList = collectLineModelPerQualifier(preservationRequest, unitId, objectGroup);
+
+            jsonLineModelListToDistribute.addAll(modelList);
         }
 
+        //Sort is necessary for optimizing distribution
         jsonLineModelListToDistribute.sort(comparing(JsonLineModel::getDistribGroup));
 
         try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
@@ -245,12 +247,12 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
-    private void collectLineModelPerQualifier(PreservationRequest preservationRequest,
-        List<JsonLineModel> jsonLineModelListToDistribute, ObjectGroupResponse objectGroup, String unitId) {
-        for (String qualifier : preservationRequest.getUsages()) {
-            JsonLineModel lineModel = new JsonLineModel();
+    private List<JsonLineModel> collectLineModelPerQualifier(PreservationRequest preservationRequest, String unitId,
+        ObjectGroupResponse objectGroup) {
 
-            jsonLineModelListToDistribute.add(lineModel);
+        List<JsonLineModel> jsonLineModelList = new ArrayList<>();
+
+        for (String qualifier : preservationRequest.getUsages()) {
 
             String version = preservationRequest.getVersion();
 
@@ -258,7 +260,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
                 getVersionsModelFromObjectGroupModelGivenQualifierAndVersion(objectGroup, qualifier, version);
 
             if (!versionsModelOptional.isPresent()) {
-                throw new VitamRuntimeException("format not found for Obcjet Id  '" + objectGroup.getId() + "'");
+                throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
             }
 
             VersionsModel versionsModel = versionsModelOptional.get();
@@ -268,48 +270,63 @@ public class PreservationPreparationPlugin extends ActionHandler {
             Optional<GriffinByFormat> griffinByFormat = scenarioModel.getGriffinByFormat(formatId);
 
             if (!griffinByFormat.isPresent()) {
-                throw new VitamRuntimeException("format not found for Object Id  '" + objectGroup.getId() + "'");
+                throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
             }
 
             GriffinByFormat griffinByFormatModel = griffinByFormat.get();
+
             String griffinId = griffinByFormatModel.getGriffinIdentifier();
 
             int distributionGroup = formatId.hashCode();
+
+            JsonLineModel lineModel = new JsonLineModel();
+
             lineModel.setDistribGroup(distributionGroup);
 
-            lineModel.setId(objectGroup.getId());
+            lineModel.setId(versionsModel.getId());
 
             GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
 
             PreservationDistributionLine preservationDistributionLine =
-                getPreservationDistributionLine(unitId, versionsModel, formatIdentificationModel, griffinByFormatModel,
+                getPreservationDistributionLine(versionsModel.getId(), unitId, versionsModel.getId(),
+                    formatIdentificationModel.getFormatId(),
+                    griffinByFormatModel,
                     griffinModel);
-
             try {
                 lineModel.setParams(toJsonNode(preservationDistributionLine));
+
             } catch (InvalidParseOperationException e) {
                 throw new VitamRuntimeException(e);
             }
+
+            jsonLineModelList.add(lineModel);
         }
+
+        return jsonLineModelList;
     }
 
-    private PreservationDistributionLine getPreservationDistributionLine(String unitId, VersionsModel versionsModel,
-        FormatIdentificationModel formatIdentificationModel, GriffinByFormat griffinByFormatModel,
-        GriffinModel griffinModel) {
+    private PreservationDistributionLine getPreservationDistributionLine(String binaryId, String unitId,
+        String objectId, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
-        preservationDistributionLine.setFilename(griffinModel.getExecutableName());
-        preservationDistributionLine.setGriffinId(griffinModel.getIdentifier());
-        preservationDistributionLine.setId(griffinModel.getId());
+        preservationDistributionLine.setId(binaryId);
 
-        preservationDistributionLine.setFormatId(formatIdentificationModel.getFormatId());
+        preservationDistributionLine.setFormatId(format);
+
+        preservationDistributionLine.setFilename(griffinModel.getExecutableName());
+
+        preservationDistributionLine.setActionPreservationList(griffinByFormatModel.getActionDetail());
+
         preservationDistributionLine.setUnitId(unitId);
-        preservationDistributionLine.setObjectId(versionsModel.getId());
+
+        preservationDistributionLine.setGriffinId(griffinModel.getIdentifier());
+
+        preservationDistributionLine.setObjectId(objectId);
+
+        preservationDistributionLine.setDebug(griffinByFormatModel.isDebug());
 
         preservationDistributionLine.setTimeout(griffinByFormatModel.getMaxSize());
-        preservationDistributionLine.setDebug(griffinByFormatModel.isDebug());
-        preservationDistributionLine.setActionPreservationList(griffinByFormatModel.getActionDetail());
 
         return preservationDistributionLine;
     }
@@ -326,9 +343,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
             JsonNode response = metaDataClientFactory.getClient().selectObjectGroups(finalSelect);
 
             JsonNode results = response.get("$results");
-            return getFromStringAsTypeRefence(results.toString(),
-                new TypeReference<List<ObjectGroupResponse>>() {
-                });
+            return getFromStringAsTypeRefence(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
+            });
 
         } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
@@ -336,6 +352,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
     }
 
     private SelectMultiQuery prepareQuery(JsonNode initialQuery) {
+
+        //TODO TRANSFORM TO SIMPLE SELECT
         try {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(initialQuery);
@@ -344,10 +362,10 @@ public class PreservationPreparationPlugin extends ActionHandler {
             selectMultiQuery.setProjection(projection);
             selectMultiQuery.addOrderByAscFilter(orderBy);
 
-            selectMultiQuery.addQueries(QueryHelper.exists(OBJECT.exactToken()));
+            selectMultiQuery.addQueries(exists(OBJECT.exactToken()).setDepthLimit(0));
 
             return selectMultiQuery;
-        } catch (InvalidParseOperationException |InvalidCreateOperationException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -374,6 +392,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         throws ProcessingException, InvalidParseOperationException {
 
         JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
+
         preservationRequest = getFromJsonNode(inputRequest, PreservationRequest.class);
     }
 
@@ -393,7 +412,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         @SuppressWarnings("unchecked")
         List<GriffinModel> griffinModels = ((RequestResponseOK<GriffinModel>) griffinResponse).getResults();
 
-        if (griffinModels == null|| griffinModels.isEmpty()) {
+        if (griffinModels == null || griffinModels.isEmpty()) {
             throw new ProcessingException("Griffin not found");
         }
 
@@ -405,6 +424,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         InvalidParseOperationException {
 
         RequestResponse<PreservationScenarioModel> response = adminManagementClient.findPreservationByID(identifier);
+
         PreservationScenarioModel model = ((RequestResponseOK<PreservationScenarioModel>) response).getFirstResult();
 
         if (model == null) {

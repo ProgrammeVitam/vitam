@@ -31,7 +31,7 @@ public class PreservationPreparationHelperTest {
     public void shouldGetBinaryMasterVersion1Model() {
 
         Optional<FormatIdentificationModel> formatIdentification =
-            getFormatModelFromObjectGroupModelGivenQualifierAndVersion(objectGroupModel, "BinaryMaster", "1");
+            getFormatModelFromObjectGroupModelGivenQualifierAndVersion(objectGroupModel, "BinaryMaster", "FIRST");
 
         assertThat(formatIdentification).isPresent();
         FormatIdentificationModel formatIdentificationModel = formatIdentification.get();
@@ -51,12 +51,4 @@ public class PreservationPreparationHelperTest {
         assertThat(formatIdentificationModel.getFormatId()).isEqualTo("fmt/355");
     }
 
-    @Test
-    public void shouldNotFoundModel() {
-
-        Optional<FormatIdentificationModel> formatIdentification =
-            getFormatModelFromObjectGroupModelGivenQualifierAndVersion(objectGroupModel, "Dissemination", "qddddddds");
-
-        assertThat(formatIdentification).isEmpty();
-    }
 }

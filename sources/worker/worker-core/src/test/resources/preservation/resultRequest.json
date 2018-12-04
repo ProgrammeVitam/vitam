@@ -1,51 +1,44 @@
 {
-  "httpCode": 200,
+  "httpCode": 302,
   "$hits": {
     "total": 8,
     "offset": 0,
     "limit": 10000,
-    "size": 8
+    "size": 8,
+    "scrollId": "DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAEAFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABARZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZnAAAAAAAAAQIWd1NoVzcyazBTX21DSGNndUMxQkk2ZwAAAAAAAAEDFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABBBZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZn"
   },
   "$results": [
     {
-      "Title": "exempleidrissaautre",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaga",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtorrwyaaaaq"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdtsmiaaaaq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdtpnyaaaaq"
     },
     {
-      "Title": "exempleidrissadeux",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaea",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdtscaaaaba",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdtpnyaaaaq"
     },
     {
-      "Title": "exempleidrissatrois",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxqaaaca",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2byaaaaq"
     },
     {
-      "Title": "exempleidrissaun",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtorrxyaaaba",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtorrvyaaaaq"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2byaaaaq"
     },
     {
-      "Title": "exempleidrissaautre",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaga",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxbiaaaaq"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2byaaaaq"
     },
     {
-      "Title": "exempleidrissaun",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaba",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2liaaaaq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2ciaaaaq"
     },
     {
-      "Title": "exempleidrissadeux",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbyaaaea",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2mqaaaaq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2fqaaaaq"
     },
     {
-      "Title": "exempleidrissatrois",
-      "#id": "aeaqaaaaaahihtnraa6hgalhmtlvxbqaaaca",
-      "#object": "aebaaaaaaahihtnraa6hgalhmtlvxayaaaba"
+      "#id": "aeaqaaaaaabba3ylaakt2alhphdv2myaaaaq",
+      "#object": "aebaaaaaaabba3ylaakt2alhphdv2haaaaaq"
     }
   ],
   "$facetResults": [],
@@ -53,29 +46,27 @@
     "$roots": [],
     "$query": [
       {
-        "$and": [
-          {
-            "$exists": "#object"
-          },
-          {
-            "$wildcard": {
-              "Title": "exempleidrissa*"
-            }
-          }
-        ]
+        "$exists": "#id",
+        "$depth": 1000
+      },
+      {
+        "$exists": "#object"
       }
     ],
     "$filter": {
       "$orderby": {
-        "#object": -1
-      }
+        "#object": 1
+      },
+      "$scrollId": "START",
+      "$limit": 10000,
+      "$scrollTimeout": 60000
     },
     "$projection": {
       "$fields": {
         "#id": 1,
-        "#object": 1,
-        "Title": 1
+        "#object": 1
       }
-    }
+    },
+    "$facets": []
   }
 }

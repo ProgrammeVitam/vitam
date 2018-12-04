@@ -210,6 +210,7 @@ public class PreservationScenarioModel {
         return empty();
     }
 
+    @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
 
         if (griffinByFormat == null || griffinByFormat.isEmpty()) {
@@ -224,6 +225,7 @@ public class PreservationScenarioModel {
         return empty();
     }
 
+    @JsonIgnore
     public Set<String> getAllGriffinIdentifiers() {
 
         Set<String> identifierSet = new HashSet<>();

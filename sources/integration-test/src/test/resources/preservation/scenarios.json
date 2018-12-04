@@ -145,8 +145,8 @@
           {
             "type": "GENERATE",
             "values": {
-              "extension": "pdf",
-              "args": [
+              "Extension": "pdf",
+              "Args": [
                 "-quality",
                 "100",
                 "-units",
@@ -204,8 +204,8 @@
           {
             "Type": "GENERATE",
             "Values": {
-              "extension": "pdf",
-              "args": [
+              "Extension": "pdf",
+              "Args": [
                 "-f",
                 "pdf",
                 "-e",

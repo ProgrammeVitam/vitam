@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
+parentdir="$(dirname "$1")"
+cp "$parentdir/result.json" "$1/result.json"
 
-echo '{"requestId":"REQUEST_ID","id":"batch-reference","outputs":{"TEST_ID1":[{"input":{"name":"TEST_ID1","formatId":"fmt/41"},"status":"OK","analyseResult":"NOT_VALID","action":"ANALYSE"}]}}' > "$1/result.json"
+
