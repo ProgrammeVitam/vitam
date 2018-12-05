@@ -1,0 +1,20 @@
+---
+
+- name: Copy droid file
+  copy:
+    src: "{{ inventory_dir }}/{{ droid_filename }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/app/siegfried/{{ droid_filename }}"
+
+- name: Copy container file
+  copy:
+    src: "{{ inventory_dir }}/{{ droid_container_filename }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/app/siegfried/{{ droid_container_filename }}"
+
+- name: Generate signature file
+  shell: "{{ vitam_defaults.folder.root_path }}/bin/siegfried/roy build -home {{ vitam_defaults.folder.root_path }}/app/siegfried -container {{ droid_container_filename }} -droid {{ droid_filename }}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
+
+- name: Restart siegfried
+  systemd:
+    name: vitam-siegfried
+    state: restarted

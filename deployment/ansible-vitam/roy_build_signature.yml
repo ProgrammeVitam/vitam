@@ -1,0 +1,9 @@
+---
+
+- hosts: hosts-worker
+  roles:
+    - roy_build_signature
+
+- hosts: hosts-ingest-external
+  roles:
+    - roy_build_signature
