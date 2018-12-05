@@ -50,6 +50,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -274,8 +275,25 @@ abstract class AbstractCommonClient implements BasicClient {
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept)
         throws VitamClientInternalException {
+        return  performRequest(httpMethod, path, headers, null, accept);
+    }
+
+    /**
+     * Perform a HTTP request to the server for synchronous call
+     *
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param queryParams query parameters to add to get request, my be null
+     * @param accept asked type of response
+     * @return the response from the server
+     * @throws VitamClientInternalException
+     */
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
+        MediaType accept)
+        throws VitamClientInternalException {
         try {
-            final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
+            final Builder builder = buildRequest(httpMethod, path, headers, queryParams, accept, false);
             return retryIfNecessary(httpMethod, null, null, builder);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
@@ -558,17 +576,49 @@ abstract class AbstractCommonClient implements BasicClient {
      * Build a HTTP request to the server for synchronous call without Body
      *
      * @param httpMethod HTTP method to use for request
-     * @param url base url
      * @param path URL to request
      * @param headers headers HTTP to add to request, may be null
+     * @param queryParams query parameters to add to get request, my be null
      * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
-    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
+    final Builder buildRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
+        MediaType accept,
+        boolean chunkedMode) {
+        return buildRequest(httpMethod, getServiceUrl(), path, headers, queryParams, accept, chunkedMode);
+    }
+
+    /**
+     * Build a HTTP request to the server for synchronous call without Body
+     *
+     * @param httpMethod HTTP method to use for request
+     * @param url base url
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param queryParams query parameters to add to get request, my be null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
+     * @return the builder ready to be performed
+     */
+    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
         MediaType accept, boolean chunkedMode) {
+
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
-        final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);
+
+        WebTarget webTarget = getHttpClient(chunkedMode).target(url).path(path);
+
+        //add query parameters
+        if (HttpMethod.GET.equals(httpMethod) && queryParams != null) {
+            for (final Entry<String, List<Object>> entry : queryParams.entrySet()) {
+                for (final Object value : entry.getValue()) {
+                    webTarget = webTarget.queryParam(entry.getKey(), value);
+                }
+            }
+        }
+
+        final Builder builder = webTarget.request().accept(accept);
+
         if (headers != null) {
             for (final Entry<String, List<Object>> entry : headers.entrySet()) {
                 for (final Object value : entry.getValue()) {
@@ -576,12 +626,14 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         }
+
         if (this.clientFactory.isAllowGzipEncoded()) {
             builder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
         }
         if (this.clientFactory.isAllowGzipDecoded()) {
             builder.header(HttpHeaders.ACCEPT_ENCODING, "gzip");
         }
+
         String newPath = path;
         if (newPath.codePointAt(0) != '/') {
             newPath = "/" + newPath;
@@ -603,6 +655,22 @@ abstract class AbstractCommonClient implements BasicClient {
             }
         }
         return builder;
+    }
+
+    /**
+     * Build a HTTP request to the server for synchronous call without Body
+     *
+     * @param httpMethod HTTP method to use for request
+     * @param url base url
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
+     * @return the builder ready to be performed
+     */
+    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
+        MediaType accept, boolean chunkedMode) {
+        return buildRequest(httpMethod, url, path, headers, null, accept, chunkedMode);
     }
 
     /**
