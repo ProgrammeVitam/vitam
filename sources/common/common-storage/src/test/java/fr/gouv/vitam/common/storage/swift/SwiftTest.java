@@ -39,6 +39,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.InputStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -202,9 +203,10 @@ public class SwiftTest {
             aResponse().withStatus(200)));
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
+        File file = PropertiesUtils.getResourceFile(OBJECT_NAME);
         // When / Then
         assertThatThrownBy(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 0L,
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), file.length(),
                 true)
         ).hasMessage("Cannot put object " + OBJECT_NAME + " on container " + CONTAINER_NAME);
     }

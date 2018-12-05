@@ -30,6 +30,10 @@ public class VitamRuleRunner {
 
     public static final String OFFER_FOLDER = "offer";
 
+
+    @Rule
+    public CacheContainerCleanRule cacheContainerCleanRule = new CacheContainerCleanRule();
+
     // Rules
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();

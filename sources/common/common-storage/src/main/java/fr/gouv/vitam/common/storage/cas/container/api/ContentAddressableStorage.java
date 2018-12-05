@@ -28,7 +28,11 @@ package fr.gouv.vitam.common.storage.cas.container.api;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -37,16 +41,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.SetUtils;
 
 /**
  * The ContentAddressableStorage interface.
  *
  */
 public interface ContentAddressableStorage extends VitamAutoCloseable {
-    // TODO P0 REVIEW should see null checking variable as
-    // IllegalArgumentException explicitly
 
-    // Container
+    Set<String> existingContainer = Collections.synchronizedSet(new HashSet<>());
+
+    /**
+     *
+     */
+    @VisibleForTesting
+    default void clearExistingContainer() {
+        existingContainer.clear();
+    }
 
     /**
      * Creates a container
@@ -67,9 +78,33 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @return boolean type
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
+    boolean isExistingContainer(String containerName);
 
-    // Object
+    /**
+     * Determines if a container exists in cache
+     *
+     * @param containerName name of container
+     * @return boolean type
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     */
+    default boolean isExistingContainerInCache(String containerName) {
+        // If existing containers are already checked, this help just an in memory check
+        return existingContainer.contains(containerName);
+    }
+
+    /**
+     * This handle cache already existing container
+     * Prevent handling an i/o check container exists
+     * Do only memory check if the container is already exists
+     * @param containerName
+     * @param exists
+     * @return
+     */
+    default void cacheExistsContainer(String containerName, boolean exists) {
+        if (exists) {
+            existingContainer.add(containerName);
+        }
+    }
 
     /**
      * Adds an object representing the data at location containerName/objectName

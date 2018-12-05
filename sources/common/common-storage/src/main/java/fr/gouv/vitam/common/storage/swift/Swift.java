@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -123,10 +124,17 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public boolean isExistingContainer(String containerName) {
+
+        if (super.isExistingContainerInCache(containerName)) {
+            return true;
+        }
+
         // Is this the best way to do that ?
         Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         // more than 2 metadata then container exists (again, is this the best way ?)
-        return metadata.size() > 2;
+        boolean exists = metadata.size() > 2;
+        cacheExistsContainer(containerName, exists);
+        return exists;
     }
 
     @Override
@@ -142,8 +150,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         // when downloaded, sends all the segments concatenated as a single object.
         // This also offers much greater upload speed with the possibility of parallel uploads of the segments.
 
+        SizedInputStream sis = new SizedInputStream(stream);
         Digest digest = new Digest(digestType);
-        InputStream digestInputStream = digest.getDigestInputStream(stream);
+        InputStream digestInputStream = digest.getDigestInputStream(sis);
 
         if (size != null && size > swiftLimit) {
             bigFile(containerName, objectName, digestInputStream, size);
@@ -152,6 +161,11 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
 
         String streamDigest = digest.digestHex();
+
+        if (size != sis.getSize()) {
+            throw new ContentAddressableStorageException(
+                    "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
+        }
 
         if (recomputeDigest) {
             String computedDigest = computeObjectDigest(containerName, objectName, digestType);

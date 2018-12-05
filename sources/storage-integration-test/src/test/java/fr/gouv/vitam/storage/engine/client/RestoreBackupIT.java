@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -246,6 +247,7 @@ public class RestoreBackupIT {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
+        ContentAddressableStorage.existingContainer.clear();
         // create a container on the Workspace
         workspaceClient.createContainer(containerName);
     }
