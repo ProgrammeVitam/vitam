@@ -27,21 +27,8 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -73,6 +60,18 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Default offer service implementation
  */
@@ -99,7 +98,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
                     StorageConfiguration.class);
-            if(!Strings.isNullOrEmpty(configuration.getStoragePath())) {
+            if (!Strings.isNullOrEmpty(configuration.getStoragePath())) {
                 configuration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
             }
         } catch (final IOException exc) {
@@ -113,12 +112,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     @VisibleForTesting
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "COMPUTE_DIGEST", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "COMPUTE_DIGEST", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
@@ -139,21 +138,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         Stopwatch times = Stopwatch.createStarted();
         boolean existsContainer = defaultStorage.isExistingContainer(containerName);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER", times.elapsed(TimeUnit.MILLISECONDS));
         if (!existsContainer) {
-            try {
-                times = Stopwatch.createStarted();
-                defaultStorage.createContainer(containerName);
-                PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER" , times.elapsed(TimeUnit.MILLISECONDS));
-            } catch (ContentAddressableStorageAlreadyExistException ex) {
-                LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
-            }
+            times = Stopwatch.createStarted();
+            defaultStorage.createContainer(containerName);
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
         objectInit.setId(objectGUID);
         times = Stopwatch.createStarted();
         offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB" , times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
         return objectInit;
     }
 
@@ -166,11 +161,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return putObject(containerName, objectId, objectPart, type, size, digestType);
         } catch (ContentAddressableStorageNotFoundException ex) {
-            try {
-                defaultStorage.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
-            }
+            defaultStorage.createContainer(containerName);
             return putObject(containerName, objectId, objectPart, type, size, digestType);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
@@ -214,11 +205,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             containerInformation = defaultStorage.getContainerInformation(containerName);
         } catch (ContentAddressableStorageNotFoundException exc) {
-            try {
-                defaultStorage.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
-            }
+            defaultStorage.createContainer(containerName);
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
         result.put("usableSpace", containerInformation.getUsableSpace());
@@ -236,7 +223,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         // Log in offer
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "LOG_DELETE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_DELETE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
 
         times = Stopwatch.createStarted();
         defaultStorage.deleteObject(containerName, objectId);
@@ -245,7 +232,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException {
+            throws ContentAddressableStorageException, IOException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
@@ -255,11 +242,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     public String createCursor(String containerName) throws ContentAddressableStorageServerException {
-        try {
-            defaultStorage.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException ex) {
-            LOGGER.debug(CONTAINER_ALREADY_EXISTS, ex);
-        }
+        defaultStorage.createContainer(containerName);
         String cursorId = GUIDFactory.newGUID().toString();
         mapXCusor.put(getKeyMap(containerName, cursorId), null);
         return cursorId;
@@ -307,7 +290,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(),  containerName, "GET_OFFER_LOGS", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GET_OFFER_LOGS", times.elapsed(TimeUnit.MILLISECONDS));
 
         }
     }

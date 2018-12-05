@@ -44,30 +44,16 @@ package fr.gouv.vitam.common.storage.swift;
  */
 
 import fr.gouv.vitam.common.storage.exception.StreamAlreadyConsumedException;
-import org.apache.commons.io.input.BrokenInputStream;
-import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.input.ClosedInputStream;
 import org.apache.commons.io.input.ProxyInputStream;
-
-import static org.apache.commons.io.IOUtils.EOF;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.apache.commons.io.IOUtils.EOF;
+
 /**
- * Proxy stream that closes and discards the underlying stream as soon as the
- * end of input has been reached or when the stream is explicitly closed.
- * Not even a reference to the underlying stream is kept after it has been
- * closed, so any allocated in-memory buffers can be freed even if the
- * client application still keeps a reference to the proxy stream.
- * <p>
- * This class is typically used to release any resources related to an open
- * stream as soon as possible even if the client application (by not explicitly
- * closing the stream when no longer needed) or the underlying stream (by not
- * releasing resources once the last byte has been read) do not do that.
- *
- * @version $Id: AutoCloseInputStream.java 1586350 2014-04-10 15:57:20Z ggregory $
- * @since 1.4
+ * InputStream used to prevent consume an already consumed stream
  */
 public class VitamAutoCloseInputStream extends ProxyInputStream {
 

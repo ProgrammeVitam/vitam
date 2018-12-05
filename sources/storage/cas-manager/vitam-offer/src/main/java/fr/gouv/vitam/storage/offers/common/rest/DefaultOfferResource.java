@@ -26,34 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.exception.StreamAlreadyConsumedException;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
@@ -73,10 +45,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
@@ -85,10 +60,33 @@ import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.lang3.StringUtils;
+import org.openstack4j.api.exceptions.ConnectionException;
+
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default offer REST Resource
@@ -366,9 +364,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     objectGUID);
             LOGGER.info("ContainerName: " + containerName + " ObjectGUID " + objectGUID);
             return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
-        } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error("ContainerName: " + containerName + " ObjectGUID " + objectGUID, e);
-            return Response.status(Response.Status.CONFLICT).build();
         } catch (final ContentAddressableStorageException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -436,7 +431,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                                 xCommandHeader.equals(StorageConstants.COMMAND_END), type, inputStreamSize, digestType);
                 return Response.status(Response.Status.CREATED)
                         .entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis.getSize() + "\"}").build();
-            } catch (StreamAlreadyConsumedException e) {
+            } catch (ConnectionException e) {
                 LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
                 return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode().put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
 

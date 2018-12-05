@@ -10,7 +10,7 @@
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the atomicAccess to the source code and rights to copy, modify and redistribute granted by the license,
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
@@ -71,7 +71,7 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
     public OSClient.OSClientV2 get() {
         Access currentAccess = atomicAccess.get();
         // First call to we have to authenticate
-        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
+        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
         if (currentAccess == null || currentAccess.getToken().getExpires().before(nearTime)) {
             synchronized (monitor) {
                 currentAccess = atomicAccess.get();
@@ -86,7 +86,7 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         }
 
         // Renew Access before expiration only one thread should re-authenticate
-        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
+        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
         if (currentAccess.getToken().getExpires().before(farTime)) {
             // Only one thread should re-authentication
             if (oneThread.compareAndSet(true, false)) {
@@ -113,7 +113,7 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
     private OSClient.OSClientV2 renewAccess() {
         Stopwatch times = Stopwatch.createStarted();
-        LOGGER.info("No atomicAccess or atomicAccess expired, let's get authenticate again");
+        LOGGER.info("No access or access expired, let's get authenticate again");
         try {
             return OSFactory.builderV2().endpoint(configuration.getSwiftKeystoneAuthUrl()).tenantName(configuration
                     .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())

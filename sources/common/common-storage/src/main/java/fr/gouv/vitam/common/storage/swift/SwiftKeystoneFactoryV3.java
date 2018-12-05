@@ -94,7 +94,7 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
     public OSClient.OSClientV3 get() {
         Token currentToken = atomicToken.get();
         // First call to we have to authenticate
-        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
+        Date nearTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
         if (currentToken == null || currentToken.getExpires().before(nearTime)) {
             synchronized (monitor) {
                 currentToken = atomicToken.get();
@@ -109,7 +109,7 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         }
 
         // Renew Token before expiration only one thread should re-authenticate
-        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().minusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
+        Date farTime = LocalDateUtil.getDate(LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
         if (currentToken.getExpires().before(farTime)) {
             // Only one thread should re-authentication
             if (oneThread.compareAndSet(true, false)) {
@@ -130,13 +130,13 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
             return currentClient;
         }
 
-        // In all other cases, create a new client from atomicToken
+        // In all other cases, create a new client from token
         return OSFactory.clientFromToken(currentToken, configOS4J);
     }
 
     private OSClient.OSClientV3 renewToken() {
         Stopwatch times = Stopwatch.createStarted();
-        LOGGER.info("No atomicToken or atomicToken expired, let's get authenticate again");
+        LOGGER.info("No token or token is expired, let's get authenticate again");
         try {
             return OSFactory.builderV3().endpoint(configuration.getSwiftKeystoneAuthUrl())
                     .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
