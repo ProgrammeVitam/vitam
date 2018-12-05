@@ -29,22 +29,20 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.*;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -54,13 +52,8 @@ import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -95,7 +88,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -200,6 +192,11 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             // parse multi query
             UpdateParserMultiple parser = new UpdateParserMultiple();
             parser.parse(queryNode);
+
+            // Add operationID to #operations
+            parser.getRequest().addActions(UpdateActionHelper.push(
+                VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
+
             UpdateMultiQuery multiQuery = parser.getRequest();
 
             // remove search part (useless)
@@ -228,7 +225,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                         // write LFC
                         try {
                             writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
-                        } catch (LogbookClientServerException | LogbookClientNotFoundException | 
+                        } catch (LogbookClientServerException | LogbookClientNotFoundException |
                                 InvalidParseOperationException | InvalidGuidOperationException e) {
                             LOGGER.error("Error while updating UNIT LFC ", e);
                             itemStatus.increment(StatusCode.FATAL);
@@ -300,9 +297,8 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                     ERRORS);
             }
         } catch (InvalidParseOperationException | MetaDataNotFoundException | MetaDataDocumentSizeException |
-            MetaDataClientServerException | MetaDataExecutionException e) {
+            MetaDataClientServerException | MetaDataExecutionException | InvalidCreateOperationException e) {
             // unable to process update for the entire bulk => FATAL
-            LOGGER.error(e);
             throw new ProcessingException(e);
         }
 
@@ -311,7 +307,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * write LFC for update Unit
-     * 
+     *
      * @param lfcClient
      * @param param
      * @param unitId
@@ -323,7 +319,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
      * @throws InvalidGuidOperationException
      */
     private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, 
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
             InvalidParseOperationException, InvalidGuidOperationException {
 
         LogbookLifeCycleParameters logbookLfcParam =
@@ -337,14 +333,14 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                 VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, StatusCode.OK),
                 GUIDReader.getGUID(unitId));
         logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, getEvDetDataForDiff(diff));
-        
+
         lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
     }
 
     /**
      * getEvDetDataForDiff
-     * 
+     *
      * @param diff
      * @return
      * @throws InvalidParseOperationException
@@ -361,7 +357,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * saveDocumentWithLfcInStorage
-     * 
+     *
      * @param handler
      * @param params
      * @param guid
@@ -407,7 +403,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * Store local reports in workspace
-     * 
+     *
      * @param handler
      * @param processId
      * @param reportModelOK
@@ -447,7 +443,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
     /**
      * getJsonLineForItem
-     * 
+     *
      * @param item
      * @return
      */

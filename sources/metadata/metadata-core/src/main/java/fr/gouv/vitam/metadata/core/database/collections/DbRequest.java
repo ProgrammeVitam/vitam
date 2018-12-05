@@ -35,6 +35,7 @@ import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -42,17 +43,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.*;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -193,7 +193,8 @@ public class DbRequest {
      * @return the result
      */
     public Result execRuleRequest(final String unitId, final RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
-            throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
+        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
+        InvalidCreateOperationException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
@@ -224,15 +225,25 @@ public class DbRequest {
             UpdateResult result = null;
             int tries = 0;
             boolean modified = false;
-            MetadataDocument<?> documentFinal = null;
+            MetadataDocument<?> documentFinal;
 
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("DEBUG update {} to udate to {}", jsonDocument,
+                    LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
                             JsonHandler.prettyPrint(ruleActions));
                 }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
+
+                // Add operationId to #operations
+                UpdateMultiQuery updateQuery = new UpdateMultiQuery();
+                updateQuery.addActions(push(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
+
+                final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+                updateRequest.parse(updateQuery.getFinalUpdateById());
+                mongoInMemory.getUpdateJson(updateRequest);
+
+                // Update rules
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
                 if (!documentId.equals(document.get(MetadataDocument.ID))) {

@@ -346,6 +346,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                     .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
             assertThat(updatedUnit.get().get(TITLE)).isEqualTo("update old title sous fonds");
+            assertThat((List<String>)updatedUnit.get().get(Unit.OPS)).contains(operationGuid.getId());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =

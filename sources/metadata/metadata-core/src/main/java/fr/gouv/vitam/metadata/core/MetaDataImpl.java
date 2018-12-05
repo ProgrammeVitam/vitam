@@ -877,7 +877,7 @@ public class MetaDataImpl implements MetaData {
                 VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
-        } catch (final BadRequestException e) {
+        } catch (final BadRequestException | InvalidCreateOperationException e) {
             throw new MetaDataExecutionException(e);
         }
         List res = toArrayList(arrayNodeResponse);
