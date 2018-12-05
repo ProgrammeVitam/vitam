@@ -63,30 +63,38 @@
 							<executable>../deb/vitam-external/build_repo.sh</executable>
 						</configuration>
 					</execution>
+					<execution>
+						<id>Remove vitam certificates</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./remove_user_certificates.sh</executable>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>assembly</id>
 						<phase>package</phase>
+						<configuration>
+							<appendAssemblyId>true</appendAssemblyId>
+							<descriptors>
+								<descriptor>${basedir}/assembly-prod.xml</descriptor>
+								<descriptor>${basedir}/assembly-horsprod.xml</descriptor>
+							</descriptors>
+						</configuration>
 						<goals>
 							<goal>single</goal>
 						</goals>
-						<configuration>
-							<appendAssemblyId>false</appendAssemblyId>
-							<descriptors>
-								<descriptor>${basedir}/assembly.xml</descriptor>
-							</descriptors>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
-
 	</build>
 
 	<dependencies>
@@ -274,20 +282,6 @@
 			<version>${project.version}</version>
 			<type>deb</type>
 		</dependency>
-
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ihm-demo-front</artifactId>
-			<version>${project.version}</version>
-			<type>rpm</type>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ihm-demo-front</artifactId>
-			<version>${project.version}</version>
-			<type>deb</type>
-		</dependency>
-
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ihm-recette-web-application</artifactId>
