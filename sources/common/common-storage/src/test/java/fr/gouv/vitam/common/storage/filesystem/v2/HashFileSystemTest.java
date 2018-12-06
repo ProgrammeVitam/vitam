@@ -111,8 +111,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
 
         storage.createContainer(containerName);
 
-        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5, null,
-            true);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5, null);
 
         // get current SH512 saved Hash in metadata of file
         String currentDigest = ((HashFileSystem) storage).getObjectDigestFromMD(containerName, OBJECT_ID, DigestType.SHA512);

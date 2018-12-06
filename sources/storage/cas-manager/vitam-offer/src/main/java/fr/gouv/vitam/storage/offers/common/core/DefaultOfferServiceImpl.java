@@ -88,7 +88,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
-    private final boolean recomputeDigest;
 
     private StorageConfiguration configuration;
 
@@ -108,7 +107,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
-        this.recomputeDigest = configuration.isRecomputeDigest();
         mapXCusor = new HashMap<>();
     }
 
@@ -195,7 +193,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         times = Stopwatch.createStarted();
         try {
-            return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size, recomputeDigest);
+            return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }

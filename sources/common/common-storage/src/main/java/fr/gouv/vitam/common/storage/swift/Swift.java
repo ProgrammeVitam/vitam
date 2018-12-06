@@ -139,7 +139,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-        Long size, boolean recomputeDigest) throws
+        Long size) throws
         ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -167,13 +167,12 @@ public class Swift extends ContentAddressableStorageAbstract {
                     "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
         }
 
-        if (recomputeDigest) {
-            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if (!streamDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException(
-                    "Illegal state for container "+containerName+" and object "+objectName+". Stream digest " + streamDigest + " is not equal to computed digest " +
-                        computedDigest);
-            }
+        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+        if (!streamDigest.equals(computedDigest)) {
+            throw new ContentAddressableStorageException(
+                "Illegal state for container " + containerName + " and object " + objectName +
+                    ". Stream digest " + streamDigest + " is not equal to computed digest " +
+                    computedDigest);
         }
 
         storeDigest(containerName, objectName, digestType, streamDigest);

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String provider;
-    private boolean recomputeDigest = false;
     private String swiftKeystoneAuthUrl;
     private String swiftDomain;
     private String swiftUser;
@@ -232,14 +231,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public void setSwiftTrustStorePassword(String swiftTrustStorePassword) {
         this.swiftTrustStorePassword = swiftTrustStorePassword;
-    }
-
-    public boolean isRecomputeDigest() {
-        return recomputeDigest;
-    }
-
-    public void setRecomputeDigest(boolean recomputeDigest) {
-        this.recomputeDigest = recomputeDigest;
     }
 
     public int getSwiftMaxConnectionsPerRoute() {
