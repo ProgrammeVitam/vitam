@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -72,12 +73,7 @@ public class ChangesTrigger {
         String valueBeforeUpdate = getValue(fieldPathForHistory, unitBeforeUpdate);
         String valueAfterUpdate = getValue(fieldPathForHistory, unitAfterUpdate);
 
-        if ((valueBeforeUpdate == null && valueAfterUpdate != null)
-                || (valueBeforeUpdate != null && valueAfterUpdate != null && !valueBeforeUpdate.equals(valueAfterUpdate))) {
-            return true;
-        }
-
-        return false;
+        return !StringUtils.equals(valueBeforeUpdate, valueAfterUpdate);
     }
 
 
