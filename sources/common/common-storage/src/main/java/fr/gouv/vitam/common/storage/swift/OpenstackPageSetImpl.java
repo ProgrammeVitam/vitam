@@ -42,12 +42,12 @@ import fr.gouv.vitam.common.storage.filesystem.v2.metadata.VitamStorageMetadataI
 public class OpenstackPageSetImpl extends LinkedHashSet<VitamStorageMetadata>
     implements VitamPageSet<VitamStorageMetadata> {
 
-    protected String marker;
+    protected String marker = null;
 
     public static VitamPageSet<VitamStorageMetadata> wrap(List<? extends SwiftObject> list) {
         OpenstackPageSetImpl openstackPageSet = new OpenstackPageSetImpl();
-        if (list == null) {
-            return null;
+        if (list == null || list.isEmpty()) {
+            return openstackPageSet;
         }
         list.forEach(o -> openstackPageSet.add(new VitamStorageMetadataImpl(null, null, o.getName(), null, null,
             null, o.getETag(), null, o.getLastModified(), o.getSizeInBytes())));
