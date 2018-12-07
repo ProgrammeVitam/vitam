@@ -1,0 +1,14 @@
+---
+
+- name: Check if consul_disabled var is set for some servers
+  fail:
+    msg: "Consul is mandatory for server {{ ansible_hostname }} (consul_disabled var must not be equal to 'true'), please check your configuration"
+  when: consul_disabled is defined and
+        consul_disabled |lower == "true" and
+        (
+          inventory_hostname in groups['zone-access'] or
+          inventory_hostname in groups['zone-applicative'] or
+          inventory_hostname in groups['zone-storage'] or
+          inventory_hostname in groups['zone-data'] or
+          inventory_hostname in groups['zone-admin']
+        )
