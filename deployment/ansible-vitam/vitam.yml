@@ -53,8 +53,8 @@
 - hosts: hosts-elasticsearch-log
   any_errors_fatal: true
   roles:
-    - elasticsearch-cluster
-    - curator
+    - { role: elasticsearch-cluster}
+    - { role: curator, tags: curator_logs}
   vars:
     composant: "{{ elasticsearch.log }}"
 
