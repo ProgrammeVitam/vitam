@@ -17,13 +17,9 @@ vitam_offers:
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
-    # true for full digest re-computation on object write
-    recomputeDigest: false
   offer-swift-1:
     # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift-v3
-    # true for full digest re-computation on object write
-    recomputeDigest: false
     # swiftKeystoneAuthUrl : URL de connexion à keystone
     swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
     # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré

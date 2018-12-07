@@ -130,8 +130,9 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-                            Long size, boolean recomputeDigest)
-            throws ContentAddressableStorageException {
+        Long size)
+        throws ContentAddressableStorageException {
+
         ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
@@ -148,11 +149,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
             String streamDigest = digest.digestHex();
 
-            if (recomputeDigest) {
-                String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-                if(!streamDigest.equals(computedDigest)) {
-                    throw new ContentAddressableStorageException("Illegal state for container "+containerName+" and  object "+objectName+". Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
-                }
+            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+            if (!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException("Illegal state for container " + containerName +
+                    " and  object " + objectName + ". Stream digest " + streamDigest
+                    + " is not equal to computed digest " + computedDigest);
             }
 
             storeDigest(containerName, objectName, digestType, streamDigest);

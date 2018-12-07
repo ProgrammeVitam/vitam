@@ -119,8 +119,9 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-                            Long size, boolean recomputeDigest)
-            throws ContentAddressableStorageException {
+        Long size)
+        throws ContentAddressableStorageException {
+
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
         final BlobStore blobStore = context.getBlobStore();
@@ -136,11 +137,11 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
             String streamDigest = digest.digestHex();
 
-            if (recomputeDigest) {
-                String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-                if(!streamDigest.equals(computedDigest)) {
-                    throw new ContentAddressableStorageException("Illegal state for container "+containerName+" and object "+objectName+". Stream digest " + streamDigest + " is not equal to computed digest " + computedDigest);
-                }
+            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+            if(!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException("Illegal state for container " + containerName +
+                    " and object " + objectName + ". Stream digest " + streamDigest +
+                    " is not equal to computed digest " + computedDigest);
             }
 
             return streamDigest;

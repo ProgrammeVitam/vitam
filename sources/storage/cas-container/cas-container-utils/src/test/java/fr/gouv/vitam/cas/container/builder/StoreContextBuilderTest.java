@@ -88,7 +88,7 @@ public class StoreContextBuilderTest {
 
         // When
         contentAddressableStorage
-            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L, true);
+            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512,3500L);
 
         ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
         try(InputStream is = response.getInputStream()) {

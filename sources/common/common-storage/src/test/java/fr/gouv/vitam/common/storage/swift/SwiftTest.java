@@ -141,8 +141,7 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
-            true);
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
     }
 
     @Test
@@ -161,29 +160,9 @@ public class SwiftTest {
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
         assertThatThrownBy(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
-                true)
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L)
         ).isInstanceOf(ContentAddressableStorageException.class)
             .hasMessageContaining(" is not equal to computed digest ");
-    }
-
-    @Test
-    public void should_call_smallFile__without_digest_recompute_return_ok() throws Exception {
-        // Given
-        swiftInstanceRule.stubFor(post(urlMatching("/swift/v1(.*)")).willReturn(
-            aResponse().withStatus(202)));
-
-        swiftInstanceRule.stubFor(
-            get(urlMatching("/swift/v1(.*)")).willReturn(
-                aResponse().withStatus(200)
-                    .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withBody("BAD_FILE_HASH".getBytes())));
-
-        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
-        InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
-        // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
-            false);
     }
 
     @Test
@@ -206,8 +185,7 @@ public class SwiftTest {
         File file = PropertiesUtils.getResourceFile(OBJECT_NAME);
         // When / Then
         assertThatThrownBy(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), file.length(),
-                true)
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), file.length())
         ).hasMessage("Cannot put object " + OBJECT_NAME + " on container " + CONTAINER_NAME);
     }
 
@@ -226,7 +204,6 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L,
-            true);
+        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
     }
 }
