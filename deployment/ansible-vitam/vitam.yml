@@ -28,7 +28,7 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - check_networks
+    - checks
 
 ### HOSTS NORMALIZATION ###
 - hosts: vitam
