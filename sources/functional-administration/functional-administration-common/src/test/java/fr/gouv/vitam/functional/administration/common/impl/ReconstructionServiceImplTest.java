@@ -44,6 +44,7 @@ import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.bson.Document;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.Rule;
@@ -361,16 +362,16 @@ public class ReconstructionServiceImplTest {
             .endObject();
 
         // create collection of documents.
-        Document document = Document.parse(builderDocument.string());
-        Document document2 = Document.parse(builderDocument2.string());
+        Document document = Document.parse(Strings.toString(builderDocument));
+        Document document2 = Document.parse(Strings.toString(builderDocument2));
         List<Document> documents = Arrays.asList(document, document2);
 
         // create sequence document.
-        Document document3 = Document.parse(builderSequence.string());
+        Document document3 = Document.parse(Strings.toString(builderSequence));
         VitamSequence vitamSequence = new VitamSequence(document3);
 
         // create sequence document.
-        Document document4 = Document.parse(builderBackupSequence.string());
+        Document document4 = Document.parse(Strings.toString(builderBackupSequence));
         VitamSequence vitamBackupSequence = new VitamSequence(document4);
 
         // create collection backup.

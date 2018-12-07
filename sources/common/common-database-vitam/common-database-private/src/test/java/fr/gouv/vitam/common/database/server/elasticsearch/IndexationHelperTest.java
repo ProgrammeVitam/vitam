@@ -48,8 +48,9 @@ import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.cluster.metadata.AliasOrIndex;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.AfterClass;
@@ -106,7 +107,7 @@ public class IndexationHelperTest {
         config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, tcpPort, httPort);
         Settings settings = ElasticsearchAccess.getSettings(CLUSTER_NAME);
         client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
+        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
         nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", tcpPort));
         elasticsearchAccess = new ElasticsearchAccess(CLUSTER_NAME, nodes);
@@ -179,7 +180,7 @@ public class IndexationHelperTest {
                     .field("_tenant", tenant)
                     .field("Name", "Description" + i + " " + RandomUtils.nextDouble())
                     .endObject();
-                documents.add(Document.parse(builder.string()));
+                documents.add(Document.parse(Strings.toString(builder)));
                 ids.put(id, tenant);
             }
             repository.save(documents);

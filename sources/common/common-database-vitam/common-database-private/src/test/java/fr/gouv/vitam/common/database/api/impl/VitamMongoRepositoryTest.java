@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -101,7 +102,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, TEST_SAVE)
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
@@ -120,7 +121,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, TEST_SAVE)
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         VitamRepositoryStatus result = repository.saveOrUpdate(document);
 
         assertThat(VitamRepositoryStatus.CREATED.equals(result));
@@ -135,7 +136,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, "Test othersave")
             .endObject();
 
-        document = Document.parse(builder.string());
+        document = Document.parse(Strings.toString(builder));
         result = repository.saveOrUpdate(document);
 
         assertThat(VitamRepositoryStatus.UPDATED.equals(result));
@@ -154,7 +155,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field(TITLE, TEST_SAVE + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         repository.save(documents);
 
@@ -177,7 +178,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save " + i)
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         repository.saveOrUpdate(documents);
 
@@ -194,7 +195,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save updated")
                 .endObject();
-            updatedDocuments.add(Document.parse(builder.string()));
+            updatedDocuments.add(Document.parse(Strings.toString(builder)));
         }
         for (int i = 50; i < 100; i++) {
             // same document
@@ -204,7 +205,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save " + i)
                 .endObject();
-            updatedDocuments.add(Document.parse(builder.string()));
+            updatedDocuments.add(Document.parse(Strings.toString(builder)));
         }
         repository.saveOrUpdate(updatedDocuments);
 
@@ -238,7 +239,7 @@ public class VitamMongoRepositoryTest {
                 .field("Description", "Description _ " + i)
                 .field("_glpd", date)
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
 
         repository.saveOrUpdate(documents);
@@ -250,12 +251,12 @@ public class VitamMongoRepositoryTest {
 
         List<WriteModel<Document>> updates = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            String doc = jsonBuilder()
+            String doc = Strings.toString(jsonBuilder()
                 .startObject()
                 .field(VitamDocument.ID, 1000 + i)
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save update")
-                .endObject().string();
+                .endObject());
             Document data = new Document("$set", Document.parse(doc));
             updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i)), data,
                 new UpdateOptions().upsert(true).bypassDocumentValidation(true)));
@@ -274,12 +275,12 @@ public class VitamMongoRepositoryTest {
 
         updates = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            String doc = jsonBuilder()
+            String doc = Strings.toString(jsonBuilder()
                 .startObject()
                 .field(VitamDocument.ID, 1000 + i)
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save update")
-                .endObject().string();
+                .endObject());
             Document data = new Document("$set", Document.parse(doc));
             updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i), eq("_glpd", date)), data,
                 new UpdateOptions().upsert(true)));
@@ -307,7 +308,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field(TITLE, TEST_SAVE + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         repository.save(documents);
 
@@ -336,7 +337,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, TEST_SAVE)
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
@@ -374,7 +375,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
@@ -392,7 +393,7 @@ public class VitamMongoRepositoryTest {
             .field(TITLE, TEST_SAVE)
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
@@ -426,7 +427,7 @@ public class VitamMongoRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
@@ -455,7 +456,7 @@ public class VitamMongoRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field(TITLE, TEST_SAVE + i + " " + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         // When
         repository.save(documents);
@@ -484,7 +485,7 @@ public class VitamMongoRepositoryTest {
                 .field("TestField", String.valueOf(i))
                 .field("OtherTestField", String.valueOf("Toto"))
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         // When
         repository.save(documents);
@@ -518,7 +519,7 @@ public class VitamMongoRepositoryTest {
                 .field("TestField", String.valueOf(i))
                 .field("OtherTestField", String.valueOf("Toto"))
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
         // When
         repository.save(documents);

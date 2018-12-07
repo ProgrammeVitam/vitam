@@ -42,6 +42,10 @@ import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -50,7 +54,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+@RunWithCustomExecutor
 public class VitamCollectionTest {
+
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static MongoRule mongoRule =
@@ -69,6 +78,7 @@ public class VitamCollectionTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        VitamThreadUtils.getVitamSession().setUsedForTests(true);
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
@@ -91,7 +101,7 @@ public class VitamCollectionTest {
         final VitamCollection vitamCollection =
             VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
-        assertEquals(vitamCollection.getName(), "CollectionSample");
+        assertEquals(vitamCollection.getName(), "CollectionSample_" + Thread.currentThread().getName());
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);

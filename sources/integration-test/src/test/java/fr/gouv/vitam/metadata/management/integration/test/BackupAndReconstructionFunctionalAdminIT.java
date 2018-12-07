@@ -826,8 +826,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                         Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT_TEST.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT_TEST.getVitamCollection()).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)

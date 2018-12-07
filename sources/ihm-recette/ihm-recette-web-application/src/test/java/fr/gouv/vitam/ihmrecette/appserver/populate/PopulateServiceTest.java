@@ -1,5 +1,14 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
 import com.mongodb.client.model.Filters;
@@ -14,21 +23,12 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class PopulateServiceTest {
 
@@ -60,7 +60,7 @@ public class PopulateServiceTest {
         Settings settings = ElasticsearchAccess.getSettings(clusterName);
 
         client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
+        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
 
         StoragePopulateImpl storagePopulateService;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {

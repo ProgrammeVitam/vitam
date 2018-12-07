@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.model.FacetResult;
 public class ElasticsearchFacetResultHelperTest {
 
     @Test
-    public void should_return_valid_result_when_valid_terms_aggregation() throws InvalidParseOperationException {
+    public void should_return_valid_result_when_valid_terms_aggregation() {
 
         // given
         Terms terms = Mockito.mock(Terms.class);
@@ -81,7 +81,7 @@ public class ElasticsearchFacetResultHelperTest {
 
 
     @Test
-    public void should_return_valid_result_when_valid_date_range_aggregation() throws InvalidParseOperationException {
+    public void should_return_valid_result_when_valid_date_range_aggregation() {
 
         // given
         Range range = Mockito.mock(Range.class);
@@ -113,8 +113,7 @@ public class ElasticsearchFacetResultHelperTest {
 
 
     @Test
-    public void should_return_valid_result_when_empty_buckets_terms_aggregation()
-        throws InvalidParseOperationException {
+    public void should_return_valid_result_when_empty_buckets_terms_aggregation() {
 
         // given
         Terms terms = Mockito.mock(Terms.class);

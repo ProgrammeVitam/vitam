@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.elasticsearch;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -38,8 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.NodeWithPlugins;
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -47,17 +44,12 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.node.InternalSettingsPreparer;
-import org.elasticsearch.node.NodeValidationException;
-import org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin;
-import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
 
@@ -65,48 +57,8 @@ import org.junit.rules.ExternalResource;
  */
 public class ElasticsearchRule extends ExternalResource {
 
-    private static int tcpPort;
-    private static int httpPort;
-    private File temporaryFolder;
-
-    private NodeWithPlugins node;
-    public static final String VITAM_CLUSTER = "vitam-cluster";
-
-    synchronized void init() {
-        if (tcpPort > 0) {
-            return;
-        }
-
-        tcpPort = JunitHelper.getInstance().findAvailablePort();
-        httpPort = JunitHelper.getInstance().findAvailablePort();
-
-        try {
-            final Settings settings = Settings.builder()
-                .put("http.enabled", true)
-                .put("http.type", "netty4")
-                .put("transport.tcp.port", tcpPort)
-                .put("transport.type", "netty4")
-                .put("http.port", httpPort)
-                .put("cluster.name", VITAM_CLUSTER)
-                .put("path.home", temporaryFolder.getCanonicalPath())
-                .put("plugin.mandatory", "org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin")
-                .put("transport.tcp.connect_timeout", "1s")
-                .put("transport.profiles.tcp.connect_timeout", "1s")
-                .put("thread_pool.search.size", 4)
-                .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-                .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-                .build();
-
-            final List<Class<? extends Plugin>> plugins = Arrays.asList(Netty4Plugin.class, AnalysisICUPlugin.class);
-            node =
-                new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), plugins);
-
-            node.start();
-
-        } catch (IOException | NodeValidationException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private static final int tcpPort = 9300;
+    public static final String VITAM_CLUSTER = "elasticsearch-data";
 
     /**
      * ElasticsearchRule constructor
@@ -117,11 +69,8 @@ public class ElasticsearchRule extends ExternalResource {
     public ElasticsearchRule(File tempFolder, String... collectionNames) {
 
         try {
-            this.temporaryFolder = tempFolder;
-            init();
-
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
-                new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
+                new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
         } catch (final UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -135,8 +84,6 @@ public class ElasticsearchRule extends ExternalResource {
             .put("client.transport.sniff", true)
             .put("client.transport.ping_timeout", "2s")
             .put("transport.tcp.connect_timeout", "1s")
-            .put("transport.profiles.client.connect_timeout", "1s")
-            .put("transport.profiles.tcp.connect_timeout", "1s")
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
             .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
             .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
@@ -195,16 +142,16 @@ public class ElasticsearchRule extends ExternalResource {
 
     public void stop() {
         try {
-            node.close();
-        } catch (IOException e) {
+            //node.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void start() {
         try {
-            node.start();
-        } catch (NodeValidationException e) {
+            //node.start();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -222,22 +169,6 @@ public class ElasticsearchRule extends ExternalResource {
 
     private void after(Set<String> collections) {
         purge(collections);
-    }
-
-    /**
-     * Used when annotated @ClassRule
-     */
-    public void afterClass() {
-
-        if (null != temporaryFolder && temporaryFolder.exists()) {
-            try {
-                // if clean offer delete did not work
-                FileUtils.cleanDirectory(temporaryFolder);
-                FileUtils.deleteDirectory(temporaryFolder);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     /**

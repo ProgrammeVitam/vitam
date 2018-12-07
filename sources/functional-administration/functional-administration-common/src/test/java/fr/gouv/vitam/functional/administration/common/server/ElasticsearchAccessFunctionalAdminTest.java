@@ -26,6 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.VITAM_SEQUENCE;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.stream.Stream;
+
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -35,22 +44,13 @@ import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.AliasOrIndex;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.stream.Stream;
-
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.VITAM_SEQUENCE;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ElasticsearchAccessFunctionalAdminTest
@@ -80,7 +80,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
         config = JunitHelper.startElasticsearchForTest(temporaryFolder, clusterName, tcpPort, httPort);
         Settings settings = ElasticsearchAccess.getSettings(clusterName);
         client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
+        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
         List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", tcpPort));
         elasticsearchAccessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);

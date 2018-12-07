@@ -46,11 +46,10 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
@@ -172,7 +171,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
         final String type = VitamCollection.getTypeunique();
-        return client.prepareIndex(getAliasName(collection, tenantId), type, id).setSource(json)
+        return client.prepareIndex(getAliasName(collection, tenantId), type, id).setSource(json, XContentType.JSON)
             .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
     }
@@ -186,8 +185,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return the listener on bulk insert
      */
 
-    final ListenableActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
-        final Integer tenantId, final Map<String, String> mapIdJson) {
+    final ActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
+                                                     final Integer tenantId, final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         // either use client#prepare, or use Requests# to directly build
         // index/delete requests

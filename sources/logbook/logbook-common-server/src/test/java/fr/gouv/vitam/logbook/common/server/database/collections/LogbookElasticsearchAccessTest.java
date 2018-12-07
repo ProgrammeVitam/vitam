@@ -165,7 +165,7 @@ public class LogbookElasticsearchAccessTest {
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
 
         // update entry
-        Map<String, Object> created = elasticSearchResponse.getHits().getAt(0).getSource();
+        Map<String, Object> created = elasticSearchResponse.getHits().getAt(0).getSourceAsMap();
         for (int i = 0; i < 3; i++) {
             outcome = StatusCode.OK;
             outcomeDetailMessage = "IMPORT_FORMAT." + StatusCode.OK.name();

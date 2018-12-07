@@ -77,6 +77,7 @@ import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.ContextParser;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -100,8 +101,8 @@ import org.powermock.api.mockito.PowerMockito;
 
 public class MongoDbAccessMetadataImplTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String DEFAULT_MONGO =
@@ -123,10 +124,10 @@ public class MongoDbAccessMetadataImplTest {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
         new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1"
+            MetadataCollections.UNIT.getName().toLowerCase() + Thread.currentThread().getName() + "_0",
+            MetadataCollections.UNIT.getName().toLowerCase() + Thread.currentThread().getName() + "_1",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + Thread.currentThread().getName() + "_0",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + Thread.currentThread().getName() + "_1"
         );
 
     static final List<Integer> tenantList = Arrays.asList(0);
@@ -139,6 +140,7 @@ public class MongoDbAccessMetadataImplTest {
     @BeforeClass
     public static void setupOne() throws IOException, VitamException {
 
+        VitamThreadUtils.getVitamSession().setUsedForTests(true);
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
@@ -150,7 +152,7 @@ public class MongoDbAccessMetadataImplTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+       // elasticsearchRule.handleAfter();
     }
 
     @Test
@@ -537,6 +539,6 @@ public class MongoDbAccessMetadataImplTest {
 
     private SearchResponse searchResult(String content) throws IOException {
         NamedXContentRegistry registry = new NamedXContentRegistry(getDefaultNamedXContents());
-        return SearchResponse.fromXContent(JsonXContent.jsonXContent.createParser(registry, content));
+        return SearchResponse.fromXContent(JsonXContent.jsonXContent.createParser(registry, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, content));
     }
 }

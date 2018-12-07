@@ -26,6 +26,46 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -90,46 +130,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 
 public class DbRequestTest {
@@ -920,10 +920,10 @@ public class DbRequestTest {
         SearchResponse response;
         request.setQuery(qb1);
         response = request.get();
-        assertEquals(1, response.getHits().totalHits());
+        assertEquals(1, response.getHits().getTotalHits());
         request.setQuery(qb2);
         response = request.get();
-        assertEquals(1, response.getHits().totalHits());
+        assertEquals(1, response.getHits().getTotalHits());
     }
 
     /**
@@ -1220,7 +1220,7 @@ public class DbRequestTest {
         final Iterator<SearchHit> iterator = response.getHits().iterator();
         while (iterator.hasNext()) {
             final SearchHit searchHit = iterator.next();
-            final Map<String, Object> source = searchHit.getSource();
+            final Map<String, Object> source = searchHit.getSourceAsMap();
             for (final String key : source.keySet()) {
                 if ("_qualifiers".equals(key)) {
                     final List<Map<String, Object>> qualifiers = (List<Map<String, Object>>) source.get(key);

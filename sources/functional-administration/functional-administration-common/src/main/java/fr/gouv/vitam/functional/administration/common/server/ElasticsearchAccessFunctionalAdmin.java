@@ -98,6 +98,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public final void deleteIndex(final FunctionalAdminCollections collection) throws ReferentialException {
         try {
             if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
+                // TODO: 07/12/18 SM to check 
                 if (!client.admin().indices().prepareDelete(collection.getName().toLowerCase()).get()
                     .isAcknowledged()) {
                     LOGGER.error("Error on index delete");

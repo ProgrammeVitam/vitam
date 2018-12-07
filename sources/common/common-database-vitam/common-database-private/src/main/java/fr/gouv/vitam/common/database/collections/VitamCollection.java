@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
@@ -92,7 +93,7 @@ public class VitamCollection {
 
     protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore) {
         this.clasz = clasz;
-        name = clasz.getSimpleName();
+        name = VitamThreadUtils.getVitamSession().isUsedForTests() ? clasz.getSimpleName() + "_" + Thread.currentThread().getName() : clasz.getSimpleName();
         this.isMultiTenant = isMultiTenant;
         this.useScore = useScore;
     }

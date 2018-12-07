@@ -32,18 +32,6 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -52,6 +40,17 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
+import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 /**
  * Elasticsearch Access
@@ -111,8 +110,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("client.transport.sniff", true)
             .put("client.transport.ping_timeout", "2s")
             .put("transport.tcp.connect_timeout", "1s")
-            .put("transport.profiles.client.connect_timeout", "1s")
-            .put("transport.profiles.tcp.connect_timeout", "1s")
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -134,7 +131,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             final TransportClient clientNew = new PreBuiltTransportClient(settings);
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
-                    new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
+                    new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
             }
             return clientNew;
         } catch (final UnknownHostException e) {
@@ -214,7 +211,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     return false;
                 }
 
-                IndicesAliasesResponse indAliasesResponse = client.admin().indices()
+                AcknowledgedResponse indAliasesResponse = client.admin().indices()
                     .prepareAliases().addAlias(indexName, aliasName).execute().get();
 
                 if (!indAliasesResponse.isAcknowledged()) {
@@ -279,7 +276,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             throw new DatabaseException(String.format("Alias not exist : %s", aliasName));
         }
         // RemoveAlias to the old index and Add alias to new index
-        IndicesAliasesResponse indAliasesResponse = client.admin().indices()
+        AcknowledgedResponse indAliasesResponse = client.admin().indices()
             .prepareAliases()
             .removeAlias(oldIndexName, aliasName)
             .addAlias(indexNameToSwitchWith, aliasName)
@@ -302,7 +299,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      */
     public Builder settings() throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
+            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }
 
     private String getUniqueIndexName(final String collectionName, Integer tenantId) {

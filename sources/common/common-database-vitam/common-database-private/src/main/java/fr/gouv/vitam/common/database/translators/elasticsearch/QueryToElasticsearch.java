@@ -71,9 +71,9 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregator.KeyedFilter;
-import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator.KeyedFilter;
+import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -410,7 +410,7 @@ public class QueryToElasticsearch {
         switch (query) {
             case FLT:
                 if (names.length > 1) {
-                    final BoolQueryBuilder builder = QueryBuilders.boolQuery().minimumNumberShouldMatch(1);
+                    final BoolQueryBuilder builder = QueryBuilders.boolQuery().minimumShouldMatch(1);
                     for (final String name : names) {
                         builder.should(QueryBuilders.matchQuery(name, slike).fuzziness(FUZZINESS));
                     }
@@ -666,7 +666,7 @@ public class QueryToElasticsearch {
         }
         final QueryBuilder query2;
 
-        final BoolQueryBuilder builder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
+        final BoolQueryBuilder builder = new BoolQueryBuilder().minimumShouldMatch(1);
         for (final Object object : set) {
             builder.should(QueryBuilders.matchQuery(key, object).operator(Operator.OR));
         }
@@ -1051,7 +1051,7 @@ public class QueryToElasticsearch {
                     break;
                 case OR:
                 default:
-                    boolQueryBuilder.minimumNumberShouldMatch(1).should(getCommand(sub.get(i), adapter));
+                    boolQueryBuilder.minimumShouldMatch(1).should(getCommand(sub.get(i), adapter));
             }
         }
         return boolQueryBuilder;
