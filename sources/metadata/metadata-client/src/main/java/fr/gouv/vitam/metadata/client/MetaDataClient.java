@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -82,7 +81,7 @@ public interface MetaDataClient extends BasicClient {
      */
     JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException,
-        InvalidParseOperationException, MetaDataClientServerException, VitamDBException;
+        InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * Search units by query (DSL) and path unit id

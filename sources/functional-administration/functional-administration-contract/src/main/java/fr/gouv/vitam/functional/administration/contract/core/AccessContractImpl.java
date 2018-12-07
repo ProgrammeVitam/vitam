@@ -789,8 +789,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 } catch (InvalidParseOperationException |
                     MetaDataExecutionException |
                     MetaDataDocumentSizeException |
-                    MetaDataClientServerException |
-                    VitamDBException e) {
+                    MetaDataClientServerException e) {
                     return Optional.of(GenericRejectionCause
                         .rejectExceptionOccurred(contract.getName(), "Error while select units", e));
                 }

@@ -1147,7 +1147,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     private void deleteFileRules(FileRulesModel fileRulesModel, FunctionalAdminCollections collection) {
         final Delete delete = new Delete();
-        DbRequestResult result = null;
+        DbRequestResult result;
         DbRequestSingle dbRequest = new DbRequestSingle(collection.getVitamCollection());
         try {
             delete.setQuery(eq(RULE_ID, fileRulesModel.getRuleId()));
@@ -1486,7 +1486,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             resultUnitsArray = (ArrayNode) unitsResultNode.get(RESULTS);
 
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-            VitamDBException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
         }

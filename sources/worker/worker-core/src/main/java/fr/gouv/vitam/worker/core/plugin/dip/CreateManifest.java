@@ -26,29 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static com.google.common.collect.Iterables.partition;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.StreamSupport;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.stream.XMLStreamException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -57,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -67,7 +43,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -82,6 +57,28 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.StreamSupport;
+
+import static com.google.common.collect.Iterables.partition;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 
 /**
  * create manifest and put in on workspace
@@ -145,7 +142,7 @@ public class CreateManifest extends ActionHandler {
                     try {
                         JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
                         return RequestResponseOK.getFromJsonNode(jsonNode);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                         // TODO : throw VitamRuntimeException and set item status according to
                         throw new IllegalStateException(e);
                     }
@@ -200,7 +197,7 @@ public class CreateManifest extends ActionHandler {
                         try {
                             JsonNode node = client.selectUnits(query.getFinalSelect());
                             return RequestResponseOK.getFromJsonNode(node);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }
                     }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);

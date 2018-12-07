@@ -62,7 +62,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
 
     /**
      * select Unit By Id
@@ -137,7 +137,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException, VitamDBException;
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectOperationbyId

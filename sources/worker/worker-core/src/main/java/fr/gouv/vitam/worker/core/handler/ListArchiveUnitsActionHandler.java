@@ -26,22 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.StreamSupport;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -68,6 +55,18 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.StreamSupport;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 /**
  * ListArchiveUnitsAction Handler.<br>
@@ -163,7 +162,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
                         try {
                             JsonNode jsonNode = metaDataClient.selectUnits(query.getFinalSelect());
                             return RequestResponseOK.getFromJsonNode(jsonNode);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }
                     }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
