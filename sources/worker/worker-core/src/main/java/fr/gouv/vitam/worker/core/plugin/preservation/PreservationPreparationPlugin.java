@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
+import fr.gouv.vitam.common.model.PreservationVersion;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -72,13 +74,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
+import static fr.gouv.vitam.common.VitamConfiguration.getBatchSize;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
@@ -88,10 +92,10 @@ import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.administration.GriffinModel.TAG_IDENTIFIER;
 import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationHelper.getVersionsModelFromObjectGroupModelGivenQualifierAndVersion;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
@@ -99,19 +103,13 @@ import static java.util.stream.StreamSupport.stream;
 
 public class PreservationPreparationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationPreparationPlugin.class);
 
     private static final String PRESERVATION_PREPARATION = "PRESERVATION_PREPARATION";
 
     private AdminManagementClientFactory adminManagementClientFactory;
 
     private MetaDataClientFactory metaDataClientFactory;
-
-    private JsonNode projection;
-
-    private String[] orderBy;
-
-    private int batchSize;
 
     private PreservationRequest preservationRequest;
 
@@ -121,27 +119,17 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
     private File objectGroupsBigFileToPreserve;
 
+    private UniqueIdHandler uniqueIdHandler = new UniqueIdHandler();
+
     public PreservationPreparationPlugin() {
         this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance());
     }
 
     @VisibleForTesting PreservationPreparationPlugin(AdminManagementClientFactory adminManagementClientFactory,
         MetaDataClientFactory metaDataClientFactory) {
-
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
 
-        ObjectNode projectionNode = JsonHandler.createObjectNode();
-        ObjectNode fields = JsonHandler.createObjectNode();
-
-        fields.put(ID.exactToken(), 1);
-        fields.put(OBJECT.exactToken(), 1);
-        projectionNode.set(FIELDS.exactToken(), fields);
-
-        this.projection = projectionNode;
-        this.orderBy = new String[] {OBJECT.exactToken()};
-
-        this.batchSize = 1000;
     }
 
     @Override
@@ -153,6 +141,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
             computePreparation(handler, metaDataClient);
 
             return buildItemStatus(PRESERVATION_PREPARATION, StatusCode.OK, createObjectNode());
+
         } catch (Exception e) {
             LOGGER.error(String.format("Preservation action failed with status [%s]", KO), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
@@ -160,48 +149,56 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
+
     private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient)
         throws VitamException {
 
-        checkMandatoryIOParameter(handler);
+        prepareElements(handler);
 
         JsonNode initialQuery = preservationRequest.getDslQuery();
 
-        SelectMultiQuery selectMultiQuery = prepareQuery(initialQuery);
+        SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(initialQuery);
 
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
 
-        Map<String, String> objectGroupIdToUnitIdMap = new HashMap<>();
+        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
 
-        Consumer<JsonNode> constructObjectUnitsMap = handleUnitsQueryResult(objectGroupIdToUnitIdMap);
+            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
 
-        stream(scrollRequest, false).forEach(constructObjectUnitsMap);
+            Map<String, String> objectGroupIdToUnitIdMap = new HashMap<>();
 
-        createJsonLineModelPerBatchSize(objectGroupIdToUnitIdMap, preservationRequest);
+            stream(scrollRequest, false)
+                .forEach(item -> handleUnitsQueryResult(objectGroupIdToUnitIdMap, item, writer));
+
+            createJsonLineModelPerBatchSize(objectGroupIdToUnitIdMap, preservationRequest, writer);
+
+        } catch (IOException e) {
+
+            throw new VitamRuntimeException(e);
+        }
 
         handler.transferFileToWorkspace("distributionFile.jsonl", objectGroupsBigFileToPreserve, false, false);
     }
 
-    private Consumer<JsonNode> handleUnitsQueryResult(Map<String, String> objectGroupIdToUnitId) {
+    private void handleUnitsQueryResult(Map<String, String> objectGroupIdToUnitId, JsonNode item,
+        JsonLineWriter writer) {
 
-        return item -> {
+        String unitId = item.get(ID.exactToken()).asText();
+        String objectGroupId = item.get(OBJECT.exactToken()).asText();
 
-            String unitId = item.get(ID.exactToken()).asText();
-            String objectGroupId = item.get(OBJECT.exactToken()).asText();
+        objectGroupIdToUnitId.put(objectGroupId, unitId);
 
-            objectGroupIdToUnitId.put(objectGroupId, unitId);
-
-            processIfBatchSizeReached(objectGroupIdToUnitId, unitId, objectGroupId);
-        };
+        processIfBatchSizeReached(objectGroupIdToUnitId, unitId, objectGroupId, writer);
     }
 
-    private void processIfBatchSizeReached(Map<String, String> objectGroupIdToUnitId, String id, String objectId) {
+    private void processIfBatchSizeReached(Map<String, String> objectGroupIdToUnitId, String id, String objectId,
+        JsonLineWriter writer) {
+        if (objectGroupIdToUnitId.size() == getBatchSize()) {
 
-        if (objectGroupIdToUnitId.size() == batchSize) {
-
+            // remove for handling duplication  around the batchSize element
             objectGroupIdToUnitId.remove(objectId);
 
-            createJsonLineModelPerBatchSize(objectGroupIdToUnitId, preservationRequest);
+            createJsonLineModelPerBatchSize(objectGroupIdToUnitId, preservationRequest, writer);
 
             objectGroupIdToUnitId.clear();
 
@@ -210,9 +207,10 @@ public class PreservationPreparationPlugin extends ActionHandler {
     }
 
     private void createJsonLineModelPerBatchSize(final Map<String, String> objectGroupToUnitId,
-        final PreservationRequest preservationRequest) {
+        final PreservationRequest preservationRequest, JsonLineWriter writer) {
 
-        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(objectGroupToUnitId);
+        List<ObjectGroupResponse> objectModelsForUnitResults =
+            getObjectModelsForUnitResults(objectGroupToUnitId.keySet());
 
         List<JsonLineModel> jsonLineModelListToDistribute = new ArrayList<>();
 
@@ -226,24 +224,20 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
 
         //Sort is necessary for optimizing distribution
+
         jsonLineModelListToDistribute.sort(comparing(JsonLineModel::getDistribGroup));
 
-        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
-
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
-
-            writeLisToFile(jsonLineModelListToDistribute, writer);
-
-        } catch (IOException e) {
-
-            throw new VitamRuntimeException(e);
-        }
+        writeLisToFile(jsonLineModelListToDistribute, writer);
     }
 
-    private void writeLisToFile(List<JsonLineModel> jsonLineModelListToDistribute, JsonLineWriter writer)
-        throws IOException {
-        for (JsonLineModel model : jsonLineModelListToDistribute) {
-            writer.addEntry(model);
+    private void writeLisToFile(List<JsonLineModel> jsonLineModelListToDistribute, JsonLineWriter writer) {
+        try {
+
+            for (JsonLineModel model : jsonLineModelListToDistribute) {
+                writer.addEntry(model);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Something bas happened", e);
         }
     }
 
@@ -254,10 +248,10 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         for (String qualifier : preservationRequest.getUsages()) {
 
-            String version = preservationRequest.getVersion();
+            PreservationVersion version = preservationRequest.getVersion();
 
-            Optional<VersionsModel> versionsModelOptional =
-                getVersionsModelFromObjectGroupModelGivenQualifierAndVersion(objectGroup, qualifier, version);
+            Optional<VersionsModel> versionsModelOptional = (version == FIRST) ?
+                objectGroup.getFirstVersionsModel(qualifier) : objectGroup.getLastVersionsModel(qualifier);
 
             if (!versionsModelOptional.isPresent()) {
                 throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
@@ -277,7 +271,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
             String griffinId = griffinByFormatModel.getGriffinIdentifier();
 
-            int distributionGroup = formatId.hashCode();
+            int distributionGroup = uniqueIdHandler.getUniqCodeForFormat(formatId);
 
             JsonLineModel lineModel = new JsonLineModel();
 
@@ -289,10 +283,9 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
             PreservationDistributionLine preservationDistributionLine =
                 getPreservationDistributionLine(versionsModel.getId(), unitId, versionsModel.getId(),
-                    formatIdentificationModel.getFormatId(),
-                    griffinByFormatModel,
-                    griffinModel);
+                    formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier);
             try {
+
                 lineModel.setParams(toJsonNode(preservationDistributionLine));
 
             } catch (InvalidParseOperationException e) {
@@ -306,7 +299,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
     }
 
     private PreservationDistributionLine getPreservationDistributionLine(String binaryId, String unitId,
-        String objectId, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel) {
+        String objectId, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
+        String qualifier) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
@@ -328,15 +322,17 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         preservationDistributionLine.setTimeout(griffinByFormatModel.getMaxSize());
 
+        preservationDistributionLine.setQualifier(qualifier);
+
         return preservationDistributionLine;
     }
 
-    private List<ObjectGroupResponse> getObjectModelsForUnitResults(Map<String, String> objectModelsForUnitResults) {
+    private List<ObjectGroupResponse> getObjectModelsForUnitResults(Collection<String> objectGroupIds) {
 
         try {
 
             Select select = new Select();
-            String[] ids = objectModelsForUnitResults.keySet().toArray(new String[0]);
+            String[] ids = objectGroupIds.toArray(new String[0]);
             select.setQuery(in("#id", ids));
 
             ObjectNode finalSelect = select.getFinalSelect();
@@ -351,34 +347,65 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
-    private SelectMultiQuery prepareQuery(JsonNode initialQuery) {
+    private SelectMultiQuery prepareUnitsWithObjectGroupsQuery(JsonNode initialQuery) {
 
-        //TODO TRANSFORM TO SIMPLE SELECT
         try {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(initialQuery);
 
             SelectMultiQuery selectMultiQuery = parser.getRequest();
-            selectMultiQuery.setProjection(projection);
-            selectMultiQuery.addOrderByAscFilter(orderBy);
 
-            selectMultiQuery.addQueries(exists(OBJECT.exactToken()).setDepthLimit(0));
+            ObjectNode projectionNode = getQueryProjectionToApply();
 
+            selectMultiQuery.setProjection(projectionNode);
+
+            selectMultiQuery.addOrderByAscFilter(OBJECT.exactToken());
+
+            List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
+
+            if (queryList.isEmpty()) {
+
+                selectMultiQuery.addQueries(and().add(exists(OBJECT.exactToken())).setDepthLimit(0));
+                return selectMultiQuery;
+
+            }
+
+            for (int i = 0; i < queryList.size(); i++) {
+                final Query query = queryList.get(i);
+
+                Query restrictedQuery = and().add(exists(OBJECT.exactToken()), query);
+
+                parser.getRequest().getQueries().set(i, restrictedQuery);
+
+            }
             return selectMultiQuery;
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    private ObjectNode getQueryProjectionToApply() {
+        ObjectNode projectionNode = JsonHandler.createObjectNode();
+        ObjectNode fields = JsonHandler.createObjectNode();
+
+        fields.put(ID.exactToken(), 1);
+        fields.put(OBJECT.exactToken(), 1);
+        projectionNode.set(FIELDS.exactToken(), fields);
+
+        return projectionNode;
+    }
+
+    private void prepareElements(HandlerIO handler) throws ProcessingException {
+
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
 
-            preparePreservationRequest(handler);
+            JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
+
+            preservationRequest = getFromJsonNode(inputRequest, PreservationRequest.class);
 
             scenarioModel = getScenarioModel(adminManagementClient, preservationRequest.getScenarioIdentifier());
 
-            griffinModelListForScenario = getListOfGriffinGivenScneario(adminManagementClient, scenarioModel);
+            griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
 
             objectGroupsBigFileToPreserve = handler.getNewLocalFile("object_groups_to_preserve.jsonl");
 
@@ -388,15 +415,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
-    private void preparePreservationRequest(HandlerIO handler)
-        throws ProcessingException, InvalidParseOperationException {
-
-        JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
-
-        preservationRequest = getFromJsonNode(inputRequest, PreservationRequest.class);
-    }
-
-    private Map<String, GriffinModel> getListOfGriffinGivenScneario(AdminManagementClient adminManagementClient,
+    private Map<String, GriffinModel> getListOfGriffinGivenScenario(AdminManagementClient adminManagementClient,
         PreservationScenarioModel scenarioModel)
         throws InvalidCreateOperationException, AdminManagementClientServerException, InvalidParseOperationException,
         ReferentialNotFoundException, ProcessingException {
@@ -428,9 +447,22 @@ public class PreservationPreparationPlugin extends ActionHandler {
         PreservationScenarioModel model = ((RequestResponseOK<PreservationScenarioModel>) response).getFirstResult();
 
         if (model == null) {
-            throw new ProcessingException("Griffin not found");
+            throw new ProcessingException("Griffin " + identifier + " not found");
         }
-
         return model;
+    }
+
+    static class UniqueIdHandler {
+
+        private final Map<String, Integer> uniqueIdMap = new HashMap<>();
+
+        int getUniqCodeForFormat(String id) {
+            if (uniqueIdMap.containsKey(id)) {
+                return uniqueIdMap.get(id);
+            }
+            int newId = uniqueIdMap.size() + 1;
+            uniqueIdMap.put(id, newId);
+            return newId;
+        }
     }
 }

@@ -1,8 +1,15 @@
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
@@ -11,51 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GriffinByFormatTest {
 
     @Test
-    public void shouldGenerateGriffinByFormat() throws InvalidParseOperationException {
+    public void shouldGenerateGriffinByFormat() throws InvalidParseOperationException, FileNotFoundException {
 
-        String s = "{\n" +
-            "  \"FormatList\": [\n" +
-            "    \"fmt/136\",\n" +
-            "    \"fmt/137\",\n" +
-            "    \"fmt/138\",\n" +
-            "    \"fmt/139\",\n" +
-            "    \"fmt/290\",\n" +
-            "    \"fmt/294\",\n" +
-            "    \"fmt/292\",\n" +
-            "    \"fmt/296\",\n" +
-            "    \"fmt/291\",\n" +
-            "    \"fmt/295\",\n" +
-            "    \"fmt/293\",\n" +
-            "    \"fmt/297\"\n" +
-            "  ],\n" +
-            "  \"GriffinIdentifier\": \"GRI-0000023\",\n" +
-            "  \"Timeout\": 20,\n" +
-            "  \"MaxSize\": 10000000,\n" +
-            "  \"ActionDetail\": [\n" +
-            "    {\n" +
-            "      \"Type\": \"ANALYSE\",\n" +
-            "      \"Values\": {\n" +
-            "        \"Args\": [\n" +
-            "          \"-strict\"\n" +
-            "        ]\n" +
-            "      }\n" +
-            "    },\n" +
-            "    {\n" +
-            "      \"Type\": \"GENERATE\",\n" +
-            "      \"Values\": {\n" +
-            "        \"Extension\": \"pdf\",\n" +
-            "        \"Args\": [\n" +
-            "          \"-f\",\n" +
-            "          \"pdf\",\n" +
-            "          \"-e\",\n" +
-            "          \"SelectedPdfVersion=1\"\n" +
-            "        ]\n" +
-            "      }\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
+        File resourceFile = PropertiesUtils.getResourceFile("preservation/preservation.json");
 
-        GriffinByFormat griffinByFormat = getFromString(s, GriffinByFormat.class);
+        GriffinByFormat griffinByFormat = getFromFile(resourceFile, GriffinByFormat.class);
 
         assertThat(griffinByFormat.getMaxSize()).isEqualTo(10000000);
         assertThat(griffinByFormat.getTimeOut()).isEqualTo(20);

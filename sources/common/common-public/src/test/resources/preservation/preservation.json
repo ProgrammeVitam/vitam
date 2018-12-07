@@ -1,0 +1,41 @@
+{
+  "FormatList": [
+    "fmt/136",
+    "fmt/137",
+    "fmt/138",
+    "fmt/139",
+    "fmt/290",
+    "fmt/294",
+    "fmt/292",
+    "fmt/296",
+    "fmt/291",
+    "fmt/295",
+    "fmt/293",
+    "fmt/297"
+  ],
+  "GriffinIdentifier": "GRI-0000023",
+  "Timeout": 20,
+  "MaxSize": 10000000,
+  "ActionDetail": [
+    {
+      "Type": "ANALYSE",
+      "Values": {
+        "Args": [
+          "-strict"
+        ]
+      }
+    },
+    {
+      "Type": "GENERATE",
+      "Values": {
+        "Extension": "pdf",
+        "Args": [
+          "-f",
+          "pdf",
+          "-e",
+          "SelectedPdfVersion=1"
+        ]
+      }
+    }
+  ]
+}

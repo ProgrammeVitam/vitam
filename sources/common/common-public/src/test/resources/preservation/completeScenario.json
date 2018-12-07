@@ -1,0 +1,123 @@
+{"_id": "aefqaaaabahn6dttabew6alha45dfgqaaaaq",
+  "Identifier": "PSC-000023",
+  "Name": "Normalisation d'entrée",
+  "Description": "Ce scénario permet de faire une validation des format et de créer une version de diffusion en PDF. Il est en général appliqué au contenu d'une entrée pour donner un retour de la qualité du versement et préparer une consultation fréquente.",
+  "CreationDate": "2018-11-16T15:55:30.721",
+  "LastUpdate": "2018-11-20T15:34:21.542",
+  "ActionList": [
+    "ANALYSE",
+    "GENERATE"
+  ],
+  "MetadataFilter": null,
+  "GriffinByFormat": [
+    {
+      "FormatList": [
+        "fmt/136",
+        "fmt/137",
+        "fmt/138",
+        "fmt/139",
+        "fmt/290",
+        "fmt/294",
+        "fmt/292",
+        "fmt/296",
+        "fmt/291",
+        "fmt/295",
+        "fmt/293",
+        "fmt/297"
+      ],
+      "GriffinIdentifier": "GRI-0000023",
+      "TimeOut": 20,
+      "MaxSize": 10000000,
+      "Debug": false,
+      "ActionDetail": [
+        {
+          "Type": "ANALYSE",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+        },
+        {
+          "Type": "GENERATE",
+          "Values": {
+            "Extension": "pdf",
+            "Args": [
+              "-f",
+              "pdf",
+              "-e",
+              "SelectedPdfVersion=1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "FormatList": [
+        "fmt/41",
+        "fmt/42",
+        "x-fmt/398",
+        "x-fmt/390",
+        "x-fmt/391",
+        "fmt/645",
+        "fmt/43",
+        "fmt/44",
+        "fmt/112",
+        "fmt/11",
+        "fmt/12",
+        "fmt/13",
+        "fmt/935",
+        "fmt/152",
+        "fmt/399",
+        "fmt/388",
+        "fmt/387",
+        "fmt/155",
+        "fmt/353",
+        "fmt/154",
+        "fmt/153",
+        "fmt/156",
+        "x-fmt/392",
+        "x-fmt/178",
+        "fmt/408",
+        "fmt/568",
+        "fmt/567",
+        "fmt/566"
+      ],
+      "GriffinIdentifier": "GRI-0000012",
+      "TimeOut": 10,
+      "MaxSize": 10000000,
+      "Debug": true,
+      "ActionDetail": [
+        {
+          "Type": "ANALYSE",
+          "Values": null
+        },
+        {
+          "Type": "GENERATE",
+          "Values": {
+            "Extension": "pdf",
+            "Args": [
+              "-quality",
+              "90"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "DefaultGriffin": {
+    "GriffinIdentifier": "GRI-0000005",
+    "TimeOut": 10,
+    "MaxSize": 10000000,
+    "ActionDetail": [
+      {
+        "Type": "ANALYSE",
+        "Values": {
+          "Args": [
+            "-strict"
+          ]
+        }
+      }
+    ]
+  }
+}

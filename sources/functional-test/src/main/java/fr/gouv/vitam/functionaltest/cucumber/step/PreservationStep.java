@@ -27,13 +27,11 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -41,7 +39,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
@@ -55,7 +52,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.common.model.PreservationRequest.DEFAULT_VERSION;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -146,8 +143,8 @@ public class PreservationStep {
     }
 
 
-    @When("^je lance la preservation avec le scénario (.*)$")
-    public void launchPreservation(String scenarioId) throws Exception {
+    @When("^je lance la preservation avec le scénario (.*) et pour les usages$")
+    public void launchPreservation(String scenarioId, List<String> usages) throws Exception {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
@@ -156,10 +153,8 @@ public class PreservationStep {
         String query = world.getQuery();
 
         JsonNode queryNode = JsonHandler.getFromString(query);
-        List<String> usages = Collections.singletonList("BinaryMaster");
 
-        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages,
-            DEFAULT_VERSION);
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages, LAST);
         RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);
@@ -173,5 +168,6 @@ public class PreservationStep {
             fail("units update  processing not finished. Timeout exceeded.");
         }
 
-        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();    }
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
 }

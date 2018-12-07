@@ -26,9 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Comparator.comparing;
+import static java.util.Optional.empty;
 
 /**
  * Object Mapping for object group used in AccessInternalModuleImp
@@ -182,21 +187,48 @@ public class ObjectGroupResponse {
         this.type = type;
     }
 
-    /**
-     * Get Opi
-     *
-     * @return opi
-     */
     public String getOpi() {
         return opi;
     }
 
-    /**
-     * Set the opi
-     *
-     * @param opi
-     */
     public void setOpi(String opi) {
         this.opi = opi;
+    }
+
+    @JsonIgnore
+    public Optional<VersionsModel> getLastVersionsModel(String qualifier) {
+
+        Optional<QualifiersModel> first = getQualifiersModel(qualifier);
+
+        if (first.isPresent()) {
+            return first
+                .get()
+                .getVersions()
+                .stream()
+                .max(comparing(VersionsModel::getDataVersion));
+        }
+        return empty();
+    }
+
+    @JsonIgnore
+    public Optional<VersionsModel> getFirstVersionsModel(String qualifier) {
+
+        Optional<QualifiersModel> modelOptional = getQualifiersModel(qualifier);
+
+        if (modelOptional.isPresent()) {
+            return modelOptional
+                .get()
+                .getVersions()
+                .stream()
+                .min(comparing(VersionsModel::getDataVersion));
+        }
+        return empty();
+    }
+
+    private Optional<QualifiersModel> getQualifiersModel(String qualifier) {
+        return qualifiers
+            .stream()
+            .filter(q -> q.getQualifier().equals(qualifier))
+            .findFirst();
     }
 }

@@ -159,7 +159,7 @@
         ]
       }
     ],
-    "GriffinDefault": null
+    "DefaultGriffin": null
   },
   {
     "Identifier": "PSC-000023",
@@ -269,7 +269,7 @@
         ]
       }
     ],
-    "GriffinDefault": {
+    "DefaultGriffin": {
       "GriffinIdentifier": "GRI-000005",
       "TimeOut": 10,
       "MaxSize": 10000000,
@@ -332,6 +332,6 @@
         ]
       }
     ],
-    "GriffinDefault": null
+    "DefaultGriffin": null
   }
 ]

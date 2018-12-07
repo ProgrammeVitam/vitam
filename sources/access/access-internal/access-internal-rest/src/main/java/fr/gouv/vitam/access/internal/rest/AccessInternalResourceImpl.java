@@ -1315,10 +1315,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startPreservation(PreservationRequest preservationRequest) {
-        return startPreservationWorkflow(preservationRequest);
-    }
 
-    private Response startPreservationWorkflow(PreservationRequest preservationRequest) {
         try {
             ParametersChecker.checkParameter("Missing request", preservationRequest);
             String operationId = getVitamSession().getRequestId();
@@ -1327,7 +1324,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode dslQuery = preservationRequest.getDslQuery();
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
 
-            preservationRequest.setDslQuery(restrictedQuery);
+            PreservationRequest restrictedRequest =
+                new PreservationRequest(restrictedQuery, preservationRequest.getScenarioIdentifier(),
+                    preservationRequest.getUsages(),preservationRequest.getVersion());
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -1349,10 +1348,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
-                workspaceClient.putObject(operationId, "preservationRequest",  writeToInpustream(preservationRequest));
+                workspaceClient.putObject(operationId, "preservationRequest", writeToInpustream(restrictedRequest));
 
+                //for CheckThresholdHandler
                 workspaceClient
-                    .putObject(operationId, "query.json", writeToInpustream(preservationRequest.getDslQuery()));
+                    .putObject(operationId, "query.json", writeToInpustream(restrictedRequest.getDslQuery()));
 
                 processingClient.initVitamProcess(PRESERVATION.name(),
                     new ProcessingEntry(operationId, PRESERVATION.getEventType()));

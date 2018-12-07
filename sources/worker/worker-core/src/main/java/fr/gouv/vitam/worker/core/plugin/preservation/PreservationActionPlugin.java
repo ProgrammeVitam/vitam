@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.ActionPreservation;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistribut
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -71,7 +73,6 @@ import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
@@ -80,7 +81,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.apache.commons.collections4.IterableUtils.find;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
@@ -157,8 +157,9 @@ public class PreservationActionPlugin extends ActionHandler {
         WorkerParameters workerParameters, int index) {
         PreservationDistributionLine preservationDistributionLine;
         try {
-            preservationDistributionLine = getFromJsonNode(workerParameters.getObjectMetadataList().get(index),
-                PreservationDistributionLine.class);
+            preservationDistributionLine = JsonHandler
+                .getFromJsonNode(workerParameters.getObjectMetadataList().get(index),
+                    PreservationDistributionLine.class);
             preservationDistributionLine.setId(workerParameters.getObjectNameList().get(index));
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
@@ -170,13 +171,13 @@ public class PreservationActionPlugin extends ActionHandler {
         try {
             FileUtils.deleteDirectory(Paths.get(griffinInputFolder, griffinId, batchId).toFile());
         } catch (IOException e) {
-            throw new ProcessingException("Something bad happened", e);
+            throw new ProcessingException("Something bad happens", e);
         }
     }
 
     private Path createBatchDirectory(String griffinId, String batchId) throws Exception {
         Path griffinDirectory = Paths.get(griffinInputFolder, griffinId);
-        if (griffinDirectory.toFile().exists()) {
+        if (!griffinDirectory.toFile().exists()) {
             Files.createDirectory(griffinDirectory);
         }
         return Files.createDirectory(griffinDirectory.resolve(batchId));
@@ -244,9 +245,8 @@ public class PreservationActionPlugin extends ActionHandler {
 
     private PreservationReportModel getPreservationReportModel(ResultPreservation outputs, int tenant,
         LocalDateTime now, OutputPreservation value, List<PreservationDistributionLine> requests) {
-
         PreservationDistributionLine model =
-            find(requests, j -> j.getId().equals(value.getInputPreservation().getName()));
+            IterableUtils.find(requests, j -> j.getId().equals(value.getInputPreservation().getName()));
 
         return new PreservationReportModel(
             outputs.getRequestId(),
@@ -304,9 +304,9 @@ public class PreservationActionPlugin extends ActionHandler {
                 griffinId,
                 griffin.exitValue(),
                 IOUtils.toString(griffin.getErrorStream(), UTF_8),
-                IOUtils.toString(griffin.getInputStream(), UTF_8)
+                IOUtils.toString(griffin.getInputStream(), UTF_8));
 
-            );
+            return JsonHandler.getFromFile(batchDirectory.resolve(RESULT_JSON).toFile(), ResultPreservation.class);
         }
 
         return getFromFile(batchDirectory.resolve(RESULT_JSON).toFile(), ResultPreservation.class);

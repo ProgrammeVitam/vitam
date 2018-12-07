@@ -54,12 +54,14 @@ public class PreservationDistributionLine {
     private boolean debug;
     @JsonProperty("timeout")
     private int timeout;
+    @JsonProperty("usage")
+    private String qualifier;
 
     public PreservationDistributionLine() {
     }
-
     public PreservationDistributionLine(String formatId, String filename,
-        List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId, boolean debug,
+        List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
+        boolean debug,
         int timeout,
         String id) {
         this.formatId = formatId;
@@ -146,8 +148,17 @@ public class PreservationDistributionLine {
         this.timeout = timeout;
     }
 
+    public String getQualifier() {
+        return qualifier;
+    }
+
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
+    }
+
     @Override
     public String toString() {
         return JsonHandler.unprettyPrint(this);
     }
+
 }

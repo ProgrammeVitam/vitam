@@ -443,7 +443,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 preservationRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);

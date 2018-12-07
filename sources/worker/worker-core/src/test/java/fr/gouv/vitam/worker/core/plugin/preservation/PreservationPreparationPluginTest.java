@@ -1,11 +1,13 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import com.fasterxml.jackson.core.json.UTF8DataInputJsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
+import fr.gouv.vitam.common.model.PreservationVersion;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
@@ -18,6 +20,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,11 +30,14 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.*;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -93,7 +99,7 @@ public class PreservationPreparationPluginTest {
 
         File file = temporaryFolder.newFile();
         PreservationRequest preservationRequest =
-            new PreservationRequest(new Select().getFinalSelect(), "id", singletonList("BinaryMaster"), "LAST");
+            new PreservationRequest(new Select().getFinalSelect(), "id", singletonList("BinaryMaster"), LAST);
 
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
         when(handler.getNewLocalFile(anyString())).thenReturn(file);
@@ -102,6 +108,9 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
 
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
+
+        List<String> lines = IOUtils.readLines(new FileInputStream(file.getAbsolutePath()), "UTF-8");
+        assertThat(lines.size()).isEqualTo(5);
     }
 
 

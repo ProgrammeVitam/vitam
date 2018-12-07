@@ -26,50 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import java.util.List;
-
-public class PreservationRequest {
-    @JsonProperty("dslQuery")
-    private JsonNode dslQuery;
-
-    @JsonProperty("scenarioId")
-    private String scenarioIdentifier;
-
-    @JsonProperty("usages")
-    private List<String> usages;
-
-    @JsonProperty("version")
-    private PreservationVersion version;
-
-    public PreservationRequest() {
-        //for Jackson
-    }
-
-    public PreservationRequest(JsonNode dslQuery, String scenarioIdentifier, List<String> usages,
-        PreservationVersion version) {
-
-        this.dslQuery = dslQuery;
-        this.scenarioIdentifier = scenarioIdentifier;
-        this.usages = usages;
-        this.version = version;
-    }
-
-    public JsonNode getDslQuery() {
-        return dslQuery;
-    }
-
-    public String getScenarioIdentifier() {
-        return scenarioIdentifier;
-    }
-
-    public List<String> getUsages() {
-        return usages;
-    }
-
-    public PreservationVersion getVersion() {
-        return version;
-    }
+public enum PreservationVersion {
+    FIRST,
+    LAST
 }

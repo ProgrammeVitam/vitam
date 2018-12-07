@@ -239,7 +239,7 @@ public class GriffinService {
         if (creationDate == null) {
             creationDate = now().toString();
         }
-        creationDate = getFormattedDateForMongo(griffinModel.getCreationDate());
+        creationDate = getFormattedDateForMongo(creationDate);
         griffinModel.setCreationDate(creationDate);
     }
 

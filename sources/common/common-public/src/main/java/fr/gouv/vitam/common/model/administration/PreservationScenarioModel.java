@@ -58,11 +58,11 @@ public class PreservationScenarioModel {
 
     private static final String TAG_GRIFFIN_BY_FORMAT = "GriffinByFormat";
 
-    private static final String TAG_GRIFFIN_DEFAULT = "GriffinDefault";
+    private static final String TAG_DEFAULT_GRIFFIN = "DefaultGriffin";
 
     private static final String TAG_METADATA_FILTER = "MetadataFilter";
 
-    public static String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
+    public static final String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -97,7 +97,7 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 
-    @JsonProperty(TAG_GRIFFIN_DEFAULT)
+    @JsonProperty(TAG_DEFAULT_GRIFFIN)
     private GriffinByFormat defaultGriffin;
 
     public String getId() {
@@ -217,13 +217,15 @@ public class PreservationScenarioModel {
             return empty();
         }
 
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element);
-            }
-        }
-        return empty();
+        GriffinByFormat first =
+            griffinByFormat.stream()
+                .filter(e -> e.getFormatList().contains(format))
+                .findFirst()
+                .orElse(defaultGriffin);
+
+        return Optional.of(first);
     }
+
 
     @JsonIgnore
     public Set<String> getAllGriffinIdentifiers() {
@@ -234,9 +236,7 @@ public class PreservationScenarioModel {
             return identifierSet;
         }
 
-        for (GriffinByFormat format : griffinByFormat) {
-            identifierSet.add(format.getGriffinIdentifier());
-        }
+        griffinByFormat.forEach(g -> identifierSet.add(g.getGriffinIdentifier()));
 
         if (defaultGriffin != null)
             identifierSet.add(defaultGriffin.getGriffinIdentifier());
