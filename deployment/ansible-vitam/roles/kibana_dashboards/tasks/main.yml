@@ -50,6 +50,10 @@
     timeout: "{{ composant.api_call_timeout }}"
   with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/index-pattern/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
 
 - name: load search into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
@@ -65,6 +69,10 @@
       kbn-xsrf: "{{ kibana.header_value }}"
   with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/search/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
 
 - name: load visualizations into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
@@ -80,6 +88,10 @@
     timeout: "{{ composant.api_call_timeout }}"
   with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/visualization/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
 
 - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index
   run_once: true
@@ -95,6 +107,10 @@
     timeout: "{{ composant.api_call_timeout }}"
   with_fileglob:
     - "{{ role_path }}/files/{{ composant.groupe }}/dashboard/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
 
 # OMA : tout est OK, et pourtant... Ne marche pas !
 - name: set {{ composant.default_index_pattern }} as kibana default index pattern
@@ -109,6 +125,10 @@
     body_format: json
     timeout: "{{ composant.api_call_timeout }}"
     status_code: 200, 201
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
 
 - name: disable optIn popup message
   run_once: true
@@ -122,3 +142,7 @@
     headers:
       kbn-xsrf: "{{ kibana.header_value }}"
     timeout: "{{ composant.api_call_timeout }}"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
