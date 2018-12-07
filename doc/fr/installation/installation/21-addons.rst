@@ -117,6 +117,8 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. note:: installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
 
+.. note:: Concernant Curator, en environnement de production, il est recommandé de procéder à la fermeture des index au bout d'une semaine pour les index de type "logstash" ( 3 jours pour les index "metrics"), qui sont le reflet des traces applicatives des composants de la solution logicielle :term:`VITAM`. Il est alors recommandé de lancer le *delete* de ces index au bout de la durée minimale de rétention : 1 an (il n'y a pas de durée de rétention minimale légale sur les index "metrics", qui ont plus une vocation technique et, éventuellement, d'investigations).
+
 * |repertoire_inventory| ``/group_vars/all/jvm_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml

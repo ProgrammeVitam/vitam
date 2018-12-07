@@ -54,9 +54,10 @@
   roles:
     - elasticsearch-cluster
     - init_es_cluster_index_template
-    - curator
+    - { role: curator, tags: curator_logs}
   vars:
     composant: "{{ elasticsearch.log }}"
+
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
