@@ -1,0 +1,56 @@
+---
+
+- block:
+
+    - name: Check groups
+      fail:
+        msg: "No hosts defined for group {{ item }}"
+      when:
+        - primary_site | lower == "true"
+        - groups[item]|count < 1
+      with_items:
+        - hosts-ingest-external
+        - hosts-access-external
+        - hosts-ingest-internal
+        - hosts-processing
+        - hosts-batch-report
+        - hosts-worker
+        - hosts-access-internal
+        - hosts-metadata
+        - hosts-functional-administration
+        - hosts-logbook
+        - hosts-workspace
+        - hosts-storage-engine
+        - hosts-security-internal
+        - hosts-storage-offer-default
+        - hosts-mongos-offer
+        - hosts-mongoc-offer
+        - hosts-mongod-offer
+        - hosts-elasticsearch-data
+        - hosts-mongos-data
+        - hosts-mongoc-data
+        - hosts-mongod-data
+        - hosts-consul-server
+
+    - name: Check groups
+      fail:
+        msg: "No hosts defined for group {{ item }}"
+      when:
+        - primary_site | lower == "false"
+        - groups[item]|count < 1
+      with_items:
+        - hosts-metadata
+        - hosts-functional-administration
+        - hosts-logbook
+        - hosts-storage-engine
+        - hosts-storage-offer-default
+        - hosts-mongos-offer
+        - hosts-mongoc-offer
+        - hosts-mongod-offer
+        - hosts-elasticsearch-data
+        - hosts-mongos-data
+        - hosts-mongoc-data
+        - hosts-mongod-data
+        - hosts-consul-server
+
+  run_once: true
