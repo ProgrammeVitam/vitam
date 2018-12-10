@@ -205,6 +205,8 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         // Merge ObjectGroup allUnitParents (_us) with unit all parents
         Set<String> allUnitParents = new HashSet<>(this.getCollectionOrEmpty(UNITUPS));
         allUnitParents.addAll(unit.getCollectionOrEmpty(UNITUPS));
+        // AddToSet current ObjectGroup _up to ObjectGroup _us
+        allUnitParents.addAll(up);
         this.put(UNITUPS, allUnitParents);
 
         // Add operation id
