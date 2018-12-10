@@ -13,7 +13,6 @@
         - hosts-access-external
         - hosts-ingest-internal
         - hosts-processing
-        - hosts-batch-report
         - hosts-worker
         - hosts-access-internal
         - hosts-metadata
