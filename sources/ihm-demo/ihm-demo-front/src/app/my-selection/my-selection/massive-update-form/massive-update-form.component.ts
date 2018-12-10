@@ -116,7 +116,7 @@ export class MassiveUpdateFormComponent implements OnInit {
     if (this.internalSavedRules.RemoveArchiveUnitProfile) {
       deleteMetadata.ArchiveUnitProfile = '';
       nbUpdates++;
-    } else if (this.internalSavedRules.ArchiveUnitProfile !== null && this.internalSavedRules.ArchiveUnitProfile !== '') {
+    } else if (!!this.internalSavedRules.ArchiveUnitProfile) {
       updateMetadata.ArchiveUnitProfile = this.internalSavedRules.ArchiveUnitProfile;
       nbUpdates++;
     }
@@ -198,9 +198,9 @@ export class MassiveUpdateFormComponent implements OnInit {
 
       // Check for rules in category
       if (ruleCategory.Rules.length > 0) {
-        for (let rule of ruleCategory.Rules) {
+        for (const rule of ruleCategory.Rules) {
           // /UPDATE rules
-          switch(rule.Action) {
+          switch (rule.Action) {
             case RuleAction.UPDATE:
               if (!rule.OriginRule || (!rule.Rule && !rule.StartDate)) {
                 console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas d\'identifiant d\'origine ou ne renseigne pas de Date et d\'identifiant.');
@@ -294,9 +294,9 @@ export class MassiveUpdateFormComponent implements OnInit {
         break;
       }
 
-      switch(field.Action) {
+      switch (field.Action) {
         case MetadataAction.PATTERN:
-          if(!field.FieldName || !field.FieldValue || !field.FieldPattern) {
+          if (!field.FieldName || !field.FieldValue || !field.FieldPattern) {
             console.warn('Une métadonnée modifiée par pattern ne renseigne pas de nom, de pattern ou de valeur.');
             nbErrors++;
             break;
