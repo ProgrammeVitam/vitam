@@ -20,3 +20,5 @@ Base MasterData
    profile.rst
    securityprofile.rst
    vitamsequence.rst
+   griffin.rst
+   preservationscenario.rst
