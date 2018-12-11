@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>DEPLOYMENT</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <!-- Add ansible deployment files -->
+        <fileSet>
+            <directory>../deployment</directory>
+            <outputDirectory>deployment</outputDirectory>
+            <excludes>
+                <exclude>**/*.retry</exclude>
+                <exclude>demo_backup_vitam.sh</exclude>
+                <exclude>environments/antivirus/scan-dev.sh</exclude>
+                <exclude>ansible-vitam-extra</exclude>
+                <exclude>vault_pass.txt</exclude>
+                <exclude>environments/hosts.local</exclude>
+                <exclude>environments/hosts.fulllocal</exclude>
+                <exclude>environments/hosts.cots</exclude>
+                <exclude>environments/group_vars/all/vault-extra.example</exclude>
+                <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
+                <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
+                <exclude>vitam-conf-dev</exclude>
+                <exclude>environments/certs/vault-certs.yml</exclude>
+                <exclude>deployment/pki/ca/*</exclude>
+                <exclude>deployment/pki/config/*</exclude>
+                <exclude>deployment/pki/scripts/*.sh</exclude>
+                <exclude>**/*.crt</exclude>
+                <exclude>**/*.key</exclude>
+                <exclude>**/*.p12</exclude>
+                <exclude>**/*.jks</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+</assembly>
