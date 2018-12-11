@@ -86,6 +86,7 @@
 							<descriptors>
 								<descriptor>${basedir}/assembly-prod.xml</descriptor>
 								<descriptor>${basedir}/assembly-horsprod.xml</descriptor>
+								<descriptor>${basedir}/assembly-deployment.xml</descriptor>
 							</descriptors>
 						</configuration>
 						<goals>
