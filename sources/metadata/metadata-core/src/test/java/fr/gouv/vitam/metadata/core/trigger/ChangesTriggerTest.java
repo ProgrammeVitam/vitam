@@ -83,4 +83,20 @@ public class ChangesTriggerTest {
         Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
         Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
     }
+
+    @Test
+    public void testTriggerRemovingClassificationRule() throws Exception {
+        ChangesTrigger changesTrigger = new ChangesTrigger("Trigger/history-triggers-test.json");
+
+        JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
+        JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
+
+        changesTrigger.trigger(before, after);
+
+        String unitAfterUpdateString = after.toString();
+
+        Assert.assertNotNull(parse(unitAfterUpdateString).read("$._history[0].ud"));
+        Assert.assertEquals(10, (int)parse(unitAfterUpdateString).read("$._history[0].data._v"));
+        Assert.assertEquals("Secret Défense", parse(unitAfterUpdateString).read("$._history[0].data._mgt.ClassificationRule.ClassificationLevel"));
+    }
 }
