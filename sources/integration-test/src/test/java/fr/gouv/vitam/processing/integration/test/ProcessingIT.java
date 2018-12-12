@@ -103,6 +103,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -1397,7 +1398,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // 1. First we create an AU by sip (Tree)
         final String containerName = createOperationContainer();
 
-        // workspace client dezip SIP in workspace
+        // Workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(OK_RATTACHEMENT);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -1445,7 +1446,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-        // 3. we get id of both au from 1 and 2
+        // 3. Get id of both au from 1 and 2
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         MongoCursor<Document> cursor = resultUnits.iterator();
         Document unit1 = null;
@@ -1458,21 +1459,33 @@ public class ProcessingIT extends VitamRuleRunner {
         }
         assertNotNull(unit1);
         assertNotNull(unit2);
-        String idUnit = (String) unit1.get("_id");
+        String idUnit1 = (String) unit1.get("_id");
         String idUnit2 = (String) unit2.get("_id");
 
-        // 4. creation of 2 zip files : 1 containing id1, the other one containing id2
-        String zipPath = null;
+        // Get number of events in LFC of both unit1 and unit2
+        MongoCursor<Document> logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, idUnit1)).iterator();
+        Document lfcUnit1 = logbookCursor.next();
+        List<JsonNode> eventsUnit1 = lfcUnit1.get("events", List.class);
+        int lcfUnit1Size = eventsUnit1.size();
+
+        logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, idUnit2)).iterator();
+        Document lfcUnit2 = logbookCursor.next();
+        List<JsonNode> eventsUnit2 = lfcUnit2.get("events", List.class);
+        int lcfUnit2Size = eventsUnit2.size();
+
+
+        // 4. Creation of 2 zip files : 1 containing idUnit, the other one containing idUnit2
+        String zipPath;
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                idUnit);
+                idUnit1);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
-        // we now create another zip file that will contain an incorrect GUID
-        String zipPath2 = null;
+        // We now create another zip file that will contain an incorrect GUID
+        String zipPath2;
         // 2. then we link another SIP to it
         String zipName2 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
@@ -1483,13 +1496,12 @@ public class ProcessingIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         // 5. we now update the ingest contract, we set the check to ACTIVE and the link parent id takes id1 value
-        updateIngestContractLinkParentId("ArchivalAgreement0", idUnit, "ACTIVE");
+        updateIngestContractLinkParentId("ArchivalAgreement0", idUnit1, "ACTIVE");
 
-
-        // 6. ingest here should be ok, we link the correct id (referenced in the ingest contract) to the sip
+        // 6.1 ingest here should be ok, we link the correct id (referenced in the ingest contract) to the sip
         final String containerName3 = createOperationContainer();
 
-        // workspace client dezip SIP in workspace
+        // workspace client unzip SIP in workspace
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(
                 PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
@@ -1517,8 +1529,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.OK, processWorkflow3.getStatus());
         assertNotNull(processWorkflow3.getSteps());
 
-
-        // 6. ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip        
+        // 6.2 ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip
         final String containerName4 = createOperationContainer();
         // use link sip
         final InputStream zipStream2 = new FileInputStream(new File(
@@ -1541,16 +1552,16 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.KO, processWorkflow4.getStatus());
 
         // Check that we have an AU where in his up we have idUnit
-        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", idUnit));
+        MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", idUnit1));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
         MongoIterable<Document> operation =
                 LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName4));
         assertNotNull(operation);
         assertNotNull(operation.first());
-        assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO"));
+        assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT.KO"));
 
-        // 7. we now put che check as inactive for the ingest contract
+        // 7. we now put check as inactive for the ingest contract
         updateIngestContractLinkParentId("ArchivalAgreement0", "", "INACTIVE");
 
         // 8. ingest here should be ok (warning), as check is inactive, we do what we want to do         
@@ -1574,6 +1585,22 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow5);
         assertEquals(ProcessState.COMPLETED, processWorkflow5.getState());
         assertEquals(StatusCode.OK, processWorkflow5.getStatus());
+
+        // For all cases, the LFC of unit 1 and unit 2 must not be modified
+        // Check unit 1 LFC not modified
+        logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, idUnit1)).iterator();
+        lfcUnit1 = logbookCursor.next();
+        eventsUnit1 = lfcUnit1.get("events", List.class);
+        int newLcfUnit1Size = eventsUnit1.size();
+        assertThat(newLcfUnit1Size).isEqualTo(lcfUnit1Size);
+
+        // Check unit 2 LFC not modified
+        logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, idUnit2)).iterator();
+        lfcUnit2 = logbookCursor.next();
+        eventsUnit2 = lfcUnit2.get("events", List.class);
+        int newLcfUnit2Size = eventsUnit2.size();
+        assertThat(newLcfUnit2Size).isEqualTo(lcfUnit2Size);
+
 
         try {
             Files.delete(new File(zipPath).toPath());
