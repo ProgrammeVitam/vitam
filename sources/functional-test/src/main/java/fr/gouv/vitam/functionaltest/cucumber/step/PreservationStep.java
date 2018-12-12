@@ -42,11 +42,13 @@ import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -143,13 +145,14 @@ public class PreservationStep {
     }
 
 
-    @When("^je lance la preservation avec le scénario (.*) et pour les usages$")
-    public void launchPreservation(String scenarioId, List<String> usages) throws Exception {
+    @When("^je lance la preservation avec le scénario (.*) et pour les usages (.*)$")
+    public void launchPreservation(String scenarioId, String usageString) throws Exception {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
 
+        List<String> usages = Arrays.asList(usageString.split(","));
         String query = world.getQuery();
 
         JsonNode queryNode = JsonHandler.getFromString(query);

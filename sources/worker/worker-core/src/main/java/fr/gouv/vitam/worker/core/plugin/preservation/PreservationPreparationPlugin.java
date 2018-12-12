@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -40,6 +41,8 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,6 +72,9 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,12 +82,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.VitamConfiguration.getBatchSize;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
@@ -99,7 +105,6 @@ import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUni
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.StreamSupport.stream;
 
 public class PreservationPreparationPlugin extends ActionHandler {
 
@@ -149,6 +154,18 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
     }
 
+    private Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
+
+        return IteratorUtils.transformedIterator(
+
+            iterator,
+
+            item -> new ImmutablePair<>(
+                item.get(OBJECT.exactToken()).asText(),
+                item.get(ID.exactToken()).asText()
+            )
+        );
+    }
 
     private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient)
         throws VitamException {
@@ -161,62 +178,48 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
 
-        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
+        Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
+        Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
+
+        Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator =
+            new GroupByObjectIterator(gotIdUnitIdIterator);
+
+        Iterator<List<Pair<String, List<String>>>> bulkIterator =
+            new BulkIterator<>(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
+
+        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
             JsonLineWriter writer = new JsonLineWriter(outputStream)) {
 
-            Map<String, String> objectGroupIdToUnitIdMap = new HashMap<>();
+            while (bulkIterator.hasNext()) {
+                List<Pair<String, List<String>>> bulkToProcess = bulkIterator.next();
 
-            stream(scrollRequest, false)
-                .forEach(item -> handleUnitsQueryResult(objectGroupIdToUnitIdMap, item, writer));
-
-            createJsonLineModelPerBatchSize(objectGroupIdToUnitIdMap, preservationRequest, writer);
+                process(bulkToProcess, preservationRequest, writer);
+            }
 
         } catch (IOException e) {
-
-            throw new VitamRuntimeException(e);
+            throw new VitamException("Could not save distribution file", e);
         }
 
         handler.transferFileToWorkspace("distributionFile.jsonl", objectGroupsBigFileToPreserve, false, false);
     }
 
-    private void handleUnitsQueryResult(Map<String, String> objectGroupIdToUnitId, JsonNode item,
+
+    private void process(List<Pair<String, List<String>>> bulkToProcess, PreservationRequest preservationRequest,
         JsonLineWriter writer) {
 
-        String unitId = item.get(ID.exactToken()).asText();
-        String objectGroupId = item.get(OBJECT.exactToken()).asText();
+        Map<String,List<String>> tempMap = new HashMap<>();
+        bulkToProcess.forEach(item -> tempMap.put(item.getKey(), item.getValue()));
 
-        objectGroupIdToUnitId.put(objectGroupId, unitId);
-
-        processIfBatchSizeReached(objectGroupIdToUnitId, unitId, objectGroupId, writer);
-    }
-
-    private void processIfBatchSizeReached(Map<String, String> objectGroupIdToUnitId, String id, String objectId,
-        JsonLineWriter writer) {
-        if (objectGroupIdToUnitId.size() == getBatchSize()) {
-
-            // remove for handling duplication  around the batchSize element
-            objectGroupIdToUnitId.remove(objectId);
-
-            createJsonLineModelPerBatchSize(objectGroupIdToUnitId, preservationRequest, writer);
-
-            objectGroupIdToUnitId.clear();
-
-            objectGroupIdToUnitId.put(objectId, id);
-        }
-    }
-
-    private void createJsonLineModelPerBatchSize(final Map<String, String> objectGroupToUnitId,
-        final PreservationRequest preservationRequest, JsonLineWriter writer) {
-
-        List<ObjectGroupResponse> objectModelsForUnitResults =
-            getObjectModelsForUnitResults(objectGroupToUnitId.keySet());
+        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(tempMap.keySet());
 
         List<JsonLineModel> jsonLineModelListToDistribute = new ArrayList<>();
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
-            String unitId = objectGroupToUnitId.get(objectGroup.getId());
+            Collection<String> unitIds = tempMap.get(objectGroup.getId());
+
+            String unitId = unitIds.iterator().next();
 
             List<JsonLineModel> modelList = collectLineModelPerQualifier(preservationRequest, unitId, objectGroup);
 
@@ -224,10 +227,11 @@ public class PreservationPreparationPlugin extends ActionHandler {
         }
 
         //Sort is necessary for optimizing distribution
-
         jsonLineModelListToDistribute.sort(comparing(JsonLineModel::getDistribGroup));
 
+
         writeLisToFile(jsonLineModelListToDistribute, writer);
+
     }
 
     private void writeLisToFile(List<JsonLineModel> jsonLineModelListToDistribute, JsonLineWriter writer) {
