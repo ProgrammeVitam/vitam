@@ -9,6 +9,7 @@ public class AccessLogInfoModel {
     private String contextId;
     private String contractId;
     private String requestId;
+    private String applicationId;
     private String objectId;
     private String archiveId;
     private String qualifier;
@@ -53,6 +54,14 @@ public class AccessLogInfoModel {
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
     }
 
     public String getObjectId() {

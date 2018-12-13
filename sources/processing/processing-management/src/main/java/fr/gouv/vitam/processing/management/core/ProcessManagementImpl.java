@@ -198,7 +198,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     @Override
     public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
-        LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId)
+        LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId, String applicationId)
         throws ProcessingException {
 
         // check data container and folder
@@ -210,10 +210,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         if (ParametersChecker.isNotEmpty(workflowId)) {
             processWorkflow = processData
                 .initProcessWorkflow(poolWorkflow.get(workflowId), workerParameters.getContainerName(),
-                    logbookTypeProcess, tenantId, contextId);
+                    logbookTypeProcess, tenantId, contextId, applicationId);
         } else {
             processWorkflow = processData
-                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId, contextId);
+                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId, contextId, applicationId);
         }
 
         processWorkflow.setWorkflowId(workflowId);

@@ -51,7 +51,7 @@ public interface ProcessDataAccess {
      * @return {@link LogbookTypeProcess}
      */
     ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, LogbookTypeProcess logbookTypeProcess,
-        Integer tenantId, String contextId);
+        Integer tenantId, String contextId, String applicationId);
 
     /**
      * Update a step in a workflow, knowing its unique id

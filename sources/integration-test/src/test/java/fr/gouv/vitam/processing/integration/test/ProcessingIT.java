@@ -1361,12 +1361,10 @@ public class ProcessingIT extends VitamRuleRunner {
         CompareQuery eq = QueryHelper.eq("#operations", containerName);
         select.setQuery(eq);
 
+        containerName = createOperationContainer("EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
         ObjectNode finalSelect = select.getFinalSelect();
 
-        containerName = createOperationContainer("EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
-
         workspaceClient.createContainer(containerName);
-
         workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(finalSelect));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();

@@ -41,6 +41,10 @@ public enum StorageLogbookParameterName {
      */
     xRequestId,
     /**
+     * Application-Id
+     */
+    applicationId,
+    /**
      * Tenant ID
      */
     tenantId,
@@ -117,6 +121,6 @@ public enum StorageLogbookParameterName {
     /**
      * Object Size
      */
-    objectSize;
+    objectSize
 
 }

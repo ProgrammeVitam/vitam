@@ -70,6 +70,7 @@ import org.mockito.InOrder;
  */
 public class ProcessEngineImplTest {
     public static final String FAKE_CONTEXT = "FakeContext";
+    public static final String APPLICATION_ID = "FakeApplicationId";
     private ProcessEngine processEngine;
     private WorkerParameters workParams;
     private ProcessDistributor processDistributor;
@@ -129,7 +130,7 @@ public class ProcessEngineImplTest {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -165,7 +166,7 @@ public class ProcessEngineImplTest {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -203,7 +204,7 @@ public class ProcessEngineImplTest {
     public void startTestIEventsProcessEngineRequiredKO() throws Exception {
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
         processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
 
     }

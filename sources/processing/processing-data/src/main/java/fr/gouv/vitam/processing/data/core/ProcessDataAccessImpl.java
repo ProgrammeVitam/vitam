@@ -77,13 +77,14 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
     @Override
     public ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName,
-        LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId) {
+        LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId, String applicationId) {
         ParametersChecker.checkParameter("containerName is a mandatory parameter", containerName);
         final ProcessWorkflow pwkf = new ProcessWorkflow();
         pwkf.setLogbookTypeProcess(logbookTypeProcess);
         pwkf.setOperationId(containerName);
         pwkf.setTenantId(tenantId);
         pwkf.setContextId(contextId);
+        pwkf.setApplicationId(applicationId);
 
         if (workflow != null) {
             int iterator = 0;

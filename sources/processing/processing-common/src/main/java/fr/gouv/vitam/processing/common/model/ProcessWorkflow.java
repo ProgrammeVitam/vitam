@@ -51,6 +51,8 @@ public class ProcessWorkflow {
 
     private String contextId;
 
+    private String applicationId;
+
     private String messageIdentifier;
 
     private String prodService;
@@ -274,6 +276,14 @@ public class ProcessWorkflow {
     public ProcessWorkflow setContextId(String contextId) {
         this.contextId = contextId;
         return this;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
     }
 
     /*

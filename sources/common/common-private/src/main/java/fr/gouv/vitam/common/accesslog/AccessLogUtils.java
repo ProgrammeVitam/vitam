@@ -36,7 +36,8 @@ public class AccessLogUtils {
         return logInfo;
     }
 
-    public static AccessLogInfoModel getInfoFromWorkerInfo(Map<String, Object> objectInfo, VitamSession session, Boolean mustLog) {
+    public static AccessLogInfoModel getInfoFromWorkerInfo(Map<String, Object> objectInfo, VitamSession session,
+        Boolean mustLog) {
         AccessLogInfoModel logInfo = new AccessLogInfoModel();
 
         logInfo.setMustLog(mustLog);
@@ -45,6 +46,7 @@ public class AccessLogUtils {
             logInfo.setContextId(session.getContextId());
             logInfo.setContractId(session.getContractId());
             logInfo.setRequestId(session.getRequestId());
+            logInfo.setApplicationId(session.getApplicationSessionId());
 
             logInfo.setArchiveId((String) objectInfo.get(ARCHIVE_ID));
             logInfo.setQualifier((String) objectInfo.get(QUALIFIER));
@@ -66,6 +68,7 @@ public class AccessLogUtils {
             logInfo.setContextId(session.getContextId());
             logInfo.setContractId(session.getContractId());
             logInfo.setRequestId(session.getRequestId());
+            logInfo.setApplicationId(session.getApplicationSessionId());
 
             logInfo.setArchiveId(archiveUnitId);
             logInfo.setQualifier(qualifier);
