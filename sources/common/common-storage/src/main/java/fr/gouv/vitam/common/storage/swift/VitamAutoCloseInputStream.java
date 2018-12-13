@@ -129,15 +129,14 @@ public class VitamAutoCloseInputStream extends ProxyInputStream {
         }
 
         @Override
-        public synchronized void reset() throws IOException {
+        public void reset() throws IOException {
             throw new StreamAlreadyConsumedException("Already closed !");
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             // NOP
         }
     }
-
 }
 

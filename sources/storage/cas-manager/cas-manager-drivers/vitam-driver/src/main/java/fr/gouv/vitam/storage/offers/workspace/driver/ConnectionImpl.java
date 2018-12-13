@@ -337,7 +337,7 @@ public class ConnectionImpl extends AbstractConnection {
                         status.getReasonPhrase(), false);
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, false);
+                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
         }
     }
 
