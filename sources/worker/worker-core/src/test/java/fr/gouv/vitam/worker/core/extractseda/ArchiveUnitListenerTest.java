@@ -74,7 +74,7 @@ public class ArchiveUnitListenerTest {
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null, null,
-           null, null);
+           null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -87,7 +87,7 @@ public class ArchiveUnitListenerTest {
         when(parent.isGlobalScope()).thenReturn(true);
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -112,7 +112,7 @@ public class ArchiveUnitListenerTest {
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null,null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null, null
-           ,null, null);
+           ,null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -125,7 +125,7 @@ public class ArchiveUnitListenerTest {
         when(parent.isGlobalScope()).thenReturn(true);
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -154,7 +154,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT,
                 null,
-                null, null, null, null);
+                null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -173,7 +173,7 @@ public class ArchiveUnitListenerTest {
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -202,7 +202,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT,
                 null,
-                null, null, null, null);
+                null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -221,7 +221,7 @@ public class ArchiveUnitListenerTest {
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -249,7 +249,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null);
+                agenciesList, null, null, null, null, null);
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -274,7 +274,7 @@ public class ArchiveUnitListenerTest {
 
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
 
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -303,7 +303,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null);
+                agenciesList, null, null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);
@@ -327,7 +327,7 @@ public class ArchiveUnitListenerTest {
 
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
 
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -357,7 +357,7 @@ public class ArchiveUnitListenerTest {
             new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
-                agenciesList, null, null, null, null);
+                agenciesList, null, null, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ManagementType management = mock(ManagementType.class);

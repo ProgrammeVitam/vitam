@@ -172,6 +172,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private IngestContractModel ingestContract;
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
     private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     /**
      * @param handlerIO
@@ -209,7 +210,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                                List<String> originatingAgencies, Map<String, JsonNode> existingGOTs,
                                Map<String, String> existingUnitIdWithExistingObjectGroup,
                                Map<String, Boolean> isThereManifestRelatedReferenceRemained,
-                               Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment) {
+                               Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment,
+                               AdminManagementClientFactory adminManagementClientFactory) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -237,6 +239,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         RuleMapper ruleMapper = new RuleMapper();
         archiveUnitMapper = new ArchiveUnitMapper(descriptiveMetadataMapper, ruleMapper);
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     /**
@@ -724,6 +727,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private void fillArchiveUnitTree(String archiveUnitId, ArchiveUnitType archiveUnitType) {
 
         String childArchiveUnitRef = archiveUnitType.getArchiveUnitRefId();
+        // Check that childArchiveUnitRef is not an existing archive unit
+        String childArchiveUnitRef_guid = unitIdToGuid.get(childArchiveUnitRef);
+        if (existingUnitGuids.contains(childArchiveUnitRef_guid)) {
+            throw new RuntimeException(new ProcessingManifestReferenceException("The existing unit with guid [" + childArchiveUnitRef_guid + "] and manifest id [" + childArchiveUnitRef + "] should not have as parent a manifest unit id [" + archiveUnitId + "] "));
+        }
+
         ObjectNode childArchiveUnitNode = (ObjectNode) archiveUnitTree.get(childArchiveUnitRef);
         if (childArchiveUnitNode == null) {
             // Create new Archive Unit Node
@@ -978,7 +987,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (Strings.isNullOrEmpty(ingestContractIdentifier)) {
             return null;
         }
-        try (final AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             RequestResponse<IngestContractModel> referenceContracts =
                     adminClient.findIngestContractsByID(ingestContractIdentifier);
             if (referenceContracts.isOk()) {

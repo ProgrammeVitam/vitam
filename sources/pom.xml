@@ -1453,10 +1453,6 @@
                         <groupId>com.jayway.jsonpath</groupId>
                         <artifactId>json-path</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>org.eclipse.jetty</groupId>
-                        <artifactId>jetty-servlets</artifactId>
-                    </exclusion>
                 </exclusions>
             </dependency>
 
