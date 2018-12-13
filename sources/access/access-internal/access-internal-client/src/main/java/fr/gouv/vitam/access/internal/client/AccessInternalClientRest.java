@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -58,7 +59,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -240,10 +240,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     /**
      * Mass update of archive units rules.
+     *
      * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
      * @return a response containing a json node object including queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -647,13 +648,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
     @Override
     public RequestResponse<JsonNode> exportDIPByUsageFilter(DipExportRequest dipExportRequest)
-            throws AccessInternalClientServerException {
+        throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, dipExportRequest.getDslRequest());
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, DIPEXPORT_BY_USAGE_FILTER, null, dipExportRequest,
-                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -836,9 +837,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> startPreservation(InputStream distributionFile)
+    public RequestResponse<JsonNode> startPreservation(PreservationRequest preservationRequest)
         throws AccessInternalClientServerException {
-        ParametersChecker.checkParameter("Missing distribution file", distributionFile);
+        ParametersChecker.checkParameter("Missing request", preservationRequest);
 
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -846,7 +847,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/preservation", headers, distributionFile, APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, "/preservation", headers, preservationRequest,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e);

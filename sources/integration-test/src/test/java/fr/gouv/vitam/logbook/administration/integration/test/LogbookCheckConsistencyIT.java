@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.administration.integration.test;
 
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -86,8 +88,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -297,7 +301,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         // init workflow before execution
         client.initWorkFlow(DEFAULT_WORKFLOW_RESUME);
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-        wait(operationGuid.toString());
+        ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), TENANT_0);
@@ -411,27 +415,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         } catch (final Exception e) {
             LOGGER.error(e);
-        }
-    }
-
-    /**
-     * wait antil the sip is loaded.
-     *
-     * @param operationId
-     */
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isOperationCompleted(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
         }
     }
 }

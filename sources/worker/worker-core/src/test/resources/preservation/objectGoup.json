@@ -1,0 +1,153 @@
+{
+  "#id": "aebaaaaaaqhad455abryqalenekbcnyaaaaq",
+  "#tenant": 4,
+  "#profil": "",
+  "FileInfo": {
+    "Filename": "009734_20130456_0003_20101216_DI_26e_journees_de_Paris_huissiers_justice_FMolins.pdf.pdf",
+    "LastModified": "2012-10-22T12:40:00.000+02:00"
+  },
+  "#qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "#nbc": 1,
+      "versions": [
+        {
+          "#id": "aeaaaaaaaahad455abryqalenekbcnqaaaco",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcnyaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/354"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0003_20101216_DI_26e_journees_de_Paris_huissiers_justice_FMolins.pdf.pdf",
+            "LastModified": "2012-10-22T12:40:00.000+02:00"
+          },
+          "#opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 183775,
+          "Uri": "Content/ID611.pdf",
+          "MessageDigest": "a3556239aa1fcc1894229f8907bd43b6b322281114e53bd5a16f2fd94967ee2f28bd0cc1c70cca7daaec46c2d84fa66940dd0e4000cb16e8cc3bca0534f4917b",
+          "Algorithm": "SHA-512",
+          "#storage": {
+            "#nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        },
+        {
+          "#id": "aeaaaaaaaahad455abryqalenekbcnqaaaco",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcnyaaaaq",
+          "DataObjectVersion": "BinaryMaster_2",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/355"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0003_20101216_DI_26e_journees_de_Paris_huissiers_justice_FMolins.pdf.pdf",
+            "LastModified": "2012-10-22T12:40:00.000+02:00"
+          },
+          "#opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 183775,
+          "Uri": "Content/ID611.pdf",
+          "MessageDigest": "a3556239aa1fcc1894229f8907bd43b6b322281114e53bd5a16f2fd94967ee2f28bd0cc1c70cca7daaec46c2d84fa66940dd0e4000cb16e8cc3bca0534f4917b",
+          "Algorithm": "SHA-512",
+          "#storage": {
+            "#nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "Dissemination",
+      "#nbc": 1,
+      "versions": [
+        {
+          "#id": "aeaaaaaaaahad455abryqalenekbcnqaaaco",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcnyaaaaq",
+          "DataObjectVersion": "Dissemination_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/354"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0003_20101216_DI_26e_journees_de_Paris_huissiers_justice_FMolins.pdf.pdf",
+            "LastModified": "2012-10-22T12:40:00.000+02:00"
+          },
+          "#opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 183775,
+          "Uri": "Content/ID611.pdf",
+          "MessageDigest": "a3556239aa1fcc1894229f8907bd43b6b322281114e53bd5a16f2fd94967ee2f28bd0cc1c70cca7daaec46c2d84fa66940dd0e4000cb16e8cc3bca0534f4917b",
+          "Algorithm": "SHA-512",
+          "#storage": {
+            "#nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        },
+        {
+          "#id": "aeaaaaaaaahad455abryqalenekbcnqaaaco",
+          "DataObjectGroupId": "aebaaaaaaqhad455abryqalenekbcnyaaaaq",
+          "DataObjectVersion": "Dissemination_2",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF/A - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/355"
+          },
+          "FileInfo": {
+            "Filename": "009734_20130456_0003_20101216_DI_26e_journees_de_Paris_huissiers_justice_FMolins.pdf.pdf",
+            "LastModified": "2012-10-22T12:40:00.000+02:00"
+          },
+          "#opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+          "Size": 183775,
+          "Uri": "Content/ID611.pdf",
+          "MessageDigest": "a3556239aa1fcc1894229f8907bd43b6b322281114e53bd5a16f2fd94967ee2f28bd0cc1c70cca7daaec46c2d84fa66940dd0e4000cb16e8cc3bca0534f4917b",
+          "Algorithm": "SHA-512",
+          "#storage": {
+            "#nbc": 2,
+            "offerIds": [
+              "offer-fs-1.service.int.consul",
+              "offer-fs-2.service.int.consul"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "#up": [
+    "aeaqaaaaaqhad455abryqalenekbdciaaaba"
+  ],
+  "#nbc": 1,
+  "#ops": [
+    "aeeaaaaaashi422cab3gyalenej2kcyaaaaq"
+  ],
+  "#opi": "aeeaaaaaashi422cab3gyalenej2kcyaaaaq",
+  "#sp": "MICHEL_MERCIER",
+  "#sps": [
+    "MICHEL_MERCIER"
+  ],
+  "#storage": {
+    "#nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "#v": 0,
+  "#glpd": "2018-07-05T13:55:39.779"
+}

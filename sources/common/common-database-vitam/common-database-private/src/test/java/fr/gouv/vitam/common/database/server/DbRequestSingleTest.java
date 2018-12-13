@@ -251,7 +251,7 @@ public class DbRequestSingleTest {
         VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 5)).start();
 
         try {
-            countDownLatch.await(5, TimeUnit.SECONDS);
+            countDownLatch.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             fail("OptimisticLock KO : " + e.getMessage());
         }

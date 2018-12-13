@@ -24,12 +24,75 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.model.administration;
 
-package fr.gouv.vitam.batch.report.model;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public enum ActionTypePreservation {
-    GENERATE,
-    IDENTIFY,
-    ANALYSE,
-    EXTRACT
+import java.util.List;
+import java.util.Set;
+
+/**
+ * GriffinByFormat class
+ */
+public class GriffinByFormat {
+    @JsonProperty("FormatList")
+    private Set<String> formatList;
+    @JsonProperty("GriffinIdentifier")
+    private String griffinIdentifier;
+    @JsonProperty("Timeout")
+    private int timeOut;
+    @JsonProperty("MaxSize")
+    private int maxSize;
+    @JsonProperty("Debug")
+    private boolean debug;
+    @JsonProperty("ActionDetail")
+    private List<ActionPreservation> actionDetail;
+
+    public Set<String> getFormatList() {
+        return formatList;
+    }
+
+    public void setFormatList(Set<String> formatList) {
+        this.formatList = formatList;
+    }
+
+    public String getGriffinIdentifier() {
+        return griffinIdentifier;
+    }
+
+    public void setGriffinIdentifier(String griffinIdentifier) {
+        this.griffinIdentifier = griffinIdentifier;
+    }
+
+    public int getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public List<ActionPreservation> getActionDetail() {
+        return actionDetail;
+    }
+
+    public void setActionDetail(List<ActionPreservation> actionDetail) {
+        this.actionDetail = actionDetail;
+    }
 }

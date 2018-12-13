@@ -55,6 +55,10 @@ public class PluginHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
+    private PluginHelper() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static <TEventDetails> ItemStatus buildItemStatus(String action, StatusCode statusCode,
         TEventDetails eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(action);
@@ -81,6 +85,20 @@ public class PluginHelper {
             itemStatus.increment(statusCode);
             ItemStatus itemsStatus = new ItemStatus(action)
                 .setItemsStatus(action, itemStatus);
+            itemStatuses.add(itemsStatus);
+        }
+        return itemStatuses;
+    }
+
+    public static <TEventDetails> List<ItemStatus> buildBulkItemStatus(WorkerParameters param, String action,
+        StatusCode statusCode, TEventDetails eventDetails) {
+        List<ItemStatus> itemStatuses = new ArrayList<>();
+
+        for (int i = 0; i < param.getObjectNameList().size(); i++) {
+            final ItemStatus itemStatus = new ItemStatus(action);
+            itemStatus.increment(statusCode);
+            ItemStatus itemsStatus = new ItemStatus(action).setItemsStatus(action, itemStatus);
+            setEvDetData(itemStatus, eventDetails);
             itemStatuses.add(itemsStatus);
         }
         return itemStatuses;

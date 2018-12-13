@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.common; /*******************************************************************************
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -25,45 +25,11 @@ package fr.gouv.vitam.functional.administration.common; /***********************
  * accept its terms.
  *******************************************************************************/
 
+package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import org.bson.Document;
-
-public class PreservationScenario extends VitamDocument<PreservationScenario> {
-
-    public PreservationScenario(JsonNode content) {
-        super(content);
-    }
-
-    public PreservationScenario(Document content) {
-        super(content);
-    }
-
-    public PreservationScenario(String content) {
-        super(content);
-    }
-
-    public PreservationScenario() {}
-
-    public static final String IDENTIFIER = "Identifier";
-
-    @Override
-    public VitamDocument<PreservationScenario> newInstance(JsonNode content) {
-        return new PreservationScenario(content);
-    }
-
-    public PreservationScenario setId(String id) {
-        append(VitamDocument.ID, id);
-        return this;
-    }
-
-    public String getIdentifier() {
-        return getString(IDENTIFIER);
-    }
-
-    public PreservationScenario setIdentifier(String identifier) {
-        append(IDENTIFIER, identifier);
-        return this;
-    }
+public enum ActionTypePreservation {
+    GENERATE,
+    IDENTIFY,
+    ANALYSE,
+    EXTRACT
 }

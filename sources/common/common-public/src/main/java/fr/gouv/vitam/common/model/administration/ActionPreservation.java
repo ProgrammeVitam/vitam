@@ -25,86 +25,44 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
-
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
 
-import java.util.List;
+public class ActionPreservation {
+    @JsonProperty("Type")
+    private ActionTypePreservation type;
+    @JsonProperty("Values")
+    private ValuesPreservation values;
 
-public class ParametersPreservation {
-    @JsonProperty("requestId")
-    private String requestId;
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("actions")
-    private List<ActionPreservation> actions;
-    @JsonProperty("inputs")
-    private List<InputPreservation> inputs;
-    @JsonProperty("debug")
-    private boolean debug;
-
-    public ParametersPreservation() {
+    public ActionPreservation() {
     }
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
-        this.requestId = requestId;
-        this.id = batchId;
-        this.inputs = input;
-        this.actions = actions;
-        this.debug = debug;
+    public ActionPreservation(ActionTypePreservation type) {
+        this.type = type;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public ActionTypePreservation getType() {
+        return type;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setType(ActionTypePreservation type) {
+        this.type = type;
     }
 
-    public String getId() {
-        return id;
+    public ValuesPreservation getValuesPreservation() {
+        return values;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public List<ActionPreservation> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<ActionPreservation> actions) {
-        this.actions = actions;
-    }
-
-    public List<InputPreservation> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(List<InputPreservation> inputs) {
-        this.inputs = inputs;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
+        this.values = valuesPreservation;
     }
 
     @Override
     public String toString() {
-        return "Parameters{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
+        return "Action{" +
+            "type=" + type +
+            ", values=" + values +
             '}';
     }
 }

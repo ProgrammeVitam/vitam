@@ -25,6 +25,27 @@
     "CreationDate": {
       "type": "string"
     },
+    "ActionList": {
+      "array": "string",
+      "items": {
+        "type": "string",
+        "enum": [
+          "GENERATE",
+          "IDENTIFY",
+          "ANALYSE",
+          "EXTRACT"
+        ]
+      }
+    },
+    "GriffinByFormat": {
+      "type": "array"
+    },
+    "GriffinDefault":{
+      "type": "object"
+    },
+    "MetadataFilter":{
+      "array": "string"
+    },
     "LastUpdate": {
       "type": "string"
     },

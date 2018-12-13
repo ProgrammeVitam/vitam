@@ -850,7 +850,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String filName)
         throws VitamClientException, AccessExternalClientException;
 
-    RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream ScenarioStream, String filName)
+    RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream scenarioStream, String filName)
         throws VitamClientException, AccessExternalClientException;
 
     RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)

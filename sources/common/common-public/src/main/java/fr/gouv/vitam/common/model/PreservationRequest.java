@@ -24,47 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.ActionTypePreservation;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class ActionPreservation {
-    @JsonProperty("type")
-    private ActionTypePreservation type;
-    @JsonProperty("values")
-    private ValuesPreservation values;
+import java.util.List;
 
-    public ActionPreservation() {
+public class PreservationRequest {
+    @JsonProperty("dslQuery")
+    private JsonNode dslQuery;
+
+    @JsonProperty("scenarioId")
+    private String scenarioIdentifier;
+
+    @JsonProperty("usages")
+    private List<String> usages;
+
+    @JsonProperty("version")
+    private PreservationVersion version;
+
+    public PreservationRequest() {
+        //for Jackson
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public PreservationRequest(JsonNode dslQuery, String scenarioIdentifier, List<String> usages,
+        PreservationVersion version) {
+
+        this.dslQuery = dslQuery;
+        this.scenarioIdentifier = scenarioIdentifier;
+        this.usages = usages;
+        this.version = version;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
+    public JsonNode getDslQuery() {
+        return dslQuery;
     }
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
+    public String getScenarioIdentifier() {
+        return scenarioIdentifier;
     }
 
-    public ValuesPreservation getValuesPreservation() {
-        return values;
+    public List<String> getUsages() {
+        return usages;
     }
 
-    public void setValuesPreservation(ValuesPreservation valuesPreservation) {
-        this.values = valuesPreservation;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
+    public PreservationVersion getVersion() {
+        return version;
     }
 }
-

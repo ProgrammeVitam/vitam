@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.ActionPreservation;
 
 /**
  * ParamsPreservationDistributionFile
@@ -41,7 +43,7 @@ public class PreservationDistributionLine {
     @JsonProperty("filename")
     private String filename;
     @JsonProperty("actions")
-    private List<ActionPreservation> actionPreservations;
+    private List<ActionPreservation> actionPreservationList;
     @JsonProperty("unitId")
     private String unitId;
     @JsonProperty("griffinId")
@@ -52,17 +54,19 @@ public class PreservationDistributionLine {
     private boolean debug;
     @JsonProperty("timeout")
     private int timeout;
+    @JsonProperty("usage")
+    private String qualifier;
 
     public PreservationDistributionLine() {
     }
-
     public PreservationDistributionLine(String formatId, String filename,
-        List<ActionPreservation> actionPreservations, String unitId, String griffinId, String objectId, boolean debug,
+        List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
+        boolean debug,
         int timeout,
         String id) {
         this.formatId = formatId;
         this.filename = filename;
-        this.actionPreservations = actionPreservations;
+        this.actionPreservationList = actionPreservationList;
         this.unitId = unitId;
         this.griffinId = griffinId;
         this.objectId = objectId;
@@ -95,13 +99,13 @@ public class PreservationDistributionLine {
         this.filename = filename;
     }
 
-    public List<ActionPreservation> getActionPreservations() {
-        return actionPreservations;
+    public List<ActionPreservation> getActionPreservationList() {
+        return actionPreservationList;
     }
 
-    public void setActionPreservations(
-        List<ActionPreservation> actionPreservations) {
-        this.actionPreservations = actionPreservations;
+    public void setActionPreservationList(
+        List<ActionPreservation> actionPreservationList) {
+        this.actionPreservationList = actionPreservationList;
     }
 
     public String getUnitId() {
@@ -143,4 +147,18 @@ public class PreservationDistributionLine {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
+
+    public String getQualifier() {
+        return qualifier;
+    }
+
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.unprettyPrint(this);
+    }
+
 }

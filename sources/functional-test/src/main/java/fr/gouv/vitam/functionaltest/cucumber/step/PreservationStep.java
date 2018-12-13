@@ -28,10 +28,13 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.PreservationRequest;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
@@ -39,16 +42,23 @@ import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.fail;
 
 /**
  * PreservationStep class
@@ -84,7 +94,7 @@ public class PreservationStep {
     }
 
     @When("^j'importe le preservation Scenario nommé (.*)$")
-    public void importPreservation(String fileName) throws Exception {
+    public void importPreservation(String fileName) {
 
         Path file = Paths.get(world.getBaseDirectory(), fileName);
 
@@ -108,6 +118,7 @@ public class PreservationStep {
     }
 
     @When("^je cherche le griffon nommé (.*)$")
+    @SuppressWarnings("unchecked")
     public void searchGriffinById(String identifier) throws VitamClientException, InvalidParseOperationException {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
@@ -120,15 +131,46 @@ public class PreservationStep {
     }
 
     @When("^je cherche le scénario de preservation nommé (.*)$")
+    @SuppressWarnings("unchecked")
     public void searchPreservationById(String identifier) throws VitamClientException, InvalidParseOperationException {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse<PreservationScenarioModel> response = world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
+        RequestResponse<PreservationScenarioModel> response =
+            world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
 
         assertThat(response.getHttpCode()).isEqualTo(200);
 
         world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
     }
 
+
+    @When("^je lance la preservation avec le scénario (.*) et pour les usages (.*)$")
+    public void launchPreservation(String scenarioId, String usageString) throws Exception {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        List<String> usages = Arrays.asList(usageString.split(","));
+        String query = world.getQuery();
+
+        JsonNode queryNode = JsonHandler.getFromString(query);
+
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages, LAST);
+        RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("units update  processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -762,5 +763,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     RequestResponse<PreservationScenarioModel> findPreservationByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+
+    RequestResponse findGriffin(JsonNode dslQuery)
+        throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException;
 }
 

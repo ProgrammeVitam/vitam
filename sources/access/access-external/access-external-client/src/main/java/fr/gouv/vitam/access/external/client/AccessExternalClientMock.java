@@ -5,12 +5,11 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -128,6 +127,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     @Override public Response getAccessLog(VitamContext vitamContext, JsonNode params) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("accessLogTest".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
+        PreservationRequest preservationRequest) {
+        throw new UnsupportedOperationException("Will not be implemented");
     }
 
     @Override

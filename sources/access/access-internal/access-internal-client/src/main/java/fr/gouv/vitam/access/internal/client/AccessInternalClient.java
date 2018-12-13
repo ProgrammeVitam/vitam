@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
 
 /**
  * Access client interface
@@ -374,9 +374,9 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * Perform a preservation workflow
      *
-     * @param distributionFile static file for handle distribution
+     * @param request preservation request
      * @return the given RequestResponse
      * @throws AccessInternalClientServerException AccessInternalClientServerException
      */
-    RequestResponse<JsonNode> startPreservation(InputStream distributionFile) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> startPreservation(PreservationRequest request) throws AccessInternalClientServerException;
 }

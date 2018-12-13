@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Map;
 
 public class ValuesPreservation {
-    @JsonProperty("extension")
+
+    @JsonProperty("Extension")
     private String extension;
-    @JsonProperty("args")
+    @JsonProperty("Args")
     private List<String> args;
-    @JsonProperty("dataToExtract")
+    @JsonProperty("DataToExtract")
     private Map<String, String> dataToExtract;
 
-    public ValuesPreservation() {
-    }
+    public ValuesPreservation() {    }
 
     public ValuesPreservation(String extension, List<String> args) {
         this.extension = extension;
@@ -56,9 +56,9 @@ public class ValuesPreservation {
     @Override
     public String toString() {
         return "Values{" +
-            "extension='" + extension + '\'' +
-            ", args=" + args +
-            ", dataToExtract=" + dataToExtract +
+            "Extension='" + extension + '\'' +
+            ", Args=" + args +
+            ", DataToExtract=" + dataToExtract +
             '}';
     }
 }

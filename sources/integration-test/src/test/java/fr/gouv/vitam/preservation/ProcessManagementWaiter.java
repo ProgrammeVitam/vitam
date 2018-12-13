@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.common; /*******************************************************************************
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -24,46 +24,33 @@ package fr.gouv.vitam.functional.administration.common; /***********************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.preservation;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import org.bson.Document;
-
-public class PreservationScenario extends VitamDocument<PreservationScenario> {
-
-    public PreservationScenario(JsonNode content) {
-        super(content);
+/**
+ * ProcessManagementWaiter class
+ */
+public class ProcessManagementWaiter {
+    private ProcessManagementWaiter() {
+        throw new UnsupportedOperationException("Utility class");
     }
 
-    public PreservationScenario(Document content) {
-        super(content);
-    }
+    public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
 
-    public PreservationScenario(String content) {
-        super(content);
-    }
-
-    public PreservationScenario() {}
-
-    public static final String IDENTIFIER = "Identifier";
-
-    @Override
-    public VitamDocument<PreservationScenario> newInstance(JsonNode content) {
-        return new PreservationScenario(content);
-    }
-
-    public PreservationScenario setId(String id) {
-        append(VitamDocument.ID, id);
-        return this;
-    }
-
-    public String getIdentifier() {
-        return getString(IDENTIFIER);
-    }
-
-    public PreservationScenario setIdentifier(String identifier) {
-        append(IDENTIFIER, identifier);
-        return this;
+        int nbtimes = 0;
+        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        while (!processingClient.isOperationCompleted(operationId)) {
+            try {
+                Thread.sleep(timeToSleep);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            if (nbtimes == nbTry)
+                break;
+            nbtimes++;
+        }
     }
 }

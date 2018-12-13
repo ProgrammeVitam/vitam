@@ -29,7 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.batch.report.model.AnalyseResultPreservation;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 

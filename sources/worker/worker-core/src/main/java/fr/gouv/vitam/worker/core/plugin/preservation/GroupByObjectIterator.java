@@ -24,88 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.preservation;
 
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.iterators.PeekingIterator;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
-
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
-public class ParametersPreservation {
-    @JsonProperty("requestId")
-    private String requestId;
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("actions")
-    private List<ActionPreservation> actions;
-    @JsonProperty("inputs")
-    private List<InputPreservation> inputs;
-    @JsonProperty("debug")
-    private boolean debug;
+/**
+ * GroupByObjectIterator class
+ */
+public class GroupByObjectIterator implements Iterator<Pair<String, List<String>>> {
 
-    public ParametersPreservation() {
+
+    private PeekingIterator<Pair<String, String>> iterator;
+
+    GroupByObjectIterator(Iterator<Pair<String, String>> iterator) {
+        this.iterator = (PeekingIterator<Pair<String, String>>) IteratorUtils.peekingIterator(iterator);
     }
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
-        this.requestId = requestId;
-        this.id = batchId;
-        this.inputs = input;
-        this.actions = actions;
-        this.debug = debug;
-    }
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public List<ActionPreservation> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<ActionPreservation> actions) {
-        this.actions = actions;
-    }
-
-    public List<InputPreservation> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(List<InputPreservation> inputs) {
-        this.inputs = inputs;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    @Override public boolean hasNext() {
+        return iterator.hasNext();
     }
 
     @Override
-    public String toString() {
-        return "Parameters{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
-            '}';
+    public Pair<String, List<String>> next() {
+
+        if (!iterator.hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        Pair<String, String> pair = iterator.next();
+
+        List<String> unitIds = new ArrayList<>();
+        unitIds.add(pair.getValue());
+
+        while (iterator.hasNext() && iterator.peek().getKey().equals(pair.getKey())) {
+
+            unitIds.add(iterator.next().getValue());
+        }
+
+        return new ImmutablePair<>(pair.getKey(), unitIds);
     }
 }
 

@@ -27,8 +27,11 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -174,20 +177,6 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             LOGGER.error(e);
         }
         VitamClientFactory.resetConnections();
-    }
-
-    private void wait(String operationId) {
-        int nbTry = 0;
-        while (!processingClient.isOperationCompleted(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
@@ -402,7 +391,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                     // wait a little bit
                     assertNotNull(resp);
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
-                    wait(containerName);
+                    waitOperation(NB_TRY, SLEEP_TIME,containerName);
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
@@ -427,7 +416,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                             containerName);
                     assertNotNull(ret);
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-                    wait(containerName);
+                    waitOperation(NB_TRY, SLEEP_TIME,containerName);
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
@@ -452,7 +441,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                     containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-            wait(containerName);
+            waitOperation(NB_TRY, SLEEP_TIME,containerName);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
@@ -466,7 +455,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            wait(containerName);
+            waitOperation(NB_TRY, SLEEP_TIME,containerName);
             ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
