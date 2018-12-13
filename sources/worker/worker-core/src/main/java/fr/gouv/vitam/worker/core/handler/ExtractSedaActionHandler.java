@@ -81,9 +81,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
@@ -118,7 +116,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -137,10 +134,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
@@ -329,8 +322,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private IngestContractModel ingestContract = null;
     private String archivalProfile = null;
 
-    private String linkParentId = null;
-
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
     private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
 
@@ -457,19 +448,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                     dataObjectIdToGuid, unitIdToSetOfRuleId,
                     workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup,
-                    isThereManifestRelatedReferenceRemained, existingGOTGUIDToNewGotGUIDInAttachment);
+                    isThereManifestRelatedReferenceRemained, existingGOTGUIDToNewGotGUIDInAttachment, adminManagementClientFactory);
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
 
             if (existingUnitGuids.size() > 0) {
-                ArrayNode attachmentNode = JsonHandler.createArrayNode();
-                if (ingestContract != null) {
-                    // if ingestContract is not null that means we need
-                    // to check that existing unit guids are sons of the ingest value
-                    checkIngestContractWithAttachmentGuid(attachmentNode);
+                try {
+                    evDetData.set(ATTACHMENT_IDS, JsonHandler.toJsonNode(existingUnitGuids));
+                } catch (InvalidParseOperationException e) {
+                    throw new ProcessingException(e);
                 }
-                evDetData.set(ATTACHMENT_IDS, attachmentNode);
             }
 
             globalCompositeItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
@@ -526,7 +515,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 globalCompositeItemStatus
                         .setMasterData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
                                 rightsStatementIdentifier.toString());
-                ObjectNode data = null;
+                ObjectNode data;
                 try {
                     data = (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
                     data.set(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier);
@@ -535,7 +524,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             rightsStatementIdentifier.toString());
 
                 } catch (InvalidParseOperationException e) {
-                    LOGGER.debug("Invalid Json", e);
+                    throw new ProcessingException(e);
                 }
             }
 
@@ -608,7 +597,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException | WorkerspaceQueueException e) {
-            e.printStackTrace();
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
         } catch (final CycleFoundException e) {
@@ -1695,8 +1683,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             Set<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
 
-            if (isRootArchive && linkParentId != null) {
-                parentAttachments.add(linkParentId);
+            if (isRootArchive && ingestContract != null && ingestContract.getLinkParentId() != null) {
+                parentAttachments.add(ingestContract.getLinkParentId());
             }
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
@@ -1766,25 +1754,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
         return parents;
-    }
-
-    private boolean addParentsToTmpFile(ArrayNode upNode, String unitId, ObjectNode archiveUnitTree) {
-
-        boolean isRootArchive = true;
-        if (archiveUnitTree.has(unitId)) {
-            final JsonNode archiveNode = archiveUnitTree.get(unitId);
-            if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
-                // add archive units parents and originating agency
-                final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
-                if (archiveUps.isArray() && archiveUps.size() > 0) {
-                    ArrayNode ups = (ArrayNode) archiveUps;
-                    upNode.addAll(ReCheckUnitParents(ups));
-                    isRootArchive = false;
-                }
-            }
-        }
-
-        return isRootArchive;
     }
 
     private Set<String> getMgtRulesToApplyByUnit(ArrayNode rulesNode, String manifestUnitId, boolean isRootArchive) {
@@ -2858,46 +2827,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         } catch (final InvalidGuidOperationException e) {
             LOGGER.error("ID is not a GUID: " + guid, e);
-        }
-    }
-
-    /**
-     * Method that will check au meant to be attached to in the manifest are sons of the au declared in the ingest
-     * contract
-     *
-     * @throws ProcessingUnitLinkingException in case the sip declares an attachment to a unit that is not a children of
-     *                                        the unit declared in ingest contract
-     */
-    private void checkIngestContractWithAttachmentGuid(ArrayNode attachmentNode)
-            throws ProcessingUnitLinkingException {
-
-        try (final MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            for (String auToBeChecked : existingUnitGuids) {
-                if (ingestContract != null && ingestContract.getLinkParentId() != null &&
-                        !ingestContract.getLinkParentId().equals(auToBeChecked)) {
-                    final SelectMultiQuery request = new SelectMultiQuery();
-                    request.addRoots(ingestContract.getLinkParentId());
-                    request.setQuery(QueryHelper.eq(PROJECTIONARGS.ID.exactToken(), auToBeChecked).setDepthLimit(50));
-                    final ObjectNode queryDsl = request.getFinalSelect();
-                    JsonNode existingData = metaDataClient.selectUnits(queryDsl);
-                    JsonNode result = (existingData == null) ? null : existingData.get("$results");
-                    if (result == null || result.size() == 0) {
-                        LOGGER.error("Unit was not found {}", auToBeChecked);
-                        throw new ProcessingUnitLinkingException("Linking Unauthorized - unit " + auToBeChecked +
-                                "is not linked to the unit declared in ingest contract : " +
-                                ingestContract.getLinkParentId(), auToBeChecked, ingestContract.getLinkParentId());
-                    } else if (result.size() > 1) {
-                        LOGGER.error("Multiple Unit was found {}", auToBeChecked);
-                        throw new ProcessingUnitLinkingException("Multiple unit was found for " + auToBeChecked,
-                                auToBeChecked, ingestContract.getLinkParentId());
-                    }
-                }
-                attachmentNode.add(auToBeChecked);
-            }
-        } catch (InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException |
-                MetaDataClientServerException | InvalidParseOperationException e) {
-            LOGGER.error("error while checking unit", e);
-            throw new ProcessingUnitLinkingException("Unit could not be attached", e);
         }
     }
 
