@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * File system implementation of the storage strategy and storage offer provider
  */
-class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
+class FSProvider implements StorageStrategyProvider, StorageOfferProvider, StorageOfferHACapabilityProvider {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FSProvider.class);
     private static final String STRATEGY_FILENAME = "static-strategy.json";
     private static final String OFFER_FILENAME = "static-offer.json";
@@ -86,6 +86,18 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     @Override
     public StorageOffer getStorageOffer(String idOffer) throws StorageException {
+        return getFilteredStorageOffer(idOffer, false);//get only active one
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override public StorageOffer getStorageOfferForHA(String idOffer, boolean includeDisabled)
+        throws StorageException {
+        return getFilteredStorageOffer(idOffer, includeDisabled);//get all (active and inactive)
+    }
+
+    private StorageOffer getFilteredStorageOffer(String idOffer, boolean  includeAllOfferState) throws StorageException {
         if (storageOffers == null) {
             try {
                 loadReferential(ReferentialType.OFFER);
@@ -94,9 +106,10 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
             }
         }
         StorageOffer offer = storageOffers.get(idOffer);
-        if (offer == null) {
-            throw new StorageNotFoundException(String.format("Storage with id %s not found", idOffer));
+        if (offer == null || (!includeAllOfferState && !offer.isEnabled()) ) {
+            throw new StorageNotFoundException(String.format("Storage offer with id %s is not found, disabled or not defined in strategy", idOffer));
         }
+
         return offer;
     }
 
@@ -115,6 +128,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
         } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + OFFER_FILENAME + " file", exc);
         }
+
     }
 
     private void loadReferential(ReferentialType type) throws IOException, InvalidParseOperationException {
@@ -124,10 +138,14 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
                         StorageStrategy.class);
                 break;
             case OFFER:
+                if(storageStrategy ==  null) {
+                    throw new InvalidParseOperationException("storageStrategy is null when loading storage offer");
+                }
                 StorageOffer[] storageOffersArray = JsonHandler
                         .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
                 storageOffers = new HashMap<>();
                 for (StorageOffer offer : storageOffersArray) {
+                    offer.setEnabled(storageStrategy.isStorageOfferEnabled(offer.getId()));
                     storageOffers.put(offer.getId(), offer);
                 }
                 break;

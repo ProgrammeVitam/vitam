@@ -165,7 +165,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
 
-        isStrategyValid(hotStrategy);
         final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
         if (offerReferences.isEmpty()) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));

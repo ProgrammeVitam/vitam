@@ -25,71 +25,37 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+package fr.gouv.vitam.storage.engine.common.referential;
 
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
- * Unique Reference to an offer declared in a strategy.
+ *
  */
+public class StorageOfferHACapabilityProviderFactoryTest {
 
-public class OfferReference {
+    @Test
+    public void testGetProvider() throws Exception {
+        StorageOfferHACapabilityProvider  provider = StorageOfferHACapabilityProviderFactory.getDefaultProvider();
+        assertNotNull(provider);
+        assertTrue(provider instanceof FSProvider);
+        StorageOffer disabledOffer = provider.getStorageOfferForHA("inactiveOffer", true);
+        assertFalse(disabledOffer.isEnabled());
+        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
 
-
-    public OfferReference(String id) {
-        this.id = id;
+        try {
+            provider.getStorageOfferForHA("inactiveOffer", false);
+            fail("Expecting storage exception");
+        }catch(StorageNotFoundException ex){
+        }
     }
 
-    public OfferReference() { /* nothing */ }
-
-    private String id;
-    private boolean referent;
-    private ActivationStatus status = ActivationStatus.ACTIVE;
-
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * @param id of {@link OfferReference}
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * @return is referent offer
-     */
-    public boolean isReferent() {
-        return referent;
-    }
-
-    /**
-     * @param referent is referent offer
-     */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
-    }
-
-    /**
-     * @return the status
-     */
-    public ActivationStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @param status to set
-     */
-
-    public void setStatus(ActivationStatus status) {
-        this.status = status;
-    }
-
-    public boolean isEnabled() {
-        return ActivationStatus.ACTIVE.equals(this.getStatus());
-    }
 }

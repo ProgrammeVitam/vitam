@@ -28,7 +28,12 @@
 package fr.gouv.vitam.storage.engine.common.referential.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Model representing a Hot strategy
@@ -78,5 +83,29 @@ public class HotStrategy {
     public boolean isCopyValid() {
         // TODO: Review this check when offers implement priority
         return offers.size() == copy;
+    }
+
+    /**
+     * remove (after init) inactive offerReferences and adjust the copy field
+     */
+    public void postInit() {
+        setOffers(
+            Collections.unmodifiableList(getOffers().stream()
+                .filter(offerReference -> offerReference.isEnabled())
+                .collect(Collectors.toList())));
+        setCopy(getOffers().size());
+    }
+
+    /**
+     * check whether storage offer is enabled (not present means disabled because {@link #postInit} method can filter it)
+     * @param offerId storageOfferId to check
+     * @return
+     */
+    public boolean isStorageOfferEnabled(String offerId) {
+        Optional<OfferReference>
+            offerReference = getOffers().stream()
+                            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+
+        return offerReference.isPresent() && offerReference.get().isEnabled();
     }
 }

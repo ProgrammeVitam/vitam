@@ -25,71 +25,28 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+package fr.gouv.vitam.storage.engine.common.referential;
 
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
- * Unique Reference to an offer declared in a strategy.
+ * This interface aims to provide a set of methods (or adjust some ones in {@link StorageOfferProvider}) that offer some HA (High Availability)
+ * capabilities :
+ * Through manual or automatic failover mechanism  to make an offer in inactive state
+ * <p>
+ * no concerns of the offer configuration persistence implementation (ie:
+ * implementation could be Filesystem, Database...)
  */
-
-public class OfferReference {
-
-
-    public OfferReference(String id) {
-        this.id = id;
-    }
-
-    public OfferReference() { /* nothing */ }
-
-    private String id;
-    private boolean referent;
-    private ActivationStatus status = ActivationStatus.ACTIVE;
-
+public interface StorageOfferHACapabilityProvider {
     /**
-     * @return the id
+     * Retrieve an offer full configuration by its id, may include disabled one  (
+     * {@link fr.gouv.vitam.common.model.administration.ActivationStatus#INACTIVE})
+     *
+     * @param idOffer the id of the storage offer to retrieve
+     * @param includeDisabled whether to include offer with inactive state
+     * @return an object representation of a storage offer
+     * @throws StorageException if any unwanted technical issue happens
      */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * @param id of {@link OfferReference}
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * @return is referent offer
-     */
-    public boolean isReferent() {
-        return referent;
-    }
-
-    /**
-     * @param referent is referent offer
-     */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
-    }
-
-    /**
-     * @return the status
-     */
-    public ActivationStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @param status to set
-     */
-
-    public void setStatus(ActivationStatus status) {
-        this.status = status;
-    }
-
-    public boolean isEnabled() {
-        return ActivationStatus.ACTIVE.equals(this.getStatus());
-    }
+    StorageOffer getStorageOfferForHA(String idOffer, boolean includeDisabled) throws StorageException;
 }

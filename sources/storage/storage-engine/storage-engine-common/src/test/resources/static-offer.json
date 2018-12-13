@@ -12,5 +12,9 @@
     "parameters" : {
       "user" : "bob"
     }
+  },
+  {
+    "id" : "inactiveOffer",
+    "baseUrl" : "/vitam/data/offer"
   }
 ]

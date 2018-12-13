@@ -60,9 +60,16 @@ public class StorageStrategy {
     }
 
     /**
+     * set hotstrategy and call post init on it
+     *
      * @param hotStrategy to set
      */
     public void setHotStrategy(HotStrategy hotStrategy) {
         this.hotStrategy = hotStrategy;
+        this.hotStrategy.postInit();
+    }
+
+    public boolean isStorageOfferEnabled(String offerId) {
+        return getHotStrategy().isStorageOfferEnabled(offerId);
     }
 }
