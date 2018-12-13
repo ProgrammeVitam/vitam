@@ -308,7 +308,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(objectContent.getInputStream(),
                     Status.OK, responseHeader);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -550,7 +550,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject, noCache);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.warn(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException | IOException | InvalidParseOperationException e) {
             LOGGER.error(e);

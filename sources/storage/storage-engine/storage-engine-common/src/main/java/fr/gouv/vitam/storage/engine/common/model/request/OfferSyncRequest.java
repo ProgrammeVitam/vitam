@@ -25,16 +25,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class OfferSyncRequest {
 
     /**
-     * offerSource identifier.
+     * sourceOffer identifier.
      */
-    @JsonProperty("offerSource")
-    private String offerSource;
+    @JsonProperty("sourceOffer")
+    private String sourceOffer;
 
     /**
-     * offerDestination identifier.
+     * targetOffer identifier.
      */
-    @JsonProperty("offerDestination")
-    private String offerDestination;
+    @JsonProperty("targetOffer")
+    private String targetOffer;
 
     /**
      * offset.
@@ -45,14 +45,14 @@ public class OfferSyncRequest {
     /**
      * containerToSync.
      */
-    @JsonProperty("containerToSync")
-    private String containerToSync;
+    @JsonProperty("container")
+    private String container;
 
     /**
-     * tenantIdToSync
+     * tenantId
      */
-    @JsonProperty("tenantIdToSync")
-    private Integer tenantIdToSync;
+    @JsonProperty("tenantId")
+    private Integer tenantId;
 
     /**
      * Constructor.
@@ -61,21 +61,21 @@ public class OfferSyncRequest {
         super();
     }
 
-    public String getOfferSource() {
-        return offerSource;
+    public String getSourceOffer() {
+        return sourceOffer;
     }
 
-    public OfferSyncRequest setOfferSource(String offerSource) {
-        this.offerSource = offerSource;
+    public OfferSyncRequest setSourceOffer(String sourceOffer) {
+        this.sourceOffer = sourceOffer;
         return this;
     }
 
-    public String getOfferDestination() {
-        return offerDestination;
+    public String getTargetOffer() {
+        return targetOffer;
     }
 
-    public OfferSyncRequest setOfferDestination(String offerDestination) {
-        this.offerDestination = offerDestination;
+    public OfferSyncRequest setTargetOffer(String targetOffer) {
+        this.targetOffer = targetOffer;
         return this;
     }
 
@@ -88,21 +88,21 @@ public class OfferSyncRequest {
         return this;
     }
 
-    public String getContainerToSync() {
-        return containerToSync;
+    public String getContainer() {
+        return container;
     }
 
-    public OfferSyncRequest setContainerToSync(String containerToSync) {
-        this.containerToSync = containerToSync;
+    public OfferSyncRequest setContainer(String container) {
+        this.container = container;
         return this;
     }
 
-    public Integer getTenantIdToSync() {
-        return tenantIdToSync;
+    public Integer getTenantId() {
+        return tenantId;
     }
 
-    public OfferSyncRequest setTenantIdToSync(Integer tenantIdToSync) {
-        this.tenantIdToSync = tenantIdToSync;
+    public OfferSyncRequest setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
         return this;
     }
 }

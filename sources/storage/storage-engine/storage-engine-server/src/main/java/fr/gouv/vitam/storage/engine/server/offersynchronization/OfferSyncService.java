@@ -26,202 +26,128 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
-import com.google.common.collect.Iterables;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
-import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
-import org.apache.commons.lang3.StringUtils;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Synchronization of a storage offer from another one.
+ * Manages offer synchronization service.
  */
-public class OfferSyncService implements OfferSyncService {
+public class OfferSyncService {
 
     /**
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferSyncService.class);
 
-    private static final String STRATEGY_ID = "default";
-    private static final String SOURCE_OFFER_ID_PARAMETER_MANDATORY_MSG = "The sourceOfferId parameter is mandatory.";
-    private static final String DESTINATION_OFFER_ID_PARAMETER_MANDATORY_MSG =
-        "The destinationOfferId parameter is mandatory.";
-    private static final String SYNCHRONIZATION_TENANTS_MANDATORY_MSG = "The Vitam tenants are mandatory.";
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
+    private final int bulkSize;
+    private final int offerSyncThreadPoolSize;
+
+    private final AtomicReference<OfferSyncProcess> lastOfferSyncService = new AtomicReference<>(null);
 
     /**
      * Constructor.
-     *
-     * @param distribution
      */
-    public OfferSyncService(StorageDistribution distribution) {
-        this(new RestoreOfferBackupService(distribution), distribution);
+    public OfferSyncService(StorageDistribution distribution, StorageConfiguration storageConfiguration) {
+        this(
+            new RestoreOfferBackupService(distribution),
+            distribution,
+            storageConfiguration.getOfferSynchronizationBulkSize(),
+            storageConfiguration.getOfferSyncThreadPoolSize());
     }
 
     /**
-     * Constructor.
-     *
-     * @param restoreOfferBackupService
-     * @param distribution
+     * Test constructor.
      */
-    public OfferSyncService(
+    @VisibleForTesting
+    OfferSyncService(
         RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution) {
+        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
+        this.bulkSize = bulkSize;
+        this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
     }
 
-
-
-
     /**
-     * Synchronize an offer from anthor using the offset.
+     * Synchronize an offer from another using the offset.
      *
-     * @param sourceOffer      the identifer of the source offer
-     * @param destinationOffer the identifier of the destination offer
-     * @param offset           the offset of the process of the synchronisation
-     * @param containerToSync  containerToSync
-     * @param tenantIdToSync   @return OfferSync response
-     * @throws VitamSyncException
+     * @param sourceOffer the identifier of the source offer
+     * @param targetOffer the identifier of the target offer
+     * @param offset the offset of the process of the synchronisation
      */
-    @Override
-    public OfferSyncResponseItem synchronize(String sourceOffer, String destinationOffer,
-        String containerToSync, Integer tenantIdToSync, Long offset) throws VitamSyncException {
+    public boolean startSynchronization(String sourceOffer, String targetOffer,
+        DataCategory dataCategory, Long offset) {
 
-        ParametersChecker.checkParameter(SOURCE_OFFER_ID_PARAMETER_MANDATORY_MSG, sourceOffer);
-        ParametersChecker.checkParameter(DESTINATION_OFFER_ID_PARAMETER_MANDATORY_MSG, destinationOffer);
-        LOGGER.debug(String
-            .format("Start the synchronization process of the new offer {%s} from the source offer {%s}.",
-                destinationOffer, sourceOffer));
+        OfferSyncProcess offerSyncProcess = createOfferSyncProcess();
 
-        // get the list of vitam tenants from the configuration.
-        List<Integer> tenants = VitamConfiguration.getTenants();
-        Long newOffset = null;
+        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet((previousOfferSyncService) -> {
+            if (previousOfferSyncService != null && previousOfferSyncService.isRunning()) {
+                return previousOfferSyncService;
+            }
+            return offerSyncProcess;
+        });
 
-        if (tenants == null || tenants.isEmpty()) {
-            throw new VitamSyncException(SYNCHRONIZATION_TENANTS_MANDATORY_MSG);
+        // Ensure no concurrent synchronization service running
+        if (offerSyncProcess != currentOfferSyncProcess) {
+            LOGGER.error("Another synchronization workflow is already running " + currentOfferSyncProcess.toString());
+            return false;
         }
 
-        DataCategory categoryToSync = null;
-        if (containerToSync != null) {
-            categoryToSync = DataCategory.getByCollectionName(containerToSync);
-        }
+        LOGGER.info(String.format(
+            "Start the synchronization process of the new offer {%s} from the source offer {%s} fro category {%s}.",
+            targetOffer, sourceOffer, dataCategory));
 
-        boolean containerAlreadySync = categoryToSync != null;
-        boolean tenantIdAlreadySync = tenantIdToSync != null;
+        runSynchronizationAsync(sourceOffer, targetOffer, dataCategory, offset, offerSyncProcess);
 
-        OfferSyncResponseItem response =
-            new OfferSyncResponseItem().setOfferSource(sourceOffer).setOfferDestination(destinationOffer);
-        Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        return true;
+    }
 
-        try {
-            for (Integer tenant : tenants) {
-                // This is a hak, we must set manually the tenant is the VitamSession (used and transmitted in the headers)
-                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+    OfferSyncProcess createOfferSyncProcess() {
+        return new OfferSyncProcess(restoreOfferBackupService, distribution,
+            bulkSize, offerSyncThreadPoolSize);
+    }
 
-                if (tenantIdAlreadySync && tenant < tenantIdToSync) {
-                    continue;
-                }
+    void runSynchronizationAsync(String sourceOffer, String targetOffer, DataCategory dataCategory, Long offset,
+        OfferSyncProcess offerSyncProcess) {
 
-                if (tenant == tenantIdToSync) {
-                    tenantIdAlreadySync = false;
-                }
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-                for (DataCategory category : DataCategory.values()) {
-                    if (StringUtils.isBlank(category.getFolder())) {
-                        continue;
-                    }
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> {
+                try {
+                    VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                    VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
-                    if (containerAlreadySync && !category.equals(categoryToSync)) {
-                        continue;
-                    }
-
-                    if (category.equals(categoryToSync)) {
-                        containerAlreadySync = false;
-                        newOffset = offset;
-
-                    }
-
-                    if (newOffset == null) {
-                        // get the latest offset for the given collection and tenant
-                        Optional<OfferLog> lastOfferLog =
-                            restoreOfferBackupService
-                                .getLatestOffsetByContainer(STRATEGY_ID, sourceOffer, category, null, 1);
-
-                        if (!lastOfferLog.isPresent()) {
-                            continue;
-                        }
-
-                        // set the new offset
-                        newOffset = lastOfferLog.get().getSequence();
-                    }
-
-                    // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
-                    // get the data to synchronize
-                    List<List<OfferLog>> listing = restoreOfferBackupService
-                        .getListing(STRATEGY_ID, sourceOffer, category, newOffset,
-                            Integer.MAX_VALUE, Order.DESC);
-
-                    for (List<OfferLog> offerLogs : listing) {
-                        for (OfferLog offerLog : offerLogs) {
-                            try {
-                                // check existing of the object on the given offer.
-                                boolean exists =
-                                    distribution.checkObjectExisting(STRATEGY_ID, offerLog.getFileName(), category,
-                                        Collections.singletonList(destinationOffer));
-
-                                if (!exists) {
-                                    // load the object/file from the given offer
-                                    Response resp = distribution
-                                        .getContainerByCategory(STRATEGY_ID, offerLog.getFileName(), category,
-                                            sourceOffer);
-                                    if (resp != null &&
-                                        resp.getStatus() == Response.Status.OK.getStatusCode()) {
-
-                                        distribution.storeDataInOffers(STRATEGY_ID, offerLog.getFileName(),
-                                            category, null, Collections.singletonList(destinationOffer), resp);
-                                    }
-                                }
-                                continue;
-                            } catch (StorageException e) {
-                                LOGGER.error(e.getMessage(), e);
-                            }
-                        }
-                        LOGGER
-                            .warn("[OfferSync]: successful synchronization of category : {}, tenant : {}, offset : {}",
-                                category.getCollectionName(), tenant, Iterables.getLast(offerLogs).getSequence());
-                    }
-                    newOffset = null;
+                    offerSyncProcess.synchronize(sourceOffer, targetOffer, dataCategory, offset);
+                } catch (Exception e) {
+                    LOGGER.error("An error occurred during synchronization process execution", e);
                 }
             }
+        );
+    }
 
-        } catch (VitamSyncException e) {
-            LOGGER.error(String.format(
-                "[OfferSync]: An exception has been thrown when synchronizing {%s} offer from {%s} source offer with {%s} offset.",
-                destinationOffer, sourceOffer, offset));
-            throw e;
-        } finally {
-            VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
+    public boolean isRunning() {
+        OfferSyncProcess offerSyncProcess = lastOfferSyncService.get();
+        return offerSyncProcess != null && offerSyncProcess.isRunning();
+    }
+
+    public OfferSyncStatus getLastSynchronizationStatus() {
+        OfferSyncProcess offerSyncProcess = lastOfferSyncService.get();
+        if (offerSyncProcess == null) {
+            return null;
+        } else {
+            return offerSyncProcess.getOfferSyncStatus();
         }
-        LOGGER.warn("The offers' synchronization is completed.");
-        response.setStatus(StatusCode.OK);
-
-        return response;
     }
 }

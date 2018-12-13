@@ -26,24 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
-import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
-import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,6 +55,10 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AdminOfferSyncResourceTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     /**
      * Vitam Logger.
@@ -60,102 +68,152 @@ public class AdminOfferSyncResourceTest {
     private static final String OFFER_FS_1_SERVICE_CONSUL = "offer-fs-1.service.consul";
     private static final String OFFER_FS_2_SERVICE_CONSUL = "offer-fs-2.service.consul";
 
-    private OfferSyncRequest offerSyncRequest;
-    private OfferSyncResponseItem offerSyncResponseItem;
-
     @Mock
     private OfferSyncService offerSyncService;
 
-    private AdminOfferSyncResource adminOfferSyncResource;
-
     @Before
     public void setup() {
-        offerSyncRequest = new OfferSyncRequest();
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
     @Test
-    public void should_return_ok_when_request_item_full() throws VitamSyncException {
+    @RunWithCustomExecutor
+    public void should_return_ok_when_offer_synchronization_started() throws Exception {
 
         // Given
-        offerSyncRequest.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
-            .setOffset(null);
-        offerSyncResponseItem = new OfferSyncResponseItem(offerSyncRequest, StatusCode.OK);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
-        when(offerSyncService.synchronize(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, null, null, null))
-            .thenReturn(offerSyncResponseItem);
+        when(offerSyncService
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .thenReturn(true);
 
-        adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When
-        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequest);
-        LOGGER.debug(String.format(
-            "calling OfferSync service with the following parameters : %s source offer, %s destination offer, %d offset.",
-            offerSyncRequest.getOfferSource(), offerSyncRequest.getOfferDestination(),
-            offerSyncRequest.getOffset()));
+        Response response = instance.startSynchronization(offerSyncRequest);
 
         // Then
         LOGGER.debug("OfferSync response : ", response);
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        OfferSyncResponseItem responseEntity = (OfferSyncResponseItem) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.getOfferSource()).isEqualTo(OFFER_FS_1_SERVICE_CONSUL);
-        assertThat(responseEntity.getOfferDestination()).isEqualTo(OFFER_FS_2_SERVICE_CONSUL);
-        assertThat(responseEntity.getStatus()).isEqualTo(StatusCode.OK);
-
     }
 
     @Test
-    public void should_return_empty_response_when_that_request_empty() {
+    @RunWithCustomExecutor
+    public void should_return_conflict_when_offer_synchronization_already_running() throws Exception {
 
         // Given
-        adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
-        offerSyncRequest =
-            new OfferSyncRequest().setOfferSource("").setOfferDestination(OFFER_FS_2_SERVICE_CONSUL);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
-        // When / Then
-        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        when(offerSyncService
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .thenReturn(false);
 
-        // Given
-        offerSyncRequest =
-            new OfferSyncRequest().setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(null);
-
-        // When / Then
-        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
-
-    }
-
-    @Test
-    public void should_return_ok_when_throws_sync_exception() throws VitamSyncException {
-
-        // Given
-        offerSyncRequest = new OfferSyncRequest();
-        offerSyncRequest.setOfferSource(OFFER_FS_1_SERVICE_CONSUL).setOfferDestination(OFFER_FS_2_SERVICE_CONSUL)
-            .setOffset(100L);
-
-        when(offerSyncService.synchronize(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, null, null, null))
-            .thenThrow(new VitamSyncException("ERROR: Exception has been throw when calling offerSync service."));
-
-        adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When
-        Response response = adminOfferSyncResource.synchronizeOffer(offerSyncRequest);
+        Response response = instance.startSynchronization(offerSyncRequest);
 
         // Then
-        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-
+        LOGGER.debug("OfferSync response : ", response);
+        assertThat(response.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
     }
 
     @Test
-    public void should_throws_IllegalArgument_exception_when_request_item_null() throws DatabaseException {
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_missing_tenant() {
 
         // Given
-        adminOfferSyncResource = new AdminOfferSyncResource(offerSyncService);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setTenantId(null);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatCode(() -> adminOfferSyncResource.synchronizeOffer(null))
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_invalid_tenant() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setTenantId(3);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_missing_source_offer() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setSourceOffer(null);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_missing_target_offer() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setTargetOffer(null);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_missing_container() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setContainer(null);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_invalid_container() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setContainer("BAD");
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    private OfferSyncRequest createOfferSyncRequest() {
+        return new OfferSyncRequest()
+            .setSourceOffer(OFFER_FS_1_SERVICE_CONSUL)
+            .setTargetOffer(OFFER_FS_2_SERVICE_CONSUL)
+            .setContainer(DataCategory.UNIT.getCollectionName())
+            .setOffset(null)
+            .setTenantId(0);
+    }
 }

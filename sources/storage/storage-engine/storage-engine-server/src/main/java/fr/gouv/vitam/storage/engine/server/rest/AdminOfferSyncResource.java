@@ -28,23 +28,29 @@ package fr.gouv.vitam.storage.engine.server.rest;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
-import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
+import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 /**
  * Offer synchronization resource.
@@ -57,81 +63,101 @@ public class AdminOfferSyncResource {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferSyncResource.class);
 
-    /**
-     * Error/Exceptions messages.
-     */
-    private static final String SYNCHRONIZATION_JSON_MANDATORY_PARAMETERS_MSG =
-        "the Json input of offer synchronization's parameters is mandatory.";
-
-    private static final String SYNCHRONIZATION_EXCEPTION_MSG =
-        "ERROR: Exception has been thrown when synchronizing the offers : ";
-    private static final String SOURCE_OFFER_PARAMETER_IS_MANDATORY = "the source offer parameter is mandatory.";
-    private static final String DESTINATION_OFFER_PARAMETER_IS_MANDATORY =
-        "the destination offer parameter is mandatory.";
-
     private final String OFFER_SYNC_URI = "/offerSync";
 
     /**
      * OfferSynchronization Service.
      */
-    private OfferSyncService offerSynchronizationService;
+    private OfferSyncService offerSyncService;
 
     /**
      * Constructor.
-     *
-     * @param distribution
      */
-    public AdminOfferSyncResource(StorageDistribution distribution) {
-        this(new OfferSyncService(distribution));
+    public AdminOfferSyncResource(StorageDistribution distribution, StorageConfiguration storageConfiguration) {
+
+        this(new OfferSyncService(distribution,
+            storageConfiguration));
     }
 
     /**
      * Constructor.
      *
-     * @param offerSynchronizationService
+     * @param offerSyncService
      */
     @VisibleForTesting
     public AdminOfferSyncResource(
-        OfferSyncService offerSynchronizationService) {
-        this.offerSynchronizationService = offerSynchronizationService;
+        OfferSyncService offerSyncService) {
+        this.offerSyncService = offerSyncService;
     }
 
     /**
-     * API to access and lanch the offer synchronization service.<br/>
-     *
-     * @param offerSyncItems
-     * @return
+     * Start offer synchronization. At most, one synchronization process can be started.
      */
     @Path(OFFER_SYNC_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response synchronizeOffer(OfferSyncRequest offerSyncItems) {
+    public Response startSynchronization(OfferSyncRequest offerSyncRequest) {
 
-        ParametersChecker.checkParameter(SYNCHRONIZATION_JSON_MANDATORY_PARAMETERS_MSG, offerSyncItems);
-        ParametersChecker.checkParameter(SOURCE_OFFER_PARAMETER_IS_MANDATORY, offerSyncItems.getOfferSource());
-        ParametersChecker
-            .checkParameter(DESTINATION_OFFER_PARAMETER_IS_MANDATORY, offerSyncItems.getOfferDestination());
-        OfferSyncResponseItem response;
+        ParametersChecker.checkParameter("source offer is mandatory.", offerSyncRequest.getSourceOffer());
+        ParametersChecker.checkParameter("target offer is mandatory.", offerSyncRequest.getTargetOffer());
+        ParametersChecker.checkParameter("tenantId is mandatory.", offerSyncRequest.getTenantId());
+        ParametersChecker.checkParameter("container is mandatory.", offerSyncRequest.getContainer());
 
-        try {
-            LOGGER.info(String
-                .format("Starting %s offer synchronization from the %s source offer with %d%n offset.",
-                    offerSyncItems.getOfferDestination(), offerSyncItems.getOfferSource(),
-                    offerSyncItems.getOffset()));
-
-            response = offerSynchronizationService
-                .synchronize(offerSyncItems.getOfferSource(), offerSyncItems.getOfferDestination(),
-                    offerSyncItems.getContainerToSync(), offerSyncItems.getTenantIdToSync(),
-                    offerSyncItems.getOffset());
-
-        } catch (VitamSyncException e) {
-            LOGGER.error(SYNCHRONIZATION_EXCEPTION_MSG, e);
-            response = new OfferSyncResponseItem(offerSyncItems, StatusCode.KO);
+        if (!VitamConfiguration.getTenants().contains(offerSyncRequest.getTenantId())) {
+            throw new IllegalArgumentException("Invalid tenant " + offerSyncRequest.getTenantId());
         }
+        VitamThreadUtils.getVitamSession().setTenantId(offerSyncRequest.getTenantId());
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(offerSyncRequest.getTenantId()));
 
-        return Response.ok().entity(response).build();
+        DataCategory dataCategory = DataCategory.getByCollectionName(offerSyncRequest.getContainer());
+
+        LOGGER.info(String.format("Starting %s offer synchronization from the %s source offer with %d%n offset.",
+            offerSyncRequest.getTargetOffer(), offerSyncRequest.getSourceOffer(),
+            offerSyncRequest.getOffset()));
+
+        boolean started = offerSyncService
+            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(), dataCategory,
+                offerSyncRequest.getOffset());
+
+        Response.Status status;
+        if (started) {
+            LOGGER.info("Offer synchronization started");
+            status = Response.Status.OK;
+        } else {
+            LOGGER.warn("Another synchronization process is already running");
+            status = Response.Status.CONFLICT;
+        }
+        return Response.status(status)
+            .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .build();
     }
 
+    /**
+     * Returns offer synchronization process running status in a "Running" header (true/false).
+     */
+    @Path(OFFER_SYNC_URI)
+    @HEAD
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response isOfferSynchronizationRunning() {
+        return Response.ok().header("Running", this.offerSyncService.isRunning()).build();
+    }
+
+    /**
+     * Returns the offer synchronization status of the last synchronization (synchronization may be done, or still running)
+     */
+    @Path(OFFER_SYNC_URI)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response getLastOfferSynchronizationStatus() {
+        OfferSyncStatus lastSynchronizationStatus = this.offerSyncService.getLastSynchronizationStatus();
+
+        if (lastSynchronizationStatus == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(lastSynchronizationStatus).build();
+    }
 }

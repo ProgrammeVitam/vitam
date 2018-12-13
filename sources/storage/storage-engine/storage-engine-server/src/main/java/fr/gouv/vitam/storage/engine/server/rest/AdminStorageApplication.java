@@ -81,7 +81,7 @@ public class AdminStorageApplication extends Application {
             final StorageDistribution distribution =
                 new StorageDistributionImpl(storageConfiguration, storageLogService);
 
-            singletons.add(new AdminOfferSyncResource(distribution));
+            singletons.add(new AdminOfferSyncResource(distribution, storageConfiguration));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
             singletons.add(new AdminRequestIdFilter());
 

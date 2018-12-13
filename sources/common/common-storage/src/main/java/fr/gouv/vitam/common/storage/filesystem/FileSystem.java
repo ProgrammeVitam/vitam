@@ -139,8 +139,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                 file = new File(baseDir);
             }
             if (!file.exists()) {
-                LOGGER.error("container not found: " + containerName + "(BaseDir File: " + file + ")");
-                throw new ContentAddressableStorageNotFoundException("Storage not found");
+                throw new ContentAddressableStorageNotFoundException("Storage not found: " + containerName + "(BaseDir File: " + file + ")");
             }
         } catch (IOException e) {
            throw  new ContentAddressableStorageNotFoundException(e);

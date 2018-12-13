@@ -174,7 +174,6 @@ public class ConnectionImpl extends AbstractConnection {
                     return new StorageGetResult(request.getTenantId(), request.getType(),
                             request.getGuid(), response);
                 case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverNotFoundException(getDriverName(),
                             "Object " + request.getGuid() + " not found");
                 case PRECONDITION_FAILED:
@@ -254,11 +253,9 @@ public class ConnectionImpl extends AbstractConnection {
                             Response.Status.OK.toString().equals(json.get("status").asText()));
                     return result;
                 case NOT_FOUND:
-                    LOGGER.warn(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverNotFoundException(getDriverName(), "Object " + request.getGuid() +
                             "not found");
                 case BAD_REQUEST:
-                    LOGGER.error("Bad request");
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
@@ -425,9 +422,8 @@ public class ConnectionImpl extends AbstractConnection {
                 case OK:
                     return handleResponseStatus(response, StorageMetadataResult.class);
                 case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverNotFoundException(getDriverName(),
-                            "Object " + "not found");
+                        "Object " + request.getGuid() + "not found");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(),
