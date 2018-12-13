@@ -58,9 +58,12 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
  * SetupStorageAndOffers class
  */
  class SetupStorageAndOffers {
+    private static final String JETTY_STORAGE_ADMIN = "jetty.storage.admin";
     static WorkspaceMain workspaceMain;
     static DefaultOfferMain firstOfferApplication;
     static StorageMain storageMain;
+    static int storageEngineAdminPort;
+
     static void setupStorageAndTwoOffer() throws IOException, VitamApplicationServerException {
         File vitamTempFolder = StorageTwoOffersIT.tempFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
@@ -164,10 +167,13 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
         // launch storage
         int storageEnginePort = JunitHelper.getInstance().findAvailablePort();
+        storageEngineAdminPort = JunitHelper.getInstance().findAvailablePort();
         SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
+        SystemPropertyUtil.set(JETTY_STORAGE_ADMIN, storageEngineAdminPort);
         storageMain = new StorageMain(StorageTwoOffersIT.STORAGE_CONF);
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(JETTY_STORAGE_ADMIN);
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);

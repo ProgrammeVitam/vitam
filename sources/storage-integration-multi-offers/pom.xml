@@ -111,6 +111,15 @@
             <artifactId>logbook-administration</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
+        </dependency>
     </dependencies>
 
 	<build>
