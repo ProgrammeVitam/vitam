@@ -29,10 +29,14 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -43,17 +47,24 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -88,7 +99,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 
@@ -137,11 +150,16 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     private StorageClientFactory storageClientFactory;
 
     /**
+     * adminManagementClientFactory
+     */
+    private AdminManagementClientFactory adminManagementClientFactory;
+
+    /**
      * Constructor.
      */
     public MassUpdateUnitsProcess() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
     /**
@@ -149,11 +167,12 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
      * @param metaDataClientFactory
      */
     @VisibleForTesting
-    public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory lfcClientFactory, StorageClientFactory storageClientFactory) {
+    public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory lfcClientFactory,
+        StorageClientFactory storageClientFactory, AdminManagementClientFactory adminManagementClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
         this.storageClientFactory = storageClientFactory;
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     /**
@@ -196,6 +215,13 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             // Add operationID to #operations
             parser.getRequest().addActions(UpdateActionHelper.push(
                 VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
+
+            try {
+                addOntologyFieldsToBeUpdated(parser);
+            } catch (AdminManagementClientServerException | InvalidCreateOperationException |
+                InvalidParseOperationException e) {
+                throw new ProcessingException("Error while adding ontology information", e);
+            }
 
             UpdateMultiQuery multiQuery = parser.getRequest();
 
@@ -452,5 +478,40 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         itemUnit.put("id", item.getId());
         itemUnit.put("status", String.valueOf(item.getStatus()));
         return JsonHandler.unprettyPrint(itemUnit);
+    }
+
+    private void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
+        throws InvalidCreateOperationException, AdminManagementClientServerException,
+        InvalidParseOperationException {
+        UpdateMultiQuery request = updateParser.getRequest();
+        Select selectOntologies = new Select();
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+            selectOntologies.setQuery(
+                QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())
+            );
+
+            Map<String, Integer> projection = new HashMap<>();
+            projection.put(OntologyModel.TAG_IDENTIFIER, 1);
+            projection.put(OntologyModel.TAG_TYPE, 1);
+            QueryProjection queryProjection = new QueryProjection();
+            queryProjection.setFields(projection);
+            selectOntologies
+                .setProjection(JsonHandler.toJsonNode(queryProjection));
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (!responseOntologies.isOk() ||
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() == 0) {
+                // no external ontology, nothing to do
+                return;
+            }
+
+            List<OntologyModel> ontologyModelList =
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+
+            Action action =
+                new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
+                    JsonHandler.unprettyPrint(ontologyModelList));
+            request.addActions(action);
+        }
     }
 }

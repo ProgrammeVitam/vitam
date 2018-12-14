@@ -215,7 +215,7 @@ public interface MetaData {
      */
     RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException;
+        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException, ArchiveUnitOntologyValidationException;
 
 
     /**

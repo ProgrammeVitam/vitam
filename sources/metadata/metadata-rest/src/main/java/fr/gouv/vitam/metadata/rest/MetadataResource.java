@@ -595,7 +595,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataExecutionException | SchemaValidationException e) {
+        } catch (final MetaDataExecutionException | SchemaValidationException | ArchiveUnitOntologyValidationException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);

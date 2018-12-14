@@ -27,33 +27,6 @@
 package fr.gouv.vitam.metadata.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.util.Collections.singletonList;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
@@ -88,6 +60,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
@@ -144,6 +117,33 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Collections.singletonList;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -339,7 +339,7 @@ public class MetaDataImpl implements MetaData {
                 }
             }
 
-        } catch (InvalidParseOperationException | BadRequestException | VitamDBException e) {
+        } catch (InvalidParseOperationException | BadRequestException | VitamDBException | ArchiveUnitOntologyValidationException e) {
             throw new MetaDataExecutionException(e);
         }
 
@@ -665,8 +665,13 @@ public class MetaDataImpl implements MetaData {
             shouldComputeUnitRule = true;
             fieldsProjection.removeAll();
         }
-        result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest);
-        arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+
+        try {
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+        } catch (ArchiveUnitOntologyValidationException e) {
+            throw new MetaDataExecutionException(e);
+        }
 
         // Compute Rule for unit(only with search by Id)
         if (shouldComputeUnitRule && result.hasFinalResult()) {
@@ -711,7 +716,7 @@ public class MetaDataImpl implements MetaData {
             if (result.getNbResult() == 0) {
                 throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
             }
-        } catch (final BadRequestException | MetaDataNotFoundException e) {
+        } catch (final BadRequestException | MetaDataNotFoundException | ArchiveUnitOntologyValidationException e) {
             throw new MetaDataExecutionException(e);
         }
     }
@@ -740,11 +745,12 @@ public class MetaDataImpl implements MetaData {
                     return objectNodeResultForUpdateError(unit, "KO");
                 }
 
-            } catch (SchemaValidationException | ArchiveUnitProfileInactiveException | ArchiveUnitProfileNotFoundException | ArchiveUnitProfileEmptyControlSchemaException e) {
+            } catch (SchemaValidationException | ArchiveUnitProfileInactiveException
+                | ArchiveUnitProfileNotFoundException | ArchiveUnitProfileEmptyControlSchemaException e) {
                 LOGGER.warn("error while updating management metadata for unit " + unit + "; cant validate schema", e);
                 return objectNodeResultForUpdateError(unit, "WARNING");
             } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException
-                | VitamDBException | MetaDataExecutionException e) {
+                | VitamDBException | MetaDataExecutionException | ArchiveUnitOntologyValidationException e) {
                 LOGGER.error(e);
                 return objectNodeResultForUpdateError(unit, "KO");
             }
@@ -778,7 +784,11 @@ public class MetaDataImpl implements MetaData {
                     return objectNodeResultForUpdateError(unitId, "KO");
                 }
             } catch (SchemaValidationException e) {
-                LOGGER.warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
+                LOGGER
+                    .warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
+                return objectNodeResultForUpdateError(unitId, "WARNING");
+            } catch (ArchiveUnitOntologyValidationException e) {
+                LOGGER.warn("error while updating management metadata for unit " + unitId + "; cant validate ontologies", e);
                 return objectNodeResultForUpdateError(unitId, "WARNING");
             } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
                 LOGGER.error(e);
@@ -804,7 +814,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException {
+        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException, SchemaValidationException {
         Result result;
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
@@ -855,7 +865,7 @@ public class MetaDataImpl implements MetaData {
 
     private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId, Map<String, DurationData> bindRuleToDuration)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException {
+        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException, ArchiveUnitOntologyValidationException {
         Result result;
         ArrayNode arrayNodeResponse;
         if (updateActions.isNull()) {

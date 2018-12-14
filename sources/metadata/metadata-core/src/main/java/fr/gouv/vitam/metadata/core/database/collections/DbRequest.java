@@ -193,7 +193,7 @@ public class DbRequest {
      * @return the result
      */
     public Result execRuleRequest(final String unitId, final RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
-        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
+        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException, ArchiveUnitOntologyValidationException,
         InvalidCreateOperationException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
@@ -255,6 +255,11 @@ public class DbRequest {
 
                 JsonNode aupSchemaIdNode =
                         updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                JsonNode ontologyFields =
+                    updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
+                if (ontologyFields != null && ontologyFields.size() > 0) {
+                    validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
+                }
                 SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
 
                 if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
@@ -343,7 +348,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     public Result execRequest(final RequestParserMultiple requestParser)
-        throws MetaDataExecutionException,
+        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
         final RequestMultiple request = requestParser.getRequest();
@@ -1001,7 +1006,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
                                                                      Result<MetadataDocument<?>> last,
                                                                      RequestParserMultiple requestParser)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final FILTERARGS model = requestToMongodb.model();
@@ -1151,7 +1156,7 @@ public class DbRequest {
 
     private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
                                            SchemaValidationUtils validator)
-        throws MetaDataExecutionException {
+        throws ArchiveUnitOntologyValidationException, MetaDataExecutionException {
         String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
         Map<String, OntologyModel> ontologiesByIdentifier;
         try {
@@ -1161,8 +1166,7 @@ public class DbRequest {
                 ontologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
 
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Could not parse ontologies", e);
-            throw new MetaDataExecutionException(e);
+            throw new MetaDataExecutionException("Could not parse ontologies", e);
         }
         List<String> errors = new ArrayList<>();
         // that means a transformation could be done so we need to process the full json
@@ -1173,8 +1177,7 @@ public class DbRequest {
             // validation verification
             String error = "Archive unit contains fields declared in ontology with a wrong format : " +
                 String.join(",", errors.toString());
-            LOGGER.error(error);
-            throw new MetaDataExecutionException(error);
+            throw new ArchiveUnitOntologyValidationException(error);
         }
     }
 
