@@ -42,7 +42,7 @@ public class StorageDriverServiceUnavailableException extends StorageDriverExcep
      * @param message a message to add
      */
     public StorageDriverServiceUnavailableException(String driverInfos, String message) {
-        super(driverInfos, message);
+        super(driverInfos, message, true);
     }
 
     /**
@@ -53,7 +53,7 @@ public class StorageDriverServiceUnavailableException extends StorageDriverExcep
      * @param cause the original exception
      */
     public StorageDriverServiceUnavailableException(String driverInfos, String message, Throwable cause) {
-        super(driverInfos, message, cause);
+        super(driverInfos, message,  true, cause);
     }
 
     /**
@@ -63,7 +63,7 @@ public class StorageDriverServiceUnavailableException extends StorageDriverExcep
      * @param cause the original exception
      */
     public StorageDriverServiceUnavailableException(String driverInfos, Throwable cause) {
-        super(driverInfos, cause);
+        super(driverInfos,  true, cause);
     }
 
 }

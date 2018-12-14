@@ -181,8 +181,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     private void tryAndRetry(String objectId, DataCategory category, File file,
         Integer tenantId, OffersToCopyIn datas, int attempt)
-        throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException,
-        FileNotFoundException {
+        throws StorageTechnicalException, FileNotFoundException {
         Digest globalDigest = new Digest(digestType);
         InputStream digestInputStream = globalDigest.getDigestInputStream(new FileInputStream(file));
         Digest digest = new Digest(digestType);

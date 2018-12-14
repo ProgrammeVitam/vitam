@@ -43,14 +43,20 @@ public class StorageDriverException extends Exception {
     private static final String ERROR_MESSAGE = "An error occured for driver '";
 
     /**
+     * If storage engine should retry or not
+     */
+    private final boolean shouldRetry;
+
+    /**
      * Constructor with a message and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
      * @param message a message to add
      */
-    public StorageDriverException(String driverInfos, String message) {
+    public StorageDriverException(String driverInfos, String message, boolean shouldRetry) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message);
         driverInfo = driverInfos;
+        this.shouldRetry = shouldRetry;
     }
 
     /**
@@ -61,9 +67,10 @@ public class StorageDriverException extends Exception {
      * @param message the exception message
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, String message, Throwable cause) {
+    public StorageDriverException(String driverInfos, String message, boolean shouldRetry, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message, cause);
         driverInfo = driverInfos;
+        this.shouldRetry = shouldRetry;
     }
 
     /**
@@ -73,9 +80,10 @@ public class StorageDriverException extends Exception {
      * @param driverInfos information about the driver (id, name, version...)
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, Throwable cause) {
+    public StorageDriverException(String driverInfos, boolean shouldRetry, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos, cause);
         driverInfo = driverInfos;
+        this.shouldRetry = shouldRetry;
     }
 
     /**
@@ -87,4 +95,8 @@ public class StorageDriverException extends Exception {
         return driverInfo;
     }
 
+
+    public boolean isShouldRetry() {
+        return shouldRetry;
+    }
 }

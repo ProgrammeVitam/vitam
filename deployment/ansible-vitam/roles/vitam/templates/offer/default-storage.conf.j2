@@ -15,3 +15,5 @@ swiftMaxConnectionsPerRoute: {{ vitam_offers[offer_conf]["swiftMaxConnectionsPer
 swiftMaxConnections: {{ vitam_offers[offer_conf]["swiftMaxConnections"] | default(1000) }}
 swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | default(200000) }}
 swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(200000) }}
+swiftHardRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftHardRenewTokenDelayBeforeExpireTime"] | default(60) }}
+swiftSoftRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftSoftRenewTokenDelayBeforeExpireTime"] | default(300) }}

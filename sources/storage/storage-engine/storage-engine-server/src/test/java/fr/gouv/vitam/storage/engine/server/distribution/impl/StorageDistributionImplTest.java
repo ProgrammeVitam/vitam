@@ -121,7 +121,6 @@ public class StorageDistributionImplTest {
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService,
             Executors.newFixedThreadPool(16), 300);
-        //LogbookLifeCyclesClientFactory.changeMode(null);
     }
 
     @AfterClass
@@ -134,7 +133,7 @@ public class StorageDistributionImplTest {
     @Test
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
-        throws StorageException, StorageAlreadyExistsException {
+        throws StorageException {
         // storeDataInOffers(String tenantId, String strategyId, String objectId,
         // CreateObjectDescription createObjectDescription, DataCategory
         // category,
@@ -162,7 +161,7 @@ public class StorageDistributionImplTest {
     public void testStoreData_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "id1";
-        StoredInfoResult storedInfoResult = null;
+        StoredInfoResult storedInfoResult;
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
@@ -417,7 +416,7 @@ public class StorageDistributionImplTest {
 
     private void checkInvalidArgumentException(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category)
-        throws StorageException, StorageAlreadyExistsException {
+        throws StorageException {
         try {
             simpleDistribution.storeDataInAllOffers(strategyId, objectId, createObjectDescription, category, "testRequester");
             fail("Parameter should be considered invalid");
