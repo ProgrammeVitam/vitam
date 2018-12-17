@@ -84,7 +84,7 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
     @Override public void filter(ContainerRequestContext containerRequestContext) throws IOException {
 
         ParametersChecker
-            .checkParameter("VitamAuthentication failed! The reconstruction service needs user authentication.",
+            .checkParameter("VitamAuthentication failed! The service needs user authentication.",
                 containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION));
 
         // decode the authentication informations

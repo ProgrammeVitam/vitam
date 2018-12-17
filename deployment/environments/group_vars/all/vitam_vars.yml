@@ -292,6 +292,9 @@ vitam:
         maxBatchThreadPoolSize: 16
         # Digest computation timeout in seconds
         batchDigestComputationTimeout: 300
+        # Offer synchronization batch size & thread pool size
+        offerSynchronizationBulkSize: 1000
+        offerSyncThreadPoolSize: 32
         # log_level: "DEBUG"
         metrics_enabled: true
         logback_rolling_policy: true

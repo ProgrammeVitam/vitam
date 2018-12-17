@@ -15,110 +15,94 @@
  * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.model.response;
+package fr.gouv.vitam.storage.engine.common.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequestItem;
 
 /**
- * Description of offerSync response item model. <br/>
+ * Description of offerSync request item model. <br/>
  */
-public class OfferSyncResponseItem {
+public class OfferSyncRequest {
 
     /**
-     * offerSource identifier.
+     * sourceOffer identifier.
      */
-    @JsonProperty("offerSource")
-    private String offerSource;
+    @JsonProperty("sourceOffer")
+    private String sourceOffer;
 
     /**
-     * offerDestination identifier.
+     * targetOffer identifier.
      */
-    @JsonProperty("offerDestination")
-    private String offerDestination;
+    @JsonProperty("targetOffer")
+    private String targetOffer;
 
     /**
-     * Status.
+     * offset.
      */
-    @JsonProperty("status")
-    private StatusCode status;
+    @JsonProperty("offset")
+    private Long offset;
+
+    /**
+     * containerToSync.
+     */
+    @JsonProperty("container")
+    private String container;
+
+    /**
+     * tenantId
+     */
+    @JsonProperty("tenantId")
+    private Integer tenantId;
 
     /**
      * Constructor.
      */
-    public OfferSyncResponseItem() {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param offerSyncRequestItem item
-     * @param status staus
-     */
-    public OfferSyncResponseItem(OfferSyncRequestItem offerSyncRequestItem, StatusCode status) {
+    public OfferSyncRequest() {
         super();
-        this.offerSource = offerSyncRequestItem.getOfferSource();
-        this.offerDestination = offerSyncRequestItem.getOfferDestination();
-        this.status = status;
     }
 
-    /**
-     * getOfferSource.
-     *
-     * @return
-     */
-    public String getOfferSource() {
-        return offerSource;
+    public String getSourceOffer() {
+        return sourceOffer;
     }
 
-    /**
-     * setOfferSource.
-     *
-     * @param offerSource
-     */
-    public OfferSyncResponseItem setOfferSource(String offerSource) {
-        this.offerSource = offerSource;
+    public OfferSyncRequest setSourceOffer(String sourceOffer) {
+        this.sourceOffer = sourceOffer;
         return this;
     }
 
-    /**
-     * getOfferDestination.
-     *
-     * @return
-     */
-    public String getOfferDestination() {
-        return offerDestination;
+    public String getTargetOffer() {
+        return targetOffer;
     }
 
-    /**
-     * setOfferDestination.
-     *
-     * @param offerDestination
-     * @return
-     */
-    public OfferSyncResponseItem setOfferDestination(String offerDestination) {
-        this.offerDestination = offerDestination;
+    public OfferSyncRequest setTargetOffer(String targetOffer) {
+        this.targetOffer = targetOffer;
         return this;
     }
 
-    /**
-     * getStatus.
-     *
-     * @return
-     */
-    public StatusCode getStatus() {
-        return status;
+    public Long getOffset() {
+        return offset;
     }
 
-    /**
-     * setStatus.
-     *
-     * @param status
-     * @return
-     */
-    public OfferSyncResponseItem setStatus(StatusCode status) {
-        this.status = status;
+    public OfferSyncRequest setOffset(Long offset) {
+        this.offset = offset;
+        return this;
+    }
+
+    public String getContainer() {
+        return container;
+    }
+
+    public OfferSyncRequest setContainer(String container) {
+        this.container = container;
+        return this;
+    }
+
+    public Integer getTenantId() {
+        return tenantId;
+    }
+
+    public OfferSyncRequest setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
         return this;
     }
 }

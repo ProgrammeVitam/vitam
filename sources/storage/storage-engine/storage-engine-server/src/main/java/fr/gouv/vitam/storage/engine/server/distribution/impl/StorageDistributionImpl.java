@@ -1145,7 +1145,6 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
         }
         if (offerOkNoBinary) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
             throw new StorageNotFoundException(
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
         } else {

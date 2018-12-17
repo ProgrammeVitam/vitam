@@ -253,24 +253,23 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
-            final RequestResponseOK<OfferLog> responseOK = new RequestResponseOK<OfferLog>();
-            final String containerName = buildContainerName(type, xTenantId);
-
             try {
+                final String containerName = buildContainerName(type, xTenantId);
                 List<OfferLog> offerLogs =
-                        defaultOfferService.getOfferLogs(containerName, offerLogRequest.getOffset(),
-                                offerLogRequest.getLimit(), offerLogRequest.getOrder());
+                    defaultOfferService.getOfferLogs(containerName, offerLogRequest.getOffset(),
+                        offerLogRequest.getLimit(), offerLogRequest.getOrder());
+                final RequestResponseOK<OfferLog> responseOK = new RequestResponseOK<>();
                 responseOK.addAllResults(offerLogs).setHttpCode(Status.OK.getStatusCode());
                 LOGGER.debug("Result {}", responseOK);
                 return Response.status(Status.OK).entity(JsonHandler.writeAsString(responseOK)).build();
             } catch (ContentAddressableStorageException exc) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
                 return VitamCodeHelper.toVitamError(VitamCode.STORAGE_GET_OFFER_LOG_ERROR, exc.getMessage())
-                        .toResponse();
+                    .toResponse();
             }
         } catch (Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).build();
+            LOGGER.error("An internal error occurred during offer log listing", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -309,7 +308,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(objectContent.getInputStream(),
                     Status.OK, responseHeader);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -478,7 +477,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}")
                     .build();
         } catch (ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.info(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -551,7 +550,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject, noCache);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.warn(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException | IOException | InvalidParseOperationException e) {
             LOGGER.error(e);

@@ -170,10 +170,8 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
                 throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
             }
 
             final Blob blob = blobStore.getBlob(containerName, objectName);
@@ -204,7 +202,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingContainer(containerName) || !isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
                 throw new ContentAddressableStorageNotFoundException(
                         ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }

@@ -47,6 +47,9 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int maxBatchThreadPoolSize = 16;
     private int batchDigestComputationTimeout = 300;
 
+    private int offerSynchronizationBulkSize = 1000;
+    private int offerSyncThreadPoolSize = 32;
+
     /**
      * StorageConfiguration empty constructor for YAMLFactory
      */
@@ -209,5 +212,23 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public void setBatchDigestComputationTimeout(int batchDigestComputationTimeout) {
         this.batchDigestComputationTimeout = batchDigestComputationTimeout;
+    }
+
+    public int getOfferSynchronizationBulkSize() {
+        return offerSynchronizationBulkSize;
+    }
+
+    public StorageConfiguration setOfferSynchronizationBulkSize(int offerSynchronizationBulkSize) {
+        this.offerSynchronizationBulkSize = offerSynchronizationBulkSize;
+        return this;
+    }
+
+    public int getOfferSyncThreadPoolSize() {
+        return offerSyncThreadPoolSize;
+    }
+
+    public StorageConfiguration setOfferSyncThreadPoolSize(int offerSyncThreadPoolSize) {
+        this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
+        return this;
     }
 }

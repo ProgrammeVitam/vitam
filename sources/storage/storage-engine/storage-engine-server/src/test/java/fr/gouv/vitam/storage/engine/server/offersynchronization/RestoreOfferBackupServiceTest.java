@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -49,13 +48,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -73,7 +69,6 @@ public class RestoreOfferBackupServiceTest {
     private static final String OFFER_ID = "default";
     private static final Integer TENANT_ID_0 = 0;
     private static final String FILE_NAME = "fileName_";
-    public static final String OBJECT_NAME_1 = "object_name_1";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -90,57 +85,7 @@ public class RestoreOfferBackupServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void getLatestOffsetByContainerTest() throws Exception {
-
-        OfferLog offerLogInstance = new OfferLog(DataCategory.UNIT.getFolder(), OBJECT_NAME_1, OfferLogAction.WRITE);
-        RequestResponseOK<OfferLog> offerLogRequestResponseOK = new RequestResponseOK<>();
-        offerLogRequestResponseOK.setHttpCode(Response.Status.OK.getStatusCode());
-        offerLogRequestResponseOK.addResult(offerLogInstance);
-
-        // given
-        when(distribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.UNIT, null, 1, Order.DESC))
-            .thenReturn(offerLogRequestResponseOK);
-
-        // when
-        Optional<OfferLog> offerLog =
-            restoreOfferBackupService.getLatestOffsetByContainer(STRATEGY_ID, OFFER_ID, DataCategory.UNIT, null, 1);
-
-        //then
-        verify(distribution, times(1))
-            .getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.UNIT, null, 1, Order.DESC);
-
-        assertThat(offerLog).isNotEmpty();
-        assertThat(offerLog.get().getContainer()).isEqualTo(DataCategory.UNIT.getFolder());
-        assertThat(offerLog.get().getFileName()).isEqualTo(OBJECT_NAME_1);
-        assertThat(offerLog.get().getAction()).isEqualTo(OfferLogAction.WRITE);
-
-        // given
-        offerLogInstance = new OfferLog(DataCategory.LOGBOOK.getFolder(), OBJECT_NAME_1, OfferLogAction.DELETE);
-        offerLogRequestResponseOK = new RequestResponseOK<>();
-        offerLogRequestResponseOK.setHttpCode(Response.Status.OK.getStatusCode());
-        offerLogRequestResponseOK.addResult(offerLogInstance);
-
-        when(distribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.LOGBOOK, null, 1, Order.DESC))
-            .thenReturn(offerLogRequestResponseOK);
-
-        // when
-        offerLog =
-            restoreOfferBackupService.getLatestOffsetByContainer(STRATEGY_ID, OFFER_ID, DataCategory.LOGBOOK, null, 1);
-
-        // then
-        verify(distribution, times(1))
-            .getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.LOGBOOK, null, 1, Order.DESC);
-
-        assertThat(offerLog).isNotEmpty();
-        assertThat(offerLog.get().getContainer()).isEqualTo(DataCategory.LOGBOOK.getFolder());
-        assertThat(offerLog.get().getFileName()).isEqualTo(OBJECT_NAME_1);
-        assertThat(offerLog.get().getAction()).isEqualTo(OfferLogAction.DELETE);
-
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void should_get_listing_when_listing_objects_returns_response_ok() throws StorageException {
+    public void should_get_listing_when_listing_objects_returns_response_ok() throws Exception {
 
         // given
         String containerName = String.format("%s_%s", TENANT_ID_0, DataCategory.BACKUP_OPERATION.getFolder());
@@ -150,18 +95,15 @@ public class RestoreOfferBackupServiceTest {
             .thenReturn(getOfferLogsListing(containerName, 10L, 2L));
 
         // when
-        List<List<OfferLog>> offerLogListing =
+        List<OfferLog> offerLogListing =
             restoreOfferBackupService
                 .getListing(STRATEGY_ID, OFFER_ID, DataCategory.BACKUP_OPERATION, 10L, 2, Order.ASC);
 
         // then
-        assertThat(offerLogListing).isNotNull().isNotEmpty();
-        assertThat(offerLogListing.size()).isEqualTo(1);
-        assertThat(offerLogListing.get(0)).isNotNull().isNotEmpty();
-        assertThat(offerLogListing.get(0).size()).isEqualTo(2);
-        assertThat(offerLogListing.get(0).get(0).getContainer()).isEqualTo(containerName);
-        assertThat(offerLogListing.get(0).get(0).getFileName()).isEqualTo(FILE_NAME + "10");
-        assertThat(offerLogListing.get(0).get(1).getFileName()).isEqualTo(FILE_NAME + "11");
+        assertThat(offerLogListing).hasSize(2);
+        assertThat(offerLogListing.get(0).getContainer()).isEqualTo(containerName);
+        assertThat(offerLogListing.get(0).getFileName()).isEqualTo(FILE_NAME + "10");
+        assertThat(offerLogListing.get(1).getFileName()).isEqualTo(FILE_NAME + "11");
 
         // given
         containerName = String.format("%s_%s", TENANT_ID_0, DataCategory.OBJECTGROUP.getFolder());
@@ -176,13 +118,11 @@ public class RestoreOfferBackupServiceTest {
 
         // then
         assertThat(offerLogListing).isNotNull().isNotEmpty();
-        assertThat(offerLogListing.size()).isEqualTo(1);
-        assertThat(offerLogListing.get(0)).isNotNull().isNotEmpty();
-        assertThat(offerLogListing.get(0).size()).isEqualTo(3);
-        assertThat(offerLogListing.get(0).get(0).getContainer()).isEqualTo(containerName);
-        assertThat(offerLogListing.get(0).get(0).getFileName()).isEqualTo(FILE_NAME + "100");
-        assertThat(offerLogListing.get(0).get(1).getFileName()).isEqualTo(FILE_NAME + "101");
-        assertThat(offerLogListing.get(0).get(2).getFileName()).isEqualTo(FILE_NAME + "102");
+        assertThat(offerLogListing).hasSize(3);
+        assertThat(offerLogListing.get(0).getContainer()).isEqualTo(containerName);
+        assertThat(offerLogListing.get(0).getFileName()).isEqualTo(FILE_NAME + "100");
+        assertThat(offerLogListing.get(1).getFileName()).isEqualTo(FILE_NAME + "101");
+        assertThat(offerLogListing.get(2).getFileName()).isEqualTo(FILE_NAME + "102");
     }
 
     @RunWithCustomExecutor
@@ -194,7 +134,7 @@ public class RestoreOfferBackupServiceTest {
             .thenReturn(getOfferLogsListing(DataCategory.OBJECT.getFolder(), 10L, -1L));
 
         // when
-        List<List<OfferLog>> offerLogListing =
+        List<OfferLog> offerLogListing =
             restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L, 1, Order.ASC);
 
         // then
@@ -213,7 +153,7 @@ public class RestoreOfferBackupServiceTest {
 
         assertThatCode(
             () -> restoreOfferBackupService.getListing(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 10L, 1, Order.DESC))
-            .isInstanceOf(VitamRuntimeException.class);
+            .isInstanceOf(StorageException.class);
     }
 
     /**

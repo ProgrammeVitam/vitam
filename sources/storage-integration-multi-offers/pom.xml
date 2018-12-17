@@ -109,7 +109,16 @@
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>logbook-administration</artifactId>
-            <version>1.13.0-SNAPSHOT</version>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
         </dependency>
     </dependencies>
 
