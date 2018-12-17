@@ -77,6 +77,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
@@ -136,16 +138,17 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
     private static final HashSet<Class> servers = Sets.newHashSet(
-            AccessInternalMain.class,
-            AdminManagementMain.class,
-            ProcessManagementMain.class,
-            LogbookMain.class,
-            WorkspaceMain.class,
-            MetadataMain.class,
-            WorkerMain.class,
-            LogbookMain.class,
-            IngestInternalMain.class,
-            BatchReportMain.class
+        AccessInternalMain.class,
+        AdminManagementMain.class,
+        ProcessManagementMain.class,
+        LogbookMain.class,
+        WorkspaceMain.class,
+        MetadataMain.class,
+        WorkerMain.class,
+        IngestInternalMain.class,
+        StorageMain.class,
+        DefaultOfferMain.class,
+        BatchReportMain.class
     );
 
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
@@ -161,19 +164,14 @@ public class PreservationIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         String configurationPath =
-                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
-
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(MOCK);
         new DataLoader("integration-ingest-internal").prepareData();
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -216,7 +214,8 @@ public class PreservationIT extends VitamRuleRunner {
         doIngest("elimination/TEST_ELIMINATION.zip");
         doIngest("preservation/OG_with_3_parents.zip");
 
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
+        FormatIdentifierFactory.getInstance()
+            .changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
 
     private void doIngest(String zip) throws FileNotFoundException, VitamException {
@@ -227,14 +226,14 @@ public class PreservationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
 
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(zip);
+            PropertiesUtils.getResourceAsStream(zip);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestOperationGuid.toString(), ingestOperationGuid);
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -295,7 +294,7 @@ public class PreservationIT extends VitamRuleRunner {
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
             Optional<VersionsModel> versionsModelOptional =
-                    objectGroup.getFirstVersionsModel("BinaryMaster");
+                objectGroup.getFirstVersionsModel("BinaryMaster");
 
             VersionsModel model = versionsModelOptional.get();
             allObjectIds.put(model.getId(), model.getFormatIdentification().getFormatId());
@@ -371,14 +370,14 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                    .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
-                    .get("$results")
-                    .get(0)
-                    .get("events");
+                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
 
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
-                    .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
         }
     }
 }
