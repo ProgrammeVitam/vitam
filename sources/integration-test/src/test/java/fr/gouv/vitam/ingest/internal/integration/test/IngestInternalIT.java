@@ -215,7 +215,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
     private static final String CONTEXT_ID_NEXT = "DEFAULT_WORKFLOW_NEXT";
 
-
     private static String CONFIG_SIEGFRIED_PATH = "";
 
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";

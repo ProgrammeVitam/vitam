@@ -223,6 +223,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String contextId = VitamThreadUtils.getVitamSession().getContextId();
+        String applicationId = VitamThreadUtils.getVitamSession().getApplicationSessionId();
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
 
         try {
@@ -256,7 +257,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     // TODO #2774: end ugly hack
 
                     ProcessWorkflow pw =
-                        processManagement.init(workParams, process.getWorkflow(), logbookTypeProcess, tenantId, contextId);
+                        processManagement.init(workParams, process.getWorkflow(), logbookTypeProcess, tenantId, contextId, applicationId);
                     return buildResponse(Status.CREATED, pw);
 
                 case NEXT:
@@ -361,8 +362,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id)
-        throws InvalidGuidOperationException {
+    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
 
         ParametersChecker.checkParameter("actionId is a mandatory parameter",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));

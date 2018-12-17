@@ -76,6 +76,7 @@ public class StateMachineTest {
 
     private static final Integer TENANT_ID = 0;
     public static final String FAKE_CONTEXT = "FakeContext";
+    public static final String APPLICATION_ID = "FakeApplicationId";
     private WorkerParameters workParams;
 
     private ProcessDataAccessImpl processDataAccess;
@@ -218,7 +219,7 @@ public class StateMachineTest {
 
     @Test(expected = StateNotAllowedException.class)
     @RunWithCustomExecutor
-    public void getCompletedTestPauseKO() throws StateNotAllowedException, ProcessingException {
+    public void getCompletedTestPauseKO() throws StateNotAllowedException {
         StateMachine stateMachine = mock(StateMachine.class);
         ProcessState state = ProcessState.COMPLETED;
         doAnswer(o -> {
@@ -255,7 +256,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
@@ -297,14 +298,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnCompleteOK()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -348,14 +349,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnCompleteKO()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -399,14 +400,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenProcessEngineOnErrorFATAL()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -435,14 +436,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenExceptionOccurThenDoNotExecuteFinallyStep()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -483,14 +484,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenStepKOBlockingThenExecuteFinallyStep()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -530,14 +531,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testWhenStepFATALBlockingThenDoNotExecuteFinallyStep()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -578,14 +579,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void testStepAndFinallyStepThenOK()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -626,7 +627,7 @@ public class StateMachineTest {
 
     @Test
     public void whenShutdownThenPauseOnDistributorOccurred()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException {
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngine processEngine =
             ProcessEngineFactory.get().create(mock(WorkerParameters.class), processDistributorMock);
@@ -635,7 +636,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
@@ -648,7 +649,7 @@ public class StateMachineTest {
 
     @Test
     public void whenCancelThenCancelOnDistributorOccurred()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException {
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngine processEngine =
             ProcessEngineFactory.get().create(mock(WorkerParameters.class), processDistributorMock);
@@ -657,7 +658,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setState(ProcessState.RUNNING);

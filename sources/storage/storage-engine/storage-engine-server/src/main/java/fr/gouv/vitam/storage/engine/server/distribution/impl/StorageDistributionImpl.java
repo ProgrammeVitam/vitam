@@ -1514,6 +1514,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             mapParameters.put(StorageLogbookParameterName.xRequestId, logInfo.getRequestId());
         }
 
+        if (logInfo.getApplicationId() != null) {
+            mapParameters.put(StorageLogbookParameterName.applicationId, logInfo.getApplicationId());
+        }
+
         if (logInfo.getArchiveId() != null) {
             mapParameters.put(StorageLogbookParameterName.archivesId, logInfo.getArchiveId());
         }

@@ -99,6 +99,7 @@ public class PutBinaryOnWorkspaceTest {
         VitamThreadUtils.getVitamSession().setContextId("contextTest");
         VitamThreadUtils.getVitamSession().setContractId("contractTest");
         VitamThreadUtils.getVitamSession().setRequestId("requestId");
+        VitamThreadUtils.getVitamSession().setApplicationSessionId("MyApplicationId");
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
@@ -123,6 +124,7 @@ public class PutBinaryOnWorkspaceTest {
         VitamThreadUtils.getVitamSession().setContextId("contextTest");
         VitamThreadUtils.getVitamSession().setContractId("contractTest");
         VitamThreadUtils.getVitamSession().setRequestId("requestId");
+        VitamThreadUtils.getVitamSession().setApplicationSessionId("MyApplicationId");
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
@@ -148,6 +150,7 @@ public class PutBinaryOnWorkspaceTest {
         VitamThreadUtils.getVitamSession().setContextId("contextTest");
         VitamThreadUtils.getVitamSession().setContractId("contractTest");
         VitamThreadUtils.getVitamSession().setRequestId("requestId");
+        VitamThreadUtils.getVitamSession().setApplicationSessionId("MyApplicationId");
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
@@ -174,6 +177,7 @@ public class PutBinaryOnWorkspaceTest {
         VitamThreadUtils.getVitamSession().setContextId("contextTest");
         VitamThreadUtils.getVitamSession().setContractId("contractTest");
         VitamThreadUtils.getVitamSession().setRequestId("requestId");
+        VitamThreadUtils.getVitamSession().setApplicationSessionId("MyApplicationId");
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";

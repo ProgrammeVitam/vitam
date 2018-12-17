@@ -443,6 +443,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
         final String contextId = VitamThreadUtils.getVitamSession().getContextId();
+        final String applicationId = VitamThreadUtils.getVitamSession().getApplicationSessionId();
         final String uniqueStepId = step.getId();
 
         if (objectsList == null || objectsList.isEmpty()) {
@@ -553,7 +554,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
             prepareCurrentWorkerTaskAndCompletableLists(workerParameters, step, tenantId, operationId, requestId,
-                contractId, contextId, bulkSize, subList, completableFutureList, currentWorkerTaskList);
+                contractId, contextId, applicationId, bulkSize, subList, completableFutureList, currentWorkerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
@@ -642,6 +643,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
         final String contextId = VitamThreadUtils.getVitamSession().getContextId();
+        final String applicationId = VitamThreadUtils.getVitamSession().getApplicationSessionId();
 
         // initialization
         int offset = 0;
@@ -792,9 +794,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
             prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, operationId,
-                requestId,
-                contractId,
-                contextId, bulkSize, distributionList, completableFutureList, currentWorkerTaskList);
+                requestId, contractId, contextId, applicationId, bulkSize, distributionList, completableFutureList, currentWorkerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
@@ -862,8 +862,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void prepareCurrentWorkerTaskAndCompletableLists(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String operationId, String requestId, String contractId, String contextId, int bulkSize,
-        List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId, String applicationId,
+        int bulkSize, List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
         List<WorkerTask> currentWorkerTaskList) {
         int subOffset = 0;
         int subListSize = subList.size();
@@ -881,7 +881,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             final WorkerTask workerTask =
                 new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId);
+                    tenantId, requestId, contractId, contextId, applicationId);
 
             currentWorkerTaskList.add(workerTask);
             completableFutureList.add(prepare(workerTask, operationId, tenantId));
@@ -891,8 +891,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void prepareCurrentWorkerTaskAndCompletableListsOnStream(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String operationId, String requestId, String contractId, String contextId, int bulkSize,
-        List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId, String applicationId,
+        int bulkSize, List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
         List<WorkerTask> currentWorkerTaskList) {
         int distribOffSet = 0;
         int distributionSize = distributionList.size();
@@ -913,7 +913,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             final WorkerTask workerTask =
                 new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId);
+                    tenantId, requestId, contractId, contextId, applicationId);
 
             currentWorkerTaskList.add(workerTask);
             completableFutureList.add(prepare(workerTask, operationId, tenantId));
