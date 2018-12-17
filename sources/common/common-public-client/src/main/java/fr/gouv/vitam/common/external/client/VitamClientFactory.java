@@ -362,7 +362,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     @Override
     public void resume(Client client, boolean chunk) {
-        if (client == givenClient || client == givenClientNotChunked) {
+        if (! VitamConfiguration.isUseNewJaxrClient()) {
             return;
         }
         client.close();
