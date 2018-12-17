@@ -27,6 +27,19 @@
 
 package fr.gouv.vitam.storage.engine.server.spi;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferHACapabilityProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
+import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,25 +55,12 @@ import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
-import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
-
 /**
  * DriverManager implementation.
- *
+ * <p>
  * Use to register storage driver and associates it with offers.<br>
  * <br>
- *
+ * <p>
  * Actually, it is not possible to append driver without a server restart (you can append the driver, do association
  * with offers but you have to restart the server to have the new driver).
  */
@@ -111,10 +111,16 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driver.getClass().getName());
                 for (final String offerId : offersIds) {
-                    StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
-                    final Properties parameters = new Properties();
-                    parameters.putAll(offer.getParameters());
-                    driver.addOffer(offer, parameters);
+                    StorageOffer offer = StorageOfferHACapabilityProviderFactory.getDefaultProvider()
+                        .getStorageOfferForHA(offerId, true);
+                    if (offer.isEnabled()) {
+                        final Properties parameters = new Properties();
+                        parameters.putAll(offer.getParameters());
+                        driver.addOffer(offer, parameters);
+                    } else {
+                        LOGGER
+                            .warn("Disabled Offer %s will not be add to driver's offer %s", offerId, driver.getName());
+                    }
                 }
             } catch (final StorageException exc) {
                 LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}",
@@ -129,7 +135,9 @@ public class DriverManager {
         for (final String offerId : offersIds) {
             boolean done;
             try {
-                StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
+                //consider all offer including inactive ones
+                StorageOffer offer =
+                    StorageOfferHACapabilityProviderFactory.getDefaultProvider().getStorageOfferForHA(offerId, true);
                 final Properties parameters = new Properties();
                 parameters.putAll(offer.getParameters());
                 done = driver.addOffer(offer, parameters);
@@ -273,7 +281,7 @@ public class DriverManager {
      * @param offerId the offer ID to remove
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      * @throws StorageDriverNotFoundException thrown if the associated driver is not found (no driver / offer
-     *         association)
+     * association)
      */
     public static void removeOffer(String offerId) throws StorageDriverMapperException, StorageDriverNotFoundException {
         final Driver driver = getDriverFor(offerId);
@@ -292,7 +300,7 @@ public class DriverManager {
      * @param offerId required the offer ID
      * @return the associated driver
      * @throws StorageDriverNotFoundException thrown if the associated driver is not found (no driver / offer
-     *         association)
+     * association)
      */
     public static Driver getDriverFor(String offerId) throws StorageDriverNotFoundException {
         for (String driverName : drivers.keySet()) {

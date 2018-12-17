@@ -103,6 +103,7 @@ public class FSProviderTest {
         assertEquals("http://workspaceOfferService", offer.getBaseUrl());
         assertNotNull(offer.getParameters());
         assertEquals("bob", offer.getParameters().get("user"));
+        assertTrue(offer.isEnabled());
     }
 
     @Test
@@ -136,9 +137,27 @@ public class FSProviderTest {
         fsProvider.setStorageStrategy(null);
         final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
         assertTrue(strategy.getHotStrategy().isCopyValid());
-        strategy.getHotStrategy().setCopy(3);
+        strategy.getHotStrategy().setCopy(4);
         assertFalse(strategy.getHotStrategy().isCopyValid());
         strategy.getHotStrategy().setCopy(1);
         assertFalse(strategy.getHotStrategy().isCopyValid());
+    }
+
+
+    @Test
+    public void testDisabledStorageOffer() throws Exception {
+        final FSProvider fsProvider = new FSProvider();
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        assertEquals("default", strategy.getId());
+        final HotStrategy hot = strategy.getHotStrategy();
+        assertNotNull(hot);
+        assertEquals((Integer) 2, hot.getCopy());
+        final List<OfferReference> offerReferences = hot.getOffers();
+        assertEquals((Integer) 2, hot.getCopy());
+        assertFalse(strategy.isStorageOfferEnabled(""));
+        final StorageOffer offer = fsProvider.getStorageOfferForHA("inactiveOffer", true);
+        assertNotNull(offer);
+        assertFalse(offer.isEnabled());
+        assertTrue("inactiveOffer".equals(offer.getId()));
     }
 }

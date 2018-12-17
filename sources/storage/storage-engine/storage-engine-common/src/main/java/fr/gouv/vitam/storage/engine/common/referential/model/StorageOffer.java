@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.common.referential.model;
 
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
+
 import java.util.Map;
 
 /**
@@ -36,6 +38,7 @@ public class StorageOffer {
     private String id;
     private String baseUrl;
     private Map<String, String> parameters;
+    private ActivationStatus status;
 
     /**
      * @return the base url
@@ -77,5 +80,29 @@ public class StorageOffer {
      */
     public void setId(String id) {
         this.id = id;
+    }
+    /**
+     *
+     * @return the status
+     */
+    public ActivationStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * principally, updated by {@link StorageStrategy} configuration and prevail upon offers configuration file
+     * @param status to set
+     */
+
+    public void setStatus(ActivationStatus status) {
+        this.status = status;
+    }
+
+    public void setEnabled(boolean enable) {
+        this.status = enable ? ActivationStatus.ACTIVE : ActivationStatus.INACTIVE;
+    }
+
+    public boolean isEnabled() {
+        return  ActivationStatus.ACTIVE.equals(this.getStatus()) ;
     }
 }
