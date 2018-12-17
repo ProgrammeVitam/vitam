@@ -103,7 +103,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
@@ -117,7 +117,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
@@ -136,16 +136,16 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
     private static final HashSet<Class> servers = Sets.newHashSet(
-        AccessInternalMain.class,
-        AdminManagementMain.class,
-        ProcessManagementMain.class,
-        LogbookMain.class,
-        WorkspaceMain.class,
-        MetadataMain.class,
-        WorkerMain.class,
-        LogbookMain.class,
-        IngestInternalMain.class,
-        BatchReportMain.class
+            AccessInternalMain.class,
+            AdminManagementMain.class,
+            ProcessManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            MetadataMain.class,
+            WorkerMain.class,
+            LogbookMain.class,
+            IngestInternalMain.class,
+            BatchReportMain.class
     );
 
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
@@ -161,7 +161,7 @@ public class PreservationIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         String configurationPath =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -227,14 +227,14 @@ public class PreservationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
 
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(zip);
+                PropertiesUtils.getResourceAsStream(zip);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid.toString(), ingestOperationGuid);
+                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -265,15 +265,16 @@ public class PreservationIT extends VitamRuleRunner {
         for (Map.Entry<String, String> entry : objectIdsToFormat.entrySet()) {
 
             List<OutputPreservation> outputPreservationList = new ArrayList<>();
-            for (ActionTypePreservation action : singletonList(ANALYSE)) {
+            for (ActionTypePreservation action : singletonList(GENERATE)) {
 
                 OutputPreservation outputPreservation = new OutputPreservation();
 
                 outputPreservation.setStatus(OK);
-                outputPreservation.setAnalyseResult(NOT_VALID);
+                outputPreservation.setAnalyseResult(VALID_ALL);
                 outputPreservation.setAction(action);
 
                 outputPreservation.setInputPreservation(new InputPreservation(entry.getKey(), entry.getValue()));
+                outputPreservation.setOutputName("GENERATE-" + entry.getKey() + ".pdf");
                 outputPreservationList.add(outputPreservation);
             }
 
@@ -294,7 +295,7 @@ public class PreservationIT extends VitamRuleRunner {
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
             Optional<VersionsModel> versionsModelOptional =
-                objectGroup.getFirstVersionsModel("BinaryMaster");
+                    objectGroup.getFirstVersionsModel("BinaryMaster");
 
             VersionsModel model = versionsModelOptional.get();
             allObjectIds.put(model.getId(), model.getFormatIdentification().getFormatId());
@@ -370,14 +371,14 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
-                .get("$results")
-                .get(0)
-                .get("events");
+                    .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results")
+                    .get(0)
+                    .get("events");
 
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
-                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+                    .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
         }
     }
 }
