@@ -29,17 +29,21 @@ import org.mockito.junit.MockitoRule;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin.OBJECT_GROUPS_TO_PRESERVE_JSONL;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,22 +96,30 @@ public class PreservationPreparationPluginTest {
         throws ContentAddressableStorageServerException, ProcessingException, IOException,
         InvalidParseOperationException {
 
+        // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        File file = temporaryFolder.newFile();
         PreservationRequest preservationRequest =
-            new PreservationRequest(new Select().getFinalSelect(), "id", singletonList("BinaryMaster"), LAST);
+            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST);
 
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
-        when(handler.getNewLocalFile(anyString())).thenReturn(file);
 
+        Map<String, File> files = new HashMap<>();
+        doAnswer((args) -> {
+            File file = temporaryFolder.newFile();
+            files.put(args.getArgumentAt(0, String.class), file);
+            return file;
+        }).when(handler).getNewLocalFile(anyString());
+
+        // When
         ItemStatus itemStatus = preservationPreparationPlugin.execute(workerParameters, handler);
-        StatusCode globalStatus = itemStatus.getGlobalStatus();
 
+        // Then
+        StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
-        List<String> lines = IOUtils.readLines(new FileInputStream(file.getAbsolutePath()), "UTF-8");
+        List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
     }
 

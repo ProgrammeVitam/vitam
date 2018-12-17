@@ -358,13 +358,12 @@ public class PreservationIT extends VitamRuleRunner {
 
             buildAndSavePreservationResultFile();
 
-            List<String> usages = singletonList("BinaryMaster");
             SelectMultiQuery select = new SelectMultiQuery();
             select.setQuery(QueryHelper.exists("#id"));
 
             ObjectNode finalSelect = select.getFinalSelect();
             PreservationRequest preservationRequest =
-                new PreservationRequest(finalSelect, "PSC-000001", usages, LAST);
+                new PreservationRequest(finalSelect, "PSC-000001", "BinaryMaster", LAST);
             accessClient.startPreservation(preservationRequest);
 
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());

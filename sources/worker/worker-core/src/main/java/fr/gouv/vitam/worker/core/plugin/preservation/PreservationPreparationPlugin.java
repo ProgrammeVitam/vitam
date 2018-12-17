@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -67,18 +68,24 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,13 +104,11 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.administration.GriffinModel.TAG_IDENTIFIER;
 import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
 
 public class PreservationPreparationPlugin extends ActionHandler {
@@ -111,26 +116,18 @@ public class PreservationPreparationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationPreparationPlugin.class);
 
     private static final String PRESERVATION_PREPARATION = "PRESERVATION_PREPARATION";
+    static final String OBJECT_GROUPS_TO_PRESERVE_JSONL = "object_groups_to_preserve.jsonl";
 
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
-    private MetaDataClientFactory metaDataClientFactory;
-
-    private PreservationRequest preservationRequest;
-
-    private PreservationScenarioModel scenarioModel;
-
-    private Map<String, GriffinModel> griffinModelListForScenario;
-
-    private File objectGroupsBigFileToPreserve;
-
-    private UniqueIdHandler uniqueIdHandler = new UniqueIdHandler();
+    private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationPreparationPlugin() {
         this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting PreservationPreparationPlugin(AdminManagementClientFactory adminManagementClientFactory,
+    @VisibleForTesting
+    PreservationPreparationPlugin(AdminManagementClientFactory adminManagementClientFactory,
         MetaDataClientFactory metaDataClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
@@ -170,14 +167,23 @@ public class PreservationPreparationPlugin extends ActionHandler {
     private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient)
         throws VitamException {
 
-        prepareElements(handler);
+        PreservationRequest preservationRequest = loadPreservationRequest(handler);
 
-        JsonNode initialQuery = preservationRequest.getDslQuery();
+        PreservationScenarioModel scenarioModel;
+        Map<String, GriffinModel> griffinModelListForScenario;
 
-        SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(initialQuery);
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+
+            scenarioModel = getScenarioModel(adminManagementClient, preservationRequest.getScenarioIdentifier());
+            griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
+
+        } catch (Exception e) {
+            throw new ProcessingException("Preconditions Failed", e);
+        }
+
+        SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(preservationRequest.getDslQuery());
 
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
-
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
@@ -188,13 +194,96 @@ public class PreservationPreparationPlugin extends ActionHandler {
         Iterator<List<Pair<String, List<String>>>> bulkIterator =
             new BulkIterator<>(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
 
+        HashMap<String, File> distributionFileByFormat = new HashMap<>();
+
+        while (bulkIterator.hasNext()) {
+            List<Pair<String, List<String>>> bulkToProcess = bulkIterator.next();
+
+            processBulk(bulkToProcess, preservationRequest, handler, distributionFileByFormat, scenarioModel,
+                griffinModelListForScenario);
+        }
+
+        mergeDistributionFiles(handler, distributionFileByFormat);
+    }
+
+    private PreservationRequest loadPreservationRequest(HandlerIO handler)
+        throws ProcessingException, InvalidParseOperationException {
+        JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
+        return getFromJsonNode(inputRequest, PreservationRequest.class);
+    }
+
+    private void processBulk(List<Pair<String, List<String>>> bulkToProcess, PreservationRequest preservationRequest,
+        HandlerIO handler, HashMap<String, File> distributionFileByFormat, PreservationScenarioModel scenarioModel,
+        Map<String, GriffinModel> griffinModelListForScenario) {
+
+        Map<String, List<String>> tempMap = new HashMap<>();
+        bulkToProcess.forEach(item -> tempMap.put(item.getKey(), item.getValue()));
+
+        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(tempMap.keySet());
+
+        MultiValuedMap<String, PreservationDistributionLine> preservationDistributionsByFormatId =
+            new ArrayListValuedHashMap<>();
+
+        for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
+
+            Collection<String> unitIds = tempMap.get(objectGroup.getId());
+
+            // FIXME: All unitsIds should be proceeded, not just a single unitId.
+            //  For now, only a single unit Id is supported
+            String unitId = unitIds.iterator().next();
+
+            Optional<PreservationDistributionLine> preservationDistributionLine = createPreservationDistributionLine(
+                preservationRequest, unitId, objectGroup, scenarioModel, griffinModelListForScenario);
+
+            preservationDistributionLine.ifPresent(
+                line -> preservationDistributionsByFormatId.put(line.getFormatId(), line));
+        }
+
+        writeDistributionFilesByFormatId(handler, distributionFileByFormat, preservationDistributionsByFormatId);
+    }
+
+    private void writeDistributionFilesByFormatId(HandlerIO handler, HashMap<String, File> distributionFileByFormat,
+        MultiValuedMap<String, PreservationDistributionLine> preservationDistributionsByFormatId) {
+        for (String formatId : preservationDistributionsByFormatId.keySet()) {
+
+            File distributionFile = distributionFileByFormat.computeIfAbsent(
+                formatId, unused -> handler.getNewLocalFile(GUIDFactory.newGUID().toString()));
+
+            try (final FileOutputStream outputStream = new FileOutputStream(distributionFile, true);
+                JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+
+                for (PreservationDistributionLine preservationDistributionLine : preservationDistributionsByFormatId
+                    .get(formatId)) {
+                    writer.addEntry(new JsonLineModel(preservationDistributionLine.getId(), null,
+                        JsonHandler.toJsonNode(preservationDistributionLine)));
+                }
+            } catch (IOException | InvalidParseOperationException e) {
+                throw new VitamRuntimeException("Could not persist distribution file", e);
+            }
+        }
+    }
+
+    private void mergeDistributionFiles(HandlerIO handler, HashMap<String, File> distributionFileByFormat)
+        throws VitamException {
+        File objectGroupsBigFileToPreserve = handler.getNewLocalFile(OBJECT_GROUPS_TO_PRESERVE_JSONL);
         try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
             JsonLineWriter writer = new JsonLineWriter(outputStream)) {
 
-            while (bulkIterator.hasNext()) {
-                List<Pair<String, List<String>>> bulkToProcess = bulkIterator.next();
+            int cpt = 0;
+            for (File distributionFileForFormatId : distributionFileByFormat.values()) {
+                cpt++;
 
-                process(bulkToProcess, preservationRequest, writer);
+                try (final InputStream inputStream = new FileInputStream(distributionFileForFormatId);
+                    JsonLineIterator jsonLineIterator = new JsonLineIterator(inputStream)) {
+
+                    while (jsonLineIterator.hasNext()) {
+                        JsonLineModel model = jsonLineIterator.next();
+                        model.setDistribGroup(cpt);
+                        writer.addEntry(model);
+                    }
+                }
+
+                FileUtils.deleteQuietly(distributionFileForFormatId);
             }
 
         } catch (IOException e) {
@@ -204,100 +293,45 @@ public class PreservationPreparationPlugin extends ActionHandler {
         handler.transferFileToWorkspace("distributionFile.jsonl", objectGroupsBigFileToPreserve, false, false);
     }
 
+    private Optional<PreservationDistributionLine> createPreservationDistributionLine(
+        PreservationRequest preservationRequest, String unitId,
+        ObjectGroupResponse objectGroup, PreservationScenarioModel scenarioModel,
+        Map<String, GriffinModel> griffinModelListForScenario) {
 
-    private void process(List<Pair<String, List<String>>> bulkToProcess, PreservationRequest preservationRequest,
-        JsonLineWriter writer) {
+        String qualifier = preservationRequest.getUsage();
 
-        Map<String,List<String>> tempMap = new HashMap<>();
-        bulkToProcess.forEach(item -> tempMap.put(item.getKey(), item.getValue()));
+        PreservationVersion version = preservationRequest.getVersion();
 
-        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(tempMap.keySet());
+        Optional<VersionsModel> versionsModelOptional = (version == FIRST) ?
+            objectGroup.getFirstVersionsModel(qualifier) : objectGroup.getLastVersionsModel(qualifier);
 
-        List<JsonLineModel> jsonLineModelListToDistribute = new ArrayList<>();
-
-        for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
-
-            Collection<String> unitIds = tempMap.get(objectGroup.getId());
-
-            String unitId = unitIds.iterator().next();
-
-            List<JsonLineModel> modelList = collectLineModelPerQualifier(preservationRequest, unitId, objectGroup);
-
-            jsonLineModelListToDistribute.addAll(modelList);
+        if (!versionsModelOptional.isPresent()) {
+            return Optional.empty();
         }
 
-        //Sort is necessary for optimizing distribution
-        jsonLineModelListToDistribute.sort(comparing(JsonLineModel::getDistribGroup));
+        VersionsModel versionsModel = versionsModelOptional.get();
+        FormatIdentificationModel formatIdentificationModel = versionsModel.getFormatIdentification();
 
+        String formatId = formatIdentificationModel.getFormatId();
+        Optional<GriffinByFormat> griffinByFormat = scenarioModel.getGriffinByFormat(formatId);
 
-        writeLisToFile(jsonLineModelListToDistribute, writer);
-
-    }
-
-    private void writeLisToFile(List<JsonLineModel> jsonLineModelListToDistribute, JsonLineWriter writer) {
-        try {
-
-            for (JsonLineModel model : jsonLineModelListToDistribute) {
-                writer.addEntry(model);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Something bas happened", e);
-        }
-    }
-
-    private List<JsonLineModel> collectLineModelPerQualifier(PreservationRequest preservationRequest, String unitId,
-        ObjectGroupResponse objectGroup) {
-
-        List<JsonLineModel> jsonLineModelList = new ArrayList<>();
-
-        for (String qualifier : preservationRequest.getUsages()) {
-
-            PreservationVersion version = preservationRequest.getVersion();
-
-            Optional<VersionsModel> versionsModelOptional = (version == FIRST) ?
-                objectGroup.getFirstVersionsModel(qualifier) : objectGroup.getLastVersionsModel(qualifier);
-
-            if (!versionsModelOptional.isPresent()) {
-                throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
-            }
-
-            VersionsModel versionsModel = versionsModelOptional.get();
-            FormatIdentificationModel formatIdentificationModel = versionsModel.getFormatIdentification();
-
-            String formatId = formatIdentificationModel.getFormatId();
-            Optional<GriffinByFormat> griffinByFormat = scenarioModel.getGriffinByFormat(formatId);
-
-            if (!griffinByFormat.isPresent()) {
-                throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
-            }
-
-            GriffinByFormat griffinByFormatModel = griffinByFormat.get();
-
-            String griffinId = griffinByFormatModel.getGriffinIdentifier();
-
-            int distributionGroup = uniqueIdHandler.getUniqCodeForFormat(formatId);
-
-            JsonLineModel lineModel = new JsonLineModel();
-
-            lineModel.setDistribGroup(distributionGroup);
-            lineModel.setId(objectGroup.getId());
-
-            GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
-
-            PreservationDistributionLine preservationDistributionLine = getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel, formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier);
-            try {
-                lineModel.setParams(toJsonNode(preservationDistributionLine));
-            } catch (InvalidParseOperationException e) {
-                throw new VitamRuntimeException(e);
-            }
-
-            jsonLineModelList.add(lineModel);
+        if (!griffinByFormat.isPresent()) {
+            throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
         }
 
-        return jsonLineModelList;
+        GriffinByFormat griffinByFormatModel = griffinByFormat.get();
+
+        String griffinId = griffinByFormatModel.getGriffinIdentifier();
+
+        GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
+
+        return Optional.of(getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel,
+            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier));
     }
 
-    private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId, VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel, String qualifier) {
+    private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId,
+        VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
+        String qualifier) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
@@ -382,21 +416,6 @@ public class PreservationPreparationPlugin extends ActionHandler {
         return projectionNode;
     }
 
-    private void prepareElements(HandlerIO handler) throws ProcessingException {
-
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-            JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
-
-            preservationRequest = getFromJsonNode(inputRequest, PreservationRequest.class);
-            scenarioModel = getScenarioModel(adminManagementClient, preservationRequest.getScenarioIdentifier());
-            griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
-            objectGroupsBigFileToPreserve = handler.getNewLocalFile("object_groups_to_preserve.jsonl");
-
-        } catch (Exception e) {
-            throw new ProcessingException("Preconditions Failed", e);
-        }
-    }
-
     private Map<String, GriffinModel> getListOfGriffinGivenScenario(AdminManagementClient adminManagementClient,
         PreservationScenarioModel scenarioModel)
         throws InvalidCreateOperationException, AdminManagementClientServerException, InvalidParseOperationException,
@@ -432,19 +451,5 @@ public class PreservationPreparationPlugin extends ActionHandler {
             throw new ProcessingException("Griffin " + identifier + " not found");
         }
         return model;
-    }
-
-    static class UniqueIdHandler {
-
-        private final Map<String, Integer> uniqueIdMap = new HashMap<>();
-
-        int getUniqCodeForFormat(String id) {
-            if (uniqueIdMap.containsKey(id)) {
-                return uniqueIdMap.get(id);
-            }
-            int newId = uniqueIdMap.size() + 1;
-            uniqueIdMap.put(id, newId);
-            return newId;
-        }
     }
 }

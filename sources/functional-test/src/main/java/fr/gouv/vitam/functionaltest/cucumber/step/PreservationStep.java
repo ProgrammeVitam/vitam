@@ -145,19 +145,18 @@ public class PreservationStep {
     }
 
 
-    @When("^je lance la preservation avec le scénario (.*) et pour les usages (.*)$")
-    public void launchPreservation(String scenarioId, String usageString) throws Exception {
+    @When("^je lance la preservation avec le scénario (.*) et pour l'usage (.*)$")
+    public void launchPreservation(String scenarioId, String usage) throws Exception {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
 
-        List<String> usages = Arrays.asList(usageString.split(","));
         String query = world.getQuery();
 
         JsonNode queryNode = JsonHandler.getFromString(query);
 
-        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usages, LAST);
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usage, LAST);
         RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);
