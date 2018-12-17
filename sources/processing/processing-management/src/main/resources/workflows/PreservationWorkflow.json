@@ -7,7 +7,7 @@
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "PREPARATION",
+      "stepName": "STP_PREPARATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -149,7 +149,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "FINALIZATION",
+      "stepName": "STP_PRESERVATION_FINALIZATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
