@@ -36,7 +36,7 @@ import static fr.gouv.vitam.griffins.imagemagick.status.ActionType.GENERATE;
 import static fr.gouv.vitam.griffins.imagemagick.status.ActionType.IDENTIFY;
 import static fr.gouv.vitam.griffins.imagemagick.status.AnalyseResult.NOT_VALID;
 import static fr.gouv.vitam.griffins.imagemagick.status.AnalyseResult.VALID_ALL;
-import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.ERROR;
+import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.KO;
 import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.OK;
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -134,7 +134,7 @@ public class MainTest {
         BatchStatus status = batchProcessor.execute();
 
         // Then
-        assertThat(status.status).isEqualTo(ERROR);
+        assertThat(status.status).isEqualTo(KO);
         assertThat(Paths.get(tmpGriffinFolder.getRoot().getPath(), ID, batchName, resultFileName)).doesNotExist();
     }
 
@@ -176,7 +176,7 @@ public class MainTest {
         BatchStatus status = batchProcessor.execute();
 
         // Then
-        assertThat(status.status).isEqualTo(ERROR);
+        assertThat(status.status).isEqualTo(KO);
     }
 
     private Outputs getOutputs() throws IOException {

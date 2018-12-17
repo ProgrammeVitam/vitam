@@ -236,5 +236,20 @@
   },
   "PRESERVATION_FINALIZATION":{
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin"
+  },
+  "PRESERVATION_SIEGFRIED_IDENTIFICATION":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
+  },
+  "PRESERVATION_BINARY_HASH":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash"
+  },
+  "PRESERVATION_STORAGE_BINARY":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin"
+  },
+  "PRESERVATION_INDEXATION_METADATA":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationUpdateObjectGroupPlugin"
+  },
+  "PRESERVATION_STORAGE_METADATA_LFC":{
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageMetadataAndLfc"
   }
 }

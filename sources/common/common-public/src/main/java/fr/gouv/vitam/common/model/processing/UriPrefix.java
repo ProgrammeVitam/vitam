@@ -39,6 +39,7 @@ public enum UriPrefix {
      * Memory based argument
      */
     MEMORY,
+    MEMORY_SINGLE,
     /**
      * Fixe value based argument
      */

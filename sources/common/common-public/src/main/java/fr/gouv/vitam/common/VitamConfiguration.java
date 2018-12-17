@@ -26,17 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -163,7 +163,7 @@ public class VitamConfiguration {
     /**
      * Default Vitam griffin folder for transformed data
      */
-    private static String vitamGriffinInputFilesFolder = "/vitam/tmp/griffins";
+    private static String vitamGriffinInputFilesFolder = "/vitam/tmp/worker/griffins";
 
     private static String workspaceWorkflowsFolder = "workflows";
 

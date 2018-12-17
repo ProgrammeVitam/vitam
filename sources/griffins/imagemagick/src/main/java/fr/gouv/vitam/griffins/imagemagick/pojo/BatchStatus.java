@@ -29,7 +29,7 @@ package fr.gouv.vitam.griffins.imagemagick.pojo;
 
 import fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus;
 
-import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.ERROR;
+import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.KO;
 import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.WARNING;
 import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.OK;
 
@@ -57,7 +57,7 @@ public class BatchStatus {
     }
 
     public static BatchStatus error(String batchId, long start, Throwable error) {
-        return new BatchStatus(batchId, start, System.currentTimeMillis(), ERROR, error.getMessage());
+        return new BatchStatus(batchId, start, System.currentTimeMillis(), KO, error.getMessage());
     }
 
     @Override

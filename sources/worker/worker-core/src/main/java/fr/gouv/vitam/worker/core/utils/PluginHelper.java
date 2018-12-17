@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.utils;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -59,6 +60,28 @@ public class PluginHelper {
         throw new IllegalStateException("Utility class");
     }
 
+    public static class EventDetails {
+        public String event;
+        public String secondEvent;
+
+        private EventDetails(String event) {
+            this.event = event;
+        }
+
+        private EventDetails(String event, String secondEvent) {
+            this.event = event;
+            this.secondEvent = secondEvent;
+        }
+
+        public static EventDetails of(String event) {
+            return new EventDetails(event);
+        }
+
+        public static EventDetails of(String event, String secondEvent) {
+            return new EventDetails(event, secondEvent);
+        }
+    }
+
     public static <TEventDetails> ItemStatus buildItemStatus(String action, StatusCode statusCode,
         TEventDetails eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(action);
@@ -75,6 +98,10 @@ public class PluginHelper {
                 LOGGER.error("Could not serialize event details" + eventDetails);
             }
         }
+    }
+
+    public static ObjectNode eventDetails(Throwable e) {
+        return JsonHandler.createObjectNode().put("error", e.getMessage());
     }
 
     public static List<ItemStatus> buildBulkItemStatus(WorkerParameters param, String action, StatusCode statusCode) {

@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -33,16 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Composite Item Status
@@ -487,7 +486,6 @@ public class ItemStatus {
         ParametersChecker.checkParameterDefault("evDetailData", evDetailData);
         try {
             JsonHandler.validate(evDetailData);
-
         } catch (InvalidParseOperationException e) {
             throw new IllegalArgumentException("Value of eventDetailData has to be a Valid Json", e);
         }
@@ -552,16 +550,18 @@ public class ItemStatus {
         return globalOutcomeDetailSubcode;
     }
 
-    public void setGlobalOutcomeDetailSubcode(String globalOutcomeDetailSubcode) {
+    public ItemStatus setGlobalOutcomeDetailSubcode(String globalOutcomeDetailSubcode) {
         this.globalOutcomeDetailSubcode = globalOutcomeDetailSubcode;
+        return this;
     }
 
     public boolean isLifecycleEnable() {
         return lifecycleEnable;
     }
 
-    public void disableLfc() {
+    public ItemStatus disableLfc() {
         this.lifecycleEnable = false;
+        return this;
     }
 
     /**

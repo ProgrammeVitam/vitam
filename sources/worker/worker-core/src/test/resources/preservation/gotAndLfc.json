@@ -1,0 +1,63 @@
+{
+  "got": {
+    "_id": "aebaaaaaaahuq4l4aa4zsalhgwcreaiaaaaq",
+    "_tenant": 0,
+    "_profil": "",
+    "FileInfo": {
+      "Filename": "Ut ex nunc",
+      "LastModified": "2012-06-20T18:58:18.000+02:00"
+    },
+    "_qualifiers": [
+      {
+        "qualifier": "BinaryMaster",
+        "_nbc": 1,
+        "versions": [
+          {
+            "_id": "aeaaaaaaaahuq4l4aa4zsalhgwcreaaaaaba",
+            "DataObjectGroupId": "aebaaaaaaahuq4l4aa4zsalhgwcreaiaaaaq",
+            "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {
+              "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+              "MimeType": "application/pdf",
+              "FormatId": "fmt/18"
+            },
+            "FileInfo": {
+              "Filename": "Ut ex nunc",
+              "LastModified": "2012-06-20T18:58:18.000+02:00"
+            },
+            "_opi": "aeeaaaaaachuq4l4aa56walhgwcraoqaaaaq",
+            "Size": 29403,
+            "Uri": "Content/2DttzvaBjmOJlnNHhwjRWBRqvyqWtbx.pdf",
+            "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+            "Algorithm": "SHA-512",
+            "_storage": {
+              "_nbc": 1,
+              "offerIds": [
+                "offer-fs-1.service.consul"
+              ],
+              "strategyId": "default"
+            }
+          }
+        ]
+      }
+    ],
+    "_up": [
+      "aeaqaaaaaahuq4l4aa4zsalhgwcrebaaaaba"
+    ],
+    "_nbc": 1,
+    "_ops": [
+      "aeeaaaaaachuq4l4aa56walhgwcraoqaaaaq"
+    ],
+    "_opi": "aeeaaaaaachuq4l4aa56walhgwcraoqaaaaq",
+    "_sp": "EEEEEE",
+    "_storage": {
+      "_nbc": 1,
+      "offerIds": [
+        "offer-fs-1.service.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_v": 0
+  },
+  "lfc": null
+}

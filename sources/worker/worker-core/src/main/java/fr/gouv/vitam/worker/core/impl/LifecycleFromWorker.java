@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -53,6 +47,12 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 
 /**
  * classe permettant de générer des LFC à partir des ItemStatus renvoyé par le résultat d'une action.
@@ -88,15 +88,12 @@ public class LifecycleFromWorker {
             if (!StatusCode.ALREADY_EXECUTED.equals(itemStatus.getGlobalStatus()) && itemStatus.isLifecycleEnable()) {
                 workParams.setObjectName(objectName);
                 LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(distributionType, handlerName, workParams);
-                List<LogbookLifeCycleParameters> logbookParamList =
-                    createLogbookLifeCycleParameters(handlerName, itemStatus, lfcParam);
+                List<LogbookLifeCycleParameters> logbookParamList = createLogbookLifeCycleParameters(handlerName, itemStatus, lfcParam);
                 String objectId = objectName.replace(".json", "");
                 if (action.getActionDefinition().lifecycleState() == LifecycleState.TEMPORARY) {
-                        logbookLifeCycleParametersTemporaryBulks
-                            .add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
+                    logbookLifeCycleParametersTemporaryBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 } else {
-                        logbookLifeCycleParametersBulks
-                            .add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
+                    logbookLifeCycleParametersBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 }
             }
             aggregateItemStatus.setItemId(itemStatus.getItemId());
@@ -106,21 +103,18 @@ public class LifecycleFromWorker {
 
     /**
      * sauvegarde des LFC
-     *
      * @param distributionType unit or GOT
      * @throws VitamClientInternalException
      */
-
     public void saveLifeCycles(DistributionType distributionType) throws VitamClientInternalException {
         if (!logbookLifeCycleParametersTemporaryBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
-                logbookLifeCycleParametersTemporaryBulks);
+            logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType, logbookLifeCycleParametersTemporaryBulks);
+            logbookLifeCycleParametersTemporaryBulks.clear();
         }
         if (!logbookLifeCycleParametersBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycle(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
-                logbookLifeCycleParametersBulks);
+            logbookLfcClient.bulkLifeCycle(VitamThreadUtils.getVitamSession().getRequestId(), distributionType, logbookLifeCycleParametersBulks);
+            logbookLifeCycleParametersBulks.clear();
         }
-
     }
 
     private LogbookLifeCycleParameters createStartLogbookLfc(DistributionType distributionType, String handlerName,

@@ -27,13 +27,20 @@
 
 package fr.gouv.vitam.griffins.imagemagick.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class Parameters {
+    @JsonProperty("RequestId")
     private String requestId;
+    @JsonProperty("Id")
     private String id;
+    @JsonProperty("Actions")
     private List<Action> actions;
+    @JsonProperty("Inputs")
     private List<Input> inputs;
+    @JsonProperty("Debug")
     private boolean debug;
 
     public Parameters() {

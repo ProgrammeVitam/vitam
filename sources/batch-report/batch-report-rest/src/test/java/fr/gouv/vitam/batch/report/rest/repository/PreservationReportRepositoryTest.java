@@ -1,4 +1,4 @@
-package fr.gouv.vitam.batch.report.rest.repository; /*******************************************************************************
+ /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -24,7 +24,9 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-import com.mongodb.client.FindIterable;
+ package fr.gouv.vitam.batch.report.rest.repository;
+
+ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
@@ -43,8 +45,10 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.assertj.core.api.Assertions.assertThat;
+ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PreservationReportRepositoryTest {
 
@@ -63,14 +67,14 @@ public class PreservationReportRepositoryTest {
     private String processId;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
         repository = new PreservationReportRepository(mongoDbAccess);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
         preservationReportModel = new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
-            PreservationStatus.OK, "unitId", "objectGroupId", "ANALYSE", "VALID_ALL",
+            PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, VALID_ALL,
             "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
     }
 
@@ -87,11 +91,11 @@ public class PreservationReportRepositoryTest {
         assertThat(report.get("_id")).isEqualTo(preservationReportModel.getId());
         assertThat(report.get("objectGroupId")).isEqualTo(preservationReportModel.getObjectGroupId());
         assertThat(PreservationStatus.valueOf(report.get("status").toString())).isEqualTo(preservationReportModel.getStatus());
-        assertThat(report.get("analyseResult")).isEqualTo(preservationReportModel.getAnalyseResult());
+        assertThat(report.get("analyseResult")).isEqualTo(preservationReportModel.getAnalyseResult().toString());
     }
 
     @Test
-    public void should_find_collection_by_processid_tenant() throws Exception {
+    public void should_find_collection_by_processid_tenant() {
         // Given
         populateDatabase();
         // When
@@ -114,7 +118,7 @@ public class PreservationReportRepositoryTest {
     }
 
     @Test
-    public void should_generate_statistic() throws Exception {
+    public void should_generate_statistic() {
         // Given
         populateDatabase();
         // When
@@ -127,7 +131,7 @@ public class PreservationReportRepositoryTest {
     }
 
     @Test
-    public void should_delete_report_by_id_and_tenant() throws Exception {
+    public void should_delete_report_by_id_and_tenant() {
         // Given
         populateDatabase();
         // When

@@ -91,6 +91,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
+
 
 /**
  * WorkerImpl class implements Worker interface
@@ -265,7 +267,6 @@ public class WorkerImpl implements Worker {
                 ItemStatus aggregateItemStatus = new ItemStatus();
 
                 if (pluginLoader.contains(handlerName)) {
-
                     try (ActionHandler actionPlugin = pluginLoader.newInstance(handlerName)) {
 
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
@@ -292,7 +293,6 @@ public class WorkerImpl implements Worker {
 
                         responses.setItemsStatus(aggregateItemStatus);
                     }
-                    // If not, this is an handler of Vitam
                 } else {
                     final ActionHandler actionHandler = getActionHandler(handlerName);
                     if (actionHandler == null) {
@@ -311,6 +311,11 @@ public class WorkerImpl implements Worker {
 
                     responses.setItemsStatus(aggregateItemStatus);
                 }
+
+                if (FLUSH_LFC.equals(action.getActionDefinition().getLifecycleState())) {
+                    lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
+                }
+
                 LOGGER.debug("STOP handler {} in step {}", actionDefinition.getActionKey(), step.getStepName());
                 // if the action has been defined as Blocking and the action status is KO or FATAL
                 // then break the process

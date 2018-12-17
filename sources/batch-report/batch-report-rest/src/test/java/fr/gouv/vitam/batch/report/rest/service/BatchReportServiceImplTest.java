@@ -60,6 +60,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Matchers.any;
@@ -180,14 +182,13 @@ public class BatchReportServiceImplTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
         String filename = String.format("preservation-Report-%s.jsonl", processId);
-        Path report =
-            initialisePathWithFileName(filename);
+        Path report = initialisePathWithFileName(filename);
 
         PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, 1, 0, 0);
         PreservationReportModel preservationReportModel =
             new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 TENANT_ID, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", "ANALYSE", "VALID_ALL",
+                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, VALID_ALL,
                 "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
         FakeMongoCursor<PreservationReportModel> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationReportModel));
 
@@ -254,8 +255,7 @@ public class BatchReportServiceImplTest {
             .thenReturn(emptyMongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
-        batchReportServiceImpl
-            .exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report.json",
+        batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
                 TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {

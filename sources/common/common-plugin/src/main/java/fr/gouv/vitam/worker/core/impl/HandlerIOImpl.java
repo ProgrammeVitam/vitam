@@ -26,31 +26,12 @@
  */
 package fr.gouv.vitam.worker.core.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -79,6 +60,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Handler input and output parameter
@@ -158,32 +156,36 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public void addInIOParameters(List<IOParameter> list) {
         for (final IOParameter in : list) {
-            switch (in.getUri().getPrefix()) {
+            ProcessingUri uri = in.getUri();
+            switch (uri.getPrefix()) {
                 case WORKSPACE:
                     try {
                         // TODO P1 : remove optional when lazy file loading is implemented
                         for (String objectId : objectIds) {
-                            input.put(objectId, findFileFromWorkspace(in.getUri().getPath(),
+                            input.put(objectId, findFileFromWorkspace(uri.getPath(),
                                 in.getOptional()));
                         }
 
                         break;
                     } catch (final FileNotFoundException e) {
-                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + in.getUri().getPath(), e);
+                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPath(), e);
                     }
                 case MEMORY:
                     for (String objectId : objectIds) {
-                        input.put(objectId, memoryMap.get(String.format("%s.%s", in.getUri().getPath(), objectId)));
+                        input.put(objectId, memoryMap.get(String.format("%s.%s", uri.getPath(), objectId)));
                     }
                     break;
                 case VALUE:
                     for (String objectId : objectIds) {
-                        input.put(objectId, in.getUri().getPath());
+                        input.put(objectId, uri.getPath());
                     }
+                    break;
+                case MEMORY_SINGLE:
+                    input.put(uri.getPath(), memoryMap.get(uri.getPath()));
                     break;
                 default:
                     throw new IllegalArgumentException(
-                        HANDLER_INPUT_NOT_FOUND + in.getUri().getPrefix() + ":" + in.getUri().getPath());
+                        HANDLER_INPUT_NOT_FOUND + uri.getPrefix() + ":" + uri.getPath());
             }
         }
     }
@@ -192,6 +194,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public void addOutIOParameters(List<IOParameter> list) {
         for (final IOParameter out : list) {
             switch (out.getUri().getPrefix()) {
+                case MEMORY_SINGLE:
                 case WORKSPACE:
                 case MEMORY:
                     output.add(out.getUri());
@@ -255,6 +258,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
+    public HandlerIO addOutputResult(int rank, Object object) throws ProcessingException {
+        return addOutputResult(rank, object, false, false);
+    }
+
+    @Override
     public HandlerIO addOutputResult(int rank, Object object, boolean asyncIO) throws ProcessingException {
         return addOutputResult(rank, object, false, asyncIO);
     }
@@ -269,6 +277,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         switch (uri.getPrefix()) {
             case MEMORY:
                 memoryMap.put(String.format("%s.%s", uri.getPath(), currentObjectId), object);
+                break;
+            case MEMORY_SINGLE:
+                memoryMap.put(uri.getPath(), object);
                 break;
             case VALUE:
                 // Ignore

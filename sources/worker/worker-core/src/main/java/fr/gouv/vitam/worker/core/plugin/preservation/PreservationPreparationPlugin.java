@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -280,18 +280,13 @@ public class PreservationPreparationPlugin extends ActionHandler {
             JsonLineModel lineModel = new JsonLineModel();
 
             lineModel.setDistribGroup(distributionGroup);
-
-            lineModel.setId(versionsModel.getId());
+            lineModel.setId(objectGroup.getId());
 
             GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
 
-            PreservationDistributionLine preservationDistributionLine =
-                getPreservationDistributionLine(versionsModel.getId(), unitId, versionsModel.getId(),
-                    formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier);
+            PreservationDistributionLine preservationDistributionLine = getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel, formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier);
             try {
-
                 lineModel.setParams(toJsonNode(preservationDistributionLine));
-
             } catch (InvalidParseOperationException e) {
                 throw new VitamRuntimeException(e);
             }
@@ -302,37 +297,25 @@ public class PreservationPreparationPlugin extends ActionHandler {
         return jsonLineModelList;
     }
 
-    private PreservationDistributionLine getPreservationDistributionLine(String binaryId, String unitId,
-        String objectId, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
-        String qualifier) {
+    private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId, VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel, String qualifier) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
-        preservationDistributionLine.setId(binaryId);
-
+        preservationDistributionLine.setId(objectGroupId);
         preservationDistributionLine.setFormatId(format);
-
-        preservationDistributionLine.setFilename(griffinModel.getExecutableName());
-
+        preservationDistributionLine.setFilename(version.getFileInfoModel().getFilename());
         preservationDistributionLine.setActionPreservationList(griffinByFormatModel.getActionDetail());
-
         preservationDistributionLine.setUnitId(unitId);
-
-        preservationDistributionLine.setGriffinId(griffinModel.getIdentifier());
-
-        preservationDistributionLine.setObjectId(objectId);
-
+        preservationDistributionLine.setGriffinId(griffinModel.getExecutableName());
+        preservationDistributionLine.setObjectId(version.getId());
         preservationDistributionLine.setDebug(griffinByFormatModel.isDebug());
-
         preservationDistributionLine.setTimeout(griffinByFormatModel.getMaxSize());
-
-        preservationDistributionLine.setQualifier(qualifier);
+        preservationDistributionLine.setUsage(qualifier);
 
         return preservationDistributionLine;
     }
 
     private List<ObjectGroupResponse> getObjectModelsForUnitResults(Collection<String> objectGroupIds) {
-
         try {
 
             Select select = new Select();
@@ -402,20 +385,15 @@ public class PreservationPreparationPlugin extends ActionHandler {
     private void prepareElements(HandlerIO handler) throws ProcessingException {
 
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-
             JsonNode inputRequest = handler.getJsonFromWorkspace("preservationRequest");
 
             preservationRequest = getFromJsonNode(inputRequest, PreservationRequest.class);
-
             scenarioModel = getScenarioModel(adminManagementClient, preservationRequest.getScenarioIdentifier());
-
             griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
-
             objectGroupsBigFileToPreserve = handler.getNewLocalFile("object_groups_to_preserve.jsonl");
 
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | AdminManagementClientServerException | ReferentialNotFoundException e) {
-
-            throw new ProcessingException("Preconditions Failed");
+        } catch (Exception e) {
+            throw new ProcessingException("Preconditions Failed", e);
         }
     }
 

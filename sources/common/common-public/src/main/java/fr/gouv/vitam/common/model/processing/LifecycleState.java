@@ -38,10 +38,14 @@ public enum LifecycleState {
     /**
      * The action doesn't generate lifecycle.
      */
-    DISABLED;
+    DISABLED,
+    /**
+     * Lifecycle are stored in definitively collection and commit it in database
+     */
+    FLUSH_LFC;
 
     public boolean isEnabled() {
-        return this == TEMPORARY || this == FINAL;
+        return this == TEMPORARY || this == FINAL || this == FLUSH_LFC;
     }
 
 }

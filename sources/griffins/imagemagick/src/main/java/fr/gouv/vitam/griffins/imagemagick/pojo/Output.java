@@ -33,7 +33,7 @@ import fr.gouv.vitam.griffins.imagemagick.status.AnalyseResult;
 import fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.ERROR;
+import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.KO;
 import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.OK;
 import static fr.gouv.vitam.griffins.imagemagick.status.GriffinStatus.WARNING;
 
@@ -54,7 +54,7 @@ public class Output {
     public static Output error(Input input, ActionType action) {
         Output output = new Output();
         output.setInput(input);
-        output.setStatus(ERROR);
+        output.setStatus(KO);
         output.setAction(action);
         return output;
     }
@@ -62,7 +62,7 @@ public class Output {
     public static Output error(Input input, ActionType action, String error, String executed) {
         Output output = new Output();
         output.setInput(input);
-        output.setStatus(ERROR);
+        output.setStatus(KO);
         output.setAction(action);
         output.setError(error);
         output.setExecuted(executed);

@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.preservation.service; /*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,9 @@ package fr.gouv.vitam.worker.core.plugin.preservation.service; /****************
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
+package fr.gouv.vitam.worker.core.plugin.preservation.service;
+
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
@@ -43,6 +45,8 @@ import org.mockito.junit.MockitoRule;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.BDDMockito.given;
 
@@ -90,7 +94,7 @@ public class PreservationReportServiceTest {
         PreservationReportModel preservationReportModel =
             new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 tenantId, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", "ANALYSE", "VALID_ALL",
+                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, VALID_ALL,
                 "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
         List<PreservationReportModel> reports = new ArrayList<>();
         reports.add(preservationReportModel);
