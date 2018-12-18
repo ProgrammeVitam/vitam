@@ -40,7 +40,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ACTION",
+      "stepName": "STP_PRESERVATION_ACTION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
