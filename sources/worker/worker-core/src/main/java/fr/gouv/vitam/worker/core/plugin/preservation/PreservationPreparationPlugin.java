@@ -246,11 +246,13 @@ public class PreservationPreparationPlugin extends ActionHandler {
         MultiValuedMap<String, PreservationDistributionLine> preservationDistributionsByFormatId) {
         for (String formatId : preservationDistributionsByFormatId.keySet()) {
 
+            boolean isEmpty = !distributionFileByFormat.containsKey(formatId);
+
             File distributionFile = distributionFileByFormat.computeIfAbsent(
                 formatId, unused -> handler.getNewLocalFile(GUIDFactory.newGUID().toString()));
 
             try (final FileOutputStream outputStream = new FileOutputStream(distributionFile, true);
-                JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+                JsonLineWriter writer = new JsonLineWriter(outputStream, isEmpty)) {
 
                 for (PreservationDistributionLine preservationDistributionLine : preservationDistributionsByFormatId
                     .get(formatId)) {

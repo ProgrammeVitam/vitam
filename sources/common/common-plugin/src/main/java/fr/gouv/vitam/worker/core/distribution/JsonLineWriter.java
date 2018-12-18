@@ -43,6 +43,11 @@ public class JsonLineWriter implements AutoCloseable {
         this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
     }
 
+    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
+        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+        this.isEmpty = isEmpty;
+    }
+
     public void addEntry(JsonLineModel line) throws IOException {
 
         if (!isEmpty) {
