@@ -162,6 +162,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
+import static fr.gouv.vitam.ihmdemo.common.utils.PermissionReader.getMethodsAnnotatedWith;
 
 /**
  * Web Application Resource class
@@ -212,13 +213,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Constructor
+     *  @param webApplicationConfig the web server ihm-demo configuration
      *
-     * @param webApplicationConfig the web server ihm-demo configuration
-     * @param permissions          list of permissions
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
+    public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         super(new BasicVitamStatusServiceImpl());
-        this.permissions = permissions;
+        this.permissions = getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);;
         this.secureMode = webApplicationConfig.getSecureMode();
     }
 

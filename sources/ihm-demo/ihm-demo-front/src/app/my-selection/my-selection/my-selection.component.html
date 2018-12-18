@@ -3,7 +3,8 @@
         <div class="ui-g-4"></div>
         <span class="ui-g-4" style="padding: 0">Panier</span>
         <div class="ui-g-3" style="padding: 0; text-align: right">
-            <button pButton class="ui-button secondaryButton" (click)="goToAUSearch()" label="Ajouter des unités archivistiques"
+            <button pButton class="ui-button secondaryButton" (click)="goToAUSearch()"
+                    label="Ajouter des unités archivistiques"
                     icon="fa-search-plus" iconPos="left"></button>
         </div>
     </p-header>
@@ -25,7 +26,8 @@
             <div class="ui-g-4" style="height: 100px;">
                 <div class="ui-g-12" style="height: 90px; padding-top: 25px;">
                     <!-- TODO: Add onChange in order to init specific forms on select kind of action ? -->
-                    <p-dropdown [options]="basketOptions" [(ngModel)]="selectedOption" placeholder="Sélectionner une action"
+                    <p-dropdown [options]="basketOptions" [(ngModel)]="selectedOption"
+                                placeholder="Sélectionner une action"
                                 [disabled]="!hits || hits.total === 0" (onChange)="initForm()"></p-dropdown>
                 </div>
             </div>
@@ -43,7 +45,7 @@
                             [disabled]="!hits || hits.total === 0 || !selectedOption || !checkInputs() || countSelected() === 0"></button>
                 </div>
             </div>
-            <div  class="ui-g-4" style="height: 100px;" *ngIf="selectedOption === 'MASS_UPDATE'">
+            <div class="ui-g-4" style="height: 100px;" *ngIf="selectedOption === 'MASS_UPDATE'">
                 <div class="ui-g-12" style="height: 45px;">
                     <span>Lancer l'action via le formulaire ci-dessous</span>
                 </div>
@@ -58,20 +60,44 @@
     <div class="ui-g" *ngIf="selectedOption === 'ELIMINATION'">
         <div class="ui-g-12" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Date d'échéance demandée</div>
-            <p-calendar class="ui-g-4" type="date" placeholder="jj/mm/aaaa" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+            <p-calendar class="ui-g-4" type="date" placeholder="jj/mm/aaaa" [dateFormat]="'dd/mm/yy'"
+                        [yearNavigator]="true"
                         [yearRange]="'400:2500'" [locale]="frLocale" [(ngModel)]="form.eliminationDate"></p-calendar>
         </div>
 
         <div class="ui-g-12 ui-g-nopad" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Nombre maximum d'unités archivistiques à traiter</div>
             <div class="ui-g-1"></div>
-            <input class="ui-g-2" type="number" pInputText [(ngModel)]="form.eliminationThreshold" min="1" />
+            <input class="ui-g-2" type="number" pInputText [(ngModel)]="form.eliminationThreshold" min="1"/>
         </div>
 
         <div class="ui-g-12 ui-g-nopad" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Mode d'élimination</div>
-            <p-toggleButton class="ui-g-4" onLabel="Action" offLabel="Analyse" [(ngModel)]="form.eliminationMode"></p-toggleButton>
+            <p-toggleButton class="ui-g-4" onLabel="Action" offLabel="Analyse"
+                            [(ngModel)]="form.eliminationMode"></p-toggleButton>
         </div>
+    </div>
+
+    <!-- Specific préservation form -->
+    <div class="ui-g" *ngIf="selectedOption === 'PRESERVATION'">
+
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Version</div>
+            <p-dropdown class="ui-g-3" [options]="form.versions" [(ngModel)]="form.seclectedVersion"></p-dropdown>
+        </div>
+
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Usage</div>
+            <p-dropdown class="ui-g-3" [options]="form.usages" [(ngModel)]="form.seclectedUsage"></p-dropdown>
+        </div>
+
+
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Scénario</div>
+            <p-dropdown class="ui-g-3" [options]="form.scearioResults" [(ngModel)]="form.selectedScenario"></p-dropdown>
+        </div>
+
+
     </div>
 
     <!-- Specific Update form -->
@@ -82,7 +108,8 @@
     <!-- DataTable -->
     <p-paginator *ngIf="hits" [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)"
                  [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
-    <p-dataTable [(value)]="displayedItems" [scrollable]="true" scrollWidth="100%" [paginator]="false" scrollHeight="400px"
+    <p-dataTable [(value)]="displayedItems" [scrollable]="true" scrollWidth="100%" [paginator]="false"
+                 scrollHeight="400px"
                  [emptyMessage]="'Le panier est vide'" (onRowClick)="navigateTo($event)">
 
         <!-- First Column: Manage Children -->
@@ -96,15 +123,17 @@
         <!-- Main Columns: Display AU infos -->
         <!-- -->
         <p-column *ngFor="let col of columns" [field]="col.field" [header]="col.label"
-                  [style]="col.computeCss()" [styleClass]="clickable(col)" >
+                  [style]="col.computeCss()" [styleClass]="clickable(col)">
 
             <ng-template let-item="rowData" pTemplate="body">
                 <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">
                     <i *ngFor="let icon of col.getIcons(item, col.icons)"
-                       [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, icon)" title="{{col.getLabel(icon)}}">
+                       [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, icon)"
+                       title="{{col.getLabel(icon)}}">
                     </i>
                 </ng-template>
-                <span *ngIf="col.icons.length === 0 && !col.forceIcon" (click)="col.onClick(item)" [ngClass]="col.computeCss() + (item.isChild ? ' childLine' : '')"
+                <span *ngIf="col.icons.length === 0 && !col.forceIcon" (click)="col.onClick(item)"
+                      [ngClass]="col.computeCss() + (item.isChild ? ' childLine' : '')"
                       title="{{col.transform(col.getValue(item)) }}"> {{col.transform(col.getValue(item))}}
                 </span>
             </ng-template>
@@ -116,7 +145,8 @@
                 <span class="clickableDiv" (click)="checkAll()">{{isAllChecked() ? 'Tout désélectionner' : 'Tout sélectionner'}}</span>
             </ng-template>
             <ng-template pTemplate="body" let-item="rowData">
-                <p-checkbox *ngIf="!item.isChild" [(ngModel)]="item.selected" binary="true" title="Sélectionner"></p-checkbox>
+                <p-checkbox *ngIf="!item.isChild" [(ngModel)]="item.selected" binary="true"
+                            title="Sélectionner"></p-checkbox>
             </ng-template>
         </p-column>
 

@@ -263,4 +263,8 @@ export class ReferentialsService {
   getAccessContract(criteria) {
     return this.resourceService.post(`${this.ACCESS_CONTRACT}`, new HttpHeaders(), criteria);
   }
+
+  getScenarios(){
+    return this.resourceService.post("preservationScenarios", new HttpHeaders());
+  }
 }

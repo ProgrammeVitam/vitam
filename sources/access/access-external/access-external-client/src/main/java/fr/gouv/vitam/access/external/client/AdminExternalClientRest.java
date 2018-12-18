@@ -1199,6 +1199,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalFindDocumentById(vitamContext, AdminCollections.PRESERVATION_SCENARIO, id,
             PreservationScenarioModel.class);
     }
+
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext,
+        JsonNode select) throws VitamClientException {
+
+        return internalFindDocuments(vitamContext, AdminCollections.PRESERVATION_SCENARIO, select,
+            PreservationScenarioModel.class);
+    }
 }
 
 
