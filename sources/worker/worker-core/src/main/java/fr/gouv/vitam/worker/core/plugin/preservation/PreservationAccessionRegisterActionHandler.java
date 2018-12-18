@@ -26,15 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.AbstractAccessionRegisterAction;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Accession Register Handler
@@ -65,6 +68,12 @@ public class PreservationAccessionRegisterActionHandler extends AbstractAccessio
     protected String getHandlerId() {
         return HANDLER_ID;
     }
+
+    @Override
+    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+        throw new IllegalStateException("Not Implemented !");
+    }
+
 
     @Override
     protected LogbookTypeProcess getOperationType() {

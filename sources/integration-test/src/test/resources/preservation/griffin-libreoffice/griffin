@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 parentdir="$(dirname "$1")"
-echo "-------------------------------"$1
 
 cp "$parentdir/result.json" "$1/result.json"
 mkdir "$1/output-files"

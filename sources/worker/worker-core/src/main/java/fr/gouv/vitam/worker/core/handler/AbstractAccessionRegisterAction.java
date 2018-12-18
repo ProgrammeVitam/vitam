@@ -30,20 +30,17 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -63,7 +60,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
@@ -82,7 +78,6 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractAccessionRegisterAction.class);
     private static final String VOLUMETRY = "Volumetry";
-    private static final int SEDA_PARAMETERS_RANK = 0;
 
     private MetaDataClientFactory metaDataClientFactory;
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -97,7 +92,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
-    class AccessionRegisterInfo {
+    protected static class AccessionRegisterInfo {
         String originatingAgency;
         String submissionAgency = null;
         String acquisitionInformation = null;
@@ -167,7 +162,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
              MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             AccessionRegisterInfo accessionRegisterInfo = new AccessionRegisterInfo();
             if (LogbookTypeProcess.INGEST.equals(getOperationType())) {
-                prepareIngestAccessionRegisterInformations(params, handler, accessionRegisterInfo);
+                prepareAccessionRegisterInformation(params, handler, accessionRegisterInfo);
             }
 
             // Operation id
@@ -333,61 +328,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
     protected abstract String getHandlerId();
 
-    private void prepareIngestAccessionRegisterInformations(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
-        checkMandatoryIOParameter(handler);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Params: " + params);
-        }
-
-
-        final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
-                        .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-
-        if (sedaParameters != null) {
-            final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
-            if (dataObjectNode != null) {
-
-                final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
-                if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
-                    accessionRegisterInfo.setSubmissionAgency(nodeSubmission.asText());
-                }
-
-                final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-                if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
-                    accessionRegisterInfo.setOriginatingAgency(nodeOrigin.asText());
-                } else {
-                    throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
-                }
-
-                final JsonNode nodeAcquisitionInformation =
-                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
-                if (nodeAcquisitionInformation != null &&
-                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
-                    accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
-                }
-
-                final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
-                if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
-                    accessionRegisterInfo.setLegalStatus(nodeLegalStatus.asText());
-                }
-
-                final JsonNode nodeArchivalProfile = dataObjectNode.get(SedaConstants.TAG_ARCHIVE_PROFILE);
-                if (nodeArchivalProfile != null && !Strings.isNullOrEmpty(nodeArchivalProfile.asText())) {
-                    accessionRegisterInfo.setArchivalProfile(nodeArchivalProfile.asText());
-                }
-            } else {
-                throw new ProcessingException("No DataObjectPackage found");
-            }
-
-            final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-            if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                accessionRegisterInfo.setArchivalAgreement(archivalArchivalAgreement.asText());
-            }
-        } else {
-            throw new ProcessingException("No ArchiveTransfer found");
-        }
-    }
+    protected abstract void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException;
 
     protected abstract LogbookTypeProcess getOperationType();
 

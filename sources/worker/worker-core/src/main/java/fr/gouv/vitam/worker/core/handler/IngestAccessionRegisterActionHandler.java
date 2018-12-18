@@ -79,6 +79,7 @@ import java.util.stream.Stream;
 public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegisterAction {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
+    private static final int SEDA_PARAMETERS_RANK = 0;
 
     /**
      * Empty Constructor AccessionRegisterActionHandler
@@ -96,6 +97,63 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("AbstractAccessionRegisterAction running ...");
         return super.execute(params, handler);
+    }
+
+    @Override
+    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+        checkMandatoryIOParameter(handler);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Params: " + params);
+        }
+
+
+        final JsonNode sedaParameters =
+                JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
+                        .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+
+        if (sedaParameters != null) {
+            final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+            if (dataObjectNode != null) {
+
+                final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
+                    accessionRegisterInfo.setSubmissionAgency(nodeSubmission.asText());
+                }
+
+                final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
+                    accessionRegisterInfo.setOriginatingAgency(nodeOrigin.asText());
+                } else {
+                    throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
+                }
+
+                final JsonNode nodeAcquisitionInformation =
+                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                if (nodeAcquisitionInformation != null &&
+                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
+                    accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
+                }
+
+                final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
+                if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
+                    accessionRegisterInfo.setLegalStatus(nodeLegalStatus.asText());
+                }
+
+                final JsonNode nodeArchivalProfile = dataObjectNode.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+                if (nodeArchivalProfile != null && !Strings.isNullOrEmpty(nodeArchivalProfile.asText())) {
+                    accessionRegisterInfo.setArchivalProfile(nodeArchivalProfile.asText());
+                }
+            } else {
+                throw new ProcessingException("No DataObjectPackage found");
+            }
+
+            final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+            if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
+                accessionRegisterInfo.setArchivalAgreement(archivalArchivalAgreement.asText());
+            }
+        } else {
+            throw new ProcessingException("No ArchiveTransfer found");
+        }
     }
 
     @Override
