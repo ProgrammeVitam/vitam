@@ -32,14 +32,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 
 public class PreservationRequest {
+
     @JsonProperty("dslQuery")
     private JsonNode dslQuery;
 
     @JsonProperty("scenarioId")
     private String scenarioIdentifier;
 
-    @JsonProperty("usages")
-    private List<String> usages;
+    @JsonProperty("usage")
+    private String usage;
 
     @JsonProperty("version")
     private PreservationVersion version;
@@ -48,12 +49,12 @@ public class PreservationRequest {
         //for Jackson
     }
 
-    public PreservationRequest(JsonNode dslQuery, String scenarioIdentifier, List<String> usages,
+    public PreservationRequest(JsonNode dslQuery, String scenarioIdentifier, String usage,
         PreservationVersion version) {
 
         this.dslQuery = dslQuery;
         this.scenarioIdentifier = scenarioIdentifier;
-        this.usages = usages;
+        this.usage = usage;
         this.version = version;
     }
 
@@ -65,8 +66,8 @@ public class PreservationRequest {
         return scenarioIdentifier;
     }
 
-    public List<String> getUsages() {
-        return usages;
+    public String getUsage() {
+        return usage;
     }
 
     public PreservationVersion getVersion() {
