@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.administration;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Optional.empty;
 
 /**
@@ -62,7 +64,9 @@ public class PreservationScenarioModel {
 
     private static final String TAG_METADATA_FILTER = "MetadataFilter";
 
-    public static final String[] alterableFields = {TAG_DESCRIPTION, TAG_NAME, TAG_CREATION_DATE, TAG_LAST_UPDATE};
+    private static final List<String> alterableFields =
+        newArrayList(TAG_DESCRIPTION, TAG_NAME, TAG_GRIFFIN_BY_FORMAT/*,
+            TAG_DEFAULT_GRIFFIN*/);
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -242,5 +246,10 @@ public class PreservationScenarioModel {
             identifierSet.add(defaultGriffin.getGriffinIdentifier());
 
         return identifierSet;
+    }
+
+    @JsonIgnore
+    public static List<String> getAlterableFields() {
+        return alterableFields;
     }
 }

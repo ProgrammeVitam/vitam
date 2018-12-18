@@ -252,6 +252,14 @@ export class ReferentialsService {
     return this.resourceService.put('archiveunitprofiles/' + id, null, body, 'text');
   }
 
+  getGriffinById(id: string) {
+    return this.resourceService.get('griffin/' + id);
+  }
+
+  getScenarioById(id: string) {
+    return this.resourceService.get('scenario/' + id);
+  }
+
   getTenants() {
     return this.resourceService.getTenants();
   }

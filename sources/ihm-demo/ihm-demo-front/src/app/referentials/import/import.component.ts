@@ -24,6 +24,8 @@ export class ImportComponent  extends PageComponent {
     {label:"Règles de gestion", value:'rule'},
     {label:"Documents type", value:'archiveUnitProfile'},
     {label:"Ontologies", value:'ontology'},
+    {label:"Scenario de préservation", value:'scenario'},
+    {label:"Griffons", value:'griffin'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
@@ -106,6 +108,20 @@ export class ImportComponent  extends PageComponent {
           this.importSucessMsg = 'Les ontologies ont bien été importées';
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des ontologies";
+          break;
+        case "griffins":
+          this.extensions = ["json"];
+          this.uploadAPI = 'griffins';
+          this.importSucessMsg = 'Les griffons ont bien été importés';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des griffins";
+          break;
+        case "scenarios":
+          this.extensions = ["json"];
+          this.uploadAPI = 'scenarios';
+          this.importSucessMsg = 'Les scénarios de preservation ont bien été importés';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des scénario de preservation ";
           break;
         default:
           this.router.navigate(['ingest/sip']);

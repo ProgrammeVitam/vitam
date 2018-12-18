@@ -262,7 +262,7 @@ public class GriffinService {
         JsonNode jsonModel = JsonHandler.toJsonNode(griffinModel);
         final List<SetAction> actions = new ArrayList<>();
 
-        for (String field : Lists.newArrayList(GriffinModel.alterableFields)) {
+        for (String field : GriffinModel.getAlterableFields()) {
 
             JsonNode fieldNode = jsonModel.get(field);
             if (fieldNode != null) {

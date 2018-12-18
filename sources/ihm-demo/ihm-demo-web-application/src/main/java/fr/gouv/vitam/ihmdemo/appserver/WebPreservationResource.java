@@ -30,8 +30,10 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,12 +47,15 @@ import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.io.InputStream;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
@@ -117,6 +122,54 @@ public class WebPreservationResource {
         } catch (VitamClientException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+    @POST
+    @Path("/griffins")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("griffins:create")
+    public Response uploadGriffins(@Context HttpServletRequest request, InputStream input) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.importGriffin(
+                    UserInterfaceTransactionManager.getVitamContext(request), input,request.getHeader(GlobalDataRest.X_FILENAME));
+            if (response instanceof RequestResponseOK) {
+                return Response.status(Response.Status.OK).build();
+            }
+            if (response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getStatus()).entity(response).build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error( e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @POST
+    @Path("/scenarios")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("preservationScenarios:create")
+    public Response uploadPreservationScenario(@Context HttpServletRequest request, InputStream input) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.importPreservationScenario(
+                    UserInterfaceTransactionManager.getVitamContext(request), input,request.getHeader(GlobalDataRest.X_FILENAME));
+            if (response instanceof RequestResponseOK) {
+                return Response.status(Response.Status.OK).build();
+            }
+            if (response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getStatus()).entity(response).build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error( e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

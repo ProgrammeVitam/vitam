@@ -1,0 +1,13 @@
+<p-panel [header]="panelHeader">
+  <div class="ui-g">
+    <div class="ui-g-8 ui-g-offset-2 textAlignLeft" *ngIf="griffin">
+      <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'"  [value]="griffin.Identifier" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+      <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="griffin.Name" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" ></vitam-metadata-field>
+      <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'"  [value]="griffin.Description" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+
+    </div>
+  </div>
+</p-panel>

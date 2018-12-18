@@ -26,9 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.model.ModelConstants;
+
+import java.util.List;
 
 /**
  * GriffinModel class
@@ -50,8 +54,9 @@ public class GriffinModel {
 
     private static final String TAG_EXECUTABLE_NAME = "ExecutableName";
 
-    public static String[] alterableFields =
-        {TAG_DESCRIPTION, TAG_NAME, TAG_EXECUTABLE_NAME, TAG_EXECUTABLE_VERSION, TAG_CREATION_DATE, TAG_LAST_UPDATE};
+    private static final List<String> alterableFields = Lists
+        .newArrayList(TAG_DESCRIPTION, TAG_NAME, TAG_EXECUTABLE_NAME, TAG_EXECUTABLE_VERSION, TAG_CREATION_DATE,
+            TAG_LAST_UPDATE);
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -161,5 +166,10 @@ public class GriffinModel {
 
     public void setExecutableVersion(String executableVersion) {
         this.executableVersion = executableVersion;
+    }
+
+    @JsonIgnore
+    public static List<String> getAlterableFields() {
+        return alterableFields;
     }
 }

@@ -1,10 +1,10 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { CookieService } from 'angular2-cookie/core';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {CookieService} from 'angular2-cookie/core';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 
 import {
   AccordionModule, ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
@@ -13,20 +13,20 @@ import {
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
   CheckboxModule, DataGridModule, SliderModule, TriStateCheckboxModule
 } from 'primeng/primeng';
-import { AppComponent } from './app.component';
-import { MenuComponent } from './common/menu/menu.component';
-import { BreadcrumbComponent } from './common/breadcrumb/breadcrumb.component';
-import { ArchiveUnitHelper } from './archive-unit/archive-unit.helper';
+import {AppComponent} from './app.component';
+import {MenuComponent} from './common/menu/menu.component';
+import {BreadcrumbComponent} from './common/breadcrumb/breadcrumb.component';
+import {ArchiveUnitHelper} from './archive-unit/archive-unit.helper';
 import {ObjectsGroupHelper} from './admin/objectsgroup/objectsgroup.helper';
-import { ReferentialHelper } from './referentials/referential.helper';
-import { ResourcesService } from './common/resources.service';
-import { BreadcrumbService } from './common/breadcrumb.service';
-import { IngestUtilsService } from './common/utils/ingest-utils.service';
-import { LogbookService } from './ingest/logbook.service';
-import { IngestService } from './ingest/ingest.service';
-import { HomeComponent } from './home/home.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FileDropModule } from 'angular2-file-drop';
+import {ReferentialHelper} from './referentials/referential.helper';
+import {ResourcesService} from './common/resources.service';
+import {BreadcrumbService} from './common/breadcrumb.service';
+import {IngestUtilsService} from './common/utils/ingest-utils.service';
+import {LogbookService} from './ingest/logbook.service';
+import {IngestService} from './ingest/ingest.service';
+import {HomeComponent} from './home/home.component';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {FileDropModule} from 'angular2-file-drop';
 
 import { LogbookComponent } from './ingest/logbook/logbook.component';
 import { ResultsComponent } from './common/results/results.component';
@@ -72,42 +72,43 @@ import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
 import {ObjectsGroupComponent} from './admin/objectsgroup/objectsgroup.component';
 import {ObjectsGroupService} from './admin/objectsgroup/objectsgroup.service';
-import { AccessionRegisterSearchComponent } from './admin/accession-register/accession-register.component';
-import { LogbookDetailsDescriptionComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component';
-import { LogbookHelperService } from './common/logbook-operation-events/logbook-helper.service';
-import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
-import { OperationComponent } from './admin/traceability/operation/operation.component';
-import { HoldingschemeComponent } from './admin/holdingscheme/holdingscheme.component';
-import { ArchiveExportDIPComponent } from './archive-unit/archive-unit-details/archive-export-dip/archive-export-dip.component';
-import { DialogComponent } from './common/dialog/dialog.component';
-import { DialogService } from './common/dialog/dialog.service';
-import { VitamInterceptor } from './common/http-interceptor';
-import { LifecycleComponent } from './archive-unit/archive-unit-details/lifecycle/lifecycle.component';
-import { CustomLoader } from './common/translate/custom-loader';
-import { TraceabilityOperationDetailsComponent } from './admin/traceability/traceability-operation-details/traceability-operation-details.component';
-import { TraceabilityOperationService } from './admin/traceability/traceability-operation.service';
-import { WorkflowComponent } from './admin/workflow/workflow.component';
-import { WorkflowService } from './admin/workflow.service';
-import { ErrorService } from './common/error.service';
-import { LoadingBlockComponent } from './common/loading-block/loading-block.component';
-import { ArchiveUnitProfileComponent } from './referentials/details/archive-unit-profile/archive-unit-profile.component';
-import { OntologyComponent } from './referentials/details/ontology/ontology.component';
-import { MySelectionComponent } from './my-selection/my-selection/my-selection.component';
-import { MySelectionService } from './my-selection/my-selection.service';
-import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
-import { ScrollPanelModule } from 'primeng/scrollpanel';
-import { MessagesUtilsService } from './common/utils/messages-utils.service';
-import { EliminationSearchComponent } from './elimination-search/elimination-search.component';
-import { FacetsComponent } from './common/facets/facets.component';
-import { ArchiveRuleBlocComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/archive-rule-bloc.component';
-import { ComputeRulesUtilsService } from './archive-unit/archive-unit-details/archive-rule-bloc/compute-rules-utils.service';
-import { RulesDisplayModeComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/rules-display-mode/rules-display-mode.component';
-import { RulesUpdateModeComponent } from './archive-unit/archive-unit-details/archive-rule-bloc/rules-update-mode/rules-update-mode.component';
-import { NgArrayPipesModule } from 'ngx-pipes';
-import { MassiveUpdateFormComponent } from './my-selection/my-selection/massive-update-form/massive-update-form.component';
-import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
-import { ObjectsGroupFacetComponent } from './admin/objectsgroup/objectsgroup-facet/objectsgroup-facet.component';
+import {AccessionRegisterSearchComponent} from './admin/accession-register/accession-register.component';
+import {LogbookDetailsDescriptionComponent} from './admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component';
+import {LogbookHelperService} from './common/logbook-operation-events/logbook-helper.service';
+import {AccessionRegisterComponent} from './referentials/details/accession-register/accession-register.component';
+import {OperationComponent} from './admin/traceability/operation/operation.component';
+import {HoldingschemeComponent} from './admin/holdingscheme/holdingscheme.component';
+import {ArchiveExportDIPComponent} from './archive-unit/archive-unit-details/archive-export-dip/archive-export-dip.component';
+import {DialogComponent} from './common/dialog/dialog.component';
+import {DialogService} from './common/dialog/dialog.service';
+import {VitamInterceptor} from './common/http-interceptor';
+import {LifecycleComponent} from './archive-unit/archive-unit-details/lifecycle/lifecycle.component';
+import {CustomLoader} from './common/translate/custom-loader';
+import {TraceabilityOperationDetailsComponent} from './admin/traceability/traceability-operation-details/traceability-operation-details.component';
+import {TraceabilityOperationService} from './admin/traceability/traceability-operation.service';
+import {WorkflowComponent} from './admin/workflow/workflow.component';
+import {WorkflowService} from './admin/workflow.service';
+import {ErrorService} from './common/error.service';
+import {LoadingBlockComponent} from './common/loading-block/loading-block.component';
+import {ArchiveUnitProfileComponent} from './referentials/details/archive-unit-profile/archive-unit-profile.component';
+import {OntologyComponent} from './referentials/details/ontology/ontology.component';
+import {MySelectionComponent} from './my-selection/my-selection/my-selection.component';
+import {MySelectionService} from './my-selection/my-selection.service';
+import {ArchiveUnitSelectionComponent} from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
+import {ScrollPanelModule} from 'primeng/scrollpanel';
+import {MessagesUtilsService} from './common/utils/messages-utils.service';
+import {EliminationSearchComponent} from './elimination-search/elimination-search.component';
+import {FacetsComponent} from './common/facets/facets.component';
+import {ArchiveRuleBlocComponent} from './archive-unit/archive-unit-details/archive-rule-bloc/archive-rule-bloc.component';
+import {ComputeRulesUtilsService} from './archive-unit/archive-unit-details/archive-rule-bloc/compute-rules-utils.service';
+import {RulesDisplayModeComponent} from './archive-unit/archive-unit-details/archive-rule-bloc/rules-display-mode/rules-display-mode.component';
+import {RulesUpdateModeComponent} from './archive-unit/archive-unit-details/archive-rule-bloc/rules-update-mode/rules-update-mode.component';
+import {NgArrayPipesModule} from 'ngx-pipes';
+import {MassiveUpdateFormComponent} from './my-selection/my-selection/massive-update-form/massive-update-form.component';
+import {ArchiveUnitFacetComponent} from './archive-unit/archive-unit-facet/archive-unit-facet.component';
+import {ObjectsGroupFacetComponent} from './admin/objectsgroup/objectsgroup-facet/objectsgroup-facet.component';
 import {AccessionRegisterSymbolicComponent} from './referentials/details/accession-register-symbolic/accession-register-symbolic.component';
+import {GriffinsComponent} from './referentials/details/griffins/griffins.component';
 
 const appRoutes: Routes = [
   {
@@ -191,16 +192,18 @@ const appRoutes: Routes = [
     data: {permission: 'archiveunitprofiles:read'}
   },
   {
-    path: 'admin/ontologies/:id',
-    component: OntologyComponent,
-    data: {permission: 'ontologies:read'}
+    path: 'admin/ontologies/:id', component: OntologyComponent, data: {permission: 'ontologies:read'}
   },
   {
     path: 'admin/context/:id', component: ContextComponent, data: {permission: 'contexts:read'}
   },
   {
-    path: 'admin/agencies/:type/:id', component: AgenciesComponent, data: {permission: 'admin:accession-register:read'}
+    path: 'admin/agencies/:type/:id', component: GriffinsComponent, data: {permission: 'admin:accession-register:read'}
   },
+  {
+    path: 'admin/griffins/:id',component: GriffinsComponent, data: {permission: 'admin:accession-register:read'}
+  },
+
   {
     path: 'admin/accessionRegister',
     component: AccessionRegisterSearchComponent,
@@ -285,6 +288,8 @@ const appRoutes: Routes = [
     TreeChildComponent,
     TreeSearchComponent,
     AgenciesComponent,
+    GriffinsComponent,
+
     AuditComponent,
     TreeSearchComponent,
     EventDisplayComponent,
