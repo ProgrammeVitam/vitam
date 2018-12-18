@@ -209,6 +209,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 LOGGER.info("number of segment: " + objectNameToPut);
                 // for get the number of byte read to the stream
                 segmentInputStream = new CountingInputStream(autoCloseInputStream);
+                segmentTime.start();
                 osClient.get().objectStorage().objects()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
                 PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), "BIG_FILE", "REAL_SWIFT_PUT_OBJECT[SEGMENT-"+i+"]", segmentTime.elapsed(
