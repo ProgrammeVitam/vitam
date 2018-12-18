@@ -28,61 +28,71 @@ package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+import java.util.Set;
+
 /**
- * ObjectGroupDocumentHash class
+ * Pojo for traceability hash computation details
  */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+public class TraceabilityHashDetails {
 
-    public ObjectGroupDocumentHash(){
+    @JsonProperty("strategyId")
+    private String strategyId;
+
+    @JsonProperty("offerIds")
+    private Set<String> offerIds;
+
+    @JsonProperty("dbHash")
+    private String dbHash;
+
+    @JsonProperty("offerHash")
+    private Map<String, String> offerHashes;
+
+    public TraceabilityHashDetails() {
+        // Empty constructor for deserialization
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
+    public TraceabilityHashDetails(String strategyId, Set<String> offerIds, String dbHash,
+        Map<String, String> offerHashes) {
+        this.strategyId = strategyId;
+        this.offerIds = offerIds;
+        this.dbHash = dbHash;
+        this.offerHashes = offerHashes;
     }
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
+    public String getStrategyId() {
+        return strategyId;
     }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
+    public TraceabilityHashDetails setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+        return this;
     }
 
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
+    public Set<String> getOfferIds() {
+        return offerIds;
     }
 
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
+    public TraceabilityHashDetails setOfferIds(Set<String> offerIds) {
+        this.offerIds = offerIds;
+        return this;
     }
 
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+    public String getDbHash() {
+        return dbHash;
+    }
+
+    public TraceabilityHashDetails setDbHash(String dbHash) {
+        this.dbHash = dbHash;
+        return this;
+    }
+
+    public Map<String, String> getOfferHashes() {
+        return offerHashes;
+    }
+
+    public TraceabilityHashDetails setOfferHashes(Map<String, String> offerHashes) {
+        this.offerHashes = offerHashes;
+        return this;
     }
 }

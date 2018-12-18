@@ -11,6 +11,7 @@ import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 
 /**
@@ -189,4 +190,6 @@ public interface LogbookTraceabilityHelper {
      * @return true if max entries reached (unit & object group lifecycle traceability operation are limited in size)
      */
     boolean getMaxEntriesReached();
+
+    TraceabilityStatistics getTraceabilityStatistics();
 }

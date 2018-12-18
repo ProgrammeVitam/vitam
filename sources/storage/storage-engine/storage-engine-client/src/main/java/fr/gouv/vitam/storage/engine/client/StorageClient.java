@@ -223,7 +223,7 @@ public interface StorageClient extends BasicClient {
      * @return informations
      * @throws StorageServerClientException StorageServerClientException
      */
-    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, List<String> offerIds, Collection<String> objectIds)
+    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds, Collection<String> objectIds)
         throws StorageServerClientException;
 
     /**

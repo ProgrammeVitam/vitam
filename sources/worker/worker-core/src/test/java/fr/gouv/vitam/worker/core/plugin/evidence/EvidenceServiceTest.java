@@ -235,7 +235,8 @@ public class EvidenceServiceTest {
         Select select = new Select();
         BooleanQuery query = and().add(
             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper.eq("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK"),
+            QueryHelper.in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
+            QueryHelper.exists("events.evDetData.FileName"),
             lte("events.evDetData.StartDate", "2018-02-20T11:14:54.872"),
             gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872")
         );
@@ -252,7 +253,8 @@ public class EvidenceServiceTest {
 
         BooleanQuery query = and().add(
             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper.eq("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK")
+            QueryHelper.in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
+            QueryHelper.exists("events.evDetData.FileName")
         );
 
         select.setQuery(query);

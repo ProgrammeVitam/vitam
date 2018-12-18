@@ -30,10 +30,10 @@ package fr.gouv.vitam.logbook.common.traceability;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import fr.gouv.vitam.common.BaseXx;
@@ -134,12 +134,13 @@ public class TraceabilityService {
                 String previousYearDate = helper.getPreviousYearStartDate();
                 long size = zipFile.length();
                 boolean maxEntriesReached = helper.getMaxEntriesReached();
+                TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
 
                 event =
                     new TraceabilityEvent(helper.getTraceabilityType(), startDate, endDate, rootHash, timestampToken,
                         previousDate,
                         previousMonthDate, previousYearDate, numberOfLine, fileName, size,
-                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION);
+                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION, traceabilityStatistics);
 
                 helper.saveEvent(event);
 

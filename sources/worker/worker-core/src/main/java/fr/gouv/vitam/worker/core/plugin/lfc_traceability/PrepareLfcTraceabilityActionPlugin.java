@@ -200,6 +200,8 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                         throw new ProcessingException("Metadata not found for id " + id);
                     }
 
+
+
                     LfcMetadataPair lfcMetadataPair = new LfcMetadataPair(rawMetadata, rawLfc);
 
                     jsonLineWriter.addEntry(new JsonLineModel(id, null, JsonHandler.toJsonNode(lfcMetadataPair)));
@@ -249,12 +251,14 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         LogbookOperation lastOperationTraceabilityLifecycle = null;
         final Select select = new Select();
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-        final Query findEvent = QueryHelper
-            .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
-                eventType + ".OK");
+        final Query eventStatus = QueryHelper
+            .in(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
+                eventType + ".OK", eventType + ".WARNING");
+        final Query hasTraceabilityFile = QueryHelper.exists(String
+            .format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName"));
 
         select.setLimitFilter(0, 1);
-        select.setQuery(QueryHelper.and().add(type, findEvent));
+        select.setQuery(QueryHelper.and().add(type, eventStatus, hasTraceabilityFile));
 
         select.addOrderByDescFilter("evDateTime");
         try (LogbookOperationsClient logbookOperationsClient =

@@ -24,65 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.logbook.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * ObjectGroupDocumentHash class
- */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+public class TraceabilityStatistics {
 
-    public ObjectGroupDocumentHash(){
+    @JsonProperty("nbValidMetadata")
+    private int nbValidMetadata = 0;
+
+    @JsonProperty("nbInconsistentMetadata")
+    private int nbInconsistentMetadata = 0;
+
+    @JsonProperty("nbValidObjects")
+    private int nbValidObjects = 0;
+
+    @JsonProperty("nbInconsistentObjects")
+    private int nbInconsistentObjects = 0;
+
+    public TraceabilityStatistics() {
+        // Empty constructor for deserialization
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
+    public TraceabilityStatistics(int nbValidMetadata, int nbInconsistentMetadata, int nbValidObjects,
+        int nbInconsistentObjects) {
+        this.nbValidMetadata = nbValidMetadata;
+        this.nbInconsistentMetadata = nbInconsistentMetadata;
+        this.nbValidObjects = nbValidObjects;
+        this.nbInconsistentObjects = nbInconsistentObjects;
     }
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
+    public int getNbValidMetadata() {
+        return nbValidMetadata;
     }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
+    public int getNbInconsistentMetadata() {
+        return nbInconsistentMetadata;
     }
 
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
+    public int getNbValidObjects() {
+        return nbValidObjects;
     }
 
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
+    public int getNbInconsistentObjects() {
+        return nbInconsistentObjects;
     }
 
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+    @Override
+    public String toString() {
+        return "TraceabilityStatistics{" +
+            "nbValidMetadata=" + nbValidMetadata +
+            ", nbInconsistentMetadata=" + nbInconsistentMetadata +
+            ", nbValidObjects=" + nbValidObjects +
+            ", nbInconsistentObjects=" + nbInconsistentObjects +
+            '}';
     }
 }

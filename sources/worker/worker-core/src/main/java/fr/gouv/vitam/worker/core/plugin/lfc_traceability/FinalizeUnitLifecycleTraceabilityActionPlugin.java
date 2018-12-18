@@ -99,6 +99,7 @@ public class FinalizeUnitLifecycleTraceabilityActionPlugin extends FinalizeLifec
             itemStatus.increment(StatusCode.FATAL);
         }
 
+        LOGGER.info("Unit lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
         return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
     }
 

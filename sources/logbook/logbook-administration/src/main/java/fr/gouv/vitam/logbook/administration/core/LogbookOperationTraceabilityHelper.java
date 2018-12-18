@@ -46,6 +46,7 @@ import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -363,6 +364,11 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public boolean getMaxEntriesReached() {
         return false;
+    }
+
+    @Override
+    public TraceabilityStatistics getTraceabilityStatistics() {
+        return null;
     }
 
     @Override

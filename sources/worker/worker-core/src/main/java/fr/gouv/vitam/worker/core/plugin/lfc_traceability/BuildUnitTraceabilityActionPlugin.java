@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -56,7 +55,8 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
     BuildUnitTraceabilityActionPlugin(
         StorageClientFactory storageClientFactory,
         int batchSize, AlertService alertService) {
-        super(storageClientFactory, batchSize, alertService);
+        super(storageClientFactory, batchSize, new StrategyIdOfferIdLoader(storageClientFactory),
+            alertService);
     }
 
     @Override
@@ -64,11 +64,10 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
         throws ProcessingException, ContentAddressableStorageServerException {
 
         LOGGER.info("Building unit traceability data");
-        StatusCode statusCode = buildTraceabilityData(handler, LogbookLifeCycleUnit.class.getName());
-        LOGGER.info("Building unit traceability data finished with status " + statusCode);
+        ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
+        buildTraceabilityData(handler, LogbookLifeCycleUnit.class.getName(), itemStatus);
 
-        final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
-        itemStatus.increment(StatusCode.OK);
+        LOGGER.info("Building unit traceability data finished with status " + itemStatus.getGlobalStatus());
         return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
     }
 

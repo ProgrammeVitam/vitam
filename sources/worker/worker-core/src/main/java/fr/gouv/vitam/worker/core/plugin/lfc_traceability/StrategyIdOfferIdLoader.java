@@ -24,65 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import org.apache.commons.collections4.CollectionUtils;
 
-/**
- * ObjectGroupDocumentHash class
- */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    public ObjectGroupDocumentHash(){
+public class StrategyIdOfferIdLoader {
+
+    private final StorageClientFactory storageClientFactory;
+    private final Map<String, List<String>> offerIdsByStrategyId = new HashMap<>();
+
+    public StrategyIdOfferIdLoader(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
-    }
+    public List<String> getOfferIds(String strategyId) throws ProcessingException {
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
-    }
+        if (offerIdsByStrategyId.containsKey(strategyId)) {
+            return offerIdsByStrategyId.get(strategyId);
+        }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
-    }
-
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
-    }
-
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            List<String> offers = storageClient.getOffers(strategyId);
+            if (CollectionUtils.isEmpty(offers)) {
+                throw new IllegalStateException("No offers found for strategy " + strategyId);
+            }
+            offerIdsByStrategyId.put(strategyId, offers);
+            return offers;
+        } catch (StorageServerClientException | StorageNotFoundClientException e) {
+            throw new ProcessingException("Could not load offer id list for strategy " + strategyId, e);
+        }
     }
 }

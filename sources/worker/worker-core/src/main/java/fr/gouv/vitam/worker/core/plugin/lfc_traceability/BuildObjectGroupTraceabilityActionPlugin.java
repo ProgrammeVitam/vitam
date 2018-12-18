@@ -55,7 +55,8 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
     BuildObjectGroupTraceabilityActionPlugin(
         StorageClientFactory storageClientFactory,
         int batchSize, AlertService alertService) {
-        super(storageClientFactory, batchSize, alertService);
+        super(storageClientFactory, batchSize, new StrategyIdOfferIdLoader(storageClientFactory),
+            alertService);
     }
 
     @Override
@@ -63,11 +64,9 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
         throws ProcessingException, ContentAddressableStorageServerException {
 
         LOGGER.info("Building object group traceability data");
-        StatusCode statusCode = buildTraceabilityData(handler, LogbookLifeCycleObjectGroup.class.getName());
-        LOGGER.info("Building object group traceability data finished with status " + statusCode);
-
-        final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
-        itemStatus.increment(statusCode);
+        ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
+        buildTraceabilityData(handler, LogbookLifeCycleObjectGroup.class.getName(), itemStatus);
+        LOGGER.info("Building object group traceability data finished with status " + itemStatus.getGlobalStatus());
         return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
     }
 
