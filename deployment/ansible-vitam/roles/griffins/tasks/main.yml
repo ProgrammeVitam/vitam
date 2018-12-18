@@ -1,0 +1,6 @@
+---
+
+- name: Install griffins package
+  package:
+    name: "{{ vitam_griffins }}"
+    state: latest

@@ -214,6 +214,7 @@
   roles:
     - siegfried
     - vitam
+    - griffins
   vars:
     vitam_struct: "{{ vitam.worker }}"
     vitam_timestamp_usage: secure-logbook
