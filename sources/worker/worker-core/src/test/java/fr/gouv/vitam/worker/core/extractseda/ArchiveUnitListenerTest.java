@@ -34,8 +34,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import org.junit.BeforeClass;
@@ -91,10 +91,10 @@ public class ArchiveUnitListenerTest {
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingUnitNotFoundException ");
+            fail("Must throws ProcessingNotFoundException ");
         } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingUnitNotFoundException.class);
-            ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
+            assertThat(e.getCause()).isInstanceOf(ProcessingNotFoundException.class);
+            ProcessingNotFoundException exception = (ProcessingNotFoundException) e.getCause();
             // Case of a not valid SystemId (not valid guid) is test in ProcessingIT testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo
             assertThat(exception.isValidGuid()).isTrue();
         }
@@ -129,10 +129,10 @@ public class ArchiveUnitListenerTest {
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
-            fail("Must throws ProcessingUnitNotFoundException ");
+            fail("Must throws ProcessingNotFoundException ");
         } catch (RuntimeException e) {
-            assertThat(e.getCause()).isInstanceOf(ProcessingUnitNotFoundException.class);
-            ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
+            assertThat(e.getCause()).isInstanceOf(ProcessingNotFoundException.class);
+            ProcessingNotFoundException exception = (ProcessingNotFoundException) e.getCause();
             assertThat(exception.isValidGuid()).isFalse();
         }
     }

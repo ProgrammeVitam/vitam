@@ -31,27 +31,42 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when an error with reference occurred in the manifest, not a fatal error
  */
 public class ProcessingManifestReferenceException extends ProcessingException {
-    private static final long serialVersionUID = -8063612650088096556L;
 
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ProcessingManifestReferenceException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private final String manifestId;
+    private final String unitGuid;
+    private final String unitParentId;
+    private ExceptionType type = ExceptionType.UNIT;
 
-    /**
-     * @param cause associated cause
-     */
-    public ProcessingManifestReferenceException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message associated message
-     */
-    public ProcessingManifestReferenceException(String message) {
+    public ProcessingManifestReferenceException(String message, String manifestId, String unitGuid, String unitParentId) {
         super(message);
+        this.manifestId = manifestId;
+        this.unitGuid = unitGuid;
+        this.unitParentId = unitParentId;
+    }
+
+    public ProcessingManifestReferenceException(String message, String manifestId, ExceptionType type) {
+        super(message);
+        this.manifestId = manifestId;
+        this.unitGuid = null;
+        this.unitParentId = null;
+        this.type = type;
+
+    }
+
+
+    public String getManifestId() {
+        return manifestId;
+    }
+
+    public String getUnitGuid() {
+        return unitGuid;
+    }
+
+    public String getUnitParentId() {
+        return unitParentId;
+    }
+
+    public ExceptionType getType() {
+        return type;
     }
 }

@@ -30,41 +30,64 @@ package fr.gouv.vitam.processing.common.exception;
 /**
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
-public class ProcessingObjectLinkingException extends ProcessingException {
-    private static final long serialVersionUID = 3818219095508337803L;
+public class ProcessingTooManyUnitsFoundException extends ProcessingException {
 
+    private String unitId;
     private String unitGuid;
-    private String objectGroupId;
 
+    // When unitId is a not valid guid
+    private boolean validGuid = true;
     /**
      * @param message associated message
-     * @param unitGuid unit Guid
-     * @param unitIngestContractGuid unit Ingest Contract Guid
+     * @param cause associated cause
      */
-    public ProcessingObjectLinkingException(String message, String unitGuid, String unitIngestContractGuid) {
-        super(message);
-        this.unitGuid = unitGuid;
-        this.objectGroupId = unitIngestContractGuid;
+    public ProcessingTooManyUnitsFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     /**
-     * Get the unitGuid
+     * @param cause associated cause
+     */
+    public ProcessingTooManyUnitsFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * @param message associated message
+     * @param unitId
+     * @param unitGuid
+     */
+    public ProcessingTooManyUnitsFoundException(String message, String unitId, String unitGuid, boolean validGuid) {
+        super(message);
+        this.unitId = unitId;
+        this.unitGuid = unitGuid;
+        this.validGuid = validGuid;
+    }
+
+    /**
+     * @param message associated message
+     */
+    public ProcessingTooManyUnitsFoundException(String message) {
+        super(message);
+    }
+
+    /**
      * 
-     * @return unitGuid
+     * @return the unit guid (system id)
      */
     public String getUnitGuid() {
         return unitGuid;
     }
 
     /**
-     * Get the objectGroupId
      * 
-     * @return objectGroupId
+     * @return the unit id
      */
-    public String getObjectGroupId() {
-        return objectGroupId;
+    public String getUnitId() {
+        return unitId;
     }
 
-
-
+    public boolean isValidGuid() {
+        return validGuid;
+    }
 }

@@ -28,30 +28,24 @@
 package fr.gouv.vitam.processing.common.exception;
 
 /**
- * Define a Processing Exception to be thrown when an unauthorize operation is required
+ * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
-public class ProcessingUnauthorizeException extends ProcessingException {
-    private static final long serialVersionUID = 3397334664006921698L;
+public class ProcessingObjectGroupLinkingException extends ProcessingException {
 
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ProcessingUnauthorizeException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private final String unitId;
+    private final String objectGroupId;
 
-    /**
-     * @param cause associated cause
-     */
-    public ProcessingUnauthorizeException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message associated message
-     */
-    public ProcessingUnauthorizeException(String message) {
+    public ProcessingObjectGroupLinkingException(String message, String unitId, String objectGroupId) {
         super(message);
+        this.unitId = unitId;
+        this.objectGroupId = objectGroupId;
+    }
+
+    public String getUnitId() {
+        return unitId;
+    }
+
+    public String getObjectGroupId() {
+        return objectGroupId;
     }
 }

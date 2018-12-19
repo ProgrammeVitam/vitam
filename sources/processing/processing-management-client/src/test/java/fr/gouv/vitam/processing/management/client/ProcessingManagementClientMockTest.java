@@ -30,13 +30,10 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 
 /**
  *
@@ -45,8 +42,8 @@ public class ProcessingManagementClientMockTest {
 
     @Test
     public void fakeTest()
-        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
-        ProcessingException, VitamApplicationServerException, BadRequestException {
+        throws  WorkflowNotFoundException,
+        ProcessingException, VitamApplicationServerException {
         ProcessingManagementClientFactory.changeMode(null);
         final ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient();
         client.checkStatus();
