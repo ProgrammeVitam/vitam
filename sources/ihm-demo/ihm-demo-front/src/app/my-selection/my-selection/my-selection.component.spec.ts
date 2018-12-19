@@ -12,6 +12,7 @@ import {DialogService} from '../../common/dialog/dialog.service';
 import {VitamResponse} from '../../common/utils/response';
 import {ArchiveUnitMetadata, ArchiveUnitSelection} from '../selection';
 import {ObjectsService} from '../../common/utils/objects.service';
+import {ReferentialsService} from '../../referentials/referentials.service';
 
 const response: VitamResponse = {
   httpCode: 200,
@@ -81,6 +82,11 @@ const ArchiveUnitServiceStub = {
   updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
 };
 
+const ReferentialsServiceStub = {
+  getResults: (id) => Observable.of({"$hits":{"total":1,"offset":0,"limit":125,"size":10000}, '$results': [{}]}),
+  setSearchAPI: () => {}
+};
+
 describe('MySelectionComponent', () => {
   let component: MySelectionComponent;
   let fixture: ComponentFixture<MySelectionComponent>;
@@ -102,6 +108,7 @@ describe('MySelectionComponent', () => {
         BreadcrumbService,
         ArchiveUnitHelper,
         DialogService,
+        { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: MySelectionService, useValue: MySelectionServiceStub },
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],

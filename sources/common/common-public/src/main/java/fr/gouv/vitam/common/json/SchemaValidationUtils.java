@@ -143,7 +143,7 @@ public class SchemaValidationUtils {
 
     public static final String GRIFFIN_SCHEMA = "json-schema/griffin-shema.schema.json";
 
-    public static final String PRESERVATION_SCENARIO_SCHEMA = "json-schema/preservation-scenario-shema.schema.json";
+    private static final String PRESERVATION_SCENARIO_SCHEMA = "json-schema/preservation-scenario-shema.schema.json";
 
 
     private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()

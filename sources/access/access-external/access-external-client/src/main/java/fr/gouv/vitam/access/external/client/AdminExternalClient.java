@@ -858,4 +858,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
         throws VitamClientException;
+
+    RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext, JsonNode select)
+        throws VitamClientException;
 }

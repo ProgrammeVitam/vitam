@@ -252,6 +252,14 @@ export class ReferentialsService {
     return this.resourceService.put('archiveunitprofiles/' + id, null, body, 'text');
   }
 
+  getGriffinById(id: string) {
+    return this.resourceService.get('griffin/' + id);
+  }
+
+  getScenarioById(id: string) {
+    return this.resourceService.get('scenario/' + id);
+  }
+
   getTenants() {
     return this.resourceService.getTenants();
   }
@@ -262,5 +270,9 @@ export class ReferentialsService {
 
   getAccessContract(criteria) {
     return this.resourceService.post(`${this.ACCESS_CONTRACT}`, new HttpHeaders(), criteria);
+  }
+
+  getScenarios(){
+    return this.resourceService.post("preservationScenarios", new HttpHeaders());
   }
 }

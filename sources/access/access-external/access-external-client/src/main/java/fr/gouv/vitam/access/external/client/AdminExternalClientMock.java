@@ -526,4 +526,9 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws VitamClientException {
         throw new IllegalStateException("Stop using mocks in production");
     }
+
+    @Override public RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext,
+        JsonNode select) throws VitamClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

@@ -2720,6 +2720,37 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+
+
+    @Path("/preservationScenario")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "preservationScenario:read", description = "Lister le contenu du référentiel des contrats d'accès")
+    public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
+
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse result = client.findPreservation(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
     @POST
     @Path("/preservationScenario")
     @Consumes(MediaType.APPLICATION_JSON)

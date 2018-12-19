@@ -748,6 +748,26 @@ public class WebApplicationResourceDelete {
         }
     }
 
+    @Path("masterdata/griffins")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteGriffins(@Context HttpServletRequest request) throws IOException {
+
+        Response response = deleteMasterDataCollection(FunctionalAdminCollections.GRIFFIN);
+
+        return Response.status(Status.OK).entity(response).build();
+    }
+
+    @Path("masterdata/scenarios")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteScenarios(@Context HttpServletRequest request) throws IOException {
+
+        Response response = deleteMasterDataCollection(FunctionalAdminCollections.PRESERVATION_SCENARIO);
+
+        return Response.status(Status.OK).entity(response).build();
+    }
+
     private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
         if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
@@ -756,6 +776,8 @@ public class WebApplicationResourceDelete {
             collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC) ||
             collection.equals(FunctionalAdminCollections.ONTOLOGY) ||
             collection.equals(FunctionalAdminCollections.AGENCIES) ||
+            collection.equals(FunctionalAdminCollections.GRIFFIN) ||
+            collection.equals(FunctionalAdminCollections.PRESERVATION_SCENARIO) ||
             collection.equals(FunctionalAdminCollections.CONTEXT))) {
             throw new IllegalArgumentException("unsupported collection");
         }

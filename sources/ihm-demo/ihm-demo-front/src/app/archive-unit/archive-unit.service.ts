@@ -21,6 +21,7 @@ export class ArchiveUnitService {
   OBJECTS = 'objects';
   ELIMINATION_ANALYSIS = 'elimination/analysis';
   ELIMINATION_ACTION = 'elimination/action';
+  PRESERVATION = 'preservation';
 
   static setInputRequest(request) {
     this.inputRequest = request ;
@@ -99,6 +100,10 @@ export class ArchiveUnitService {
 
   updateMetadata(id: string, updateRequest: any) {
     return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}/${id}`, undefined, updateRequest);
+  }
+
+  preservation(updateRequest: any) {
+    return this.resourceService.post(`${this.PRESERVATION}`, undefined, updateRequest);
   }
 
 }

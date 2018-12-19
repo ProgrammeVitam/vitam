@@ -37,11 +37,8 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 
 /**
  * Business application for ihm demo declaring resources and filters
@@ -63,12 +60,12 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final WebApplicationConfig configuration =
                 PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
-            Set<String> permissions =
-                PermissionReader.getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new WebApplicationResource(configuration, permissions));
+            singletons.add(new WebApplicationResource(configuration));
+            singletons.add(new WebPreservationResource());
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

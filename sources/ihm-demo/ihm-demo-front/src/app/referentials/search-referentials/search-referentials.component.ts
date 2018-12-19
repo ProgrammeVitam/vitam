@@ -14,6 +14,8 @@ import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
 import {AuthenticationService} from '../../authentication/authentication.service';
 import {AgenciesComponent} from '../details/agencies/agencies.component';
 import {LogbookService} from '../../ingest/logbook.service';
+import {GriffinsComponent} from '../details/griffins/griffins.component';
+
 
 @Component({
   selector: 'vitam-search-referentials',
@@ -373,6 +375,31 @@ export class SearchReferentialsComponent extends PageComponent {
           ];
           this.referentialPath = 'admin/ontologies';
           this.referentialIdentifier = 'Identifier';
+          break;
+
+        case 'griffins':
+          this.searchReferentialsService.setSearchAPI('griffins');
+          this.breadcrumbName = 'Griffons';
+          this.specificTitle = 'Griffons';
+          this.referentialData = [
+            new FieldDefinition('GriffInName', 'Intitulé', 4, 10),
+            FieldDefinition.createIdField('GriffInID', 'Identifiant', 4, 10),
+            new FieldDefinition('Description', 'Description', 4, 10)
+          ];
+          this.searchForm = {'GriffInID': 'all', 'GriffInName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.initialSortKey = 'Name';
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
+              () => ({'width': '225px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'}))
+          ];
+          this.referentialPath = 'admin/griffins/all';
+          this.referentialIdentifier = 'Identifier';
+          this.getLastImportOkOperation('griffins', 'IMPORT_AGENCIES.OK');
+          this.actionLabel = 'Exporter le référentiel';
           break;
         default:
           this.router.navigate(['ingest/sip']);

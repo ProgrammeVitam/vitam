@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.griffin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -61,7 +60,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
@@ -232,7 +230,7 @@ public class PreservationScenarioService {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
-            formatDateForMongo(preservationScenarioModel);
+           // formatDateForMongo(preservationScenarioModel);
             JsonNode queryDslForUpdate = getUpdateDslQuery(preservationScenarioModel);
 
             mongoDbAccess.updateData(queryDslForUpdate, PRESERVATION_SCENARIO);
@@ -264,11 +262,11 @@ public class PreservationScenarioService {
 
         List<SetAction> actions = new ArrayList<>();
 
-        for (String field : newArrayList(PreservationScenarioModel.alterableFields)) {
+        for (String field : PreservationScenarioModel.getAlterableFields()) {
             JsonNode fieldNode = jsonModel.get(field);
 
             if (fieldNode != null) {
-                String value = fieldNode.textValue();
+                String value = fieldNode.toString();
 
                 SetAction action = new SetAction(field, value);
                 actions.add(action);

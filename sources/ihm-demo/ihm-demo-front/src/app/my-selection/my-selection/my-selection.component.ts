@@ -14,7 +14,9 @@ import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DialogService} from '../../common/dialog/dialog.service';
 import {SelectItem} from 'primeng/api';
-import {ReferentialHelper} from "../../referentials/referential.helper";
+import {ReferentialHelper} from '../../referentials/referential.helper';
+import {ReferentialsService} from '../../referentials/referentials.service';
+import {escape} from 'querystring';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Panier', routerLink: 'basket'}
@@ -43,7 +45,8 @@ export class MySelectionComponent extends PageComponent {
     {label: 'Élimination', value: 'ELIMINATION'},
     {label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
     {label: 'Vider le panier', value: 'DELETE'},
-    {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'}
+    {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'},
+    {label: 'Préservation ', value: 'PRESERVATION'}
   ];
 
   frLocale = DateService.vitamFrLocale;
@@ -57,7 +60,7 @@ export class MySelectionComponent extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public activatedRoute: ActivatedRoute,
               public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService,
-              public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
+              public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService, public referentialsService: ReferentialsService) {
     super('Ma selection', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -278,6 +281,15 @@ export class MySelectionComponent extends PageComponent {
           message = 'Erreur lors du lancement de l\'export du relevé de valeur probante des unités archivistiques du panier';
         }
         break;
+        case 'PRESERVATION':
+        if (isOK) {
+          title = 'Préservation';
+          message = 'Le process de préservation  est en cours';
+        } else {
+          title = 'Erreur de lancement du process de preservation';
+          message = 'Erreur lors du lancement du process de preservation';
+        }
+        break;
       default:
         break;
     }
@@ -369,7 +381,7 @@ export class MySelectionComponent extends PageComponent {
             this.displayActionEnded(this.selectedOption, true);
           } else {
             let isEliminationDateAfterToday = this.form.eliminationDate.getTime() > new Date().getTime();
-            if(isEliminationDateAfterToday) {
+            if (isEliminationDateAfterToday) {
               this.displayEliminationDateError = true;
               return;
             }
@@ -387,6 +399,7 @@ export class MySelectionComponent extends PageComponent {
       case 'MASS_UPDATE':
         if (this.checkInputs()) {
           // TODO Launch massive Update
+
           let updateInfo = {
             query: query,
             rulesUpdates: this.form.updateRules,
@@ -400,6 +413,25 @@ export class MySelectionComponent extends PageComponent {
               this.displayActionEnded(this.selectedOption, false);
             }
           );
+        }
+        break;
+      case 'PRESERVATION':
+        if (this.checkInputs()) {
+
+          let preservationRequest = {
+            dslQuery: query,
+            usage: this.form.seclectedUsage,
+            version: this.form.seclectedVersion,
+            scenarioId: this.form.selectedScenario
+          };
+
+          this.archiveUnitService.preservation(preservationRequest).subscribe(
+            () => {
+              this.displayActionEnded(this.selectedOption, true);
+            }, () => {
+              this.displayActionEnded(this.selectedOption, false);
+            }
+            );
         }
         break;
       case 'PROBATIVE_VALUE':
@@ -431,6 +463,30 @@ export class MySelectionComponent extends PageComponent {
         break;
       case 'MASS_UPDATE':
         break;
+      case 'PRESERVATION':
+        this.form.preservationMode = false;
+        this.form.usages = [{label: 'BinaryMaster', value: 'BinaryMaster'}, {
+          label: 'Dissemination',
+          value: 'Dissemination'
+        }];
+        this.form.versions = [{label: 'FIRST', value: 'FIRST'}, {label: 'LAST', value: 'LAST'}];
+        this.form.scearioResults = [];
+
+        this.referentialsService.getScenarios().subscribe(
+          (response) => {
+            console.log('');
+            if (response.httpCode == 200 && response.$results && response.$results.length > 0) {
+              response.$results.forEach((scenario) => {
+
+                this.form.scearioResults.push({label: scenario.Name, value: scenario.Identifier});
+              });
+            }
+          }, function (error) {
+            console.log('Error while get tenant. Set default list : ', error);
+          });
+
+
+        break;
       default:
         break;
     }
@@ -447,6 +503,8 @@ export class MySelectionComponent extends PageComponent {
         return this.form.eliminationDate != null;
       case 'MASS_UPDATE':
         return this.form.updateRules || this.form.updateMetadata;
+      case 'PRESERVATION':
+        return true;
       default:
         return false;
     }
@@ -493,7 +551,8 @@ export class MySelectionComponent extends PageComponent {
           () => ({'width': '100px'}), false),
         ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
           (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '150px'}),
-          () => {}, null, false),
+          () => {
+          }, null, false),
         ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (x) => this.goToUnitLifecycles(x),
           () => true, () => ({'width': '75px'}), null, false)
       ];

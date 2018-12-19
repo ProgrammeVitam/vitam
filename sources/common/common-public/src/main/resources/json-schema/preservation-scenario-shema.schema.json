@@ -40,7 +40,7 @@
     "GriffinByFormat": {
       "type": "array"
     },
-    "GriffinDefault":{
+    "DefaultGriffin":{
       "type": "object"
     },
     "MetadataFilter":{
@@ -63,6 +63,7 @@
     "Identifier",
     "Name",
     "CreationDate",
-    "LastUpdate"
+    "LastUpdate",
+    "DefaultGriffin"
   ]
 }
