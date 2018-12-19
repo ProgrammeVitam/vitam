@@ -27,18 +27,54 @@
 
 package fr.gouv.vitam.processing.common.exception;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+/**
+ * Define a Processing Exception to be thrown when an error occurred, not a fatal error
+ */
+public class ProcessingNotFoundException extends ProcessingException {
+    private static final long serialVersionUID = 4559736510275835494L;
 
-import org.junit.Test;
+    private String manifestId;
+    private String guid;
+    private String taskKey;
+    private ExceptionType type;
 
-public class ProcessingUnauthorizeExceptionTest {
+    // When guid is a not valid guid
+    private boolean validGuid;
 
-    @Test
-    public void exceptionTest() {
-        assertEquals(null, new ProcessingUnauthorizeException((String) null).getMessage());
-        assertEquals("test", new ProcessingUnauthorizeException("test").getMessage());
-        assertNotNull(new ProcessingUnauthorizeException(new Exception()).getCause());
-        assertNotNull(new ProcessingUnauthorizeException("test", new Exception()).getCause());
+    /**
+     * @param message    associated message
+     * @param manifestId
+     * @param guid
+     */
+    public ProcessingNotFoundException(String message, String manifestId, String guid, boolean validGuid, ExceptionType type, String taskKey) {
+        super(message);
+        this.type = type;
+        this.manifestId = manifestId;
+        this.guid = guid;
+        this.validGuid = validGuid;
+        this.taskKey = taskKey;
+    }
+
+    /**
+     * @return the unit id
+     */
+    public String getManifestId() {
+        return manifestId;
+    }
+
+    public boolean isValidGuid() {
+        return validGuid;
+    }
+
+    public ExceptionType getType() {
+        return type;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public String getTaskKey() {
+        return taskKey;
     }
 }

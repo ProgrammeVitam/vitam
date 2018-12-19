@@ -96,13 +96,14 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.processing.common.exception.ExceptionType;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
-import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
@@ -130,6 +131,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler.*;
 
 /**
  * listener to unmarshall seda
@@ -454,22 +456,26 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         try {
 
             boolean isGuid = false;
+            String keyValueUnitId;
             final String metadataName;
             final String metadataValue;
             if (null != existingArchiveUnitGuid) {
                 isGuid = true;
+                metadataName = ID.exactToken();
+                metadataValue = existingArchiveUnitGuid;
+
                 try {
                     GUIDReader.getGUID(existingArchiveUnitGuid);
                 } catch (final InvalidGuidOperationException e) {
+                    keyValueUnitId = "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]";
+
                     LOGGER.error("ID is not a GUID: " + existingArchiveUnitGuid, e);
-                    throw new ProcessingUnitNotFoundException(
-                            "Unit " + archiveUnitId + ": [" + existingArchiveUnitGuid +
+                    throw new ProcessingNotFoundException(
+                            "Unit " + archiveUnitId + ": [" + keyValueUnitId +
                                     "] is not a valid systemId [guid]",
                             archiveUnitId,
-                            existingArchiveUnitGuid, false);
+                            existingArchiveUnitGuid, false, ExceptionType.UNIT, SUBTASK_INVALID_GUID_ATTACHMENT);
                 }
-                metadataName = ID.exactToken();
-                metadataValue = existingArchiveUnitGuid;
 
             } else {
                 ArchiveUnitIdentifierKeyType archiveUnitIdentifier =
@@ -478,7 +484,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 metadataValue = archiveUnitIdentifier.getMetadataValue();
             }
 
-            String keyValueUnitId = "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]";
+            keyValueUnitId = "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]";
             if (null == existingArchiveUnitGuid) {
                 existingArchiveUnitGuid = keyValueUnitId;
             }
@@ -489,15 +495,15 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             if (result == null || result.size() == 0) {
                 LOGGER.error("Unit was not found {}", keyValueUnitId);
-                throw new ProcessingUnitNotFoundException(
+                throw new ProcessingNotFoundException(
                         "Existing Unit " + archiveUnitId + ":" + keyValueUnitId + ", was not found",
                         archiveUnitId,
-                        existingArchiveUnitGuid, isGuid);
+                        existingArchiveUnitGuid, isGuid, ExceptionType.UNIT, SUBTASK_NOT_FOUND_ATTACHMENT);
             }
 
             if (result.size() > 1) {
                 LOGGER.error("Multiple Unit was found {}", keyValueUnitId);
-                throw new ProcessingUnitNotFoundException(
+                throw new ProcessingTooManyUnitsFoundException(
                         "Unit " + archiveUnitId + ":" + keyValueUnitId + ", Multiple unit was found",
                         archiveUnitId,
                         existingArchiveUnitGuid, isGuid);
@@ -519,7 +525,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     String got = dataObjectReference.getDataObjectGroupReferenceId();
                     LOGGER.error("Linking object (" + got + ") not allowed for unit (" + existingArchiveUnitGuid +
                             ") without ObjectGroup");
-                    throw new ProcessingObjectLinkingException(
+                    throw new ProcessingObjectGroupLinkingException(
                             "Linking object (" + got + ") not allowed for unit (" + existingArchiveUnitGuid +
                                     ") without ObjectGroup",
                             existingArchiveUnitGuid, got);
@@ -528,7 +534,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
                 LOGGER.error("Linking not allowed  {}", existingArchiveUnitGuid);
-                throw new ProcessingUnitLinkingException("Linking Unauthorized ");
+                throw new ProcessingUnitLinkingException("Linking Unauthorized to the ArchiveUnit (" + existingArchiveUnitGuid + ") type " + dataUnitType + " and current ingest type is " + workflowUnitType, archiveUnitId, dataUnitType, workflowUnitType);
             }
 
             // Do not get originating agencies of holding
@@ -658,9 +664,9 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             if (existingObjectGroup == null || existingObjectGroup.get("$results") == null ||
                     existingObjectGroup.get("$results").size() == 0) {
                 LOGGER.error("Existing ObjectGroup " + groupId + " was not found {}", existingObjectGroup);
-                throw new RuntimeException(new ProcessingObjectGroupNotFoundException(
+                throw new RuntimeException(new ProcessingNotFoundException(
                         "Existing ObjectGroup " + groupId + " was not found for AU " + archiveUnitId, archiveUnitId,
-                        groupId));
+                        groupId, true, ExceptionType.GOT, SUBTASK_NOT_FOUND_ATTACHMENT));
             }
 
             unitIdToGroupId.put(archiveUnitId, groupId);
@@ -734,7 +740,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         // Check that childArchiveUnitRef is not an existing archive unit
         String childArchiveUnitRef_guid = unitIdToGuid.get(childArchiveUnitRef);
         if (existingUnitGuids.contains(childArchiveUnitRef_guid)) {
-            throw new RuntimeException(new ProcessingManifestReferenceException("The existing unit with guid [" + childArchiveUnitRef_guid + "] and manifest id [" + childArchiveUnitRef + "] should not have as parent a manifest unit id [" + archiveUnitId + "] "));
+            throw new RuntimeException(new ProcessingManifestReferenceException("The existing unit with guid [" + childArchiveUnitRef_guid + "] and manifest id [" + childArchiveUnitRef + "] should not have as parent a manifest unit id [" + archiveUnitId + "] ", childArchiveUnitRef, childArchiveUnitRef_guid, archiveUnitId));
         }
 
         ObjectNode childArchiveUnitNode = (ObjectNode) archiveUnitTree.get(childArchiveUnitRef);
@@ -793,7 +799,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         } else {
             throw new ProcessingManifestReferenceException(
                     "The group id " + objIdRefByUnit +
-                            " doesn't reference a data object or go and it not include in data object");
+                            " doesn't reference a data object or got and it not include in data object", objIdRefByUnit, ExceptionType.GOT);
         }
     }
 
@@ -838,43 +844,47 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private JsonNode loadExistingArchiveUnitByKeyValue(String metadataName, String metadataValue, String archiveUnitId)
             throws ProcessingException {
         if (metadataName.isEmpty() || metadataValue.isEmpty()) {
-            throw new ProcessingUnitNotFoundException(
+            throw new ProcessingNotFoundException(
                     "Unit " + archiveUnitId + ": [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
                             "] are required values",
                     archiveUnitId,
-                    "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]", false);
+                    "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]", false, ExceptionType.UNIT, SUBTASK_EMPTY_KEY_ATTACHMENT);
         }
 
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
             Query qr = tryApplyIngestContractRestriction(ingestContract, QueryHelper.eq(metadataName, metadataValue));
             select.setQuery(qr);
-        } catch (Exception e) {
-            LOGGER.error("Existing Unit was not found", e);
-            throw new ProcessingUnitNotFoundException(
+        } catch (IllegalStateException e) {
+            LOGGER.error("Ingest Contract have a LinkParentd NULL", e);
+            throw new ProcessingNotFoundException(
                     "Unit " + archiveUnitId + ":  [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
                             "] : " + e.getMessage(),
                     archiveUnitId,
                     "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
                             "]",
-                    false);
+                    false, ExceptionType.UNIT, SUBTASK_NULL_LINK_PARENT_ID_ATTACHMENT);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Json Parse error", e);
+            throw new ProcessingNotFoundException(
+                    "Unit " + archiveUnitId + ":  [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+                            "] : " + e.getMessage(),
+                    archiveUnitId,
+                    "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+                            "]",
+                    false, ExceptionType.UNIT, SUBTASK_ERROR_PARSE_ATTACHMENT);
         }
-        return loadExistingArchiveUnit(false, "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
-                "]", select, archiveUnitId);
+        return loadExistingArchiveUnit(select);
     }
 
     /**
      * Load data of an existing archive unit by its vitam id.
      *
-     * @param existingUnitGuidOrKeyValue guid of existing archive unit or key value that identify uniquely the AU
-     * @param archiveUnitId              xml id of archive unit
      * @return AU response
-     * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingNotFoundException thrown if unit not found
+     * @throws ProcessingException         thrown if a metadata exception occured
      */
-    private JsonNode loadExistingArchiveUnit(boolean searchByGuid, String existingUnitGuidOrKeyValue,
-                                             SelectMultiQuery selectMultiQuery,
-                                             String archiveUnitId) throws ProcessingException {
+    private JsonNode loadExistingArchiveUnit(SelectMultiQuery selectMultiQuery) throws ProcessingException {
 
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
 
@@ -896,11 +906,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             throw new ProcessingException(e);
 
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Existing Unit was not found", e);
-            throw new ProcessingUnitNotFoundException(
-                    "Unit " + archiveUnitId + ": " + existingUnitGuidOrKeyValue + " Parse operation exception : " +
-                            e.getMessage(),
-                    archiveUnitId, existingUnitGuidOrKeyValue, searchByGuid);
+            LOGGER.error("Json Parse error ", e);
+            throw new ProcessingException("Json Parse error ", e);
         }
     }
 
@@ -909,8 +916,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      *
      * @param objectGroupId guid of archive unit
      * @return AU response
-     * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingNotFoundException thrown if unit not found
+     * @throws ProcessingException         thrown if a metadata exception occured
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
