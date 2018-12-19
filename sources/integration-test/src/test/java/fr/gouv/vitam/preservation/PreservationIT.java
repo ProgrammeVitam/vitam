@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -77,11 +80,16 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.assertj.core.util.Lists;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -103,13 +111,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.MOCK;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -117,7 +126,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
@@ -136,16 +145,17 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
     private static final HashSet<Class> servers = Sets.newHashSet(
-        AccessInternalMain.class,
-        AdminManagementMain.class,
-        ProcessManagementMain.class,
-        LogbookMain.class,
-        WorkspaceMain.class,
-        MetadataMain.class,
-        WorkerMain.class,
-        LogbookMain.class,
-        IngestInternalMain.class,
-        BatchReportMain.class
+            AccessInternalMain.class,
+            AdminManagementMain.class,
+            ProcessManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            MetadataMain.class,
+            WorkerMain.class,
+            IngestInternalMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
     );
 
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
@@ -161,19 +171,14 @@ public class PreservationIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         String configurationPath =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
-
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(MOCK);
         new DataLoader("integration-ingest-internal").prepareData();
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -216,7 +221,8 @@ public class PreservationIT extends VitamRuleRunner {
         doIngest("elimination/TEST_ELIMINATION.zip");
         doIngest("preservation/OG_with_3_parents.zip");
 
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
+        FormatIdentifierFactory.getInstance()
+                .changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
 
     private void doIngest(String zip) throws FileNotFoundException, VitamException {
@@ -227,14 +233,14 @@ public class PreservationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
 
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(zip);
+                PropertiesUtils.getResourceAsStream(zip);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid.toString(), ingestOperationGuid);
+                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -265,15 +271,16 @@ public class PreservationIT extends VitamRuleRunner {
         for (Map.Entry<String, String> entry : objectIdsToFormat.entrySet()) {
 
             List<OutputPreservation> outputPreservationList = new ArrayList<>();
-            for (ActionTypePreservation action : singletonList(ANALYSE)) {
+            for (ActionTypePreservation action : singletonList(GENERATE)) {
 
                 OutputPreservation outputPreservation = new OutputPreservation();
 
                 outputPreservation.setStatus(OK);
-                outputPreservation.setAnalyseResult(NOT_VALID);
+                outputPreservation.setAnalyseResult(VALID_ALL);
                 outputPreservation.setAction(action);
 
                 outputPreservation.setInputPreservation(new InputPreservation(entry.getKey(), entry.getValue()));
+                outputPreservation.setOutputName("GENERATE-" + entry.getKey() + ".pdf");
                 outputPreservationList.add(outputPreservation);
             }
 
@@ -294,7 +301,7 @@ public class PreservationIT extends VitamRuleRunner {
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
             Optional<VersionsModel> versionsModelOptional =
-                objectGroup.getFirstVersionsModel("BinaryMaster");
+                    objectGroup.getFirstVersionsModel("BinaryMaster");
 
             VersionsModel model = versionsModelOptional.get();
             allObjectIds.put(model.getId(), model.getFormatIdentification().getFormatId());
@@ -356,6 +363,24 @@ public class PreservationIT extends VitamRuleRunner {
             getVitamSession().setContextId("Context_IT");
             getVitamSession().setRequestId(operationGuid);
 
+            // Check Accession Register Detail
+            List<String> excludeFields = Lists
+                    .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+
+            // Get accession register details before start preservation
+            long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+            assertThat(countDetails).isEqualTo(2);
+
+            // Assert AccessionRegisterSummary
+            assertJsonEquals("preservation/expected/accession_register_ratp_before.json",
+                    JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(new Document("OriginatingAgency", "RATP"))),
+                    excludeFields);
+
+            assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_before.json",
+                    JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
+                    excludeFields);
+
+
             buildAndSavePreservationResultFile();
 
             SelectMultiQuery select = new SelectMultiQuery();
@@ -370,14 +395,53 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
-                .get("$results")
-                .get(0)
-                .get("events");
+                    .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results")
+                    .get(0)
+                    .get("events");
 
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
-                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+                    .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+
+
+            // Get accession register details after start preservation
+            countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+            assertThat(countDetails).isEqualTo(4);
+
+            // Assert AccessionRegisterSummary
+            assertJsonEquals("preservation/expected/accession_register_ratp_after.json",
+                    JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(new Document("OriginatingAgency", "RATP"))),
+                    excludeFields);
+
+            assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_after.json",
+                    JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
+                    excludeFields);
         }
+    }
+
+    private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
+            throws FileNotFoundException, InvalidParseOperationException {
+        JsonNode expected = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
+        if (excludeFields != null) {
+            expected.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+            });
+            actual.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+
+            });
+        }
+
+        JsonAssert
+                .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[]{})));
     }
 }

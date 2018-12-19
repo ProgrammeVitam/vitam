@@ -45,7 +45,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckConcurrentWorkflowLockHandler;
 import fr.gouv.vitam.worker.core.handler.CheckDataObjectPackageActionHandler;
@@ -61,6 +60,7 @@ import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
+import fr.gouv.vitam.worker.core.handler.IngestAccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
@@ -80,6 +80,7 @@ import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPrepara
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisCheckDistributionThresholdHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisPreparationHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.PreservationAccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler;
@@ -160,8 +161,10 @@ public class WorkerImpl implements Worker {
             new CheckObjectUnitConsistencyActionHandler());
         actions.put(PrepareStorageInfoActionHandler.getId(),
             new PrepareStorageInfoActionHandler());
-        actions.put(AccessionRegisterActionHandler.getId(),
-            new AccessionRegisterActionHandler());
+        actions.put(IngestAccessionRegisterActionHandler.getId(),
+            new IngestAccessionRegisterActionHandler());
+        actions.put(PreservationAccessionRegisterActionHandler.getId(),
+                new PreservationAccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());

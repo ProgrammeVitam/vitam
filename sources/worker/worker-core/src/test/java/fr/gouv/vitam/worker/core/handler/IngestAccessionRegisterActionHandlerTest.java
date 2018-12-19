@@ -81,13 +81,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class AccessionRegisterActionHandlerTest {
-    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
-    private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
-    private static final String BDO_TO_BDO_INFO_MAP = "BDO_TO_BDO_INFO_MAP_obj.json";
+public class IngestAccessionRegisterActionHandlerTest {
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String FAKE_URL = "http://localhost:8080";
-    AccessionRegisterActionHandler accessionRegisterHandler;
+    IngestAccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIOImpl handlerIO;
     private GUID guid;
@@ -96,7 +93,7 @@ public class AccessionRegisterActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -110,9 +107,9 @@ public class AccessionRegisterActionHandlerTest {
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
         params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
+                        .setCurrentStep("currentStep").setContainerName(guid.getId());
         String objectId = "manifest";
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
@@ -142,31 +139,24 @@ public class AccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
-
+                .thenReturn(originatingAgencies);
 
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
-            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
-        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+                new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         RequestResponse<AccessionRegisterDetailModel> res =
-            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
+                new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
-            .thenReturn(res);
+                .thenReturn(res);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -191,28 +181,22 @@ public class AccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+                .thenReturn(originatingAgencies);
 
 
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
-            .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
+                .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
-            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
-        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+                new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -238,34 +222,28 @@ public class AccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+                .thenReturn(originatingAgencies);
 
         VitamError ve =
-            new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(Response.Status.CONFLICT.getReasonPhrase())
-                .setDescription("Document already exists in database");
+                new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
+                        .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                        .setState("code_vitam")
+                        .setMessage(Response.Status.CONFLICT.getReasonPhrase())
+                        .setDescription("Document already exists in database");
 
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
-            .thenReturn(ve);
+                .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
-            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
-        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+                new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -292,24 +270,18 @@ public class AccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
+                .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
-            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
-        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+                new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
         // Then
@@ -328,20 +300,14 @@ public class AccessionRegisterActionHandlerTest {
         params.setContainerName(operationId.getId());
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
-            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
-        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+                new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
