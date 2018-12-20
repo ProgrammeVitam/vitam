@@ -753,19 +753,18 @@ public class WebApplicationResourceDelete {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteGriffins(@Context HttpServletRequest request) throws IOException {
 
-        Response response = deleteMasterDataCollection(FunctionalAdminCollections.GRIFFIN);
+        deleteMasterDataCollection(FunctionalAdminCollections.GRIFFIN);
 
-        return Response.status(Status.OK).entity(response).build();
+        return Response.status(Status.OK).build();
     }
 
     @Path("masterdata/scenarios")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteScenarios(@Context HttpServletRequest request) throws IOException {
+        deleteMasterDataCollection(FunctionalAdminCollections.PRESERVATION_SCENARIO);
 
-        Response response = deleteMasterDataCollection(FunctionalAdminCollections.PRESERVATION_SCENARIO);
-
-        return Response.status(Status.OK).entity(response).build();
+        return Response.status(Status.OK).build();
     }
 
     private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {

@@ -281,7 +281,7 @@ export class MySelectionComponent extends PageComponent {
           message = 'Erreur lors du lancement de l\'export du relevé de valeur probante des unités archivistiques du panier';
         }
         break;
-        case 'PRESERVATION':
+      case 'PRESERVATION':
         if (isOK) {
           title = 'Préservation';
           message = 'Le process de préservation  est en cours';
@@ -417,7 +417,6 @@ export class MySelectionComponent extends PageComponent {
         break;
       case 'PRESERVATION':
         if (this.checkInputs()) {
-
           let preservationRequest = {
             dslQuery: query,
             usage: this.form.seclectedUsage,
@@ -431,7 +430,7 @@ export class MySelectionComponent extends PageComponent {
             }, () => {
               this.displayActionEnded(this.selectedOption, false);
             }
-            );
+          );
         }
         break;
       case 'PROBATIVE_VALUE':
@@ -465,11 +464,16 @@ export class MySelectionComponent extends PageComponent {
         break;
       case 'PRESERVATION':
         this.form.preservationMode = false;
-        this.form.usages = [{label: 'BinaryMaster', value: 'BinaryMaster'}, {
-          label: 'Dissemination',
-          value: 'Dissemination'
-        }];
-        this.form.versions = [{label: 'FIRST', value: 'FIRST'}, {label: 'LAST', value: 'LAST'}];
+        this.form.usages = [
+          {label: '', value: undefined},
+          {label: 'BinaryMaster', value: 'BinaryMaster'},
+          {label: 'Dissemination', value: 'Dissemination'}
+        ];
+        this.form.versions = [
+          {label: '', value: undefined},
+          {label: 'FIRST', value: 'FIRST'},
+          {label: 'LAST', value: 'LAST'}
+          ];
         this.form.scearioResults = [];
 
         this.referentialsService.getScenarios().subscribe(
@@ -504,7 +508,7 @@ export class MySelectionComponent extends PageComponent {
       case 'MASS_UPDATE':
         return this.form.updateRules || this.form.updateMetadata;
       case 'PRESERVATION':
-        return true;
+        return this.form.seclectedUsage != null && this.form.seclectedVersion != null && this.form.selectedScenario != null
       default:
         return false;
     }
