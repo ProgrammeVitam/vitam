@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -119,13 +120,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public void createContainer(String containerName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageServerException {
         synchronized (HashFileSystem.class) {
             ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
             if (isExistingContainer(containerName)) {
-                throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.CONTAINER_ALREADY_EXIST + containerName);
+                LOGGER.warn("Container " + containerName + " already exists");
+                return;
             }
             fsHelper.createContainer(containerName);
             containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper));
@@ -177,10 +178,22 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             }
         }
         try {
+            Digest digest = new Digest(digestType);
+            InputStream digestInputStream = digest.getDigestInputStream(stream);
+
             // Create the file from the inputstream
-            Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            String digest = super.computeObjectDigest(containerName, objectName, digestType);
-            storeDigest(containerName, objectName, digestType, digest);
+            Files.copy(digestInputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            String streamDigest = digest.digestHex();
+
+            String computedDigest = super.computeObjectDigest(containerName, objectName, digestType);
+
+            if (!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException("Illegal state for container " + containerName +
+                        " and  object " + objectName + ". Stream digest " + streamDigest
+                        + " is not equal to computed digest " + computedDigest);
+            }
+
+            storeDigest(containerName, objectName, digestType, computedDigest);
             containerMetadata.get(containerName).updateAndMarshall(1L - beforeObj, Files.size(filePath) - beforeSize);
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
@@ -440,7 +453,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName,
-        String nextMarker)
+                                                                          String nextMarker)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);

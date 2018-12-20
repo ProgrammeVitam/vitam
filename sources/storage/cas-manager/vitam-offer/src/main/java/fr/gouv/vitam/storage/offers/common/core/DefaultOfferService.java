@@ -27,25 +27,24 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Default offer service interface define offer methods
@@ -61,6 +60,7 @@ public interface DefaultOfferService {
      * @return the offer computed digest
      * @throws ContentAddressableStorageException thrown on storage error
      */
+    @VisibleForTesting
     String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
 
@@ -86,12 +86,11 @@ public interface DefaultOfferService {
      * @param objectGUID    the object GUID to create
      * @return objectInit with the offer object id (needed for the create object operation)
      * @throws ContentAddressableStorageServerException       thrown when a server error occurs
-     * @throws ContentAddressableStorageAlreadyExistException thrown if the container to create already exists
      * @throws ContentAddressableStorageNotFoundException     thrown if the container storage could not be created
      * @throws ContentAddressableStorageDatabaseException     thrown if the container sequence could not be incremented
      */
     ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
+        throws ContentAddressableStorageServerException,
         ContentAddressableStorageNotFoundException, ContentAddressableStorageDatabaseException;
 
     /**

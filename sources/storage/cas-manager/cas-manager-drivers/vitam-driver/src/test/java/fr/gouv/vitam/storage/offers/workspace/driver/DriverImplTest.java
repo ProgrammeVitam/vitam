@@ -61,18 +61,13 @@ public class DriverImplTest extends VitamJerseyTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImplTest.class);
 
     protected static final String HOSTNAME = "localhost";
-    private static final String DRIVER_NAME = "WorkspaceDriver";
-    private static JunitHelper junitHelper;
+    private static final String DRIVER_NAME = "DefaultOfferDriver";
     private static StorageOffer offer = new StorageOffer();
 
     public DriverImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
     }
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-    }
 
     // Define the getApplication to return your Application using the correct
     // Configuration
@@ -173,7 +168,7 @@ public class DriverImplTest extends VitamJerseyTest {
     }
 
     @Test()
-    public void getNameOK() throws Exception {
+    public void getNameOK() {
         assertEquals(DRIVER_NAME, DriverImpl.getInstance().getName());
     }
 

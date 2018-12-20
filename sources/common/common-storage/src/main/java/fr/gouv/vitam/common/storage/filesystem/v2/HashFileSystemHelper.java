@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -162,11 +161,10 @@ public class HashFileSystemHelper {
      * Create a directory recursively in the sub tree
      *
      * @param container : relative path that will be appended at the end of the rootPath
-     * @throws ContentAddressableStorageAlreadyExistException : if the directory already exists
      * @throws ContentAddressableStorageServerException       : on I/O Errors
      */
     public void createContainer(String container)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter("Subpath can't be null", container);
         createDirectories(getPathContainer(container));
     }
@@ -188,17 +186,16 @@ public class HashFileSystemHelper {
      *
      * @param path
      * @throws ContentAddressableStorageServerException
-     * @throws ContentAddressableStorageAlreadyExistException
      */
     public void createDirectories(Path path)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException {
+        throws ContentAddressableStorageServerException {
         if (path.toFile().isDirectory()) {
             return;
         }
         try {
             Files.createDirectories(path);
         } catch (FileAlreadyExistsException e) {
-            throw new ContentAddressableStorageAlreadyExistException("Path " + path.toString() + " already exists", e);
+            LOGGER.warn("Path " + path.toString() + " already exists", e);
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException("Can't create the directory " + path.toString(), e);
         }
