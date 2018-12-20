@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -434,6 +435,18 @@ public final class JsonHandler {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
             return OBJECT_MAPPER.treeToValue(jsonNode, clazz);
         } catch (final JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    public static final <T> T getFromJsonNode(final JsonNode jsonNode, final Class<T> clasz, Class<?> parameterClazz)
+            throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("value, class or parameterClazz", jsonNode, clasz, parameterClazz);
+            JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(clasz, parameterClazz);
+            ObjectReader reader = OBJECT_MAPPER.readerFor(type);
+            return reader.readValue(jsonNode);
+        } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
     }
