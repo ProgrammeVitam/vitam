@@ -398,7 +398,31 @@ export class SearchReferentialsComponent extends PageComponent {
           ];
           this.referentialPath = 'admin/griffins/all';
           this.referentialIdentifier = 'Identifier';
-          this.getLastImportOkOperation('griffins', 'IMPORT_AGENCIES.OK');
+          this.getLastImportOkOperation('griffins', 'IMPORT_GRIFFIN.OK');
+          this.actionLabel = 'Exporter le référentiel';
+          break;
+        case 'scenarios':
+          this.searchReferentialsService.setSearchAPI('scenarios');
+          this.breadcrumbName = 'Scenarios';
+          this.specificTitle = 'Scenarios';
+          this.referentialData = [
+            new FieldDefinition('ScenarioName', 'Intitulé', 4, 10),
+            FieldDefinition.createIdField('ScenarioID', 'Identifiant', 4, 10),
+            new FieldDefinition('Description', 'Description', 4, 10)
+          ];
+          this.searchForm = {'ScenarioID': 'all', 'ScenarioName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.initialSortKey = 'Name';
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
+              () => ({'width': '225px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'}))
+          ];
+          this.referentialPath = 'admin/griffins/all';
+          this.referentialIdentifier = 'Identifier';
+          this.getLastImportOkOperation('griffins', 'IMPORT_SCENARIO.OK');
           this.actionLabel = 'Exporter le référentiel';
           break;
         default:

@@ -24,8 +24,8 @@ export class ImportComponent  extends PageComponent {
     {label:"Règles de gestion", value:'rule'},
     {label:"Documents type", value:'archiveUnitProfile'},
     {label:"Ontologies", value:'ontology'},
-    {label:"Scenario de préservation", value:'scenario'},
-    {label:"Griffons", value:'griffin'},
+    {label:"Scenario de préservation", value:'scenarios'},
+    {label:"Griffons", value:'griffins'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
