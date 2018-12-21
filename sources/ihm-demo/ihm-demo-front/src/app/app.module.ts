@@ -198,7 +198,7 @@ const appRoutes: Routes = [
     path: 'admin/context/:id', component: ContextComponent, data: {permission: 'contexts:read'}
   },
   {
-    path: 'admin/agencies/:type/:id', component: GriffinsComponent, data: {permission: 'admin:accession-register:read'}
+    path: 'admin/agencies/:type/:id', component: AgenciesComponent, data: {permission: 'admin:accession-register:read'}
   },
   {
     path: 'admin/griffins/:id',component: GriffinsComponent, data: {permission: 'admin:accession-register:read'}
