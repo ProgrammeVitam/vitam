@@ -19,9 +19,6 @@
       "type": "date",
       "format": "strict_date_optional_time"
     },
-    "GriffinByFormat": {
-      "enabled": false
-    },
     "_tenant": {
       "type": "long"
     },

@@ -35,7 +35,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -98,7 +97,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.gouv.vitam.common.json.SchemaValidationUtils.AVAILABLE_MANAGEMENT_ATTRIBUTES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertArrayEquals;
@@ -970,12 +968,12 @@ public class AccessInternalModuleImplTest {
         byte[] src = output.toByteArray();
         JsonNode jsonNode = JsonHandler.getFromBytes(src);
         assertNotNull(jsonNode);
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
-            .get("FormatIdentification").get("MimeType").asText(), "image/png");
-        assertEquals(
+        assertEquals("image/png", jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
+            .get("FormatIdentification").get("MimeType").asText());
+        assertEquals("Vitam-S\u00E9nsibilisation de l' API-V1.0.png",
             jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0).get("FileInfo")
-                .get("Filename").asText(),
-            "Vitam-S\u00E9nsibilisation de l' API-V1.0.png");
+                .get("Filename").asText()
+        );
     }
 
     @Test
@@ -1000,10 +998,10 @@ public class AccessInternalModuleImplTest {
         byte[] src = output.toByteArray();
         JsonNode jsonNode = JsonHandler.getFromBytes(src);
         assertNotNull(jsonNode);
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
-            .get("FormatIdentification").get("MimeType").asText(), "image/png");
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
-            .get("FormatIdentification").get("Filename").asText(), "Wrong name");
+        assertEquals("image/png", jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
+            .get("FormatIdentification").get("MimeType").asText());
+        assertEquals("Wrong name", jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
+            .get("FormatIdentification").get("Filename").asText());
 
         /*
          * assertNotNull(abd); final Response binaryMasterResponse = abd.getOriginalResponse();
@@ -1190,7 +1188,6 @@ public class AccessInternalModuleImplTest {
         String updateFinalAction =
             "{\"$roots\":[\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.StorageRule.Rules.Rule\":\"R2\"}}]}";
         parser.parse(fromStringToJson(updateFinalAction));
-        AVAILABLE_MANAGEMENT_ATTRIBUTES.contains("Rules");
 
         // When
         ThrowingCallable checkAndUpdate = () -> accessModuleImpl.checkAndUpdateRuleQuery(parser);

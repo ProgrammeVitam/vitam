@@ -27,7 +27,12 @@
 package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
@@ -40,8 +45,13 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
-import fr.gouv.vitam.common.*;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -56,8 +66,16 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.fasterxml.jackson.databind.node.BooleanNode.FALSE;
 import static com.fasterxml.jackson.databind.node.BooleanNode.TRUE;
@@ -71,18 +89,20 @@ import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 public class SchemaValidationUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaValidationUtils.class);
+    private static final String MANAGEMENT = "Management";
+    private static final String CORRECT_FILE = "Correct file";
+    private static final String FILE_IS_NOT_A_VALID_JSON_FILE = "File is not a valid json file";
 
     private JsonSchema jsonSchema;
-    private boolean isExternal = false;
 
     /**
      * archive-unit-schema
      */
-    public static final String ARCHIVE_UNIT_SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
+    private static final String ARCHIVE_UNIT_SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
     /**
      * access-contract-schema
      */
-    public static final String ACCESS_CONTRACT_SCHEMA_FILENAME = "json-schema/access-contract-schema.json";
+    private static final String ACCESS_CONTRACT_SCHEMA_FILENAME = "json-schema/access-contract-schema.json";
     /**
      * accession-register-detail.schema
      */
@@ -96,15 +116,15 @@ public class SchemaValidationUtils {
     /**
      * agencies.schema
      */
-    public static final String AGENCIES_SCHEMA_FILENAME = "json-schema/agencies.schema.json";
+    private static final String AGENCIES_SCHEMA_FILENAME = "json-schema/agencies.schema.json";
     /**
      * archive-unit-profile.schema
      */
-    public static final String ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME = "json-schema/archive-unit-profile.schema.json";
+    private static final String ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME = "json-schema/archive-unit-profile.schema.json";
     /**
      * context.schema
      */
-    public static final String CONTEXT_SCHEMA_FILENAME = "json-schema/context.schema.json";
+    private static final String CONTEXT_SCHEMA_FILENAME = "json-schema/context.schema.json";
     /**
      * file-format.schema
      */
@@ -112,19 +132,19 @@ public class SchemaValidationUtils {
     /**
      * file-rules.schema
      */
-    public static final String FILE_RULES_SCHEMA_FILENAME = "json-schema/file-rules.schema.json";
+    private static final String FILE_RULES_SCHEMA_FILENAME = "json-schema/file-rules.schema.json";
     /**
      * ingest-contract.schema
      */
-    public static final String INGEST_CONTRACT_SCHEMA_FILENAME = "json-schema/ingest-contract.schema.json";
+    private static final String INGEST_CONTRACT_SCHEMA_FILENAME = "json-schema/ingest-contract.schema.json";
     /**
      * profile.schema
      */
-    public static final String PROFILE_SCHEMA_FILENAME = "json-schema/profile.schema.json";
+    private static final String PROFILE_SCHEMA_FILENAME = "json-schema/profile.schema.json";
     /**
      * security-profile.schema
      */
-    public static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
+    private static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
 
     /**
      * schemaValidation
@@ -138,10 +158,10 @@ public class SchemaValidationUtils {
     /**
      * ontology.schema
      */
-    public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
+    private static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
 
 
-    public static final String GRIFFIN_SCHEMA = "json-schema/griffin-shema.schema.json";
+    private static final String GRIFFIN_SCHEMA = "json-schema/griffin-shema.schema.json";
 
     private static final String PRESERVATION_SCENARIO_SCHEMA = "json-schema/preservation-scenario-shema.schema.json";
 
@@ -157,17 +177,15 @@ public class SchemaValidationUtils {
     private static final String DATE_TIME_VITAM = "date-time-vitam";
 
     private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList("$schema",
-        "id", "type", "additionalProperties", "anyOf", "required", "description", "items", "title",
-        "oneOf", "enum", "minLength", "minItems", "properties");
+        "id", "type", "additionalProperties", "anyOf", "required", "description", ITEMS, "title",
+        "oneOf", "enum", "minLength", "minItems", PROPERTIES);
 
-    public static Set<String> AVAILABLE_MANAGEMENT_ATTRIBUTES = listOfAvailableAttributes();
-
-    private static Set<String> listOfAvailableAttributes() {
+    public static Set<String> listOfAvailableAttributes() {
         try {
             Set<String> attributes = new HashSet<>();
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_FILENAME))
                 .get(PROPERTIES)
-                .get("Management")
+                .get(MANAGEMENT)
                 .get(PROPERTIES)
                 .forEach(p -> p.path(PROPERTIES).fieldNames().forEachRemaining(attributes::add));
             if (attributes.isEmpty()) {
@@ -175,16 +193,16 @@ public class SchemaValidationUtils {
             }
             return attributes;
         } catch (InvalidParseOperationException | FileNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
     /**
      * Constructor with a default schema filename
      *
-     * @throws FileNotFoundException
-     * @throws ProcessingException
-     * @throws InvalidParseOperationException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     public SchemaValidationUtils() throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
         setSchema(ARCHIVE_UNIT_SCHEMA_FILENAME);
@@ -195,9 +213,9 @@ public class SchemaValidationUtils {
      * Constructor with a specified schema filename
      *
      * @param schema schemaFilename or external json schema as a string
-     * @throws FileNotFoundException
-     * @throws ProcessingException
-     * @throws InvalidParseOperationException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     protected SchemaValidationUtils(String schema)
         throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
@@ -209,15 +227,14 @@ public class SchemaValidationUtils {
      *
      * @param schema   schemaFilename or external json schema as a string
      * @param external true if the schema is provided as a string
-     * @throws FileNotFoundException
-     * @throws ProcessingException
-     * @throws InvalidParseOperationException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     public SchemaValidationUtils(String schema, boolean external)
         throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
         if (external) {
             setSchemaAsString(schema);
-            isExternal = true;
         } else {
             setSchema(schema);
         }
@@ -226,7 +243,7 @@ public class SchemaValidationUtils {
     /**
      * Get the default Vitam JsonSchemaFactory
      *
-     * @return
+     * @return JsonSchemaFactory
      */
     private static JsonSchemaFactory getJsonSchemaFactory() {
         // override for date format
@@ -239,10 +256,8 @@ public class SchemaValidationUtils {
             .setDefaultLibrary("http://vitam-json-schema.org/draft-04/schema#", library)
             .setValidationMessages(bundle).freeze();
 
-        final JsonSchemaFactory factory = JsonSchemaFactory.newBuilder()
+        return JsonSchemaFactory.newBuilder()
             .setValidationConfiguration(cfg).freeze();
-        return factory;
-
     }
 
     private void setSchemaAsString(String schemaJsonAsString)
@@ -319,7 +334,7 @@ public class SchemaValidationUtils {
             case "CollectionSample":
             case "AccessionRegisterDetail":
             case "AccessionRegisterSummary":
-                return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+                return new SchemaValidationStatus(CORRECT_FILE, SchemaValidationStatusEnum.VALID);
             default:
                 throw new FileNotFoundException("No json schema found for collection " + collectionName);
         }
@@ -333,7 +348,7 @@ public class SchemaValidationUtils {
      * @param jsonNode the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
-    protected SchemaValidationStatus validateJson(JsonNode jsonNode) {
+    private SchemaValidationStatus validateJson(JsonNode jsonNode) {
         try {
             ProcessingReport report = jsonSchema.validate(jsonNode);
 
@@ -347,11 +362,11 @@ public class SchemaValidationUtils {
             }
 
         } catch (ProcessingException e) {
-            LOGGER.error("File is not a valid json file", e);
-            return new SchemaValidationStatus("File is not a valid json file",
+            LOGGER.error(FILE_IS_NOT_A_VALID_JSON_FILE, e);
+            return new SchemaValidationStatus(FILE_IS_NOT_A_VALID_JSON_FILE,
                 SchemaValidationStatusEnum.NOT_JSON_FILE);
         }
-        return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        return new SchemaValidationStatus(CORRECT_FILE, SchemaValidationStatusEnum.VALID);
     }
 
     /**
@@ -404,23 +419,20 @@ public class SchemaValidationUtils {
                 }
             }
         } catch (ProcessingException | ParseException e) {
-            LOGGER.error("File is not a valid json file", e);
-            return new SchemaValidationStatus("File is not a valid json file",
+            LOGGER.error(FILE_IS_NOT_A_VALID_JSON_FILE, e);
+            return new SchemaValidationStatus(FILE_IS_NOT_A_VALID_JSON_FILE,
                 SchemaValidationStatusEnum.NOT_JSON_FILE);
         }
-        return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        return new SchemaValidationStatus(CORRECT_FILE, SchemaValidationStatusEnum.VALID);
     }
 
     private int getIndexForErrorLevelObjectNode(JsonNode error) {
         int errorIndex = 0;
         for (int index = 0; index <= LogLevel.values().length; index++) {
-            if (error.get(index) != null) {
-                if (error.get(index).get("level") != null &&
-                    error.get(index).get("level").asText().equalsIgnoreCase(LogLevel.ERROR.toString())) {
-                    errorIndex = index;
-                    break;
-                }
-
+            if (error.get(index) != null && error.get(index).get("level") != null &&
+                error.get(index).get("level").asText().equalsIgnoreCase(LogLevel.ERROR.toString())) {
+                errorIndex = index;
+                break;
             }
         }
         return errorIndex;
@@ -437,12 +449,12 @@ public class SchemaValidationUtils {
 
         if (archiveUnit.get("_mgt") != null) {
             final JsonNode value = archiveUnitCopy.remove("_mgt");
-            archiveUnitCopy.set("Management", value);
+            archiveUnitCopy.set(MANAGEMENT, value);
         }
 
         if (archiveUnit.get("#management") != null) {
             final JsonNode value = archiveUnitCopy.remove("#management");
-            archiveUnitCopy.set("Management", value);
+            archiveUnitCopy.set(MANAGEMENT, value);
         }
 
         return validateUnit(archiveUnitCopy);
@@ -452,9 +464,8 @@ public class SchemaValidationUtils {
     /**
      * Get fields list declared in schema
      *
-     * @param schemaJsonAsString
+     * @param schemaJsonAsString schemaJsonAsString
      * @return a the list of fields declared in the schema
-     * @throws InvalidParseOperationException
      */
     public List<String> extractFieldsFromSchema(String schemaJsonAsString)
         throws InvalidParseOperationException {
@@ -475,16 +486,18 @@ public class SchemaValidationUtils {
             final Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
             JsonNode value = entry.getValue();
-            if (value != null && value.isObject() || value.isArray()) {
+            if (value == null) {
+                continue;
+            }
+            if (value.isObject() || value.isArray()) {
                 // if subproperties
                 extractPropertyFromJsonNode(value, listProperties);
             }
 
             if (!SCHEMA_DECLARATION_TYPE.contains(key) && value.isObject() && value.get(PROPERTIES) == null &&
-                (value.get(ITEMS) == null || (value.get(ITEMS) != null && value.get(ITEMS).get(PROPERTIES) == null))) {
-                if (!listProperties.contains(key)) {
-                    listProperties.add(key);
-                }
+                (value.get(ITEMS) == null || (value.get(ITEMS) != null && value.get(ITEMS).get(PROPERTIES) == null)) &&
+                !listProperties.contains(key)) {
+                listProperties.add(key);
             }
         }
     }
@@ -501,50 +514,65 @@ public class SchemaValidationUtils {
         List<String> errors) {
         Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
-            final Entry<String, JsonNode> entry = iterator.next();
-            String fieldName = entry.getKey();
-
-            OntologyModel ontology = ontologyModelMap.get(fieldName);
-            JsonNode fieldValue = entry.getValue();
-            if (fieldValue == null || fieldValue.isMissingNode()) {
-                continue;
-            }
-            if (fieldValue.isObject()) {
-                verifyAndReplaceFields(fieldValue, ontologyModelMap, errors);
-            } else if (fieldValue.isArray()) {
-                for (int i = 0; i < fieldValue.size(); i++) {
-                    JsonNode jn = fieldValue.get(i);
-                    if (null == jn || null == jn.asText()) {
-                        continue;
-                    }
-
-                    if (jn.isObject() || jn.isArray()) {
-                        verifyAndReplaceFields(jn, ontologyModelMap, errors);
-                    } else {
-                        try {
-                            ((ArrayNode) fieldValue)
-                                .set(i, checkFieldLengthAndForceFieldTyping(fieldName, jn, ontology));
-                        } catch (IllegalArgumentException | DateTimeParseException e) {
-                            errors.add(String.format("Error '%s' on field '%s'.", e.getMessage(), fieldName));
-                        }
-                    }
-                }
-
-            } else {
-                errors.addAll(replacePropertyField(fieldValue, ontology, node, fieldName));
-            }
+            verifyLine(node, ontologyModelMap, errors, iterator);
         }
+    }
+
+    private void verifyLine(JsonNode node, Map<String, OntologyModel> ontologyModelMap, List<String> errors,
+        Iterator<Entry<String, JsonNode>> iterator) {
+        final Entry<String, JsonNode> entry = iterator.next();
+        String fieldName = entry.getKey();
+
+        OntologyModel ontology = ontologyModelMap.get(fieldName);
+        JsonNode fieldValue = entry.getValue();
+        if (fieldValue == null || fieldValue.isMissingNode()) {
+            return;
+        }
+
+        if (fieldValue.isObject()) {
+            verifyAndReplaceFields(fieldValue, ontologyModelMap, errors);
+
+            return;
+        }
+        if (fieldValue.isArray()) {
+            for (int i = 0; i < fieldValue.size(); i++) {
+                JsonNode jn = fieldValue.get(i);
+                verifyField(ontologyModelMap, errors, fieldName, ontology, (ArrayNode) fieldValue, i, jn);
+            }
+            return;
+        }
+        errors.addAll(replacePropertyField(fieldValue, ontology, node, fieldName));
+
+    }
+
+    private void verifyField(Map<String, OntologyModel> ontologyModelMap, List<String> errors, String fieldName,
+        OntologyModel ontology, ArrayNode fieldValue, int i, JsonNode jn) {
+        if (null == jn || null == jn.asText()) {
+            return;
+        }
+
+        if (jn.isObject() || jn.isArray()) {
+            verifyAndReplaceFields(jn, ontologyModelMap, errors);
+            return;
+        }
+        try {
+            fieldValue
+                .set(i, checkFieldLengthAndForceFieldTyping(fieldName, jn, ontology));
+        } catch (IllegalArgumentException | DateTimeParseException e) {
+            errors.add(String.format("Error '%s' on field '%s'.", e.getMessage(), fieldName));
+        }
+
     }
 
 
     /**
      * Example of fieldContainer:  fieldContainer = "{'fieldName': 'fieldValue'}"
      *
-     * @param fieldValue
-     * @param ontology
-     * @param fieldContainer
-     * @param fieldName
-     * @return
+     * @param fieldValue     fieldValue
+     * @param ontology       ontology
+     * @param fieldContainer fieldContainer
+     * @param fieldName      fieldName
+     * @return List
      */
     private List<String> replacePropertyField(JsonNode fieldValue, OntologyModel ontology, JsonNode fieldContainer,
         String fieldName) {
@@ -602,10 +630,10 @@ public class SchemaValidationUtils {
     /**
      * Check if value length is accepted or is longer than expected
      *
-     * @param fieldName
-     * @param fieldValueNode
-     * @param maxLength
-     * @param message
+     * @param fieldName      fieldName
+     * @param fieldValueNode fieldValueNode
+     * @param maxLength      maxLength
+     * @param message        message
      * @return JsonNode
      */
     private JsonNode validateValueLength(String fieldName, JsonNode fieldValueNode, int maxLength,

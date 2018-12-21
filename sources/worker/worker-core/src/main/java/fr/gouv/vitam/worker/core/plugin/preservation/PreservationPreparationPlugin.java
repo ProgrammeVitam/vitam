@@ -228,13 +228,14 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
             Collection<String> unitIds = tempMap.get(objectGroup.getId());
 
-            // FIXME: All unitsIds should be proceeded, not just a single unitId.
+            // TODO: All unitsIds should be proceeded, not just a single unitId.
             //  For now, only a single unit Id is supported
             String unitId = unitIds.iterator().next();
 
             Optional<PreservationDistributionLine> preservationDistributionLine = createPreservationDistributionLine(
                 preservationRequest, unitId, objectGroup, scenarioModel, griffinModelListForScenario);
 
+            //TODO  do reporting for not found format objects
             preservationDistributionLine.ifPresent(
                 line -> preservationDistributionsByFormatId.put(line.getFormatId(), line));
         }
@@ -318,7 +319,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         Optional<GriffinByFormat> griffinByFormat = scenarioModel.getGriffinByFormat(formatId);
 
         if (!griffinByFormat.isPresent()) {
-            throw new VitamRuntimeException("Format not found for object group  '" + objectGroup.getId() + "'");
+            return Optional.empty();
         }
 
         GriffinByFormat griffinByFormatModel = griffinByFormat.get();

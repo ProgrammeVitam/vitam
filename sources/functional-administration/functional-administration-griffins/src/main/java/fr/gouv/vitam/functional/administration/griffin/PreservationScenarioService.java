@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -64,6 +63,7 @@ import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -230,7 +230,6 @@ public class PreservationScenarioService {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
-           // formatDateForMongo(preservationScenarioModel);
             JsonNode queryDslForUpdate = getUpdateDslQuery(preservationScenarioModel);
 
             mongoDbAccess.updateData(queryDslForUpdate, PRESERVATION_SCENARIO);
@@ -240,51 +239,16 @@ public class PreservationScenarioService {
     private JsonNode getUpdateDslQuery(@NotNull PreservationScenarioModel preservationScenarioModel) {
 
         try {
-            List<SetAction> actions = getSetActionsFromModel(preservationScenarioModel);
-            SetAction[] setActions = actions.toArray(new SetAction[0]);
             Update update = new Update();
+            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(preservationScenarioModel);
+            update.addActions(set(jsonNode));
 
             update.setQuery(eq(Griffin.IDENTIFIER, preservationScenarioModel.getIdentifier()));
 
-            update.addActions(setActions);
-
             return update.getFinalUpdate();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException |InvalidParseOperationException e) {
             throw new IllegalStateException("Illegal state");
         }
-
-    }
-
-    private List<SetAction> getSetActionsFromModel(PreservationScenarioModel preservationScenarioModel)
-        throws InvalidCreateOperationException {
-
-        JsonNode jsonModel = modelToJson(preservationScenarioModel);
-
-        List<SetAction> actions = new ArrayList<>();
-
-        for (String field : PreservationScenarioModel.getAlterableFields()) {
-            JsonNode fieldNode = jsonModel.get(field);
-
-            if (fieldNode != null) {
-                String value = fieldNode.toString();
-
-                SetAction action = new SetAction(field, value);
-                actions.add(action);
-            }
-        }
-
-        return actions;
-    }
-
-    private JsonNode modelToJson(@NotNull PreservationScenarioModel preservationScenarioModel) {
-        JsonNode jsonModel;
-        try {
-            jsonModel = JsonHandler.toJsonNode(preservationScenarioModel);
-        } catch (InvalidParseOperationException e) {
-
-            throw new IllegalStateException("incorrect model");
-        }
-        return jsonModel;
     }
 
     private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) {
@@ -303,5 +267,4 @@ public class PreservationScenarioService {
 
         return documents.getRequestResponseOK(queryDsl, PreservationScenario.class, PreservationScenarioModel.class);
     }
-
 }
