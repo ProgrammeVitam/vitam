@@ -31,6 +31,8 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
 import static com.mongodb.client.model.Updates.combine;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.ID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.LAST_PERSISTED_DATE;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.VERSION;
@@ -162,6 +164,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         DEFAULT_ALLKEYS.put(TENANT_ID, 1);
         DEFAULT_ALLKEYS.put(VERSION, 1);
         DEFAULT_ALLKEYS.put(LAST_PERSISTED_DATE, 1);
+        DEFAULT_ALLKEYS.put(ID, 1);
     }
 
     private final LogbookElasticsearchAccess esClient;
