@@ -200,8 +200,8 @@ public class SchemaValidationUtils {
     /**
      * Constructor with a default schema filename
      *
-     * @throws FileNotFoundException FileNotFoundException
-     * @throws ProcessingException ProcessingException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     public SchemaValidationUtils() throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
@@ -213,8 +213,8 @@ public class SchemaValidationUtils {
      * Constructor with a specified schema filename
      *
      * @param schema schemaFilename or external json schema as a string
-     * @throws FileNotFoundException  FileNotFoundException
-     * @throws ProcessingException ProcessingException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     protected SchemaValidationUtils(String schema)
@@ -227,8 +227,8 @@ public class SchemaValidationUtils {
      *
      * @param schema   schemaFilename or external json schema as a string
      * @param external true if the schema is provided as a string
-     * @throws FileNotFoundException FileNotFoundException
-     * @throws ProcessingException ProcessingException
+     * @throws FileNotFoundException          FileNotFoundException
+     * @throws ProcessingException            ProcessingException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     public SchemaValidationUtils(String schema, boolean external)
@@ -486,10 +486,10 @@ public class SchemaValidationUtils {
             final Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
             JsonNode value = entry.getValue();
-            if (value==null){
+            if (value == null) {
                 continue;
             }
-            if ( value.isObject() || value.isArray()) {
+            if (value.isObject() || value.isArray()) {
                 // if subproperties
                 extractPropertyFromJsonNode(value, listProperties);
             }
@@ -568,10 +568,10 @@ public class SchemaValidationUtils {
     /**
      * Example of fieldContainer:  fieldContainer = "{'fieldName': 'fieldValue'}"
      *
-     * @param fieldValue fieldValue
-     * @param ontology ontology
+     * @param fieldValue     fieldValue
+     * @param ontology       ontology
      * @param fieldContainer fieldContainer
-     * @param fieldName fieldName
+     * @param fieldName      fieldName
      * @return List
      */
     private List<String> replacePropertyField(JsonNode fieldValue, OntologyModel ontology, JsonNode fieldContainer,
@@ -630,10 +630,10 @@ public class SchemaValidationUtils {
     /**
      * Check if value length is accepted or is longer than expected
      *
-     * @param fieldName fieldName
+     * @param fieldName      fieldName
      * @param fieldValueNode fieldValueNode
-     * @param maxLength maxLength
-     * @param message message
+     * @param maxLength      maxLength
+     * @param message        message
      * @return JsonNode
      */
     private JsonNode validateValueLength(String fieldName, JsonNode fieldValueNode, int maxLength,
