@@ -1055,6 +1055,7 @@ public class ParserTokens extends BuilderToken {
             // Preservation
             case "ExecutableName":
             case "ExecutableVersion":
+            case "DefaultGriffin":
 
                 // context
             case "SecurityProfile":

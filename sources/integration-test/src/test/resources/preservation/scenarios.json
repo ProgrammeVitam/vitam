@@ -159,7 +159,22 @@
         ]
       }
     ],
-    "DefaultGriffin": null
+    "DefaultGriffin": {
+      "GriffinIdentifier": "GRI-000005",
+      "TimeOut": 10,
+      "MaxSize": 10000000,
+      "Debug":true,
+      "ActionDetail": [
+        {
+          "Type": "ANALYSE",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+        }
+      ]
+    }
   },
   {
     "Identifier": "PSC-000023",
@@ -332,6 +347,21 @@
         ]
       }
     ],
-    "DefaultGriffin": null
+    "DefaultGriffin": {
+      "GriffinIdentifier": "GRI-000005",
+      "TimeOut": 10,
+      "MaxSize": 10000000,
+      "Debug":true,
+      "ActionDetail": [
+        {
+          "Type": "ANALYSE",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+        }
+      ]
+    }
   }
 ]

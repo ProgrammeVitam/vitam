@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.administration;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 import java.util.HashSet;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Optional.empty;
 
 /**
@@ -63,10 +61,6 @@ public class PreservationScenarioModel {
     private static final String TAG_DEFAULT_GRIFFIN = "DefaultGriffin";
 
     private static final String TAG_METADATA_FILTER = "MetadataFilter";
-
-    private static final List<String> alterableFields =
-        newArrayList(TAG_DESCRIPTION, TAG_NAME, TAG_GRIFFIN_BY_FORMAT/*,
-            TAG_DEFAULT_GRIFFIN*/);
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -221,13 +215,20 @@ public class PreservationScenarioModel {
             return empty();
         }
 
-        GriffinByFormat first =
+        Optional<GriffinByFormat> first =
             griffinByFormat.stream()
                 .filter(e -> e.getFormatList().contains(format))
-                .findFirst()
-                .orElse(defaultGriffin);
+                .findFirst();
 
-        return Optional.of(first);
+        if (first.isPresent()) {
+            return first;
+        }
+
+        if (defaultGriffin == null) {
+            return empty();
+        }
+
+        return Optional.of(defaultGriffin);
     }
 
 
@@ -248,8 +249,20 @@ public class PreservationScenarioModel {
         return identifierSet;
     }
 
-    @JsonIgnore
-    public static List<String> getAlterableFields() {
-        return alterableFields;
+    @Override public String toString() {
+        return "PreservationScenarioModel{" +
+            "id='" + id + '\'' +
+            ", tenant=" + tenant +
+            ", version=" + version +
+            ", name='" + name + '\'' +
+            ", identifier='" + identifier + '\'' +
+            ", description='" + description + '\'' +
+            ", creationDate='" + creationDate + '\'' +
+            ", lastUpdate='" + lastUpdate + '\'' +
+            ", actionList=" + actionList +
+            ", metadataFilter=" + metadataFilter +
+            ", griffinByFormat=" + griffinByFormat +
+            ", defaultGriffin=" + defaultGriffin +
+            '}';
     }
 }

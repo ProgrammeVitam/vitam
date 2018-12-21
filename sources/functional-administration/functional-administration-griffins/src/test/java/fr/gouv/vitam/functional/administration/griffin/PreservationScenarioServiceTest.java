@@ -152,7 +152,8 @@ public class PreservationScenarioServiceTest {
         assertThat(event2Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
             .isEqualTo("IMPORT_PRESERVATION_SCENARIO.OK");
 
-        verify(functionalBackupService).saveCollectionAndSequence(guid, "STP_BACKUP_SCENARIO", PRESERVATION_SCENARIO, guid.getId());
+        verify(functionalBackupService)
+            .saveCollectionAndSequence(guid, "STP_BACKUP_SCENARIO", PRESERVATION_SCENARIO, guid.getId());
     }
 
 
