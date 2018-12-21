@@ -127,9 +127,9 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT;
-import static fr.gouv.vitam.common.json.SchemaValidationUtils.AVAILABLE_MANAGEMENT_ATTRIBUTES;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -219,7 +219,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient a StorageClient instance
+     * @param storageClient           a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -275,7 +275,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit as String
+     * @param idUnit    as String
      * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
@@ -581,7 +581,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         updateParserMultiple.parse(query);
         List<Action> actions = updateParserMultiple.getRequest().getActions();
 
-       for (Action action : actions) {
+        for (Action action : actions) {
 
             ObjectNode currentAction = action.getCurrentAction();
             JsonNode setAction = currentAction.get(UPDATEACTION.SET.exactToken());
@@ -590,7 +590,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException{
+    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException {
         if (setAction == null) {
             return;
         }
@@ -971,7 +971,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error message to throw if response is null or no result could be found
+     * @param error        message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -1493,7 +1493,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request The initial request
+     * @param request              The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
@@ -1529,7 +1529,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 String[] params = ruleToBeChecked.split("\\.");
                                 String mainAtt = params[0];
                                 String subAtt = params[params.length - 1];
-                                if (!AVAILABLE_MANAGEMENT_ATTRIBUTES.contains(subAtt)) {
+                                Set<String> availableManagementAttributes =
+                                    SchemaValidationUtils.listOfAvailableAttributes();
+                                if (!availableManagementAttributes.contains(subAtt)) {
                                     throw new AccessInternalRuleExecutionException(
                                         ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT);
                                 }

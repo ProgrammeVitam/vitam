@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import io.restassured.RestAssured;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -165,6 +166,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -327,21 +329,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
     }
 
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient =
-                ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isOperationCompleted(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
 
 
     public static void prepareVitamSession() {
@@ -1372,8 +1359,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-
-        wait(operationGuid.toString());
+        waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
@@ -1707,8 +1693,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
 
-            wait(operationGuid.toString());
-
+            waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
             processWorkflow =
                     ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
@@ -2508,7 +2493,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
 
-        wait(operationGuid.toString());
+        waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
