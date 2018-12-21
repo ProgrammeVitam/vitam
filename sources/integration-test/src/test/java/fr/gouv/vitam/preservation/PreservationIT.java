@@ -74,9 +74,12 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
@@ -88,6 +91,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -492,4 +496,23 @@ public class PreservationIT extends VitamRuleRunner {
         JsonAssert
             .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
+
+    @After
+    public void afterTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
+
+        ProcessDataAccessImpl.getInstance().clearWorkflow();
+        runAfterMongo(Sets.newHashSet(
+
+            FunctionalAdminCollections.PRESERVATION_SCENARIO.getName(),
+            FunctionalAdminCollections.GRIFFIN.getName()
+
+        ));
+
+        runAfterEs(Sets.newHashSet(
+            FunctionalAdminCollections.PRESERVATION_SCENARIO.getName().toLowerCase(),
+            FunctionalAdminCollections.GRIFFIN.getName().toLowerCase()
+        ));
+    }
+
 }
