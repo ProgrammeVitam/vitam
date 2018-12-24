@@ -77,17 +77,12 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
         throws ProcessingException {
 
-
         final ItemStatus itemStatus = new ItemStatus(OG_METADATA_STORAGE);
         final String guid = StringUtils.substringBeforeLast(params.getObjectName(), ".");
-
-
         try {
             // create metadata-lfc file in workspace
             saveDocumentWithLfcInStorage(guid, actionDefinition, params.getContainerName(), itemStatus);
-
             itemStatus.increment(StatusCode.OK);
-
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
