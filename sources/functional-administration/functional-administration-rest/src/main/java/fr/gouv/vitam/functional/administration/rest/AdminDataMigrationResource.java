@@ -216,7 +216,8 @@ public class AdminDataMigrationResource {
 
     private Response handleMigrationProcess(MigrationAction migrationAction) {
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
             boolean started = this.accessionRegisterMigrationService.tryStartMigration(migrationAction);
 

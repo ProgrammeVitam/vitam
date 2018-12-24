@@ -43,6 +43,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
@@ -246,7 +247,7 @@ public class MultiplePipedInputStreamHandlerTest {
             InputStream is;
             @SuppressWarnings("unchecked")
             final Future<Integer>[] total = new Future[nb];
-            final ExecutorService executor = Executors.newFixedThreadPool(nb);
+            final ExecutorService executor = Executors.newFixedThreadPool(nb, VitamThreadFactory.getInstance());
             for (int i = 0; i < nb; i++) {
                 is = mish.getInputStream(i);
                 final ThreadReader threadReader = new ThreadReader(i, is, size);
@@ -472,7 +473,7 @@ public class MultiplePipedInputStreamHandlerTest {
             for (int i = 0; i < nb; i++) {
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE));
             }
-            final ExecutorService executor = Executors.newFixedThreadPool(nb);
+            final ExecutorService executor = Executors.newFixedThreadPool(nb, VitamThreadFactory.getInstance());
             list.clear();
             @SuppressWarnings("unchecked")
             final Future<Integer>[] total = new Future[nb];

@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -57,7 +58,10 @@ import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -76,6 +80,7 @@ public class MetadataManagementResourceTest {
     private ReconstructionRequestItem requestItem;
     private ReclassificationDistributionService reclassificationDistributionService;
 
+    private static int tenant = VitamConfiguration.getAdminTenant();
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
@@ -86,7 +91,15 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
     }
 
+    @BeforeClass
+    public static void baforeClass() {
+        VitamConfiguration.setAdminTenant(0);
+    }
 
+    @AfterClass
+    public static void afterClass() {
+        VitamConfiguration.setAdminTenant(tenant);
+    }
     @Test
     @RunWithCustomExecutor
     public void should_return_ok_when_store_graph_handled() throws StoreGraphException {

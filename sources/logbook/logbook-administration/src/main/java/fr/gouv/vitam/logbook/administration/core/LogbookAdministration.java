@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
@@ -94,6 +95,7 @@ public class LogbookAdministration {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         LogbookOperationTraceabilityHelper helper =
             new LogbookOperationTraceabilityHelper(logbookOperations, guid,

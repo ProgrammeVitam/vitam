@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -120,7 +121,7 @@ public class StorageDistributionImplTest {
             StorageLogFactory.getInstance(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService,
-            Executors.newFixedThreadPool(16), 300);
+            Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance()), 300);
     }
 
     @AfterClass

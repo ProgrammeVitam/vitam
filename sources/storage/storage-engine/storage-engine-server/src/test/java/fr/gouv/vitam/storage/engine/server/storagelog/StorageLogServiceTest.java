@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -185,7 +186,7 @@ public class StorageLogServiceTest {
 
         CountDownLatch stopSignal = new CountDownLatch(1);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(NB_THREADS_PER_TENANT * TENANTS);
+        ExecutorService executorService = Executors.newFixedThreadPool(NB_THREADS_PER_TENANT * TENANTS, VitamThreadFactory.getInstance());
 
         // Threads for appending messages
         for (int i = 0; i < NB_THREADS_PER_TENANT * NB_THREADS_PER_TENANT; i++) {

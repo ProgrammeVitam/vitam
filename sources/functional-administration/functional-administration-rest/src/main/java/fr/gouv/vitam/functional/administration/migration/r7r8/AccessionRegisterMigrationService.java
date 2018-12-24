@@ -27,11 +27,16 @@
 package fr.gouv.vitam.functional.administration.migration.r7r8;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
@@ -125,7 +130,7 @@ public class AccessionRegisterMigrationService {
 
         LOGGER.info(String.format("Start purge Accession Register (detail and summary) ..."));
         int nbThreads = Math.max(Runtime.getRuntime().availableProcessors(), 16);
-        ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(nbThreads, VitamThreadFactory.getInstance());
 
         try {
             CompletableFuture.allOf(
@@ -160,7 +165,7 @@ public class AccessionRegisterMigrationService {
 
         LOGGER.info(String.format("Updating %s ...", collection.getName()));
         int nbThreads = Math.max(Runtime.getRuntime().availableProcessors(), 16);
-        ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(nbThreads, VitamThreadFactory.getInstance());
 
         StopWatch sw = StopWatch.createStarted();
         AtomicInteger updatedRegisters = new AtomicInteger();
@@ -185,9 +190,16 @@ public class AccessionRegisterMigrationService {
 
         List<Document> updatedRegisters = ListUtils.synchronizedList(new ArrayList<>());
 
+        final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        final String scopedXRequestId = VitamThreadUtils.getVitamSession().getRequestId();
+
         CompletableFuture[] futures =
                 registersToUpdate.stream().map(register -> CompletableFuture.runAsync(() -> {
                     try {
+
+                        VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                        VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
+
                         switch (collection) {
                             case ACCESSION_REGISTER_DETAIL:
                                 migrateAccessionRegisterDetail(register);

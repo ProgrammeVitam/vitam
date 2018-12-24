@@ -244,12 +244,19 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             .collect(Collectors.toList());
 
         ExecutorService executorService =
-            Executors.newFixedThreadPool(UPDATE_THREAD_POOL_SIZE, VitamThreadFactory.getInstance());
+            Executors.newFixedThreadPool(UPDATE_THREAD_POOL_SIZE,  VitamThreadFactory.getInstance());
 
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        final String scopedRequestId = VitamThreadUtils.getVitamSession().getRequestId();
+
         for (FileFormatModel fileFormatModel : existingFormatsToUpdate) {
             CompletableFuture<Void> completableFuture =
-                CompletableFuture.runAsync(() -> updateExistingFormat(fileFormatModel), executorService);
+                CompletableFuture.runAsync(() -> {
+                    VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                    VitamThreadUtils.getVitamSession().setRequestId(scopedRequestId);
+                    updateExistingFormat(fileFormatModel);
+                }, executorService);
             completableFutures.add(completableFuture);
         }
 

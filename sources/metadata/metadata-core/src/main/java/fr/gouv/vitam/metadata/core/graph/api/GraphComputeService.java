@@ -54,6 +54,8 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.GraphUtils;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
@@ -75,7 +77,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     int START_DEPTH = 1;
 
     Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 32);
-    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
+    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, VitamThreadFactory.getInstance());
 
 
     /**
@@ -98,8 +100,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * Empty collection is returned if computeGraph of object group.
      */
     GraphComputeResponse computeGraph(MetadataCollections metadataCollections, Set<String> unitsId,
-        boolean computeObjectGroupGraph);
-
+                                      boolean computeObjectGroupGraph);
 
 
     /**
@@ -111,24 +112,24 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     default void preLoadCache(List<Document> documents) throws MetaDataException {
         // TODO Check if we preloadCache or not?!
         Set<String> allUps =
-            documents
-                .stream()
-                .map(o -> (List<String>) o.get(Unit.UP, List.class))
-                .filter(CollectionUtils::isNotEmpty)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                documents
+                        .stream()
+                        .map(o -> (List<String>) o.get(Unit.UP, List.class))
+                        .filter(CollectionUtils::isNotEmpty)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toSet());
 
         try {
             Map<String, Document> docs = getCache().getAll(allUps);
             while (!allUps.isEmpty()) {
 
                 allUps = docs
-                    .values()
-                    .stream()
-                    .map(o -> (List<String>) o.get(Unit.UP, List.class))
-                    .filter(CollectionUtils::isNotEmpty)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toSet());
+                        .values()
+                        .stream()
+                        .map(o -> (List<String>) o.get(Unit.UP, List.class))
+                        .filter(CollectionUtils::isNotEmpty)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toSet());
 
                 if (!allUps.isEmpty()) {
                     docs = getCache().getAll(allUps);
@@ -149,7 +150,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws MetaDataException
      */
     default void computeGraph(MetadataCollections metadataCollections, List<Document> documents)
-        throws MetaDataException {
+            throws MetaDataException {
 
         preLoadCache(documents);
 
@@ -166,17 +167,25 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
                     throw new MetaDataException("Collection (" + metadataCollections + ") not supported");
             }
 
+
+            final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
+            final String scopedXRequestId = VitamThreadUtils.getVitamSession().getRequestId();
+
             // Create a batch of CompletableFuture.
             CompletableFuture<WriteModel<Document>>[] features = documents.stream()
-                .map(o -> CompletableFuture.supplyAsync(() -> func.apply(o), executor))
-                .toArray(CompletableFuture[]::new);
+                    .map(o -> CompletableFuture.supplyAsync(() -> {
+                        VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                        VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
+                        return func.apply(o);
+                    }, executor))
+                    .toArray(CompletableFuture[]::new);
 
 
             CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).
-                thenApply(v ->
-                    Stream.of(features)
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList()));
+                    thenApply(v ->
+                            Stream.of(features)
+                                    .map(CompletableFuture::join)
+                                    .collect(Collectors.toList()));
             List<WriteModel<Document>> updateOneModels = result.get();
 
 
@@ -185,8 +194,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
                     this.bulkUpdateMongo(metadataCollections, updateOneModels);
                     // Re-Index all documents
                     this.bulkElasticsearch(metadataCollections,
-                        documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
-                            Collectors.toSet()));
+                            documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
+                                    Collectors.toSet()));
                 } catch (DatabaseException e) {
                     // Rollback in MongoDB and Elasticsearch
                     throw new MetaDataException(e);
@@ -211,7 +220,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws MetaDataException
      */
     default UpdateOneModel<Document> computeUnitGraph(Document document)
-        throws VitamRuntimeException {
+            throws VitamRuntimeException {
 
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
         List<String> up = document.get(Unit.UP, List.class);
@@ -289,14 +298,14 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         }
 
         Document update = new Document(Unit.ID, unitId)
-            .append(Unit.UNITUPS, us)
-            .append(Unit.UNITDEPTHS, parentsDepths)
-            .append(Unit.ORIGINATING_AGENCIES, sps)
-            .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
-            .append(Unit.MINDEPTH, min)
-            .append(Unit.MAXDEPTH, max)
-            .append(Unit.GRAPH, graph)
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                .append(Unit.UNITUPS, us)
+                .append(Unit.UNITDEPTHS, parentsDepths)
+                .append(Unit.ORIGINATING_AGENCIES, sps)
+                .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
+                .append(Unit.MINDEPTH, min)
+                .append(Unit.MAXDEPTH, max)
+                .append(Unit.GRAPH, graph)
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         Document data = new Document($_SET, update);
         return new UpdateOneModel<>(eq(Unit.ID, unitId), data, new UpdateOptions().upsert(false));
@@ -311,7 +320,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws MetaDataException
      */
     default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
-        throws VitamRuntimeException {
+            throws VitamRuntimeException {
 
         Set<String> sps = new HashSet<>();
         Set<String> unitParents = new HashSet<>();
@@ -331,9 +340,9 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         }
 
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
-            .append(Unit.UNITUPS, unitParents)
-            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+                .append(Unit.UNITUPS, unitParents)
+                .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
 
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
     }
@@ -349,8 +358,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws ExecutionException
      */
     default void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
-        List<String> up, int currentDepth)
-        throws VitamRuntimeException {
+                                                    List<String> up, int currentDepth)
+            throws VitamRuntimeException {
         if (null == up || up.isEmpty()) {
             return;
         }
@@ -367,7 +376,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             Document parentUnit = unitParent.getValue();
 
             GraphRelation ugr = new GraphRelation(unitId, unitParent.getKey(),
-                unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
+                    unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
 
             if (graphRels.contains(ugr)) {
                 // Relation (unit_id , unitParent.getKey()) already treated
@@ -379,8 +388,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
 
             // Recall the same method, but no for each parent unit of the current unit_id
             computeUnitGraphUsingDirectParents(graphRels,
-                unitParent.getKey(),
-                parentUnit.get(Unit.UP, List.class), nextDepth);
+                    unitParent.getKey(),
+                    parentUnit.get(Unit.UP, List.class), nextDepth);
         }
 
     }
@@ -398,7 +407,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws VitamRuntimeException
      */
     default void computeObjectGroupGraph(Set<String> originatingAgencies, Set<String> unitParents, List<String> up)
-        throws VitamRuntimeException {
+            throws VitamRuntimeException {
         if (null == up || up.isEmpty()) {
             return;
         }
@@ -432,7 +441,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws DatabaseException
      */
     void bulkUpdateMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
-        throws DatabaseException;
+            throws DatabaseException;
 
 
     /**
@@ -443,7 +452,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
-        throws DatabaseException;
+            throws DatabaseException;
 
     /**
      * Bulk save in elasticsearch
@@ -453,7 +462,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws DatabaseException
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
-        throws DatabaseException;
+            throws DatabaseException;
 
     boolean isInProgress();
 }

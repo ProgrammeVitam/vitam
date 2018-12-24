@@ -2075,6 +2075,7 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
 
         try {
+            VitamThreadUtils.getVitamSession().setRequestId(operationId);
             LifecycleTraceabilityStatus status = logbookLFCAdministration.checkLifecycleTraceabilityStatus(operationId);
 
             return Response.status(Status.OK)

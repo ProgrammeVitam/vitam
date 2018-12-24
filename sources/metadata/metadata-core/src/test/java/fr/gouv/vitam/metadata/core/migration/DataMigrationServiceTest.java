@@ -12,6 +12,9 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
@@ -23,6 +26,7 @@ import net.javacrumbs.jsonunit.core.Option;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -49,6 +53,10 @@ public class DataMigrationServiceTest {
     private static final String VITAM_TEST = "vitam-test";
 
     private static final int TEST_BULK_SIZE = 10;
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -165,6 +173,7 @@ public class DataMigrationServiceTest {
         assertThat(unitCollection.find().iterator().hasNext()).isFalse();
     }
 
+    @RunWithCustomExecutor
     @Test
     public void mongoDataUpdate_checkGraphMigration() throws Exception {
 

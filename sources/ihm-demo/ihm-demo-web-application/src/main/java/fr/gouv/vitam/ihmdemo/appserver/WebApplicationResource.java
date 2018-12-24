@@ -94,6 +94,7 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
@@ -205,7 +206,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int GUID_INDEX = 0;
 
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
-    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
 
 
     private final Set<String> permissions;
