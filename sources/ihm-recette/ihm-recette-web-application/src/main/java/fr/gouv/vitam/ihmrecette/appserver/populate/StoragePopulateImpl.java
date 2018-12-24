@@ -200,7 +200,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
                     InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                     StoragePutRequest request =
-                        new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
+                        new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
                             inputStream);
                     futureMap.put(offerReference.getId(),
                         executor

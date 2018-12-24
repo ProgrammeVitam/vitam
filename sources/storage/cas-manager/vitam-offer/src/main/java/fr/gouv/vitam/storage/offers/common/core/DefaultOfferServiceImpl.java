@@ -49,7 +49,6 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -132,7 +131,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
+    public void initCreateObject(String containerName, String objectGUID)
             throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         Stopwatch times = Stopwatch.createStarted();
         boolean existsContainer = defaultStorage.isExistingContainer(containerName);
@@ -143,16 +142,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
-        objectInit.setId(objectGUID);
         times = Stopwatch.createStarted();
-        offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
+        offerDatabaseService.save(containerName, objectGUID, OfferLogAction.WRITE);
         PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
-        return objectInit;
     }
 
 
     @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
+    public String createObject(String containerName, String objectId, InputStream objectPart,
                                DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {

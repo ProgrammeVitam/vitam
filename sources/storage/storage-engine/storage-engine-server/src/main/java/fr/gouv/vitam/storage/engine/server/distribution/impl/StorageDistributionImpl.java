@@ -390,7 +390,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                 StoragePutRequest request =
                         new StoragePutRequest(dataContext.getTenantId(), dataContext.getCategory().getFolder(),
-                                dataContext.getObjectId(), digestType.name(),
+                                dataContext.getObjectId(), digestType.getName(),
                                 inputStream);
                 futureMap.put(offerReference.getId(),
                         executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
