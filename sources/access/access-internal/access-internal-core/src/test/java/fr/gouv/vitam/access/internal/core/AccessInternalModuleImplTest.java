@@ -965,7 +965,7 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test
-    public void should_empty_tules_when_update_request_with_empty_rules() throws Exception {
+    public void should_fail_silently_when_update_request_with_empty_rules() throws Exception {
         // Given
         UpdateParserMultiple parser = new UpdateParserMultiple();
         String updateFinalAction =
@@ -980,7 +980,9 @@ public class AccessInternalModuleImplTest {
         accessModuleImpl.checkAndUpdateRuleQuery(parser);
 
         // Then
-        assertThat(parser.getRequest().getActions()).extracting(Action::toString).containsOnly("{\"$set\":{\"#management.StorageRule.Rules\":[]}}");
+        assertThat(parser.getRequest().getActions())
+            .extracting(Action::toString)
+            .containsOnly("{\"$set\":{\"#management.StorageRule.Rules\":[]}}");
     }
 
     @Test
