@@ -458,16 +458,96 @@ public class StorageTwoOffersIT {
         }
 
         // When
-        Response<Void> offerSyncResponseItemCall =
-            offerSyncAdminResource.startSynchronization(new OfferSyncRequest()
-                    .setSourceOffer(OFFER_ID)
-                    .setTargetOffer(SECOND_OFFER_ID)
-                    .setOffset(null)
-                    .setContainer(DataCategory.OBJECT.getCollectionName())
-                    .setTenantId(TENANT_0),
-                getBasicAuthnToken()).execute();
+        Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
         // Then
+        verifyOfferSyncStatus(offerSyncResponseItemCall, null, NB_ACTIONS);
+
+
+        for (int i = 0; i < cpt; i++) {
+
+            String filename = "ObjectId" + i;
+
+            boolean exists = existingFileNames.contains(filename);
+            byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+
+            checkFileExistenceAndContent(filename, OBJECT, exists, expectedData, SECOND_OFFER_ID);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void synchronizeOneOfferFromAnotherAlreadySynchronized() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID);
+        storeObjectInOffers("file2", OBJECT, "data2".getBytes(), OFFER_ID);
+        storeObjectInOffers("file3", OBJECT, "data3".getBytes(), OFFER_ID);
+        deleteObjectFromOffers("file2", OBJECT, OFFER_ID);
+
+        for (int i = 0; i < 2; i++) {
+
+            // When
+            Response<Void> offerSyncResponseItemCall = startSynchronization(null);
+
+            // Then
+            verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4);
+
+
+            checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
+            checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
+            checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
+
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void synchronizeOneOfferFromAnotherStartingFromOffset() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID);
+        storeObjectInOffers("file2", OBJECT, "data2".getBytes(), OFFER_ID);
+        storeObjectInOffers("file3", OBJECT, "data3".getBytes(), OFFER_ID);
+        deleteObjectFromOffers("file2", OBJECT, OFFER_ID);
+
+        // When
+        Response<Void> offerSyncResponseItemCall = startSynchronization(null);
+
+        // Then
+        verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4L);
+        checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
+        checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
+        checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
+
+        // Given
+        storeObjectInOffers("file4", OBJECT, "data4".getBytes(), OFFER_ID);
+        deleteObjectFromOffers("file1", OBJECT, OFFER_ID);
+
+        // When
+        Response<Void> offerSyncResponseItemCall2 = startSynchronization(4L);
+
+        // Then
+        verifyOfferSyncStatus(offerSyncResponseItemCall2, 4L, 6L);
+        checkFileExistenceAndContent("file1", OBJECT, false, null, SECOND_OFFER_ID);
+        checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
+        checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
+        checkFileExistenceAndContent("file4", OBJECT, true, "data4".getBytes(), SECOND_OFFER_ID);
+    }
+
+    private Response<Void> startSynchronization(Long offset) throws IOException {
+        return offerSyncAdminResource.startSynchronization(new OfferSyncRequest()
+                .setSourceOffer(OFFER_ID)
+                .setTargetOffer(SECOND_OFFER_ID)
+                .setOffset(offset)
+                .setContainer(DataCategory.OBJECT.getCollectionName())
+                .setTenantId(TENANT_0),
+            getBasicAuthnToken()).execute();
+    }
+
+    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, Long startOffset, long expectedOffset) throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
         awaitSynchronizationTermination(60);
@@ -484,24 +564,12 @@ public class StorageTwoOffersIT {
         assertThat(offerSyncStatus.getContainer()).isEqualTo(DataCategory.OBJECT.getCollectionName());
         assertThat(offerSyncStatus.getRequestId())
             .isEqualTo(offerSyncResponseItemCall.headers().get(X_REQUEST_ID));
-        assertThat(offerSyncStatus.getStartOffset()).isEqualTo(null);
-        assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(NB_ACTIONS);
-
-
-        for (int i = 0; i < cpt; i++) {
-
-            String filename = "ObjectId" + i;
-
-            boolean exists = existingFileNames.contains(filename);
-            byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
-
-            checkFileExistenceAndContent(filename, OBJECT, exists, expectedData, SECOND_OFFER_ID);
-        }
+        assertThat(offerSyncStatus.getStartOffset()).isEqualTo(startOffset);
+        assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(expectedOffset);
     }
 
-    private void deleteObjectFromOffers(String filename, DataCategory dataCategory, String... offerIds)
-        throws StorageServerClientException {
-
+    private void deleteObjectFromOffers(String filename, DataCategory dataCategory,
+        String... offerIds) throws StorageServerClientException {
         storageClient.delete(STRATEGY_ID, dataCategory, filename, Arrays.asList(offerIds));
     }
 

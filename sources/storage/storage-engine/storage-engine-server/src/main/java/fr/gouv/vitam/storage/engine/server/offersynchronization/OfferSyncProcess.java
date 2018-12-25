@@ -100,7 +100,7 @@ public class OfferSyncProcess {
         ExecutorService executor = null;
         try {
             LOGGER.info(String.format(
-                "Start the synchronization process of the new offer {%s} from the source offer {%s} fro category {%s}.",
+                "Start the synchronization process of the target offer {%s} from the source offer {%s} for category {%s}.",
                 targetOffer, sourceOffer, dataCategory));
 
             executor = Executors.newFixedThreadPool(
@@ -127,22 +127,26 @@ public class OfferSyncProcess {
     }
 
     private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer,
-        DataCategory category, Long startOffset) throws StorageException {
+        DataCategory dataCategory, Long startOffset) throws StorageException {
 
         Long offset = startOffset;
         while (true) {
             // get the data to startSynchronization
             List<OfferLog> rawOfferLogs = restoreOfferBackupService.getListing(
-                STRATEGY_ID, sourceOffer, category, offset, bulkSize, Order.ASC);
+                STRATEGY_ID, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
 
             if (rawOfferLogs.isEmpty()) {
                 break;
             }
 
             long lastSequence =
-                synchronizeOfferLogs(executor, sourceOffer, targetOffer, category, rawOfferLogs);
+                synchronizeOfferLogs(executor, sourceOffer, targetOffer, dataCategory, rawOfferLogs);
 
             this.offerSyncStatus.setCurrentOffset(lastSequence);
+
+            LOGGER.info(String.format("Offer synchronization safe point offset : %s (from %s to %s for category %s)",
+                offset, sourceOffer, targetOffer, dataCategory));
+
             offset = lastSequence + 1;
 
             if (rawOfferLogs.size() < bulkSize) {
