@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
@@ -217,8 +219,8 @@ public class ConnectionImpl extends AbstractConnection {
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
 
             StoragePutResult result = new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
-                json.get("digest").textValue(), Long.valueOf(json.get("size").textValue()));
-            // TODO G1 : deal with different types of errors
+                json.get("digest").textValue(), json.get("size").longValue());
+
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 LOGGER.error("Error while performing put object operation");
                 throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
@@ -336,8 +338,7 @@ public class ConnectionImpl extends AbstractConnection {
                 throw new StorageDriverServiceUnavailableException(getDriverName(), status.getReasonPhrase());
             case CONFLICT:
                 LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(),
-                        status.getReasonPhrase(), false);
+                throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
@@ -391,7 +392,7 @@ public class ConnectionImpl extends AbstractConnection {
                     return handleResponseStatus(response, StorageMetadataResult.class);
                 case NOT_FOUND:
                     throw new StorageDriverNotFoundException(getDriverName(),
-                        "Object " + request.getGuid() + "not found");
+                        "Object " + request.getGuid() + " not found");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(),

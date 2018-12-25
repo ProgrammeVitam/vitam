@@ -157,10 +157,10 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createContainerTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID);
+        offerService.ensureContainerExists(CONTAINER_PATH);
 
         // check
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
@@ -169,7 +169,7 @@ public class DefaultOfferServiceTest {
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID);
+        offerService.ensureContainerExists(CONTAINER_PATH);
     }
 
     @Test
@@ -177,16 +177,7 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
-        // container
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID);
-        // check
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
-        assertTrue(container.exists());
-        assertTrue(container.isDirectory());
-
-        String computedDigest = null;
+        String computedDigest;
 
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
@@ -211,8 +202,6 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID_2);
-
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
 
@@ -227,8 +216,9 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
-        // container
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID);
+        final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+
         // check
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
@@ -254,7 +244,6 @@ public class DefaultOfferServiceTest {
     public void deleteObjectTest() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
-        offerService.initCreateObject(CONTAINER_PATH, OBJECT_ID_DELETE);
 
         // creation of an object
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
@@ -294,9 +283,9 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listCreateCursorTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
-        offerService.initCreateObject(CONTAINER_PATH, "fake");
+        offerService.ensureContainerExists(CONTAINER_PATH);
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);
         List<JsonNode> list = offerService.next(CONTAINER_PATH, cursorId);
@@ -321,7 +310,6 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         for (int i = 0; i < 150; i++) {
-            offerService.initCreateObject(CONTAINER_PATH, OBJECT + i);
             offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);

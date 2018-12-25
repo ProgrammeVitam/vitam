@@ -75,22 +75,6 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Initialize object creation
-     *
-     * Create container on offer if does not exist for one object Also update digest type and object GUID
-     *
-     * @param containerName the container name to create
-     * @param objectGUID    the object GUID to create
-     * @return objectInit with the offer object id (needed for the create object operation)
-     * @throws ContentAddressableStorageServerException       thrown when a server error occurs
-     * @throws ContentAddressableStorageNotFoundException     thrown if the container storage could not be created
-     * @throws ContentAddressableStorageDatabaseException     thrown if the container sequence could not be incremented
-     */
-    void initCreateObject(String containerName, String objectGUID)
-        throws ContentAddressableStorageServerException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageDatabaseException;
-
-    /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
      * send in the great order.
      *

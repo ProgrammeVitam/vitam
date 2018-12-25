@@ -53,8 +53,10 @@ import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.assertj.core.util.Lists;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -88,7 +90,7 @@ import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static java.util.Collections.singletonList;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -132,8 +134,12 @@ public class StorageTwoOffersIT {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam-Test",
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam",
+        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME, OfferLogDatabaseService.OFFER_SEQUENCE_COLLECTION_NAME);
+
+    @ClassRule
+    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam2",
+        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME, OfferLogDatabaseService.OFFER_SEQUENCE_COLLECTION_NAME);
 
     private static OfferSyncAdminResource offerSyncAdminResource;
 
@@ -166,6 +172,26 @@ public class StorageTwoOffersIT {
         VitamClientFactory.resetConnections();
     }
 
+    @After
+    public void cleanup() throws IOException {
+        cleanOffer(OFFER_FOLDER);
+        cleanOffer(SECOND_FOLDER);
+        mongoRuleOffer1.handleAfter();
+        mongoRuleOffer2.handleAfter();
+    }
+
+    private void cleanOffer(String offerFolder) throws IOException {
+        File offerDir = new File(offerFolder);
+        if(offerDir.exists()) {
+            File[] containerDirs = offerDir.listFiles(File::isDirectory);
+            if(containerDirs != null) {
+                for (File container : containerDirs) {
+                    FileUtils.cleanDirectory(container);
+                }
+            }
+        }
+    }
+
     private void storeObjectInAllOffers(String id, DataCategory category, InputStream inputStream) throws Exception {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID(id);
@@ -188,18 +214,12 @@ public class StorageTwoOffersIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         //Given
         String id = GUIDFactory.newGUID().getId();
-        //storeObjectInAllOffers(id, OBJECT, new ByteArrayInputStream(id.getBytes()));
-        ArrayList<String> offerIds = Lists.newArrayList(OFFER_ID, SECOND_OFFER_ID);
-        storageClient
-            .create(id, OBJECT, new ByteArrayInputStream(id.getBytes()), (long) id.getBytes().length, offerIds);
-        //When
-        JsonNode information =
-            storageClient.getInformation(STRATEGY_ID, OBJECT, id, newArrayList(OFFER_ID,
-                SECOND_OFFER_ID), true);
-        //Then
-        assertThat(information.get(OFFER_ID).get(DIGEST)).isNotNull();
-        assertThat(information.get(SECOND_OFFER_ID).get(DIGEST)).isNotNull();
-        assertThat(information.get(OFFER_ID).get(DIGEST)).isEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
+
+        // When
+        storeObjectInOffers(id, OBJECT, id.getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent(id, OBJECT, true, id.getBytes(), OFFER_ID, SECOND_OFFER_ID);
     }
 
     @Test
@@ -270,11 +290,9 @@ public class StorageTwoOffersIT {
 
         //WHEN
         //delete object1 in second offer
-        storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object, singletonList(SECOND_OFFER_ID));
+        deleteObjectFromOffers(object, OBJECT, SECOND_OFFER_ID);
 
-        storageClient
-            .delete(STRATEGY_ID, DataCategory.OBJECT, object2, newArrayList(OFFER_ID, SECOND_OFFER_ID));
+        deleteObjectFromOffers(object2, OBJECT, OFFER_ID, SECOND_OFFER_ID);
 
 
         //THEN
@@ -296,7 +314,126 @@ public class StorageTwoOffersIT {
 
     @Test
     @RunWithCustomExecutor
-    public void synchronizeOneOfferFromAnother() throws Exception {
+    public void storeObjectInOffersNewFile() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+
+        // When
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // When
+        checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateNonRewritableObjectWithDifferentContent() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // When / Then
+        Assertions.assertThatThrownBy(
+            () -> storeObjectInOffers("file1", OBJECT, "data1-V2".getBytes(), OFFER_ID, SECOND_OFFER_ID)
+        ).isInstanceOf(StorageServerClientException.class);
+        checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateNonRewritableObjectWithSameContent() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateNonRewritableObjectWithSameContentOnNonSyncOffers() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateRewritableObjectWithDifferentContent() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", UNIT, "data1-V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", UNIT, true, "data1-V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateRewritableObjectWithSameContent() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", UNIT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateRewritableObjectWithSameContentOnNonSyncOffers() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", UNIT, true, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void storeObjectInOffersUpdateRewritableObjectWithDifferentContentOnNonSyncOffers() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", UNIT, "data1".getBytes(), OFFER_ID);
+
+        // When
+        storeObjectInOffers("file1", UNIT, "data1_V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+
+        // Then
+        checkFileExistenceAndContent("file1", UNIT, true, "data1_V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void synchronizeOneOfferFromAnotherFromScratch() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         // Given
@@ -316,7 +453,7 @@ public class StorageTwoOffersIT {
             } else {
                 int fileIndexToDelete = random.nextInt(existingFileNames.size());
                 String filename = existingFileNames.remove(fileIndexToDelete);
-                storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, filename, Arrays.asList(OFFER_ID));
+                deleteObjectFromOffers(filename, OBJECT, OFFER_ID);
             }
         }
 
@@ -358,8 +495,14 @@ public class StorageTwoOffersIT {
             boolean exists = existingFileNames.contains(filename);
             byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
 
-            checkFileExistenceAndContent(filename, exists, expectedData);
+            checkFileExistenceAndContent(filename, OBJECT, exists, expectedData, SECOND_OFFER_ID);
         }
+    }
+
+    private void deleteObjectFromOffers(String filename, DataCategory dataCategory, String... offerIds)
+        throws StorageServerClientException {
+
+        storageClient.delete(STRATEGY_ID, dataCategory, filename, Arrays.asList(offerIds));
     }
 
     private void awaitSynchronizationTermination(int timeoutInSeconds) throws IOException {
@@ -376,18 +519,22 @@ public class StorageTwoOffersIT {
         }
     }
 
-    private void checkFileExistenceAndContent(String objectId, boolean exists, byte[] expectedData)
+    private void checkFileExistenceAndContent(String objectId,
+        DataCategory dataCategory, boolean exists, byte[] expectedData,
+        String... offerIds)
         throws StorageServerClientException, StorageNotFoundClientException {
 
         JsonNode information = storageClient
-            .getInformation(STRATEGY_ID, DataCategory.OBJECT, objectId, Arrays.asList(SECOND_OFFER_ID), true);
-        assertThat(information).hasSize(exists ? 1 : 0);
+            .getInformation(STRATEGY_ID, dataCategory, objectId, Arrays.asList(offerIds), true);
+        assertThat(information).hasSize(exists ? offerIds.length : 0);
 
         if (exists) {
             Digest expectedDigest = new Digest(DigestType.SHA512);
             expectedDigest.update(expectedData);
-            assertThat(information.get(SECOND_OFFER_ID).get("digest").textValue())
-                .isEqualTo(expectedDigest.digestHex());
+            for (String offerId : offerIds) {
+                assertThat(information.get(offerId).get("digest").textValue())
+                    .isEqualTo(expectedDigest.digestHex());
+            }
         }
     }
 

@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
@@ -527,7 +528,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 } catch (ExecutionException e) {
                     LOGGER.error(StorageDistributionImpl.ERROR_ON_OFFER_ID + offerId, e);
                     Status status = Status.INTERNAL_SERVER_ERROR;
-                    if (e.getCause() instanceof StorageAlreadyExistsException) {
+                    if (e.getCause() instanceof StorageDriverConflictException) {
                         status = Status.CONFLICT;
                         offersParams.changeStatus(offerId, status);
                     }

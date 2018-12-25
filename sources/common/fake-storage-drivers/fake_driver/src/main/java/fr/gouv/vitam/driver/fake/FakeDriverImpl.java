@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
@@ -228,6 +229,10 @@ public class FakeDriverImpl extends AbstractDriver {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
                     objectRequest.getGuid(),
                     objectRequest.getGuid(), "different_digest_hash", 0);
+            }
+
+            if ("conflict".equals(objectRequest.getGuid())) {
+                throw new StorageDriverConflictException(getName(), "conflict");
             }
             if ("retry_test".equals(objectRequest.getGuid())) {
                 throw new StorageDriverException(getName(), "retry_test", false);

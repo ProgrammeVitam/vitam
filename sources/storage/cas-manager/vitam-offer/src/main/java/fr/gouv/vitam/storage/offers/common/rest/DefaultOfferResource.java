@@ -61,6 +61,7 @@ import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.storage.offers.common.core.NonUpdatableContentAddressableStorageException;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.exceptions.ConnectionException;
 
@@ -328,6 +329,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response putObject(@PathParam("objectId") String objectId, @PathParam("type") DataCategory type,
         @Context HttpHeaders headers, InputStream input) {
+
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -344,7 +346,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-
         String xDigestAlgorithm = headers.getHeaderString(GlobalDataRest.X_DIGEST_ALGORITHM);
         if (StringUtils.isEmpty(xDigestAlgorithm)) {
             LOGGER.error("Missing digest");
@@ -356,19 +357,22 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.info("Writing object '" + objectId + "' of container " + containerName + " (size: " + size + ")");
 
             SanityChecker.checkParameter(objectId);
-            defaultOfferService.initCreateObject(containerName, objectId);
 
             final String digest =
                 defaultOfferService.createObject(containerName, objectId, sis,
                     type, inputStreamSize, digestType);
             return Response.status(Response.Status.CREATED)
-                .entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis.getSize() + "\"}").build();
+                .entity("{\"digest\":\"" + digest + "\",\"size\":" + sis.getSize() + "}").build();
         } catch (ConnectionException e) {
             LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
             return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode()
                 .put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
 
-        } catch (Exception exc) {
+        } catch (NonUpdatableContentAddressableStorageException e) {
+            LOGGER.error("Object overriding forbidden", e);
+            return Response.status(Status.CONFLICT).build();
+        }
+        catch (Exception exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } finally {

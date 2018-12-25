@@ -39,11 +39,11 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -237,10 +237,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     LOGGER.error(INTERRUPTED_ON_OFFER_ID + offerId, e);
                 } catch (ExecutionException e) {
                     LOGGER.error(StoragePopulateImpl.ERROR_ON_OFFER_ID + offerId, e);
-                    Status status = Status.INTERNAL_SERVER_ERROR;
-                    if (e.getCause() instanceof StorageAlreadyExistsException) {
-                        status = Status.CONFLICT;
-                        datas.changeStatus(offerId, status);
+                    if (e.getCause() instanceof StorageDriverConflictException) {
+                        datas.changeStatus(offerId, Status.CONFLICT);
                     }
                     if (e.getCause() instanceof StorageDriverException ||
                         e.getCause() instanceof StorageDriverPreconditionFailedException) {
