@@ -61,6 +61,8 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.GraphUtils;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -82,7 +84,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
     Integer START_DEPTH = 1;
 
     Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 16);
-    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
+    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, VitamThreadFactory.getInstance());
 
     LoadingCache<String, Document> unitCache =
         CacheBuilder
@@ -203,8 +205,16 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                     throw new GraphBuilderException("Collection (" + metadataCollections + ") not supported");
             }
 
+            final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
+            final String scopedXRequestId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            // Create a batch of CompletableFuture.
             CompletableFuture<WriteModel<Document>>[] features = documents.stream()
-                .map(o -> CompletableFuture.supplyAsync(() -> func.apply(o), executor))
+                .map(o -> CompletableFuture.supplyAsync(() -> {
+                    VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                    VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
+                    return func.apply(o);
+                }, executor))
                 .toArray(CompletableFuture[]::new);
 
 

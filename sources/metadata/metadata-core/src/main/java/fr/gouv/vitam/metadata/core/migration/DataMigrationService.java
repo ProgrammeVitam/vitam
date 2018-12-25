@@ -45,16 +45,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
@@ -72,7 +77,7 @@ import org.bson.Document;
 public class DataMigrationService implements AutoCloseable {
 
     Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 16);
-    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
+    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, VitamThreadFactory.getInstance());
 
     /**
      * Vitam Logger.
@@ -173,13 +178,17 @@ public class DataMigrationService implements AutoCloseable {
         Set<String> directParentIds = new HashSet<>();
         unitsToUpdate.forEach(unit -> directParentIds.addAll(unit.getCollectionOrEmpty(Unit.UP)));
 
-        Map<String, Unit> directParentById = this.dataMigrationRepository.getUnitGraphByIds(directParentIds);
-
         List<Unit> updatedUnits = ListUtils.synchronizedList(new ArrayList<>());
+
+        final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        final String scopedXRequestId = VitamThreadUtils.getVitamSession().getRequestId();
 
         CompletableFuture[] futures =
             unitsToUpdate.stream().map(unit -> CompletableFuture.runAsync(() -> {
                 try {
+                    VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                    VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
+
                     processDocument(unit);
                     updatedUnits.add(unit);
                 } catch (Exception e) {

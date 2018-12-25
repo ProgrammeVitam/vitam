@@ -29,6 +29,9 @@ package fr.gouv.vitam.processing.management.core;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
@@ -42,11 +45,12 @@ public class WorkflowsLoader implements Runnable {
         this.processManagement = processManagement;
         Integer period = processManagement.getConfiguration().getWorkflowRefreshPeriod();
 
-        Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(this, period, period, TimeUnit.HOURS);
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleWithFixedDelay(this, period, period, TimeUnit.HOURS);
     }
 
     @Override
     public void run() {
+        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
         this.reloadWorkflows();
     }
 

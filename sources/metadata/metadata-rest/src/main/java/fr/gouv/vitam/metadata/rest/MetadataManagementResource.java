@@ -26,26 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.graph.GraphBuilderServiceImpl;
@@ -54,6 +44,17 @@ import fr.gouv.vitam.metadata.core.graph.api.GraphBuilderService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata reconstruction resource.
@@ -162,8 +163,8 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraph() {
-
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
@@ -183,7 +184,7 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraphInProgress() {
-
+        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
         boolean inProgress = this.storeGraphService.isInProgress();
         if (inProgress) {
             LOGGER.info("Store graph in progress ...");
@@ -207,6 +208,7 @@ public class MetadataManagementResource {
     public Response computeGraph() {
 
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             Map<MetadataCollections, Integer> map = this.graphBuilderService.computeGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
@@ -227,7 +229,7 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response computeGraphInProgress() {
-
+        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
         boolean inProgress = this.storeGraphService.isInProgress();
         if (inProgress) {
             LOGGER.info("Graph builder in progress ...");

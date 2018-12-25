@@ -26,22 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.GraphBuilderException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
@@ -50,19 +39,41 @@ import fr.gouv.vitam.metadata.core.graph.api.GraphBuilderService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * MetadataManagementResource test
  */
 public class MetadataManagementResourceTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
     private GraphBuilderService graphBuilderService;
     private ReconstructionRequestItem requestItem;
 
+    private static int tenant = VitamConfiguration.getAdminTenant();
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
@@ -72,8 +83,17 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
     }
 
+    @BeforeClass
+    public static void baforeClass() {
+        VitamConfiguration.setAdminTenant(0);
+    }
 
+    @AfterClass
+    public static void afterClass() {
+        VitamConfiguration.setAdminTenant(tenant);
+    }
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when_store_graph_handled() throws StoreGraphException {
         // Given
         final Map<MetadataCollections, Integer> map = new HashMap<>();
@@ -96,6 +116,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ko_when_store_graph_handled() throws StoreGraphException {
         // Given
         String errorMessage = "Error store unit graph in the offer";
@@ -114,7 +135,8 @@ public class MetadataManagementResourceTest {
 
 
     @Test
-    public void should_return_ok_when__graph_builder_handled() throws GraphBuilderException {
+    @RunWithCustomExecutor
+    public void should_return_ok_when__graph_compute_by_dsl_handled() throws GraphBuilderException {
         // Given
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 10);
@@ -136,7 +158,8 @@ public class MetadataManagementResourceTest {
 
 
     @Test
-    public void should_return_ko_when_graph_builder_handled() throws GraphBuilderException {
+    @RunWithCustomExecutor
+    public void should_return_ko_when_graph_compute_handled() throws GraphBuilderException {
         // Given
         String errorMessage = "Error in graph builder";
         when(graphBuilderService.computeGraph()).thenThrow(new RuntimeException(errorMessage));
@@ -153,6 +176,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when_request_item_full() {
         // Given
         ReconstructionResponseItem responseItem = new ReconstructionResponseItem(requestItem, StatusCode.OK);
@@ -174,6 +198,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_empty_response_when_that_request_empty() {
         // Given
         MetadataManagementResource reconstructionResource =
@@ -188,6 +213,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_request_offset_when_reconstruction_throws_database_exception() {
         // Given
         when(reconstructionService.reconstruct(requestItem)).thenThrow(new IllegalArgumentException("Database error"));
@@ -207,6 +233,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when__request_item_no_offset() {
         // Given
         MetadataManagementResource reconstructionResource =

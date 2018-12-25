@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -162,8 +163,8 @@ public class PerformanceService {
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest());
-        ExecutorService reportExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
+        ExecutorService reportExecutor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
         LOGGER.info("start performance test");
 

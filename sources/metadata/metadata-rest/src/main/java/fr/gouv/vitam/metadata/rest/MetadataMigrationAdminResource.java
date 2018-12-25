@@ -34,10 +34,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
 
 /**
@@ -86,6 +88,7 @@ public class MetadataMigrationAdminResource {
     public Response startDataMigration() {
 
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             boolean started = this.dataMigrationService.tryStartMongoDataUpdate();
 
             if (started) {
@@ -113,6 +116,7 @@ public class MetadataMigrationAdminResource {
     public Response isMigrationInProgress() {
 
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             boolean started = this.dataMigrationService.isMongoDataUpdateInProgress();
 
             if (started) {

@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 /**
  * service to manage cucumber test
@@ -78,7 +79,7 @@ public class ApplicativeTestService {
     public ApplicativeTestService(Path tnrReportDirectory) {
         this.tnrReportDirectory = tnrReportDirectory;
         this.inProgress = new AtomicBoolean(false);
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
         this.cucumberLauncher = new CucumberLauncher(tnrReportDirectory);
     }
 
