@@ -42,7 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -167,6 +167,7 @@ public class RestoreBackupIT {
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
+        ContentAddressableStorageAbstract.disableContainerCaching();
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -247,7 +248,6 @@ public class RestoreBackupIT {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        ContentAddressableStorage.existingContainer.clear();
         // create a container on the Workspace
         workspaceClient.createContainer(containerName);
     }

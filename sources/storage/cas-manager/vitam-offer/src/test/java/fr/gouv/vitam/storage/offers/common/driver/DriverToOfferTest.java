@@ -44,6 +44,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -140,6 +141,7 @@ public class DriverToOfferTest {
 
             application = new DefaultOfferMain(newWorkspaceOfferConf.getAbsolutePath());
             application.start();
+            ContentAddressableStorageAbstract.disableContainerCaching();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Wokspace Offer Application Server", e);

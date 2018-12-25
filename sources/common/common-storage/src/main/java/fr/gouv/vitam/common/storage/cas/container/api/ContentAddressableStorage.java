@@ -48,15 +48,7 @@ import java.util.Set;
  */
 public interface ContentAddressableStorage extends VitamAutoCloseable {
 
-    Set<String> existingContainer = Collections.synchronizedSet(new HashSet<>());
 
-    /**
-     *
-     */
-    @VisibleForTesting
-    default void clearExistingContainer() {
-        existingContainer.clear();
-    }
 
     /**
      * Creates a container
@@ -76,32 +68,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     boolean isExistingContainer(String containerName);
-
-    /**
-     * Determines if a container exists in cache
-     *
-     * @param containerName name of container
-     * @return boolean type
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     */
-    default boolean isExistingContainerInCache(String containerName) {
-        // If existing containers are already checked, this help just an in memory check
-        return existingContainer.contains(containerName);
-    }
-
-    /**
-     * This handle cache already existing container
-     * Prevent handling an i/o check container exists
-     * Do only memory check if the container is already exists
-     * @param containerName
-     * @param exists
-     * @return
-     */
-    default void cacheExistsContainer(String containerName, boolean exists) {
-        if (exists) {
-            existingContainer.add(containerName);
-        }
-    }
 
     /**
      * Adds an object representing the data at location containerName/objectName

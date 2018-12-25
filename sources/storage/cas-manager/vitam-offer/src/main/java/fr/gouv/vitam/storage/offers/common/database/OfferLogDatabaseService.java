@@ -58,6 +58,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public class OfferLogDatabaseService {
 
     public static final String OFFER_LOG_COLLECTION_NAME = "OfferLog";
+    public static final String OFFER_SEQUENCE_COLLECTION_NAME = "OfferSequence";
 
     private static final String SEQUENCE = "Sequence";
     private static final String CONTAINER = "Container";

@@ -18,6 +18,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -424,6 +425,7 @@ public class VitamServerRunner extends ExternalResource {
         defaultOfferMain = new DefaultOfferMain(offerConfig.getAbsolutePath());
         defaultOfferMain.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
+        ContentAddressableStorageAbstract.disableContainerCaching();
     }
 
     public void stopOfferServer(boolean mockWhenStop) throws VitamApplicationServerException {

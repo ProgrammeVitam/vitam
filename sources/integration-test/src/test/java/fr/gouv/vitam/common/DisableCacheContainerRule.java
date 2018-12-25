@@ -26,14 +26,15 @@
  */
 package fr.gouv.vitam.common;
 
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.junit.rules.ExternalResource;
 
 /**
+ *
  */
-public class CacheContainerCleanRule extends ExternalResource {
+public class DisableCacheContainerRule extends ExternalResource {
     @Override
-    protected void after() {
-        ContentAddressableStorage.existingContainer.clear();
+    protected void before() {
+        ContentAddressableStorageAbstract.disableContainerCaching();
     }
 }

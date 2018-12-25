@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
@@ -34,15 +35,23 @@ import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract class of CAS that contains common methos
  */
 public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
+
+    private static boolean disableContainerCaching = false;
+
+    private final Set<String> existingContainer = Collections.synchronizedSet(new HashSet<>());
 
     private final StorageConfiguration configuration;
 
@@ -76,5 +85,36 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
                     "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
         }
+    }
+
+    /**
+     * Determines if a container exists in cache
+     *
+     * @param containerName name of container
+     * @return boolean type
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     */
+    protected boolean isExistingContainerInCache(String containerName) {
+        // If existing containers are already checked, this help just an in memory check
+        return existingContainer.contains(containerName);
+    }
+
+    /**
+     * This handle cache already existing container
+     * Prevent handling an i/o check container exists
+     * Do only memory check if the container is already exists
+     * @param containerName
+     * @param exists
+     * @return
+     */
+    protected void cacheExistsContainer(String containerName, boolean exists) {
+        if (exists && !disableContainerCaching) {
+            existingContainer.add(containerName);
+        }
+    }
+
+    @VisibleForTesting
+    public static void disableContainerCaching() {
+        disableContainerCaching = true;
     }
 }

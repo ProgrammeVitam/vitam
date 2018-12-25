@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -56,7 +55,6 @@ import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.time.StopWatch;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -161,17 +159,11 @@ public class StorageTwoOffersIT {
                 .baseUrl("http://localhost:" + SetupStorageAndOffers.storageEngineAdminPort)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         offerSyncAdminResource = retrofit.create(OfferSyncAdminResource.class);
-
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
         VitamClientFactory.resetConnections();
-    }
-
-    @After
-    public void cleanup() {
-        ContentAddressableStorage.existingContainer.clear();
     }
 
     private void storeObjectInAllOffers(String id, DataCategory category, InputStream inputStream) throws Exception {
@@ -327,8 +319,6 @@ public class StorageTwoOffersIT {
                 storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, filename, Arrays.asList(OFFER_ID));
             }
         }
-
-        ContentAddressableStorage.existingContainer.clear();
 
         // When
         Response<Void> offerSyncResponseItemCall =

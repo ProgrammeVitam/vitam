@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -130,7 +131,6 @@ public class DefaultOfferResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, OfferConfiguration.class);
@@ -149,6 +149,7 @@ public class DefaultOfferResourceTest {
 
             application = new DefaultOfferMain(newWorkspaceOfferConf.getAbsolutePath());
             application.start();
+            ContentAddressableStorageAbstract.disableContainerCaching();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Wokspace Offer Application Server", e);
@@ -169,7 +170,6 @@ public class DefaultOfferResourceTest {
 
     @Before
     public void initCollections() throws VitamException {
-        ContentAddressableStorage.existingContainer.clear();
         try {
             // restart server to reinit collection sequence
             application.stop();

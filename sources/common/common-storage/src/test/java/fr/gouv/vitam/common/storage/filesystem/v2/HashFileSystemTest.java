@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import org.junit.Before;
@@ -64,7 +65,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new HashFileSystem(configuration);
-        storage.clearExistingContainer();
+        ContentAddressableStorageAbstract.disableContainerCaching();
     }
 
     /**

@@ -30,9 +30,8 @@ public class VitamRuleRunner {
 
     public static final String OFFER_FOLDER = "offer";
 
-
-    @Rule
-    public CacheContainerCleanRule cacheContainerCleanRule = new CacheContainerCleanRule();
+    @ClassRule
+    public static DisableCacheContainerRule disableCacheContainerRule = new DisableCacheContainerRule();
 
     // Rules
     @ClassRule
