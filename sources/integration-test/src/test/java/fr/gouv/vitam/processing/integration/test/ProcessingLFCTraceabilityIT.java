@@ -369,7 +369,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         String traceabilityOperation1 = launchLogbookLFC(0, Contexts.UNIT_LFC_TRACEABILITY);
 
         // Update Got + traceability
-        changeOneGotLFC();
+        corruptOneObjectGroupLfcInDb();
         String traceabilityOperation2 = launchLogbookLFC(300, Contexts.UNIT_LFC_TRACEABILITY);
 
         // Then
@@ -383,11 +383,40 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowUnitLfcTraceability_shouldGetOkOnOldGotUpdate() throws Exception {
+    public void testWorkflowUnitLfcTraceability_shouldGetWarnOnCorruptedDb() throws Exception {
+
+        // Given
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        corruptOneUnitLfcInDb();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        // When
+        LocalDateTime beforeTraceability = LocalDateUtil.now();
+        String traceabilityOperation = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability = LocalDateUtil.now();
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+
+        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
+            beforeTraceability.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent.getStatistics().getNbValidMetadata()).isEqualTo(2);
+        assertThat(traceabilityEvent.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_multipleChainingTraceabilities() throws Exception {
 
         // Given / When
 
-        // First ingest + traceability
+        // Traceabiliy 1 : Empty DB + ingest + traceability
+
         int temporizationDelayInSeconds = 2;
         launchIngest();
         Thread.sleep(temporizationDelayInSeconds * 1000);
@@ -396,35 +425,64 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
         LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
+        // Traceability 2 : No new entries to secure
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
 
-        // Update Got + traceability
-        changeOneUnitLFC();
+        // Traceability 3 : Corrupt one unit in DB + traceability
+        corruptOneUnitLfcInDb();
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
-        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
-        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
+        String traceabilityOperation3 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability3 = LocalDateUtil.now();
+
+        // Traceability 4 : ingest + traceability
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability4 = LocalDateUtil.now();
+        String traceabilityOperation4 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability4 = LocalDateUtil.now();
 
         // Then
 
+        // Traceability 1 : OK + Zip
         assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
-
         TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
-        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
-
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
             beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
             afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent1.getStatistics().getNbValidMetadata()).isEqualTo(3);
+        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
 
-        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
-            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
-            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        // Traceability 2 : Warning + empty
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+
+        // Traceability 3 : Warning (inconsistencies) + zip (chained to traceability 1)
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
+        assertThat(traceabilityEvent3.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent3.getEndDate(),
+            beforeTraceability3.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability3.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent3.getStatistics().getNbValidMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+
+        // Traceability 4 : OK + Zip (chained to traceability 3)
+        assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperation4);
+        assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent4.getEndDate(),
+            beforeTraceability4.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability4.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent4.getStatistics().getNbValidMetadata()).isEqualTo(3);
+        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
     }
-
-
 
     @RunWithCustomExecutor
     @Test
@@ -567,7 +625,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         String traceabilityOperation1 = launchLogbookLFC(0, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
 
         // Update Got + traceability
-        changeOneGotLFC();
+        corruptOneObjectGroupLfcInDb();
         String traceabilityOperation2 = launchLogbookLFC(300, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
 
         // Then
@@ -581,47 +639,113 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowObjectGroupLfcTraceability_shouldGetOkOnOldGotUpdate() throws Exception {
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarnOnCorruptedDb() throws Exception {
+
+        // Given
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        corruptOneObjectGroupLfcInDb();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        // When
+        LocalDateTime beforeTraceability = LocalDateUtil.now();
+        String traceabilityOperation = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability = LocalDateUtil.now();
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+
+        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
+            beforeTraceability.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent.getStatistics().getNbValidMetadata()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getNbValidObjects()).isEqualTo(2);
+        assertThat(traceabilityEvent.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_multipleChainingTraceabilities() throws Exception {
 
         // Given / When
 
-        // First ingest + traceability
+        // Traceabiliy 1 : Empty DB + ingest + traceability
+
         int temporizationDelayInSeconds = 2;
         launchIngest();
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
         LocalDateTime beforeTraceability1 = LocalDateUtil.now();
-        String traceabilityOperation1 =
-            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
         LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
+        // Traceability 2 : No new entries to secure
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
 
-        // Update Got + traceability
-        changeOneGotLFC();
+        // Traceability 3 : Corrupt one object group in DB + traceability
+        corruptOneObjectGroupLfcInDb();
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
-        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
-        String traceabilityOperation2 =
-            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
+        String traceabilityOperation3 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability3 = LocalDateUtil.now();
+
+        // Traceability 4 : ingest + traceability
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability4 = LocalDateUtil.now();
+        String traceabilityOperation4 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability4 = LocalDateUtil.now();
 
         // Then
 
+        // Traceability 1 : OK + Zip
         assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
-
         TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
-        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
-
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
             beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
             afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent1.getStatistics().getNbValidMetadata()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getNbValidObjects()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
 
-        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
-            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
-            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        // Traceability 2 : Warning + empty
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+
+        // Traceability 3 : Warning (inconsistencies) + zip (chained to traceability 1)
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
+        assertThat(traceabilityEvent3.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent3.getEndDate(),
+            beforeTraceability3.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability3.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent3.getStatistics().getNbValidMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getNbValidObjects()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+
+        // Traceability 4 : OK + Zip (chained to traceability 3)
+        assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperation4);
+        assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent4.getEndDate(),
+            beforeTraceability4.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability4.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityEvent4.getStatistics().getNbValidMetadata()).isEqualTo(2);
+        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getNbValidObjects()).isEqualTo(2);
+        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
     }
 
     private void wait(String operationId) {
@@ -715,7 +839,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         return containerName;
     }
 
-    private void changeOneGotLFC() throws Exception {
+    private void corruptOneObjectGroupLfcInDb() throws Exception {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
             .getClient()) {
             // search for got lfc
@@ -747,7 +871,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         }
     }
 
-    private void changeOneUnitLFC() throws Exception {
+    private void corruptOneUnitLfcInDb() throws Exception {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
             .getClient()) {
             // search for got lfc
@@ -790,7 +914,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     private TraceabilityEvent getTraceabilityEvent(String containerName)
         throws LogbookClientException, InvalidParseOperationException {
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        Select select = new Select();
         JsonNode response = logbookClient.selectOperationById(containerName);
         JsonNode jsonNode = response.get("$results").get(0);
         JsonNode evDetData = jsonNode.get("evDetData");

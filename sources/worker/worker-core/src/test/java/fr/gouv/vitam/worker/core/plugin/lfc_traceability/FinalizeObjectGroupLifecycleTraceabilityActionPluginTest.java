@@ -58,6 +58,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -107,6 +108,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityData.jsonl";
     private static final String TRACEABILITY_DATA_EMPTY =
         "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityData_Empty.jsonl";
+    private static final String TRACEABILITY_STATS =
+        "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityStats.json";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -152,6 +155,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityInformation.json")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.json")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")));
     }
 
     @After
@@ -166,6 +171,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
         handlerIO.addInIOParameters(in);
         when(logbookOperationsClient.selectOperation(anyObject()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
@@ -186,6 +192,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA_EMPTY), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -215,6 +222,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -233,6 +241,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         assertNotNull(stream);
 
         JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
+        JsonAssert.assertJsonEquals(evDetData.get("Statistics"),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS)));
         assertNotNull(evDetData);
     }
 
