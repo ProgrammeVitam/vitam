@@ -41,6 +41,10 @@ public class PluginProperties {
     @JsonProperty("propertiesFile")
     private String propertiesFile;
 
+    @JsonProperty("jarName")
+    private String jarName;
+
+
     /**
      * Constructor.
      *
@@ -92,4 +96,11 @@ public class PluginProperties {
         this.propertiesFile = propertiesFile;
     }
 
+    public String getJarName() {
+        return jarName;
+    }
+
+    public void setJarName(String jarName) {
+        this.jarName = jarName;
+    }
 }

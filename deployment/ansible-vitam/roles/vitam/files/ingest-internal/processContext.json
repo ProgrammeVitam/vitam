@@ -1,0 +1,14 @@
+{ 
+    "SAMPLE_WORKFLOW_RESUME" :
+    { 
+        "WorkFlowId" : "SAMPLE_PROCESS_SIP_UNITARY",
+        "ExecutionContext" : "resume",
+        "LogbookTypeProcess" : "INGEST"
+    },
+    "SAMPLE_WORKFLOW_NEXT" :
+    {
+        "WorkFlowId" : "SAMPLE_PROCESS_SIP_UNITARY",
+        "ExecutionContext" : "next",
+        "LogbookTypeProcess" : "INGEST"
+    }
+}

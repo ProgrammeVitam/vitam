@@ -1,54 +1,54 @@
 { 
     "DEFAULT_WORKFLOW_RESUME" : 
     { 
-        "workFlowId" : "PROCESS_SIP_UNITARY",
-        "executionContext" : "resume",
-        "logbookTypeProcess" : "INGEST"
+        "WorkFlowId" : "PROCESS_SIP_UNITARY",
+        "ExecutionContext" : "resume",
+        "LogbookTypeProcess" : "INGEST"
     },
     
     "DEFAULT_WORKFLOW_NEXT" : 
     { 
-        "workFlowId" : "PROCESS_SIP_UNITARY",
-        "executionContext" : "next",
-        "logbookTypeProcess" : "INGEST"
+        "WorkFlowId" : "PROCESS_SIP_UNITARY",
+        "ExecutionContext" : "next",
+        "LogbookTypeProcess" : "INGEST"
     },
     
     "BLANK_TEST_RESUME" : 
     { 
-        "workFlowId" : "PROCESS_SIP_UNITARY_TEST",
-        "executionContext" : "resume",
-        "logbookTypeProcess" : "INGEST_TEST"
+        "WorkFlowId" : "PROCESS_SIP_UNITARY_TEST",
+        "ExecutionContext" : "resume",
+        "LogbookTypeProcess" : "INGEST_TEST"
     },
      "BLANK_TEST_NEXT" : 
     { 
-        "workFlowId" : "PROCESS_SIP_UNITARY_TEST",
-        "executionContext" : "next",
-        "logbookTypeProcess" : "INGEST_TEST"
+        "WorkFlowId" : "PROCESS_SIP_UNITARY_TEST",
+        "ExecutionContext" : "next",
+        "LogbookTypeProcess" : "INGEST_TEST"
     },
     
     "HOLDING_SCHEME_RESUME" : 
     { 
-        "workFlowId" : "HOLDINGSCHEME",
-        "executionContext" : "resume",
-        "logbookTypeProcess" : "MASTERDATA"
+        "WorkFlowId" : "HOLDINGSCHEME",
+        "ExecutionContext" : "resume",
+        "LogbookTypeProcess" : "MASTERDATA"
     },
      "HOLDING_SCHEME_NEXT" : 
     { 
-        "workFlowId" : "HOLDINGSCHEME",
-        "executionContext" : "next",
-        "logbookTypeProcess" : "MASTERDATA"
+        "WorkFlowId" : "HOLDINGSCHEME",
+        "ExecutionContext" : "next",
+        "LogbookTypeProcess" : "MASTERDATA"
     },
     
     "FILING_SCHEME_RESUME" : 
     { 
-        "workFlowId" : "FILINGSCHEME",
-        "executionContext" : "resume",
-        "logbookTypeProcess" : "INGEST"
+        "WorkFlowId" : "FILINGSCHEME",
+        "ExecutionContext" : "resume",
+        "LogbookTypeProcess" : "INGEST"
     },
      "FILING_SCHEME_NEXT" : 
     { 
-        "workFlowId" : "FILINGSCHEME",
-        "executionContext" : "next",
-        "logbookTypeProcess" : "INGEST"
+        "WorkFlowId" : "FILINGSCHEME",
+        "ExecutionContext" : "next",
+        "LogbookTypeProcess" : "INGEST"
     }
 }

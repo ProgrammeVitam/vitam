@@ -1,7 +1,7 @@
 Role Name
 =========
 
-Copy custom workflow to processing service
+Create plugins workspace folder in worker conf directory
 
 Requirements
 ------------

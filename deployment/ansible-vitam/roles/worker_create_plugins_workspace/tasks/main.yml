@@ -1,0 +1,19 @@
+---
+
+- name: Create worker plugins workspace folder
+  file:
+    path: "{{vitam_folder_conf}}/plugins-workspace"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Copy the plugins jar files to the folder
+  copy:
+    src: "{{ item }}"
+    dest: "{{vitam_folder_conf}}/plugins-workspace/{{ item | basename }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_fileglob:
+    - "{{ role_path }}/files/*"

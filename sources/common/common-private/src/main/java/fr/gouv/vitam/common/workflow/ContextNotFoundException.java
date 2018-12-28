@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,36 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
+package fr.gouv.vitam.common.workflow;
 
-package fr.gouv.vitam.worker.core.plugin;
+/**
+ * Context not found exception
+ */
+public class ContextNotFoundException extends Exception {
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3153134957326290033L;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+    /**
+     * @param message of exception
+     */
+    public ContextNotFoundException(String message) {
+        super(message);
+        // TODO Auto-generated constructor stub
+    }
 
-import fr.gouv.vitam.processing.common.exception.PluginException;
-import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
-import fr.gouv.vitam.worker.common.PluginProperties;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-public class PluginHelperTest {
-
-
-    private static final String MESSAGE_PROPERTIES = "message_fr.properties";
-    private static final String DUMMY_HANDLER = "fr.gouv.vitam.worker.core.handler.DummyHandler";
-    private static final String ACTION_NAME = "actionName";
-
-    @Test
-    public void testPluginHelper() throws PluginException {
-        Class<ActionHandler> actionHandlerClass =
-            PluginHelper.loadActionHandler(ACTION_NAME, new PluginProperties(DUMMY_HANDLER,
-                MESSAGE_PROPERTIES));
-        assertThat(actionHandlerClass).isNotNull();
+    /**
+     * @param exception of other module
+     */
+    public ContextNotFoundException(Throwable exception) {
+        super(exception);
     }
 
 }

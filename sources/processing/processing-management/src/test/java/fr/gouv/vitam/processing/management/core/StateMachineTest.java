@@ -47,7 +47,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -249,12 +248,12 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void tryAllActionsOnRunningState()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -303,7 +302,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -354,7 +353,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -405,7 +404,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -441,7 +440,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -489,7 +488,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -536,7 +535,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -584,7 +583,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -634,7 +633,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 
@@ -656,7 +655,7 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
                 workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
 

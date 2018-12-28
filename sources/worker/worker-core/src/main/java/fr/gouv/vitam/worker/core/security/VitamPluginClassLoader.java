@@ -24,25 +24,26 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.utils;
+package fr.gouv.vitam.worker.core.security;
 
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import org.junit.Test;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.AllPermission;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
+import java.security.Permissions;
 
-public class ProcessPopulatorTest {
+public class VitamPluginClassLoader extends URLClassLoader {
 
-    @Test
-    public void testPopulator() throws WorkflowNotFoundException {
-        ProcessPopulator.populate("workflowJSONv1.json");
+    public VitamPluginClassLoader(URL[] urls) {
+        super(urls);
     }
 
-    @Test(expected = WorkflowNotFoundException.class)
-    public void testPopulatorNotFound() throws WorkflowNotFoundException {
-        ProcessPopulator.populate("not_found");
+    @Override
+    protected PermissionCollection getPermissions(CodeSource codesource) {
+        Permissions permissions = new Permissions();
+        permissions.add(new AllPermission());
+        return permissions;
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testPopulatorWithNull() throws WorkflowNotFoundException {
-        ProcessPopulator.populate(null);
-    }
 }

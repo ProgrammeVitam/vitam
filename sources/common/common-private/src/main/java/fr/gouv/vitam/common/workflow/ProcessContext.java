@@ -1,6 +1,7 @@
-package fr.gouv.vitam.ingest.internal.upload.rest;
+package fr.gouv.vitam.common.workflow;
 
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Process Context
@@ -10,17 +11,18 @@ public class ProcessContext {
     /**
      * idWorkFlow properties, must be defined in JSON file(required)
      */
-
+    @JsonProperty("WorkFlowId")
     private String workFlowId;
 
 
     /**
      * executionContext properties, must be defined in JSON file(required)
      */
-
+    @JsonProperty("ExecutionContext")
     private String executionContext;
 
-    private LogbookTypeProcess logbookTypeProcess;
+    @JsonProperty("LogbookTypeProcess")
+    private String logbookTypeProcess;
 
     /**
      * @return the workFlowId
@@ -57,7 +59,7 @@ public class ProcessContext {
     /**
      * @return the logbookTypeProcess
      */
-    public LogbookTypeProcess getLogbookTypeProcess() {
+    public String getLogbookTypeProcess() {
         return logbookTypeProcess;
     }
 
@@ -65,8 +67,13 @@ public class ProcessContext {
      * @param logbookTypeProcess the logbookTypeProcess
      * @return this
      */
-    public ProcessContext setLogbookTypeProcess(LogbookTypeProcess logbookTypeProcess) {
+    public ProcessContext setLogbookTypeProcess(String logbookTypeProcess) {
         this.logbookTypeProcess = logbookTypeProcess;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.unprettyPrint(this);
     }
 }

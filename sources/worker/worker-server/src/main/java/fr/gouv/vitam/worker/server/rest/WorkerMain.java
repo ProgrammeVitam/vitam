@@ -27,13 +27,6 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletContextListener;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -47,9 +40,14 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.servlet.ServletContextListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Worker web server application
@@ -65,9 +63,14 @@ public class WorkerMain {
     private VitamStarter vitamStarter;
 
     public WorkerMain(String configurationFile)
-        throws PluginException, IOException {
+        throws IOException {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
+
+        // TODO Set policy
+        // Policy.setPolicy(new VitamSecurityPolicy());
+        // System.setSecurityManager(new SecurityManager());
+
         List<ServletContextListener> listeners = new ArrayList<>();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final WorkerConfiguration configuration =
