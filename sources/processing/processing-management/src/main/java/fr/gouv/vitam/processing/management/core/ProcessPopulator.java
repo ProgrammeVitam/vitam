@@ -113,7 +113,9 @@ public class ProcessPopulator {
 
         for (String workflowFile : workflowFiles) {
             try {
-                LOGGER.warn("populate internal : " + workflowFile);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("populate internal : " + workflowFile);
+                }
                 populate(poolWorkflows, PropertiesUtils.getResourceAsStream(workflowFile), false);
             } catch (FileNotFoundException e) {
                 LOGGER.error("Cannot load workflow file (" + workflowFile + ") ", e);
@@ -141,11 +143,13 @@ public class ProcessPopulator {
 
         for (Path workflowFile : workflowFiles) {
             try {
-                LOGGER.warn("populate external : " + workflowFile.toString());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("populate external : " + workflowFile.toString());
+                }
                 populate(poolWorkflows, Files.newInputStream(workflowFile), true);
             } catch (IOException e) {
                 // Do not block system for external workflow
-                LOGGER.info(e);
+                LOGGER.warn(workflowFile.toString(), e);
             }
         }
     }
@@ -157,7 +161,9 @@ public class ProcessPopulator {
      * @return list of workflow (json) files
      */
     private static List<Path> loadExternalWorkflowFiles(Long fromDate) {
-        LOGGER.warn("load external file : {} , {}", VitamConfiguration.getVitamConfigFolder(), WORKFLOWS_FOLDER);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.warn("load external file : {}{}", VitamConfiguration.getVitamConfigFolder(), WORKFLOWS_FOLDER);
+        }
         File workflowFolder = PropertiesUtils.fileFromConfigFolder(WORKFLOWS_FOLDER);
 
         if (!workflowFolder.isDirectory()) {
@@ -165,7 +171,9 @@ public class ProcessPopulator {
             return new ArrayList<>();
         } else {
             try {
-                LOGGER.warn("load external :"+workflowFolder.toPath().toString());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("load external :" + workflowFolder.toPath().toString());
+                }
                 return Files.list(workflowFolder.toPath())
                         .filter(f -> f.toFile().isFile())
                         .filter(f -> f.toFile().getName().endsWith(".json"))
@@ -232,7 +240,7 @@ public class ProcessPopulator {
         try {
             return populate(PropertiesUtils.getResourceAsStream(workflowFile));
         } catch (FileNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.error(workflowFile, e);
             return Optional.empty();
         }
 

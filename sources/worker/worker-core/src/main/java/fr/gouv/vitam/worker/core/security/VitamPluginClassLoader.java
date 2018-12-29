@@ -26,24 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.security;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.AllPermission;
 import java.security.CodeSource;
 import java.security.PermissionCollection;
-import java.security.Permissions;
 
 public class VitamPluginClassLoader extends URLClassLoader {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamPluginClassLoader.class);
 
     public VitamPluginClassLoader(URL[] urls) {
         super(urls);
     }
 
+
     @Override
     protected PermissionCollection getPermissions(CodeSource codesource) {
-        Permissions permissions = new Permissions();
-        permissions.add(new AllPermission());
-        return permissions;
+        // Set custom permissions
+        return super.getPermissions(codesource);
     }
 
 }

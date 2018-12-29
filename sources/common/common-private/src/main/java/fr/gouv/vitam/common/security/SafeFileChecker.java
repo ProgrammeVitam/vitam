@@ -37,7 +37,8 @@ import java.util.regex.Pattern;
 
 /**
  * Checker for Sanity of file manipulation to avoid Path Traversal vulnerability <br>
- *     @author afraoucene
+ *
+ * @author afraoucene
  */
 public class SafeFileChecker {
 
@@ -70,12 +71,38 @@ public class SafeFileChecker {
 
     }
 
+
+    /**
+     * do an ESAPI path sanityCheck and prevent a path traversal attack
+     *
+     * @param path full path representing a FileSystem resource
+     * @return
+     * @throws IOException thrown when any check fails with UnChecked or Runtime exception
+     */
+    public static void checkSafePluginsFilesPath(String path) throws IOException {
+        if (path == null || path.length() == 0 || !path.contains("/")) {
+            // If path do not contains any directory than return
+            return;
+        }
+
+        try {
+            File sanityCheckedFile = doSanityCheck(path);
+            //do Path Traversal check
+            doCanonicalPathCheck(sanityCheckedFile.getPath());//N.B : the getPath return a normalized pathname string
+            doDirCheck(sanityCheckedFile.getParent());
+            doFilenameCheck(sanityCheckedFile.getName());
+        } catch (Exception ex) {
+            throw new IOException(ex);
+        }
+
+    }
+
     /**
      * do an ESAPI path sanityCheck and prevent a path traversal attack
      *
      * @param rootPath first or initial part(s) of a path representing a FileSystem resource
      * @param subPaths sub (additional) parts after root part(s) to be joined to rootPath parameter
-     * using File.separator FileSystem String
+     *                 using File.separator FileSystem String
      * @throws IOException thrown when any check fails with UnChecked or Runtime exception
      */
     public static void checkSafeFilePath(String rootPath, String... subPaths) throws IOException {
@@ -113,7 +140,7 @@ public class SafeFileChecker {
 
         if (!path.equals(canonicalPath)) {
             throw new IOException(
-                String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
+                    String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
         }
     }
 
@@ -130,8 +157,8 @@ public class SafeFileChecker {
             String component = dirComponent[index];
             if (index != 0 && !pathComponentPattern.matcher(component).matches()) {
                 throw new VitamRuntimeException(String
-                    .format("Invalid path (%s) (has unauthorized characters in component[%d] : %s", pathParent, index,
-                        component));
+                        .format("Invalid path (%s) (has unauthorized characters in component[%d] : %s", pathParent, index,
+                                component));
             }
         }
 
@@ -148,7 +175,7 @@ public class SafeFileChecker {
             for (String part : nameParts) {
                 if (!filenamePattern.matcher(part).matches()) {
                     throw new VitamRuntimeException(String
-                        .format("Invalid filename (%s) (has unauthorized characters in part %s", pathName, part));
+                            .format("Invalid filename (%s) (has unauthorized characters in part %s", pathName, part));
                 }
             }
         }

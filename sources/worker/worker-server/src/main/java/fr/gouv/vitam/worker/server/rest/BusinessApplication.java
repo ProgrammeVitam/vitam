@@ -67,8 +67,8 @@ public class BusinessApplication extends Application {
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
-        pluginLoader = new PluginLoader();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            pluginLoader = new PluginLoader();
             pluginLoader.loadConfiguration();
             checkPluginsCreation();
             final WorkerConfiguration configuration =

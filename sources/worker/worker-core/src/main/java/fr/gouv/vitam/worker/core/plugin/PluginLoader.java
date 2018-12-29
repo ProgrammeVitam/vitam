@@ -26,16 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static fr.gouv.vitam.common.PropertiesUtils.getConfigAsStream;
-import static java.lang.String.format;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -43,11 +33,23 @@ import fr.gouv.vitam.common.i18n.PluginPropertiesLoader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.processing.common.exception.InvocationPluginException;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.common.PluginProperties;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.security.VitamPluginClassLoader;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.common.PropertiesUtils.getConfigAsStream;
+import static java.lang.String.format;
 
 /**
  * load all the plugins according to plugins.json file.
@@ -71,7 +73,7 @@ public class PluginLoader {
     /**
      * create instance with the default configuration file
      */
-    public PluginLoader() {
+    public PluginLoader() throws IOException {
         this(PLUGIN_CONFIG_FILE);
     }
 
@@ -80,7 +82,11 @@ public class PluginLoader {
      *
      * @param pluginsConfigFile path of the custom configuration file.
      */
-    public PluginLoader(String pluginsConfigFile) {
+    public PluginLoader(String pluginsConfigFile) throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.warn("Load plugin files : " + pluginsConfigFile);
+        }
+        SafeFileChecker.checkSafePluginsFilesPath(pluginsConfigFile);
         this.pluginsConfigFile = pluginsConfigFile;
         this.plugins = new HashMap<>();
     }
@@ -111,55 +117,57 @@ public class PluginLoader {
 
         for (String handlerID : mapFromInputStream.keySet()) {
             PluginProperties pluginProperties = mapFromInputStream.get(handlerID);
-            final Class<ActionHandler> actionHandlerClazz;
+            final Optional<Class<ActionHandler>> actionHandlerClazz;
 
             if (Strings.isNullOrEmpty(pluginProperties.getJarName())) {
                 actionHandlerClazz = loadInternalPlugins(handlerID, pluginProperties);
             } else {
                 actionHandlerClazz = loadExternalPlugins(handlerID, pluginProperties);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Load external plugin name : {}", actionHandlerClazz == null ? "null" : actionHandlerClazz.getName());
+                    LOGGER.debug("Load external plugin name : {}", actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
                 }
             }
-            if (null != actionHandlerClazz) {
-                plugins.put(handlerID, new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz));
+            if (actionHandlerClazz.isPresent()) {
+                plugins.put(handlerID, new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
             }
         }
     }
 
-    private Class<ActionHandler> loadInternalPlugins(String handlerID, PluginProperties pluginProperties) throws PluginNotFoundException {
+    private Optional<Class<ActionHandler>> loadInternalPlugins(String handlerID, PluginProperties pluginProperties) throws PluginNotFoundException {
 
         Class<ActionHandler> actionHandlerClazz;
         try {
+            SafeFileChecker.checkSafePluginsFilesPath(pluginProperties.getPropertiesFile());
             PluginPropertiesLoader.loadProperties(handlerID, pluginProperties.getPropertiesFile());
 
             actionHandlerClazz =
                     (Class<ActionHandler>) Thread.currentThread().getContextClassLoader().loadClass(pluginProperties.getClassName());
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | IOException e) {
             LOGGER.error("could not find class: {}", pluginProperties.getClassName());
             throw new PluginNotFoundException(format("could not find class: %s", pluginProperties.getClassName()), e);
         }
-        return actionHandlerClazz;
+        return Optional.of(actionHandlerClazz);
     }
 
-    private Class<ActionHandler> loadExternalPlugins(String handlerID, PluginProperties pluginProperties) {
+    private Optional<Class<ActionHandler>> loadExternalPlugins(String handlerID, PluginProperties pluginProperties) {
         try {
+            // No path traversal problem
             File jarFile = PropertiesUtils.fileFromConfigFolder(WORKER_PLUGIN_WORKSPACE + pluginProperties.getJarName());
             if (!jarFile.exists()) {
                 LOGGER.error("Jar file {} not found in {} folder. FullPath {}", pluginProperties.getJarName(), WORKER_PLUGIN_WORKSPACE, jarFile.getAbsolutePath());
-                return null;
+                return Optional.empty();
             }
             URL[] urls = new URL[1];
             urls[0] = jarFile.toURI().toURL();
             VitamPluginClassLoader pluginLoader = new VitamPluginClassLoader(urls);
             // Load properties file
+            SafeFileChecker.checkSafePluginsFilesPath(pluginProperties.getPropertiesFile());
             PluginPropertiesLoader.loadProperties(handlerID, pluginProperties.getPropertiesFile(), pluginLoader);
 
-            return (Class<ActionHandler>) pluginLoader.loadClass(pluginProperties.getClassName());
-        } catch (ClassNotFoundException | MalformedURLException e) {
+            return Optional.of((Class<ActionHandler>) pluginLoader.loadClass(pluginProperties.getClassName()));
+        } catch (ClassNotFoundException | IOException e) {
             LOGGER.error("could not find class: {}. the jar file {} should be be in {} folder", pluginProperties.getClassName(), pluginProperties.getJarName(), WORKER_PLUGIN_WORKSPACE);
-            // Continue
-            return null;
+            return Optional.empty();
         }
     }
 

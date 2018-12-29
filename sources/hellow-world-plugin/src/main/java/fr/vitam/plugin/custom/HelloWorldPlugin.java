@@ -24,53 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.security;
+package fr.vitam.plugin.custom;
 
-import fr.gouv.vitam.common.VitamConfiguration;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.io.FilePermission;
-import java.security.AllPermission;
-import java.security.PermissionCollection;
-import java.security.Permissions;
-import java.security.Policy;
-import java.security.ProtectionDomain;
-import java.util.logging.LoggingPermission;
+public class HelloWorldPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HelloWorldPlugin.class);
 
-public class VitamSecurityPolicy extends Policy {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamSecurityPolicy.class);
+    private static final String HELLO_WORLD_PLUGIN = "HELLO_WORLD_PLUGIN";
 
-    private PermissionCollection pluginPermissions = usePluginPermissions();
-    private PermissionCollection applicationPermissions = useApplicationPermissions();
-    @Override
-    public PermissionCollection getPermissions(ProtectionDomain domain) {
-        if (isVitamPluginClassLoader(domain)) {
-            LOGGER.warn("use plugin permissions");
-            return pluginPermissions;
-        }
-        // Else
-        LOGGER.warn("use plugin application");
-        return applicationPermissions;
+    public ItemStatus execute(WorkerParameters workerParameters, HandlerIO handlerIO) {
+        LOGGER.warn("===========================================================");
+        LOGGER.warn("=================   HELLO_WORLD_PLUGIN ........ =========== ");
+        LOGGER.warn("===========================================================");
+
+        // Add some event details data
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        infoNode.put("var_name", (String) handlerIO.getInput(0));
+        ItemStatus itemStatus = new ItemStatus(HELLO_WORLD_PLUGIN);
+        String unpretty = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setEvDetailData(unpretty);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), unpretty);
+
+
+        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(HELLO_WORLD_PLUGIN, itemStatus.increment(StatusCode.OK));
     }
 
-    private boolean isVitamPluginClassLoader(ProtectionDomain domain) {
-        return domain.getClassLoader() instanceof VitamPluginClassLoader;
-    }
-
-    private PermissionCollection usePluginPermissions() {
-        Permissions permissions = new Permissions();
-        permissions.add(new FilePermission("plugins.json", "read"));
-        permissions.add(new FilePermission(VitamConfiguration.getVitamTmpFolder() + "/*", "read,write"));
-        permissions.add(new FilePermission(VitamConfiguration.getVitamConfigFolder() + "/worker/plugins-workspace/*", "read"));
-        permissions.add(new LoggingPermission("control", ""));
-
-        return permissions;
-    }
-
-    private PermissionCollection useApplicationPermissions() {
-        Permissions permissions = new Permissions();
-        permissions.add(new AllPermission());
-        return permissions;
-    }
 }
