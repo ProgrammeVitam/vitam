@@ -467,29 +467,6 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
     }
 
-
-    @Test
-    public void givenBadRequestWheninitWorkFlowOperationThenReturnNoContent() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        client.initWorkFlow(CONTEXT_ID);
-
-    }
-
-    @Test
-    public void givenInternalServerErrorWheninitWorkFlowThenReturnInternalServerError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initWorkFlow(CONTEXT_ID);
-    }
-
-    @Test
-    public void initWorkFlowProcessOk() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        client.initWorkFlow(CONTEXT_ID);
-
-    }
-
     @Test
     public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
         List<WorkFlow> desired = new ArrayList<>();

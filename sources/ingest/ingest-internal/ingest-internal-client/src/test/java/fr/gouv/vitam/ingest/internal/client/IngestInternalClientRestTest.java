@@ -49,8 +49,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -586,46 +584,10 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test(expected = VitamClientException.class)
-    public void givenUnauthorizedInitOperationStatusThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationInternalServerErrorThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationNotFoundThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationPreConditionFailedThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
     public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.initWorkFlow(CONTEXTID);
+        client.initWorkflow(CONTEXTID);
 
     }
 
@@ -634,7 +596,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        client.initWorkFlow(CONTEXTID);
+        client.initWorkflow(CONTEXTID);
 
     }
 
@@ -643,7 +605,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initWorkFlow(CONTEXTID);
+        client.initWorkflow(CONTEXTID);
 
     }
 
@@ -652,7 +614,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initWorkFlow(CONTEXTID);
+        client.initWorkflow(CONTEXTID);
 
     }
 

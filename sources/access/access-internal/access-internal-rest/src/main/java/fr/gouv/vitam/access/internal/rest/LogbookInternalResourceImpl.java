@@ -27,35 +27,14 @@
 package fr.gouv.vitam.access.internal.rest;
 
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -68,8 +47,8 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -77,7 +56,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -104,6 +86,24 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -409,8 +409,7 @@ public class LogbookInternalResourceImpl {
             // Run the WORKFLOW
             response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
-                    DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
-                    ProcessAction.RESUME.getValue());
+                    DEFAULT_CHECK_TRACEABILITY_WORKFLOW, ProcessAction.RESUME.getValue());
             LOGGER.debug("Check in Resource launched");
 
 
@@ -572,8 +571,7 @@ public class LogbookInternalResourceImpl {
 
     private void createOrUpdateLogbookOperation(LogbookOperationsClientHelper helper,
         boolean isCreationMode, GUID eventIdentifier, StatusCode outcome)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException {
+        throws LogbookClientAlreadyExistsException, LogbookClientNotFoundException {
 
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,

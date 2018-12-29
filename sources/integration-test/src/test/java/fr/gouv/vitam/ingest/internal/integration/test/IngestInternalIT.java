@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import io.restassured.RestAssured;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -171,7 +170,6 @@ import static io.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -398,7 +396,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -634,7 +632,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -771,7 +769,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -838,7 +836,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("HOLDING_SCHEME_RESUME");
+            client.initWorkflow("HOLDING_SCHEME_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
@@ -905,7 +903,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -952,7 +950,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -999,7 +997,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -1099,7 +1097,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -1154,7 +1152,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -1208,7 +1206,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -1264,7 +1262,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -1303,7 +1301,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
@@ -1354,7 +1352,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final Response response2 = client.uploadInitialLogbook(params);
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
 
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
@@ -1416,7 +1414,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final Response response2 = client.uploadInitialLogbook(params);
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
@@ -1471,7 +1469,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
@@ -1526,7 +1524,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
@@ -1583,7 +1581,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
@@ -1639,7 +1637,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
@@ -1688,7 +1686,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response3.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client2.initWorkFlow("HOLDING_SCHEME_RESUME");
+            client2.initWorkflow("HOLDING_SCHEME_RESUME");
             client2.upload(zipInputStreamSipObject2, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
@@ -1909,7 +1907,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client2.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client2.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client2.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID_NEXT);
 
@@ -1991,7 +1989,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -2212,7 +2210,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -2339,7 +2337,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
@@ -2429,7 +2427,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
             // init workflow before execution
-            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 

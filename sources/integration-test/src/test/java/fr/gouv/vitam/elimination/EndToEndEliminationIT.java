@@ -60,8 +60,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -317,7 +315,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 

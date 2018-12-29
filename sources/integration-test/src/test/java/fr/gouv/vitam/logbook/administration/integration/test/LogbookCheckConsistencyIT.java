@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.administration.integration.test;
 
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -60,7 +58,6 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -91,8 +88,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -299,7 +294,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow(DEFAULT_WORKFLOW_RESUME);
+        client.initWorkflow(DEFAULT_WORKFLOW_RESUME);
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
         ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
 

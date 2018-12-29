@@ -125,7 +125,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
     @Override
     public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId)
-        throws WorkspaceClientServerException, VitamException {
+        throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
         ParametersChecker.checkParameter("context Id Request must not be null",
             contextId);
@@ -154,7 +154,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void initWorkFlow(String contextId) throws VitamException {
+    public void initWorkflow(String contextId) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", contextId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
@@ -412,44 +412,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
             return response.readEntity(ItemStatus.class);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public void initVitamProcess(String contextId, String container, String workFlow)
-        throws InternalServerException, VitamClientException, BadRequestException {
-
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
-
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.PUT, OPERATION_URI, headers, MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                throw new VitamClientInternalException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-            }
-
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);

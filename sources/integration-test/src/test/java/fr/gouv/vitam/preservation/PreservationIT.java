@@ -74,10 +74,8 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -251,7 +249,7 @@ public class PreservationIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
