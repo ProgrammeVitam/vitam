@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.PreservationRequest;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -140,7 +142,8 @@ import static org.junit.Assert.assertEquals;
 public class PreservationIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
     private static final String contractId = "contract";
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, CONTEXT_ID, "INGEST");
 
     private static final HashSet<Class> servers = Sets.newHashSet(
         AccessInternalMain.class,
@@ -249,9 +252,9 @@ public class PreservationIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkflow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow(workflow);
 
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
 
         waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
     }

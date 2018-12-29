@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -37,30 +38,23 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 public class PreUploadResume {
     private LogbookOperationsClientHelper helper;
 
-    private LogbookTypeProcess logbookTypeProcess;
-    private LogbookOperationParameters startedParameters;
-    private WorkspaceFileSystem workspaceFileSystem;
-    private String contextWithExecutionMode;
-    private String eventType;
+    private final WorkFlow workFlow;
+    private final LogbookOperationParameters startedParameters;
+    private final WorkspaceFileSystem workspaceFileSystem;
 
     public PreUploadResume(
         LogbookOperationsClientHelper helper,
-        LogbookTypeProcess logbookTypeProcess,
+        WorkFlow workFlow,
         LogbookOperationParameters startedParameters,
-        WorkspaceFileSystem workspaceFileSystem, String contextWithExecutionMode, String eventType) {
+        WorkspaceFileSystem workspaceFileSystem) {
         this.helper = helper;
-        this.logbookTypeProcess = logbookTypeProcess;
+        this.workFlow = workFlow;
         this.startedParameters = startedParameters;
         this.workspaceFileSystem = workspaceFileSystem;
-        this.contextWithExecutionMode = contextWithExecutionMode;
-        this.eventType = eventType;
     }
 
-    /**
-     * @return LogbookTypeProcess
-     */
-    public LogbookTypeProcess getLogbookTypeProcess() {
-        return logbookTypeProcess;
+    public WorkFlow getWorkFlow() {
+        return workFlow;
     }
 
     /**
@@ -78,23 +72,9 @@ public class PreUploadResume {
     }
 
     /**
-     * @return String
-     */
-    public String getContextWithExecutionMode() {
-        return contextWithExecutionMode;
-    }
-
-    /**
      * @return LogbookOperationsClientHelper
      */
     public LogbookOperationsClientHelper getHelper() {
         return helper;
-    }
-
-    /**
-     * @return String
-     */
-    public String getEventType() {
-        return eventType;
     }
 }

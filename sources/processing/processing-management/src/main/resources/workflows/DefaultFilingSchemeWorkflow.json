@@ -2,6 +2,7 @@
   "id": "DefaultFilingSchemeWorkflow",
   "name": "Default Filing Scheme Workflow",
   "identifier": "FILINGSCHEME",
+  "externalIdentifier": "FILING_SCHEME",
   "typeProc": "INGEST",
   "comment": "Default Filing Scheme Workflow V6",
   "steps": [

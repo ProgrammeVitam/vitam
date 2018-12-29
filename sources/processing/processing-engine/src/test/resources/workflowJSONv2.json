@@ -2,7 +2,7 @@
 	"id": "workflowJSONv2",
 	"identifier":"workflowJSONv2",
 	"name":"name",
-	"typeProc":"typeProc",
+	"typeProc":"INGEST",
 	"comment":"traitement en deux macro étapes",
 	"steps":
 	[

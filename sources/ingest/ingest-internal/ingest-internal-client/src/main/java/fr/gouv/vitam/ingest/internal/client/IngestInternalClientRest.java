@@ -28,6 +28,7 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
@@ -124,14 +125,17 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void upload(InputStream inputStream, MediaType archiveMimeType, String contextId)
+    public void upload(InputStream inputStream, MediaType archiveMimeType, WorkFlow workflow, String actionAfterInit)
         throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
         ParametersChecker.checkParameter("context Id Request must not be null",
-            contextId);
+                workflow);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.START);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier());
+        headers.add(GlobalDataRest.X_WORKFLOW_ID, workflow.getIdentifier());
+        headers.add(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc());
+        headers.add(GlobalDataRest.X_ACTION, actionAfterInit);
+        headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.START);
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, INGEST_URL, headers,
@@ -154,10 +158,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void initWorkflow(String contextId) throws VitamException {
-        ParametersChecker.checkParameter("Params cannot be null", contextId);
+    public void initWorkflow(WorkFlow workFlow) throws VitamException {
+        ParametersChecker.checkParameter("Params cannot be null", workFlow);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, workFlow.getIdentifier());
+        headers.add(GlobalDataRest.X_WORKFLOW_ID, workFlow.getIdentifier());
+        headers.add(GlobalDataRest.X_TYPE_PROCESS, workFlow.getTypeProc());
+        headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT);
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
 
         Response response = null;
@@ -476,6 +483,26 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public WorkFlow getWorkflowHeader(String workflowIdentifier) throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI + "/" + workflowIdentifier, null, null, null, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(WorkFlow.class);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new VitamClientException("Workflow ("+workflowIdentifier+") not found");
+
+            } else {
+                throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
+            }
+
         } finally {
             consumeAnyEntityAndClose(response);
         }

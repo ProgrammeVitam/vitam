@@ -229,6 +229,16 @@ public class TestWorkerParameter implements WorkerParameters {
     }
 
     @Override
+    public String getWorkflowIdentifier() {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public WorkerParameters setWorkflowIdentifier(String workflowIdentifier) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
     public WorkerParameters setFromParameters(WorkerParameters parameters) {
         throw new IllegalStateException("Not implemented");
     }

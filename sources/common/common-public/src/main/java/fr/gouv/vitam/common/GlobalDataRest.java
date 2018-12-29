@@ -53,8 +53,25 @@ public class GlobalDataRest {
 
     /**
      * Header Parameter X_ACTION
+     * Is required only if X_ACTION_INIT in (START, NEXT, RESUME, REPLAY, PAUSE) but not INT
      */
     public static final String X_ACTION = "X-ACTION";
+
+    /**
+     * Header Parameter X_ACTION_INIT
+     */
+    public static final String X_ACTION_INIT = "X_ACTION_INIT";
+
+    /**
+     *  Workflow identifier
+     */
+    public static final String X_WORKFLOW_ID = "X_WORKFLOW_ID";
+
+    /**
+     * Logbook type process
+     */
+    public static final String X_TYPE_PROCESS = "X_TYPE_PROCESS";
+
     /**
      * Header Parameter X_REQUEST_ID
      */

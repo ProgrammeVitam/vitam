@@ -2400,7 +2400,7 @@ public class ProcessingIT extends VitamRuleRunner {
                 zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);

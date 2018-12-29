@@ -28,9 +28,11 @@ package fr.gouv.vitam.common.model.processing;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -51,6 +53,9 @@ public class WorkFlow {
     @JsonProperty("identifier")
     private String identifier;
 
+    @JsonProperty("externalIdentifier")
+    private String externalIdentifier;
+
     @JsonProperty("typeProc")
     private String typeProc;
 
@@ -70,21 +75,39 @@ public class WorkFlow {
 
     @JsonCreator
     public WorkFlow(
-        @JsonProperty("id") String id,
-        @JsonProperty("name") String name,
-        @JsonProperty("identifier") String identifier,
-        @JsonProperty("typeProc") String typeProc,
-        @JsonProperty("comment") String comment,
-        @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
-        @JsonProperty("steps") List<Step> steps) {
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("identifier") String identifier,
+            @JsonProperty("externalIdentifier") String externalIdentifier,
+            @JsonProperty("typeProc") String typeProc,
+            @JsonProperty("comment") String comment,
+            @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
+            @JsonProperty("steps") List<Step> steps) {
         this.id = id;
         this.name = name;
         this.identifier = identifier;
+        this.externalIdentifier = externalIdentifier;
         this.typeProc = typeProc;
         this.comment = comment;
         this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.TEMPORARY);
         this.steps = steps;
+        if (steps == null) {
+            this.steps = new ArrayList<>();
+        }
         steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
+    }
+
+    public static WorkFlow of(String identifier, String externalWorkflow, String evTypeProc) {
+        WorkFlow workFlow = new WorkFlow();
+        workFlow.setIdentifier(identifier);
+        workFlow.setExternalIdentifier(externalWorkflow);
+        workFlow.setTypeProc(evTypeProc);
+        return workFlow;
+    }
+
+    @JsonIgnore
+    public WorkFlow getHeader() {
+        return new WorkFlow(id, name, identifier, externalIdentifier, typeProc, comment, lifecycleLog, steps);
     }
 
     /**
@@ -228,7 +251,7 @@ public class WorkFlow {
     @Override
     public String toString() {
         return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\n",
-            getId(), getName(), getIdentifier(), getTypeProc(), getComment());
+                getId(), getName(), getIdentifier(), getTypeProc(), getComment());
     }
 
     public LifecycleState getLifecycleLog() {
@@ -239,4 +262,11 @@ public class WorkFlow {
         this.lifecycleLog = lifecycleLog;
     }
 
+    public String getExternalIdentifier() {
+        return externalIdentifier;
+    }
+
+    public void setExternalIdentifier(String externalIdentifier) {
+        this.externalIdentifier = externalIdentifier;
+    }
 }

@@ -28,6 +28,7 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -63,11 +64,12 @@ public interface IngestInternalClient extends MockOrRestClient {
      *
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
-     * @param contextId context Identifier
+     * @param workflow workflow information
+     * @param action  Identifier
      * @throws VitamException if stream is null
      *
      */
-    void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;
+    void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflow, String action) throws VitamException;
 
     /**
      * Create only Logbook
@@ -189,11 +191,11 @@ public interface IngestInternalClient extends MockOrRestClient {
      * initWorkflow : init workFlow Process
      *
      *
-     * @param contextId :define the execution context of workflow
+     * @param workFlow information
      * @throws VitamClientException
      * @throws VitamException
      */
-    void initWorkflow(String contextId) throws VitamException;
+    void initWorkflow(WorkFlow workFlow) throws VitamException;
 
 
     /**
@@ -214,4 +216,13 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException;
+
+
+    /**
+     *
+     * @param WorkflowIdentifier
+     * @return
+     * @throws VitamClientException
+     */
+    WorkFlow getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException;
 }

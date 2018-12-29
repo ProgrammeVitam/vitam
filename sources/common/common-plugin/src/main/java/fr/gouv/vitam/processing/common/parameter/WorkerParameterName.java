@@ -126,10 +126,6 @@ public enum WorkerParameterName {
      * hash of root
      */
     hashRoot,
-    /**
-     * process logbook context
-     */
-    context,
 
     /**
      * the array of the different audit actions
@@ -155,7 +151,12 @@ public enum WorkerParameterName {
     /**
      * Boolean that indicate for Export DIP workflow if the access to an object must be (or not) logged
      */
-    mustLogAccessOnObject;
+    mustLogAccessOnObject,
+
+    /**
+     * Workflow identifier (used also as eventType)
+     */
+    workflowIdentifier;
 
     public static HashSet<String> getEnums() {
 

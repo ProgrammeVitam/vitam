@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.client;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -76,7 +77,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     protected StatusCode globalStatus;
 
     @Override
-    public void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException {
+    public void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflowIdentifier, String action) throws VitamException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
 
@@ -141,7 +142,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public void initWorkflow(String contextId) throws VitamClientException, VitamException {}
+    public void initWorkflow(WorkFlow contextId) throws VitamClientException, VitamException {}
 
 
     @Override
@@ -156,5 +157,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 
-
+    @Override
+    public WorkFlow getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
+       return WorkFlow.of("DEFAULT_WORKFLOW", "DEFAULT_WORKFLOW", "INGEST");
+    }
 }

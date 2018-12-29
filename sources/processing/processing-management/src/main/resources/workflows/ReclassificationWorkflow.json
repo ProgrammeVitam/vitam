@@ -2,7 +2,7 @@
   "id": "ReclassificationWorkflow",
   "name": "Reclassification",
   "identifier": "RECLASSIFICATION",
-  "typeProc": "Reclassification",
+  "typeProc": "RECLASSIFICATION",
   "comment": "Default reclassification workflow",
   "steps": [
     {

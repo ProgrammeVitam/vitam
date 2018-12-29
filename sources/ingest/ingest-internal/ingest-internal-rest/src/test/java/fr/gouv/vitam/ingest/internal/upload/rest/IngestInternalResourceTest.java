@@ -259,18 +259,6 @@ public class IngestInternalResourceTest {
     }
 
     @Test
-    public void testLoadInternalProcessContextOK() {
-        IngestInternalResource ingestResource = new IngestInternalResource(workspaceClient, processingClient);
-        assertThat(ingestResource.getInternalProcessContext()).hasSize(8);
-    }
-
-    @Test
-    public void testLoadExternalProcessContextOK() {
-        IngestInternalResource ingestResource = new IngestInternalResource(workspaceClient, processingClient);
-        assertThat(ingestResource.loadExternalProcessContextForTest()).hasSize(0);
-    }
-
-    @Test
     public void givenStartedServer_WhenGetStatus_ThenReturnStatusNoContent() throws Exception {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
@@ -316,8 +304,11 @@ public class IngestInternalResourceTest {
 
 
         RestAssured.given()
-                .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
-                        GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
+                .headers(
+                        GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_WORKFLOW_ID, START_CONTEXT,
+                        GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                        GlobalDataRest.X_ACTION_INIT, ProcessAction.START,
+                        GlobalDataRest.X_CONTEXT_ID, START_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")
                 .body(inputStream).contentType(CommonMediaType.ZIP)
                 .when().post(INGEST_URL)
                 .then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
@@ -427,23 +418,6 @@ public class IngestInternalResourceTest {
     }
 
     @Test
-    public void givenOperationIdUnavailableWhenupdateVitamProcessBadRequestExceptionThenRaiseAnExceptionProcessingException()
-            throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new BadRequestException("")).when(processingClient).updateOperationActionProcess(
-                Matchers.anyObject(),
-                Matchers.anyObject());
-
-        RestAssured.given()
-                .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                        GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-                .when().put(OPERATION_URL)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-
-    @Test
     public void givenOperationIdWhengetStatusBadRequestExceptionThenReturnOk()
             throws Exception {
         reset(workspaceClient);
@@ -454,22 +428,6 @@ public class IngestInternalResourceTest {
                         GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
                 .when().head(OPERATION_URL)
                 .then().statusCode(Status.ACCEPTED.getStatusCode());
-    }
-
-    @Test
-    public void givenOperationIdUnavailableWhenupdateOperationProcessStatusBadRequestExceptionThenRaiseAnExceptionProcessingException()
-            throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-        Mockito.doThrow(new BadRequestException("")).when(processingClient).updateOperationActionProcess(
-                Matchers.anyObject(),
-                Matchers.anyObject());
-
-        RestAssured.given()
-                .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                        GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-                .when().put(OPERATION_URL)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

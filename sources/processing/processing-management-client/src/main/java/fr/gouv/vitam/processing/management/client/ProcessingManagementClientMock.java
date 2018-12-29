@@ -218,6 +218,11 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
+    public WorkFlow getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
+       throw new IllegalStateException("Method getWorkflowHeader not implemented");
+    }
+
+    @Override
     public void initVitamProcess(String contextId, ProcessingEntry entry)
         throws InternalServerException, BadRequestException {
 

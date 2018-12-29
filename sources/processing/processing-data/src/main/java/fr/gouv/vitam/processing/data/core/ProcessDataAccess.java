@@ -45,13 +45,9 @@ public interface ProcessDataAccess {
      * 
      * @param workflow the workflow to init
      * @param containerName : null not allowed , the name of the container to be processed
-     * @param logbookTypeProcess {@link LogbookTypeProcess}
-     * @param tenantId the working tenant
-     * @param contextId the context ID
      * @return {@link LogbookTypeProcess}
      */
-    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, LogbookTypeProcess logbookTypeProcess,
-        Integer tenantId, String contextId, String applicationId);
+    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName);
 
     /**
      * Update a step in a workflow, knowing its unique id

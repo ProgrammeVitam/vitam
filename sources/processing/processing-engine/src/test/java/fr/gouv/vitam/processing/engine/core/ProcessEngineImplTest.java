@@ -131,9 +131,10 @@ public class ProcessEngineImplTest {
     @RunWithCustomExecutor
     public void startTestWhenStatusCodeKOThenOK() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName(),
-                        LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -167,9 +168,10 @@ public class ProcessEngineImplTest {
     @RunWithCustomExecutor
     public void startTestWhenStatusCodeOKThenOK() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName(),
-                        LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -205,9 +207,10 @@ public class ProcessEngineImplTest {
     @Test(expected = ProcessingEngineException.class)
     @RunWithCustomExecutor
     public void startTestIEventsProcessEngineRequiredKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName(),
-                        LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
         processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
 
     }

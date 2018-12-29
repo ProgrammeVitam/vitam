@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +76,7 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
 
 
 /**
@@ -155,7 +157,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                                 .setLogbookTypeProcess(stateMachine.getLogbookTypeProcess())
                                 .setContainerName(operationId)
                                 .setRequestId(operationId)
-                                .putParameterValue(WorkerParameterName.context, stateMachine.getWorkflowId());
+                                .setWorkflowIdentifier(stateMachine.getWorkflowId());
 
                 if (stateMachine.isStepByStep()) {
                     stateMachine.next(workerParameters);
@@ -192,8 +194,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     @Override
-    public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
-                                LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId, String applicationId)
+    public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId)
             throws ProcessingException {
 
         // check data container and folder
@@ -201,16 +202,15 @@ public class ProcessManagementImpl implements ProcessManagement {
         dataManagement.createProcessContainer();
         dataManagement.createFolder(VitamConfiguration.getWorkspaceWorkflowsFolder());
 
-        final ProcessWorkflow processWorkflow;
-        if (ParametersChecker.isNotEmpty(workflowId)) {
-            processWorkflow = processData
-                    .initProcessWorkflow(poolWorkflow.get(workflowId), workerParameters.getContainerName(),
-                            logbookTypeProcess, tenantId, contextId, applicationId);
-        } else {
-            processWorkflow = processData
-                    .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId, contextId, applicationId);
+        Optional<WorkFlow> workFlow = poolWorkflow.values()
+                .stream()
+                .filter(w -> StringUtils.equals(w.getIdentifier(), workflowId) || StringUtils.equals(w.getExternalIdentifier(), workflowId))
+                .findFirst();
+        if (!workFlow.isPresent()) {
+            throw new ProcessingException("Workflow (" + workflowId + ") not found");
         }
-
+        final ProcessWorkflow processWorkflow = processData
+                .initProcessWorkflow(workFlow.get(), workerParameters.getContainerName());
         processWorkflow.setWorkflowId(workflowId);
 
         try {
@@ -220,7 +220,9 @@ public class ProcessManagementImpl implements ProcessManagement {
             throw new ProcessingException(e);
         }
 
-        workerParameters.setLogbookTypeProcess(logbookTypeProcess);
+        workerParameters.setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess());
+        workerParameters.setWorkflowIdentifier(workFlow.get().getIdentifier());
+
         WorkspaceClientFactory.changeMode(config.getUrlWorkspace());
 
         final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
@@ -559,7 +561,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                                 .setUrlWorkspace(urlWorkspace)
                                 .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
                                 .setContainerName(operationId)
-                                .putParameterValue(WorkerParameterName.context, processWorkflow.getWorkflowId());
+                                .setWorkflowIdentifier(processWorkflow.getWorkflowId());
 
                 final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters,
                         this.processDistributor);

@@ -60,12 +60,14 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -138,7 +140,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String OBJECT_ID = "objectId";
 
 
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, CONTEXT_ID, "INGEST");
 
     private static final String CHECK_LOGBOOK_DATA_AGENCIES = "integration-logbook/data/agencies.csv";
     private static final String ACCESS_CONTRATS_JSON = "integration-logbook/data/access_contrats.json";
@@ -294,8 +297,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkflow(DEFAULT_WORKFLOW_RESUME);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+        client.initWorkflow(workflow);
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
         ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
 
         ProcessWorkflow processWorkflow =

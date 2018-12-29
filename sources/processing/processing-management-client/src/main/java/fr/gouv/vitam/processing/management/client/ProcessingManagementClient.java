@@ -48,6 +48,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
+import java.util.Optional;
+
 /**
  * Processing Management Client
  */
@@ -105,6 +107,14 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException;
+
+    /**
+     *
+     * @param WorkflowIdentifier
+     * @return
+     * @throws VitamClientException
+     */
+    WorkFlow getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException;
 
 
     /**

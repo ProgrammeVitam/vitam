@@ -178,7 +178,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenReturn(Response.ok().build());
         when(processManagementClient.isOperationCompleted(anyObject())).thenReturn(true);       
         when(workspaceClient.isExistingContainer(anyObject())).thenReturn(true);
@@ -241,7 +241,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new InternalServerException("InternalServerException"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
@@ -265,7 +265,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new WorkflowNotFoundException("Workflow not found"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))

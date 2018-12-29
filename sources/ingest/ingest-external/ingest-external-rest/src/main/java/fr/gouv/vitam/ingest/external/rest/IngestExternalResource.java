@@ -231,7 +231,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
-        Integer tenantId, String contextId, String action, GUID guid, Optional<LocalFile> localFile) {
+        Integer tenantId, String contextId, String xAction, GUID guid, Optional<LocalFile> localFile) {
 
         final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
         final LocalFileAction afterUploadAction =
@@ -242,13 +242,13 @@ public class IngestExternalResource extends ApplicationStatusResource {
             PreUploadResume preUploadResume = null;
             try {
                 preUploadResume =
-                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, guid, asyncResponse);
             } catch (WorkspaceClientServerException e) {
                 LOGGER.error(e);
-                ingestExternal.createATRFatalWorkspace(contextId, guid, asyncResponse);
+                ingestExternal.createATRFatalWorkspace(e.getWorkflowIdentifier(), e.getLogbookTypeProcess(), guid, asyncResponse);
                 return;
             }
-            ingestExternal.upload(preUploadResume, guid);
+            ingestExternal.upload(preUploadResume, xAction, guid);
 
             if (localFile.isPresent()) {
 

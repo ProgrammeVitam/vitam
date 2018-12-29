@@ -767,7 +767,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             final GUID operationGuid = GUIDReader.getGUID(operationId);
             final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
             logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
-                .getParameterValue(WorkerParameterName.context), GUIDReader.getGUID(workParams.getRequestId()));
+                .getWorkflowIdentifier(), GUIDReader.getGUID(workParams.getRequestId()));
 
         } catch (Exception e) {
             LOGGER.error("Error while finalize logbook of the process workflow, do retry ...", e);
@@ -781,7 +781,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
                 final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
                 logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
-                    .getParameterValue(WorkerParameterName.context), GUIDReader.getGUID(workParams.getRequestId()));
+                    .getWorkflowIdentifier(), GUIDReader.getGUID(workParams.getRequestId()));
 
             } catch (Exception ex) {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
