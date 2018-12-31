@@ -1,7 +1,7 @@
 Ajout d'un plugin
 =================
 
-1. Veuillez placer les fichiers ``.jar`` dans ce dossier ``~/vitam/deployment/ansible-vitam/roles/worker_create_plugins_workspace/files/``. 
+1. Veuillez placer les fichiers ``.jar`` dans ce dossier ``~/vitam/deployment/ansible-vitam/roles/vitam/files/worker/plugins-workspace/``
 2. N'oubliez pas de mettre à jour le fichier ``plugins.json`` qui se trouve dans  le dossier ``~/vitam/deployment/ansible-vitam/roles/vitam/files/worker/plugins.json``
    Ajouter d'une entrée (exemple):
     
@@ -15,4 +15,20 @@ Ajout d'un plugin
     - Ajouter une action dans un workflow existant avec comme ``actionKey`` la clé (dans l'exemple ci-dessus) ``HELLO_WORLD_PLUGIN``
     - Créer carrément un nouveau fichier workflow
     
-4. Dans le cas de création d'un nouveau fichier workflow, veuillez vous référer à l'exemple qui se trouve dans le dossier ``~/vitam/deployment/ansible-vitam/roles/processing_create_workflows/files/``    
+4. Dans le cas de création d'un nouveau fichier workflow, veuillez vous référer à l'exemple qui se trouve dans le dossier ``~/vitam/deployment/ansible-vitam/roles/vitam/files/processing/workflows/`` 
+
+
+Requirements
+------------
+
+VITAM has already been deployed
+
+License
+-------
+
+Cecill 2.1
+
+Auteur
+------
+
+Projet VITAM

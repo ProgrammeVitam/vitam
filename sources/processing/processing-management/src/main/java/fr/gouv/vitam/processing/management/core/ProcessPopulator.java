@@ -91,9 +91,7 @@ public class ProcessPopulator {
      * @param poolWorkflows map to populate with workflows
      */
     private static void loadInternalWorkflow(final Map<String, WorkFlow> poolWorkflows) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Loading internal workflow resources...");
-        }
+        LOGGER.debug("Loading internal workflow resources...");
 
         List<String> workflowFiles;
         try {
@@ -107,15 +105,12 @@ public class ProcessPopulator {
             throw new RuntimeException(e);
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.error("Found " + workflowFiles.size() + " workflow resource files: " + workflowFiles);
-        }
+        LOGGER.debug("Found " + workflowFiles.size() + " workflow resource files: " + workflowFiles);
+
 
         for (String workflowFile : workflowFiles) {
             try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("populate internal : " + workflowFile);
-                }
+                LOGGER.debug("populate internal : " + workflowFile);
                 populate(poolWorkflows, PropertiesUtils.getResourceAsStream(workflowFile), false);
             } catch (FileNotFoundException e) {
                 LOGGER.error("Cannot load workflow file (" + workflowFile + ") ", e);
@@ -131,21 +126,15 @@ public class ProcessPopulator {
      * @param fromDate      datetime on milliseconds to filter from, if null no filter is applied
      */
     private static void loadExternalWorkflow(Map<String, WorkFlow> poolWorkflows, Long fromDate) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Loading external workflow resources...");
-        }
+        LOGGER.debug("Loading external workflow resources...");
 
         List<Path> workflowFiles = loadExternalWorkflowFiles(fromDate);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Found " + workflowFiles.size() + " workflow resource files");
-        }
+        LOGGER.debug("Found " + workflowFiles.size() + " workflow resource files");
 
         for (Path workflowFile : workflowFiles) {
             try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("populate external : " + workflowFile.toString());
-                }
+                LOGGER.debug("populate external : " + workflowFile.toString());
                 populate(poolWorkflows, Files.newInputStream(workflowFile), true);
             } catch (IOException e) {
                 // Do not block system for external workflow
@@ -161,9 +150,7 @@ public class ProcessPopulator {
      * @return list of workflow (json) files
      */
     private static List<Path> loadExternalWorkflowFiles(Long fromDate) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.warn("load external file : {}{}", VitamConfiguration.getVitamConfigFolder(), WORKFLOWS_FOLDER);
-        }
+        LOGGER.debug("load external file : {}{}", VitamConfiguration.getVitamConfigFolder(), WORKFLOWS_FOLDER);
         File workflowFolder = PropertiesUtils.fileFromConfigFolder(WORKFLOWS_FOLDER);
 
         if (!workflowFolder.isDirectory()) {
@@ -171,9 +158,7 @@ public class ProcessPopulator {
             return new ArrayList<>();
         } else {
             try {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("load external :" + workflowFolder.toPath().toString());
-                }
+                LOGGER.debug("load external :" + workflowFolder.toPath().toString());
                 return Files.list(workflowFolder.toPath())
                         .filter(f -> f.toFile().isFile())
                         .filter(f -> f.toFile().getName().endsWith(".json"))
@@ -195,9 +180,7 @@ public class ProcessPopulator {
      * @param update        if true override existing workflow
      */
     private static void populate(final Map<String, WorkFlow> poolWorkflows, InputStream workflowFile, boolean update) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Populating workflow using file " + workflowFile);
-        }
+        LOGGER.debug("Populating workflow using file " + workflowFile);
 
         // parse the workflow file
         Optional<WorkFlow> workflow = populate(workflowFile);
@@ -207,9 +190,7 @@ public class ProcessPopulator {
 
             String wfIdentifier = workflow.get().getIdentifier();
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Parsed workflow with identifier " + wfIdentifier);
-            }
+            LOGGER.debug("Parsed workflow with identifier " + wfIdentifier);
 
             if (update) {
                 poolWorkflows.put(wfIdentifier, workflow.get());

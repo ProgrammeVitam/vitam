@@ -143,17 +143,26 @@
   notify:
     - restart service
 
-- name: copy files section for {{ package_name }} when applicable
-  copy:
-    src: "{{ item }}"
-    dest: "{{vitam_folder_conf}}/{{ item | basename | regex_replace('\\.j2$') }}"
+- name: Ensure that sub directories exists
+  file:
+    path: "{{vitam_folder_conf}}/{{ item.path }}"
+    state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_fileglob:
-    - "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/*"
-  notify:
-    - restart service
+  with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
+  when: item.state == 'directory'
+
+- name: Copy files and directories recursively
+  template:
+    src: '{{ item.src }}'
+    dest: "{{vitam_folder_conf}}/{{ item.path | regex_replace('\\.j2$') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
+  when: item.state == 'file'
+
 
 - name: ensure external messages file is absent
   file:

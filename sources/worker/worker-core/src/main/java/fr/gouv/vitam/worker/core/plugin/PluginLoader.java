@@ -83,9 +83,7 @@ public class PluginLoader {
      * @param pluginsConfigFile path of the custom configuration file.
      */
     public PluginLoader(String pluginsConfigFile) throws IOException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.warn("Load plugin files : " + pluginsConfigFile);
-        }
+        LOGGER.debug("Load plugin files : " + pluginsConfigFile);
         SafeFileChecker.checkSafePluginsFilesPath(pluginsConfigFile);
         this.pluginsConfigFile = pluginsConfigFile;
         this.plugins = new HashMap<>();
@@ -123,9 +121,7 @@ public class PluginLoader {
                 actionHandlerClazz = loadInternalPlugins(handlerID, pluginProperties);
             } else {
                 actionHandlerClazz = loadExternalPlugins(handlerID, pluginProperties);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Load external plugin name : {}", actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
-                }
+                LOGGER.debug("Load external plugin name : {}", actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
             }
             if (actionHandlerClazz.isPresent()) {
                 plugins.put(handlerID, new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
