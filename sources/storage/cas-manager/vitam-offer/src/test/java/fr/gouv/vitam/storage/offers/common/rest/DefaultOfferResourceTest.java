@@ -404,12 +404,11 @@ public class DefaultOfferResourceTest {
             int read = in.read(bytes);
             try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                 assertNotNull(inChunk);
-                // TODO: review this when chunk really implemented in VITAM storage engine (theoretically bad request)
                 given().header(GlobalDataRest.X_TENANT_ID, "1")
                     .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                     .header(GlobalDataRest.VITAM_CONTENT_LENGTH, 0)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
-                    .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(201);
+                    .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(500);
             }
         }
 
