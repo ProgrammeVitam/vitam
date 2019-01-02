@@ -43,6 +43,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationStorageBinaryPlugin extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationStorageBinaryPlugin.class);
-    private final String itemId = "OBJECT_STORAGE_TASK";
+    private  static final String ITEM_ID = "OBJECT_STORAGE_TASK";
 
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
@@ -74,12 +75,13 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public PreservationStorageBinaryPlugin(BackupService backupService) {
+    private PreservationStorageBinaryPlugin(BackupService backupService) {
         this.backupService = backupService;
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         logger.info("Starting PRESERVATION_STORAGE_BINARY.");
 
         handler.setCurrentObjectId(WorkflowBatchResults.NAME);
@@ -98,7 +100,7 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
 
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
-                ItemStatus itemStatus = new ItemStatus(itemId);
+                ItemStatus itemStatus = new ItemStatus(ITEM_ID);
                 itemStatus.disableLfc();
                 itemStatuses.add(itemStatus);
                 continue;
@@ -110,7 +112,9 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras = Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())).collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras =
+                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
+                    .collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -124,7 +128,7 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, KO, PluginHelper.EventDetails.of(error))
+            return buildItemStatus(ITEM_ID, KO, PluginHelper.EventDetails.of(error))
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode("SUBSTATUS_UNKNOWN");
         }
@@ -135,17 +139,18 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             .map(JsonHandler::unprettyPrint)
             .collect(Collectors.joining(", "));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, OK, PluginHelper.EventDetails.of(storedInfos));
+            return buildItemStatus(ITEM_ID, OK, PluginHelper.EventDetails.of(storedInfos));
         }
-        return buildItemStatus(itemId, WARNING, PluginHelper.EventDetails.of(storedInfos, error));
+        return buildItemStatus(ITEM_ID, WARNING, PluginHelper.EventDetails.of(storedInfos, error));
     }
 
     private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra) {
-        try {
-            Path outputPath = outputFiles.resolve(extra.getOutput().getOutputName());
-            StoredInfoResult storedInfo = backupService.backup(Files.newInputStream(outputPath), OBJECT, extra.getBinaryGUID());
+        Path outputPath = outputFiles.resolve(extra.getOutput().getOutputName());
 
-            ItemStatus itemStatus = new ItemStatus(itemId);
+        try (InputStream stream = Files.newInputStream(outputPath)) {
+            StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID());
+
+            ItemStatus itemStatus = new ItemStatus(ITEM_ID);
             itemStatus.setEvDetailData(storedInfoToEventDetail(storedInfo));
             itemStatus.increment(OK);
 

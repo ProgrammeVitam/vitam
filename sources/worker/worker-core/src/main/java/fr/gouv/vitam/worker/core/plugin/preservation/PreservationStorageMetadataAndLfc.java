@@ -60,29 +60,31 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectActionHandler {
-    private final static VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStorageMetadataAndLfc.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStorageMetadataAndLfc.class);
 
-    private final static String JSON = ".json";
-    private final static String PRESERVATION_STORAGE_METADATA_LFC = "PRESERVATION_STORAGE_METADATA_LFC";
-    private final boolean asyncIO = false;
+    private static final String JSON = ".json";
+    private static final String PRESERVATION_STORAGE_METADATA_LFC = "PRESERVATION_STORAGE_METADATA_LFC";
+    private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
+
+    private static final boolean ASYNC_IO = false;
 
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
 
     public PreservationStorageMetadataAndLfc() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
+    PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+    public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
         final ItemStatus itemStatus = new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC);
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
         return results.getWorkflowBatchResults().stream()
@@ -90,7 +92,8 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
             .collect(Collectors.toList());
     }
 
-    public ItemStatus saveDocumentWithLfcInStorage(String guid, HandlerIO handlerIO, String containerName, ItemStatus itemStatus) {
+    private ItemStatus saveDocumentWithLfcInStorage(String guid, HandlerIO handlerIO, String containerName,
+        ItemStatus itemStatus) {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
@@ -99,21 +102,29 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);
             final String fileName = guid + JSON;
-            try {
-                InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
-                handlerIO.transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is, null, asyncIO);
-            } catch (ProcessingException e) {
-                LOGGER.error("Error when save file to workspace" + guid, e);
-                throw new WorkspaceClientServerException(e);
-            }
+            transferToWorkSpace(guid, handlerIO, docWithLfc, fileName);
             final ObjectDescription description =
                 new ObjectDescription(DataCategory.OBJECTGROUP, containerName,
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             storeObject(description, itemStatus);
-            return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, OK, EventDetails.of(String.format("Storage %s", guid)));
+            return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, OK,
+                EventDetails.of(String.format("Storage %s", guid)));
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, FATAL, e);
+        }
+    }
+
+    private void transferToWorkSpace(String guid, HandlerIO handlerIO, JsonNode docWithLfc, String fileName)
+        throws WorkspaceClientServerException {
+        try {
+            InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
+            handlerIO
+                .transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is, null,
+                    ASYNC_IO);
+        } catch (ProcessingException e) {
+            LOGGER.error("Error when save file to workspace" + guid, e);
+            throw new WorkspaceClientServerException(e);
         }
     }
 }

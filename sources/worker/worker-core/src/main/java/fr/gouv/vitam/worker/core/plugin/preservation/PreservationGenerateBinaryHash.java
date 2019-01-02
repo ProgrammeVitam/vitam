@@ -58,12 +58,13 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPl
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationGenerateBinaryHash extends ActionHandler {
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationGenerateBinaryHash.class);
-    private final String itemId = "PRESERVATION_BINARY_HASH";
-    public static DigestType DIGEST_PRESERVATION_GENERATION = SHA512;
+    private final  VitamLogger logger = VitamLoggerFactory.getInstance(PreservationGenerateBinaryHash.class);
+    static DigestType digestPreservationGeneration = SHA512;
+    private static final String ITEM_ID = "PRESERVATION_BINARY_HASH";
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         logger.info("Starting PRESERVATION_BINARY_HASH.");
 
         handler.setCurrentObjectId(WorkflowBatchResults.NAME);
@@ -81,7 +82,7 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
 
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
-                ItemStatus itemStatus = new ItemStatus(itemId);
+                ItemStatus itemStatus = new ItemStatus(ITEM_ID);
                 itemStatus.disableLfc();
                 itemStatuses.add(itemStatus);
                 continue;
@@ -93,7 +94,9 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras = Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())).collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras =
+                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
+                    .collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -108,7 +111,7 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, KO, EventDetails.of(error)).disableLfc();
+            return buildItemStatus(ITEM_ID, KO, EventDetails.of(error)).disableLfc();
         }
         String hashs = outputExtras.stream()
             .filter(o -> o.getBinaryHash().isPresent())
@@ -116,13 +119,13 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
             .map(Optional::get)
             .collect(Collectors.joining(", "));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, OK, EventDetails.of(hashs));
+            return buildItemStatus(ITEM_ID, OK, EventDetails.of(hashs));
         }
-        return buildItemStatus(itemId, WARNING, EventDetails.of(error, hashs));
+        return buildItemStatus(ITEM_ID, WARNING, EventDetails.of(error, hashs));
     }
 
     private OutputExtra getOutputExtra(WorkflowBatchResults results, OutputExtra a) {
-        Digest digest = new Digest(DIGEST_PRESERVATION_GENERATION);
+        Digest digest = new Digest(digestPreservationGeneration);
         try {
             Path outputPath = results.getBatchDirectory().resolve(OUTPUT_FILES).resolve(a.getOutput().getOutputName());
             InputStream binaryFile = Files.newInputStream(outputPath);
