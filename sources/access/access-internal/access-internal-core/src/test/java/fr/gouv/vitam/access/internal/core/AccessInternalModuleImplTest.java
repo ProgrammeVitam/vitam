@@ -33,8 +33,10 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -55,6 +57,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -74,6 +77,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -82,6 +86,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -104,6 +109,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -1355,4 +1361,43 @@ public class AccessInternalModuleImplTest {
         verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_silently_when_update_request_with_classification_rules_not_allowed() throws Exception {
+        // Given
+        List<String> allowedValues = new ArrayList<>();
+        allowedValues.add("Secret Défense");
+        allowedValues.add("Confidentiel Défense");
+        ClassificationLevel classificationLevel = new ClassificationLevel();
+        classificationLevel.setAllowList(allowedValues);
+        classificationLevel.setAuthorizeNotDefined(true);
+        VitamConfiguration.setClassificationLevel(classificationLevel);
+        String updateClassificationLevel =
+            "{\"$roots\":[\"aeaqaaaaaafyfdwnabt3salhtwrmdfqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.ClassificationRule.ClassificationLevel\":\"NotAllowedValue\"}}]}";
+        // When
+        // Then
+        Assertions.assertThatCode(
+            () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
+            .hasMessageContaining("Classification Level is not in the list of allowed values");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_accept_values_when_update_request_with_classification_rules_allowed() throws Exception {
+        // Given
+        List<String> allowedValues = new ArrayList<>();
+        allowedValues.add("Secret Défense");
+        allowedValues.add("Confidentiel Défense");
+        ClassificationLevel classificationLevel = new ClassificationLevel();
+        classificationLevel.setAllowList(allowedValues);
+        classificationLevel.setAuthorizeNotDefined(true);
+        VitamConfiguration.setClassificationLevel(classificationLevel);
+        String updateClassificationLevel =
+            "{\"$roots\":[\"aeaqaaaaaafyfdwnabt3salhtwrmdfqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.ClassificationRule.ClassificationLevel\":\"Secret Défense\"}}]}";
+        // When
+        // Then
+        Assertions.assertThatCode(
+            () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
+            .doesNotThrowAnyException();
+    }
 }

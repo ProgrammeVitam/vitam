@@ -127,8 +127,8 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
 
+import static fr.gouv.vitam.access.internal.core.DslParserHelper.getValueForUpdateDsl;
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT;
 
 /**
@@ -219,7 +219,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient           a StorageClient instance
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -275,7 +275,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit    as String
+     * @param idUnit as String
      * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
@@ -576,40 +576,26 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     public void checkClassificationLevel(JsonNode query)
-        throws IllegalArgumentException, InvalidParseOperationException {
-        UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
-        updateParserMultiple.parse(query);
-        List<Action> actions = updateParserMultiple.getRequest().getActions();
+        throws InvalidParseOperationException {
 
-        for (Action action : actions) {
+        String classificationFieldName = VitamFieldsHelper.management() + "." + VitamConstants.TAG_RULE_CLASSIFICATION + "." +
+            SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+        JsonNode classificationLevel = getValueForUpdateDsl(query, classificationFieldName);
 
-            ObjectNode currentAction = action.getCurrentAction();
-            JsonNode setAction = currentAction.get(UPDATEACTION.SET.exactToken());
-
-            handleClassificationValidation(setAction);
-        }
-    }
-
-    private void handleClassificationValidation(JsonNode setAction) throws IllegalArgumentException {
-        if (setAction == null) {
+        String classificationLevelValue;
+        if (classificationLevel == null) {
             return;
         }
-        JsonNode classificationRule =
-            setAction.get(VitamFieldsHelper.management() + "." + VitamConstants.TAG_RULE_CLASSIFICATION);
-        if (classificationRule == null) {
-            return;
+
+        if(!classificationLevel.isTextual()) {
+            throw new IllegalArgumentException("Illegal value for Classification Level. Expected string");
         }
-        JsonNode classificationLevel = classificationRule.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
-        String classificationLevelValue = null;
-        if (classificationLevel != null) {
-            classificationLevelValue = classificationLevel.asText();
-        }
+        classificationLevelValue = classificationLevel.asText();
+
         if (!ClassificationLevelUtil.checkClassificationLevel(classificationLevelValue)) {
             throw new IllegalArgumentException("Classification Level is not in the list of allowed values");
         }
-
     }
-
 
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
@@ -971,7 +957,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -1493,7 +1479,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request              The initial request
+     * @param request The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
