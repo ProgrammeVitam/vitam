@@ -39,6 +39,22 @@ Sécurisation des journaux du cycle de vie des groupes d'objets LOGBOOK_OBJECTGR
 Processus de la sécurisation des journaux du cycle de vie des groupes d'objets STP_OG_LFC_TRACEABILITY
 =======================================================================================================
 
+Vérification des processus concurrents CHECK_CONCURRENT_WORKFLOW_LOCK
+---------------------------------------------------------------------
+
+  + **Règle** : le but est de vérifier s'il n'y a pas d'autres processus de traçabilité des journaux de cycle de vie des groupes d'objets concurrents.
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+    - OK : le contrôle de processus de traçabilité des journaux de cycle de vies des groupes d'objets concurrents s'est terminé avec succès (CHECK_CONCURRENT_WORKFLOW_LOCK.OK = Succès de la vérification des processus concurrents)
+
+    - KO : des processus concurrents de traçabilité des groupes d'objets sont en cours d'exécution (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Échec lors de la vérification des processus concurrents)
+
+    - FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK.FATAL = Erreur technique lors de la vérification des processus concurrents)
+
+
 Préparation de la liste des journaux du cycle de vie et des métadonnées des groupes d'objets PREPARE_OG_LFC_TRACEABILITY
 -------------------------------------------------------------------------------------------------------------------------
 
@@ -86,11 +102,11 @@ Finalisation de la sécurisation des journaux du cycle de vie des groupes d'obje
     - OK : la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets a bien été effectué (FINALIZE_OG_LFC_TRACEABILITY.OK = Succès de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
     - KO : la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets n'a pas été effectué (FINALIZE_OG_LFC_TRACEABILITY.KO = Échec de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
-    
+
     - FATAL : une erreur technique est survenue lors de la finalisation de la la sécurisation des journaux du cycle de vie des groupes d'objets (FINALIZE_OG_LFC_TRACEABILITY.FATAL = Erreur technique lors de la finalisation de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 
-Structure du workflow du processus de sécurisation des journaux des cycles de vie des groupes d'objets 
+Structure du workflow du processus de sécurisation des journaux des cycles de vie des groupes d'objets
 =======================================================================================================
 
  .. figure:: images/workflow_lfc_og_traceability.png
@@ -136,6 +152,22 @@ La fin du processus peut prendre plusieurs statuts :
 
 Processus de la sécurisation des journaux du cycle de vie des unités archivistiques STP_UNIT_LFC_TRACEABILITY
 =============================================================================================================
+
+Vérification des processus concurrents CHECK_CONCURRENT_WORKFLOW_LOCK
+---------------------------------------------------------------------
+
+  + **Règle** : le but est de vérifier s'il n'y a pas d'autres processus de traçabilité des journaux de cycle de vie des unités archivistiques concurrents.
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+    - OK : le contrôle de processus de traçabilité des journaux de cycle de vies des unités archivistiques concurrents s'est terminé avec succès (CHECK_CONCURRENT_WORKFLOW_LOCK.OK = Succès de la vérification des processus concurrents)
+
+    - KO : des processus concurrents de traçabilité des unités archivistiques sont en cours d'exécution (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Échec lors de la vérification des processus concurrents)
+
+    - FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK.FATAL = Erreur technique lors de la vérification des processus concurrents)
+
 
 Préparation de la liste des journaux du cycle de vie et des métadonnées des unités archivistiques PREPARE_UNIT_LFC_TRACEABILITY
 --------------------------------------------------------------------------------------------------------------------------------
@@ -184,7 +216,7 @@ Finalisation de la sécurisation des journaux du cycle de vie des groupes d'obje
     - OK : la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques a bien été effectué (FINALIZE_UNIT_LFC_TRACEABILITY.OK = Succès de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
     - KO : la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques n'a pas été effectué (FINALIZE_UNIT_LFC_TRACEABILITY.KO = Échec de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
-    
+
     - FATAL : une erreur technique est survenue lors de la finalisation de la la sécurisation des journaux du cycle de vie des unités archivistiques (FINALIZE_UNIT_LFC_TRACEABILITY.FATAL = Erreur technique lors de la finalisation de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
 
