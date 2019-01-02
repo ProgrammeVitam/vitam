@@ -104,13 +104,12 @@ public interface DefaultOfferService {
      * @param size          inputstream size
      * @param digestType    digest of object
      * @return the digest of the complete file or the digest of the chunk
-     * @throws IOException                        if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
     // TODO P1 : add chunk number to be able to retry and check error
     // TODO P1 : better chunk management
     String createObject(String containerName, String objectId, InputStream objectPart, boolean ending, DataCategory
-        type, Long size, DigestType digestType) throws IOException, ContentAddressableStorageException;
+        type, Long size, DigestType digestType) throws ContentAddressableStorageException;
 
 
     /**

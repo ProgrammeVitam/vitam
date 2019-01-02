@@ -155,23 +155,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-                               DataCategory type, Long size, DigestType digestType) throws IOException, ContentAddressableStorageException {
-        // TODO No chunk mode (should be added in the future)
-        // TODO the objectPart should contain the full object.
-        try {
-            return putObject(containerName, objectId, objectPart, type, size, digestType);
-        } catch (ContentAddressableStorageNotFoundException ex) {
-            defaultStorage.createContainer(containerName);
-            return putObject(containerName, objectId, objectPart, type, size, digestType);
-        } catch (final ContentAddressableStorageException exc) {
-            LOGGER.error("Error with storage service", exc);
-            throw exc;
-        }
-    }
-
-    private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-                             Long size, DigestType digestType)
-            throws ContentAddressableStorageException {
+                               DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
         Stopwatch times = Stopwatch.createStarted();
         try {

@@ -434,7 +434,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
                 return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode().put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
 
-            } catch (IOException | ContentAddressableStorageException exc) {
+            } catch (ContentAddressableStorageException exc) {
                 LOGGER.error("Cannot create object", exc);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }

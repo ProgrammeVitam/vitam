@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.offers.common.core;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -150,8 +151,9 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
-        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
-
+        assertThatThrownBy(
+            () ->offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     @Test
