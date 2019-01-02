@@ -1,5 +1,5 @@
 {
-  "id": "DefaultObjectGroupLifecycleTraceability",
+  "id": "OBJECTGROUP_LFC_TRACEABILITY",
   "name": "Default ObjectGroup Lifecycle Traceability",
   "identifier": "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY",
   "typeProc": "TRACEABILITY",

@@ -26,16 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -85,7 +75,16 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 
 /**
@@ -96,7 +95,6 @@ import java.util.List;
 public class ProbativeValueResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueResource.class);
-    private static final String EXPORT_PROBATIVE_VALUE = "EXPORT_PROBATIVE_VALUE";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
 
     /**
@@ -181,12 +179,10 @@ public class ProbativeValueResource {
 
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
-                processingClient.initVitamProcess(Contexts.EXPORT_PROBATIVE_VALUE.name(), operationId,
-                    EXPORT_PROBATIVE_VALUE);
+                processingClient.initVitamProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name());
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, EXPORT_PROBATIVE_VALUE,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |

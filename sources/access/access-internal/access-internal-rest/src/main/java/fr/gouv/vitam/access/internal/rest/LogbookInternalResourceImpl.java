@@ -125,8 +125,6 @@ public class LogbookInternalResourceImpl {
     private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
         "DSL Query to start traceability check was not found.";
 
-    // TODO Add Enumeration of all possible WORKFLOWS
-    private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "CHECK_LOGBOOK_OP_SECURISATION";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final long SLEEP_TIME = 20l;
@@ -397,8 +395,7 @@ public class LogbookInternalResourceImpl {
 
             // Initialize a new process
             checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
-            processingClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
-                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);
+            processingClient.initVitamProcess(checkOperationGUID.getId(), LogbookTypeProcess.CHECK.name());
 
             // Create logbookOperation for check TRACEABILITY process
             createOrUpdateLogbookOperation(helper, true, checkOperationGUID, StatusCode.STARTED);
@@ -409,7 +406,7 @@ public class LogbookInternalResourceImpl {
             // Run the WORKFLOW
             response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
-                    DEFAULT_CHECK_TRACEABILITY_WORKFLOW, ProcessAction.RESUME.getValue());
+                        LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
             LOGGER.debug("Check in Resource launched");
 
 

@@ -224,5 +224,5 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @return
      * @throws VitamClientException
      */
-    Optional<WorkFlow> getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException;
+    Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException;
 }

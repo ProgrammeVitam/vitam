@@ -84,7 +84,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
 
-    private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String ACTION_ID_MUST_HAVE_A_VALID_VALUE = "Action id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
@@ -99,22 +98,19 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public void initVitamProcess(String contextId, String container, String workflow)
-            throws InternalServerException, BadRequestException {
-        initVitamProcess(contextId, new ProcessingEntry(container, workflow));
+    public void initVitamProcess(String container, String workflowId) throws BadRequestException, InternalServerException {
+        initVitamProcess(new ProcessingEntry(container, workflowId));
     }
 
     @Override
-    public void initVitamProcess(String contextId, ProcessingEntry entry)
-            throws InternalServerException, BadRequestException {
+    public void initVitamProcess( ProcessingEntry entry) throws InternalServerException, BadRequestException {
         Response response = null;
-        ParametersChecker.checkParameter("Params cannot be null", contextId);
+        ParametersChecker.checkParameter("Params cannot be null", entry);
         ParametersChecker.checkParameter(ERR_CONTAINER_IS_MANDATORY, entry.getContainer());
         ParametersChecker.checkParameter(ERR_WORKFLOW_IS_MANDATORY, entry.getWorkflow());
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
 
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_WORKFLOW_ID, entry.getWorkflow());
+        headers.add(GlobalDataRest.X_CONTEXT_ID, entry.getWorkflow());
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
         // add header action id default init
         try {
@@ -149,20 +145,18 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-                                                             String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflowId, String actionId)
             throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
         Response response = null;
         try {
             response =
                     performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId,
-                            getDefaultHeaders(contextId, actionId),
-                            JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflow)), MediaType.APPLICATION_JSON_TYPE,
+                            getDefaultHeaders(workflowId, actionId),
+                            JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflowId)), MediaType.APPLICATION_JSON_TYPE,
                             MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
@@ -462,12 +456,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     @SuppressWarnings("unchecked")
     @Override
     public Response executeCheckTraceabilityWorkFlow(String checkOperationId,
-                                                     JsonNode query, String workflow, String actionId)
+                                                     JsonNode query, String workflowId, String actionId)
             throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
 
 
         Response response = null;
@@ -475,12 +469,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // Add extra parameters to start correctly the check process
             Map<String, String> checkExtraParams = new HashMap<>();
             checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
-            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflow);
+            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
             processingEntry.setExtraParams(checkExtraParams);
 
             response =
                     performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
-                            getDefaultHeaders(null, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
+                            getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
                             MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -526,7 +520,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowHeader(String workflowIdentifier) throws VitamClientException {
+    public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI + "/" + workflowIdentifier, null, null, null, MediaType.APPLICATION_JSON_TYPE);

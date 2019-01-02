@@ -160,16 +160,14 @@ public class LogbookLFCAdministration {
             try {
                 createContainer(traceabilityOperationGUID.getId());
 
-                ProcessingEntry processingEntry = new ProcessingEntry(traceabilityOperationGUID.getId(),
-                    workflowContext.getEventType());
+                ProcessingEntry processingEntry = new ProcessingEntry(traceabilityOperationGUID.getId(), workflowContext.name());
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
                     Integer.toString(lifecycleTraceabilityTemporizationDelayInSeconds));
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.lifecycleTraceabilityMaxEntries.name(),
                     Integer.toString(lifecycleTraceabilityMaxEntries));
-                processManagementClient.initVitamProcess(workflowContext.name(),
-                    processingEntry);
+                processManagementClient.initVitamProcess(processingEntry);
 
                 LOGGER.debug("Started Traceability in Resource");
                 RequestResponse<ItemStatus> ret =

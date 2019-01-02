@@ -1,5 +1,5 @@
 {
-  "id": "DefaultAuditWorkflow",
+  "id": "AUDIT_WORKFLOW",
   "name": "Default Audit Object Workflow",
   "identifier": "PROCESS_AUDIT",
   "typeProc": "AUDIT",

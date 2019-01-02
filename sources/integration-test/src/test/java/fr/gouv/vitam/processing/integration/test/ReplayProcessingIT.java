@@ -136,9 +136,6 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
-    private static final String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
-
-
     private static final String SIP_FOLDER = "SIP";
     private static String CONFIG_SIEGFRIED_PATH;
 
@@ -376,7 +373,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         if (replayModeActivated) {
             // wait a little bit
             ProcessWorkflow processWorkflow = null;
@@ -386,8 +383,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                 if (!executedOnce) {
                     // First launch of the step
                     RequestResponse<JsonNode> resp =
-                        processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                            LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
+                        processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
                     // wait a little bit
                     assertNotNull(resp);
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
@@ -450,8 +446,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
         } else {
             final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 

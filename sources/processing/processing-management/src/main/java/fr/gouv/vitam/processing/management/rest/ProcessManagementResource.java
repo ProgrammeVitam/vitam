@@ -188,19 +188,18 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     }
 
 
-    @Path("workflows/{workfowIdentifier}")
+    @Path("workflows/{workfowId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflowDefinitions(@PathParam("workfowIdentifier") String workfowIdentifier) {
+    public Response getWorkflowDefinitions(@PathParam("workfowId") String workfowId) {
         try {
             Optional<WorkFlow> optionalWorkflow = processManagement.getWorkflowDefinitions().values().stream()
-                    .filter(workFlow -> StringUtils.equals(workFlow.getIdentifier(), workfowIdentifier) || StringUtils.equals(workFlow.getIdentifierAlias(), workfowIdentifier))
+                    .filter(workFlow -> StringUtils.equals(workFlow.getId(), workfowId))
                     .findFirst();
             if (optionalWorkflow.isPresent()) {
                 return Response.status(Status.OK)
-                        .header(GlobalDataRest.X_WORKFLOW_ID, optionalWorkflow.get().getIdentifier())
                         .header(GlobalDataRest.X_TYPE_PROCESS, optionalWorkflow.get().getTypeProc())
-                        .entity(optionalWorkflow.get().getHeader())
+                        .entity(optionalWorkflow.get())
                         .build();
             }
 
@@ -208,7 +207,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error("Error while retrieving workflow definitions : ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity("Internal Server Error while getting workflow ("+workfowIdentifier+") :"+e.getMessage())
+                    .entity("Internal Server Error while getting workflow ("+workfowId+") :"+e.getMessage())
                     .build();
         }
     }

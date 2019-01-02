@@ -69,7 +69,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -167,7 +166,7 @@ public class IngestExternalImpl implements IngestExternal {
         try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
 
             // Load workflow information from processing
-            Optional<WorkFlow> optional = ingestClient.getWorkflowHeader(workflowIdentifier);
+            Optional<WorkFlow> optional = ingestClient.getWorkflowDetails(workflowIdentifier);
             if (!optional.isPresent()) {
                 throw new WorkflowNotFoundException("Workflow " + workflowIdentifier + " not found");
             }

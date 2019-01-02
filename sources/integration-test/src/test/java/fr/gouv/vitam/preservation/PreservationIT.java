@@ -143,7 +143,8 @@ public class PreservationIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
     private static final String contractId = "contract";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, CONTEXT_ID, "INGEST");
+    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     private static final HashSet<Class> servers = Sets.newHashSet(
         AccessInternalMain.class,

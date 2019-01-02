@@ -232,7 +232,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                                       @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
                                       @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
                                       @HeaderParam(GlobalDataRest.X_ACTION_INIT) String xActionInit,
-                                      @HeaderParam(GlobalDataRest.X_WORKFLOW_ID) String worklowIdentifier,
                                       @HeaderParam(GlobalDataRest.X_TYPE_PROCESS) LogbookTypeProcess logbookTypeProcess,
                                       InputStream uploadedInputStream) {
         ParametersChecker.checkParameter("Action Id Request must not be null",
@@ -240,7 +239,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("context Id Request must not be null",
                 contextId);
-        return ingestAsync(contentType, uploadedInputStream, contextId, actionId, xActionInit, worklowIdentifier, logbookTypeProcess);
+        return ingestAsync(contentType, uploadedInputStream, contextId, actionId, xActionInit, logbookTypeProcess);
     }
 
     /**
@@ -314,7 +313,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
             final String xActionInit = headers.getRequestHeader(GlobalDataRest.X_ACTION_INIT).get(0);
             final String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
             final String contextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
-            final String workflowIdentifier = headers.getRequestHeader(GlobalDataRest.X_WORKFLOW_ID).get(0);
 
             final GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
             boolean isInitMode = ProcessAction.INIT.getValue().equalsIgnoreCase(xActionInit);
@@ -323,14 +321,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (isInitMode) {
                 try (ProcessingManagementClient processManagementClient =
                              ProcessingManagementClientFactory.getInstance().getClient()) {
-                    processManagementClient.initVitamProcess(contextId, containerGUID.getId(), workflowIdentifier);
+                    processManagementClient.initVitamProcess(containerGUID.getId(), contextId);
                 } catch (BadRequestException e) {
                     LOGGER.error(e);
                     status = Status.BAD_REQUEST;
                     return Response.status(status)
                             .entity(getErrorStream(status, e.getMessage()))
                             .build();
-                } catch (InternalServerException | VitamClientException e) {
+                } catch (InternalServerException e) {
                     LOGGER.error(e);
                     status = Status.INTERNAL_SERVER_ERROR;
                     return Response.status(status)
@@ -616,7 +614,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     private Response ingestAsync(String contentType,
-                                 InputStream uploadedInputStream, String contextId, String actionId, String xActionInit, String workflowIdentifier, LogbookTypeProcess logbookTypeProcess) {
+                                 InputStream uploadedInputStream, String contextId, String actionId, String xActionInit, LogbookTypeProcess logbookTypeProcess) {
 
         LogbookOperationParameters parameters = null;
         MediaType mediaType;
@@ -631,7 +629,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 VitamThreadUtils.getVitamSession().checkValidRequestId();
                 ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
                 ParametersChecker.checkParameter("actionId is a mandatory parameter", actionId);
-                ParametersChecker.checkParameter("workflowIdentifier is a mandatory parameter", workflowIdentifier);
                 ParametersChecker.checkParameter("logbookTypeProcess is a mandatory parameter", logbookTypeProcess);
                 ParametersChecker.checkParameter("contextId is a mandatory parameter", contextId);
 
@@ -649,7 +646,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                         if (containerGUID != null) {
                             // Initialize a new process
-                            processManagementClient.initVitamProcess(contextId, containerGUID.getId(), workflowIdentifier);
+                            processManagementClient.initVitamProcess(containerGUID.getId(), contextId);
 
                             // Successful initialization
                             return Response.status(Status.ACCEPTED).build();
@@ -673,8 +670,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     try {
                         if (containerGUID != null) {
                             ProcessState processState =
-                                    startProcessing(parameters, logbookOperationsClient, containerGUID, actionId,
-                                            workflowIdentifier, logbookTypeProcess, contextId);
+                                    startProcessing(parameters, logbookOperationsClient, containerGUID, actionId, logbookTypeProcess, contextId);
 
                             isCompletedProcess = isCompletedProcess(processState);
 
@@ -739,7 +735,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final IngestInternalException | IllegalArgumentException | VitamClientException |
+            } catch (final IngestInternalException | IllegalArgumentException |
                     BadRequestException | InternalServerException e) {
                 // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal
                 // State)
@@ -759,7 +755,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     private ProcessState startProcessing(final LogbookOperationParameters parameters,
                                          final LogbookOperationsClient client,
-                                         final GUID containerGUID, final String actionId, final String workflowId,
+                                         final GUID containerGUID, final String actionId,
                                          LogbookTypeProcess logbookTypeProcess, String contextId)
             throws IngestInternalException, LogbookClientNotFoundException,
             LogbookClientBadRequestException, LogbookClientServerException, InternalServerException {
@@ -773,7 +769,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
 
-            RequestResponse<JsonNode> response = processingClient.executeOperationProcess(containerName, workflowId, contextId, actionId);
+            RequestResponse<JsonNode> response = processingClient.executeOperationProcess(containerName, contextId, actionId);
 
             // Check global execution status
             String globalExecutionState = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
@@ -1098,21 +1094,20 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("workflows/{workfowIdentifier}")
+    @Path("workflows/{workfowId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflowHeader(@PathParam("workfowIdentifier") String workfowIdentifier) {
+    public Response getWorkflowDetails(@PathParam("workfowId") String workfowId) {
         ProcessingManagementClient processingClient = processingManagementClientMock;
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
-            Optional<WorkFlow> optionalWorkflow = processingClient.getWorkflowHeader(workfowIdentifier);
+            Optional<WorkFlow> optionalWorkflow = processingClient.getWorkflowDetails(workfowId);
             if (optionalWorkflow.isPresent()) {
                 return Response.status(Status.OK)
-                        .header(GlobalDataRest.X_WORKFLOW_ID, optionalWorkflow.get().getIdentifier())
                         .header(GlobalDataRest.X_TYPE_PROCESS, optionalWorkflow.get().getTypeProc())
-                        .entity(optionalWorkflow.get().getHeader())
+                        .entity(optionalWorkflow.get())
                         .build();
             }
 

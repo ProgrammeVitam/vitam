@@ -675,10 +675,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             zipInputStreamSipObject);
 
         // call processing
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
+        processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-            processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
         wait(containerName2);
@@ -697,14 +696,14 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
 
         // lets call traceability for lifecycles
-        ProcessingEntry processingEntry = new ProcessingEntry(containerName, traceabilityContext.getEventType());
+        ProcessingEntry processingEntry = new ProcessingEntry(containerName, traceabilityContext.name());
         processingEntry.getExtraParams().put(
             WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
             Integer.toString(temporizationDelayInSeconds));
         processingEntry.getExtraParams().put(
             WorkerParameterName.lifecycleTraceabilityMaxEntries.name(), Integer.toString(MAX_ENTRIES));
 
-        processingClient.initVitamProcess(traceabilityContext.name(), processingEntry);
+        processingClient.initVitamProcess(processingEntry);
         RequestResponse<ItemStatus> ret =
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);

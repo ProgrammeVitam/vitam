@@ -158,7 +158,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
-       return Optional.of(WorkFlow.of("DEFAULT_WORKFLOW", "DEFAULT_WORKFLOW", "INGEST"));
+    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
+       return Optional.of(WorkFlow.of("DEFAULT_WORKFLOW", "PROCESS_SIP_UNITARY", "INGEST"));
     }
 }

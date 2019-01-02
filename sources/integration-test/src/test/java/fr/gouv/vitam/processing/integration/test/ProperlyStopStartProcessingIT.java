@@ -100,8 +100,6 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
-    private static final String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
-
     public static final String INGEST_LEVEL_STACK_JSON =
         "integration-processing/ingestLevelStack.json";
     public static final String UNITS_LEVEL_STACK_PATH = "UnitsLevel/ingestLevelStack.json";
@@ -220,7 +218,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         ProcessingManagementClientFactory.getInstance().getClient()
-            .initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+            .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final File resourceFile = PropertiesUtils.getResourceFile(INGEST_LEVEL_STACK_JSON);
         workspaceClient
@@ -234,8 +232,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
         RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertThat(resp).isNotNull();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());

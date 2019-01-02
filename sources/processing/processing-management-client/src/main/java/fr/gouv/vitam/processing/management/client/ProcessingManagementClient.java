@@ -90,14 +90,14 @@ public interface ProcessingManagementClient extends MockOrRestClient {
     /**
      * Other than INIT process, only operation id and action id are required
      * @param query
-     * @param workflow not required
+     * @param workflowId not required
      * @param actionId
      * @return Response
      * @throws InternalServerException
      * @throws BadRequestException
      * @throws WorkflowNotFoundException
      */
-    Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflow, String actionId)
+    Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
         throws InternalServerException, WorkflowNotFoundException;
 
     /**
@@ -114,15 +114,14 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @return
      * @throws VitamClientException
      */
-    Optional<WorkFlow> getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException;
+    Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException;
 
 
     /**
      * initVitamProcess woth processing entry
-     * @param contextId
      * @param entry
      */
-    void initVitamProcess(String contextId, ProcessingEntry entry) throws InternalServerException, BadRequestException;
+    void initVitamProcess(ProcessingEntry entry) throws InternalServerException, BadRequestException;
 
 
     /**
@@ -201,8 +200,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * ExecuteOperationProcess : execute an operation processing
      * Other than INIT process, only operation id and action id are required
      * @param operationId id of the operation (required)
-     * @param workflow id of the workflow (optional)
-     * @param contextId define the execution context of workflow (optional)
+     * @param workflowId id of the workflow (optional)
      * @param actionId identify the action to be executed by the workflow(next , pause,resume)  (required)
      * @return RequestResponse
      * @throws InternalServerException
@@ -210,21 +208,19 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      * @throws WorkflowNotFoundException
      */
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflowId, String actionId)
             throws InternalServerException, VitamClientException, WorkflowNotFoundException;
 
     /**
      * initVitamProcess
      *
-     * @param contextId
      * @param container
-     * @param workflow
+     * @param workflowId
      * @throws InternalServerException
      * @throws VitamClientException
      * @throws BadRequestException
      */
-    void initVitamProcess(String contextId, String container, String workflow)
-            throws InternalServerException, VitamClientException, BadRequestException;
+    void initVitamProcess(String container, String workflowId) throws BadRequestException, InternalServerException;
 
     /**
      * Retrieve all the workflow operations

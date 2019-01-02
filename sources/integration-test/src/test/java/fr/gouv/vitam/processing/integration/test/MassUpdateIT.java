@@ -274,7 +274,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
+                .initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -328,7 +328,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             workspaceClient
                 .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
+                .initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -402,7 +402,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             workspaceClient
                 .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             processingClient
-                .initVitamProcess(Contexts.MASS_UPDATE_UNIT_DESC.name(), containerName, Contexts.MASS_UPDATE_UNIT_DESC.getEventType());
+                .initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);

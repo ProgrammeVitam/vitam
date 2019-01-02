@@ -1,5 +1,5 @@
 {
-  "id": "DefaultUnitLifecycleTraceability",
+  "id": "UNIT_LFC_TRACEABILITY",
   "name": "Default Unit Lifecycle Traceability",
   "identifier": "LOGBOOK_UNIT_LFC_TRACEABILITY",
   "typeProc": "TRACEABILITY",

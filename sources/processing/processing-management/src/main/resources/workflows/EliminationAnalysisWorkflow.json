@@ -1,5 +1,5 @@
 {
-  "id": "EliminationAnalysisWorkflow",
+  "id": "ELIMINATION_ANALYSIS",
   "name": "Elimination analysis workflow",
   "identifier": "ELIMINATION_ANALYSIS",
   "typeProc": "ELIMINATION",

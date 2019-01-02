@@ -10,7 +10,6 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 - un identifiant (id)
 - une clé (identifier)
-- un alias (identifierAlias) un identifiant externe si on veut pas utiliser l'identifier
 - un nom (name)
 - une catégorie (typeProc)
 - une liste de Steps : La structure d'une step donnée est la suivante

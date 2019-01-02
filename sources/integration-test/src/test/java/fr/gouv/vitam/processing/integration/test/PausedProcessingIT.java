@@ -111,7 +111,6 @@ public class PausedProcessingIT extends VitamRuleRunner {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
-    private static final String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
     private static final String SIP_FOLDER = "SIP";
     private static String CONFIG_SIEGFRIED_PATH;
 
@@ -204,13 +203,11 @@ public class PausedProcessingIT extends VitamRuleRunner {
             zipInputStreamSipObject);
 
         ProcessingManagementClientFactory.getInstance().getClient()
-            .initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
-                WORFKLOW_NAME);
+            .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
         RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(containerName, WORFKLOW_NAME,
-                LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(resp);
 
@@ -335,13 +332,11 @@ public class PausedProcessingIT extends VitamRuleRunner {
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
             ProcessingManagementClientFactory.getInstance().getClient()
-                .initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
-                    WORFKLOW_NAME);
+                .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             // process execute
             RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
+                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
             assertNotNull(resp);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 

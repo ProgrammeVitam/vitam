@@ -53,9 +53,6 @@ public class WorkFlow {
     @JsonProperty("identifier")
     private String identifier;
 
-    @JsonProperty("identifierAlias")
-    private String identifierAlias;
-
     @JsonProperty("typeProc")
     private String typeProc;
 
@@ -78,7 +75,6 @@ public class WorkFlow {
             @JsonProperty("id") String id,
             @JsonProperty("name") String name,
             @JsonProperty("identifier") String identifier,
-            @JsonProperty("identifierAlias") String identifierAlias,
             @JsonProperty("typeProc") String typeProc,
             @JsonProperty("comment") String comment,
             @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
@@ -86,7 +82,6 @@ public class WorkFlow {
         this.id = id;
         this.name = name;
         this.identifier = identifier;
-        this.identifierAlias = identifierAlias;
         this.typeProc = typeProc;
         this.comment = comment;
         this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.TEMPORARY);
@@ -97,17 +92,12 @@ public class WorkFlow {
         steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
     }
 
-    public static WorkFlow of(String identifier, String externalWorkflow, String evTypeProc) {
+    public static WorkFlow of(String id,String identifier, String evTypeProc) {
         WorkFlow workFlow = new WorkFlow();
+        workFlow.setId(id);
         workFlow.setIdentifier(identifier);
-        workFlow.setIdentifierAlias(externalWorkflow);
         workFlow.setTypeProc(evTypeProc);
         return workFlow;
-    }
-
-    @JsonIgnore
-    public WorkFlow getHeader() {
-        return new WorkFlow(id, name, identifier, identifierAlias, typeProc, comment, lifecycleLog, steps);
     }
 
     /**
@@ -250,23 +240,16 @@ public class WorkFlow {
      */
     @Override
     public String toString() {
-        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\nidentifierAlias=%s\ncomments=%s\nlifecycleLog=%s\n",
-                getId(), getName(), getIdentifier(), getTypeProc(), getIdentifierAlias(), getComment(), getLifecycleLog());
+        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\nlifecycleLog=%s\n",
+                getId(), getName(), getIdentifier(), getTypeProc(), getComment(), getLifecycleLog());
     }
 
     public LifecycleState getLifecycleLog() {
         return lifecycleLog;
     }
 
-    public void setLifecycleLog(LifecycleState lifecycleLog) {
+    public WorkFlow setLifecycleLog(LifecycleState lifecycleLog) {
         this.lifecycleLog = lifecycleLog;
-    }
-
-    public String getIdentifierAlias() {
-        return identifierAlias;
-    }
-
-    public void setIdentifierAlias(String identifierAlias) {
-        this.identifierAlias = identifierAlias;
+        return this;
     }
 }

@@ -1,5 +1,5 @@
 {
-  "id": "MassUpdateUnitRulesWorkflow",
+  "id": "MASS_UPDATE_UNIT_RULE",
   "name": "Mass Update Units Rules Workflow",
   "identifier": "MASS_UPDATE_UNIT_RULE",
   "typeProc": "MASS_UPDATE",

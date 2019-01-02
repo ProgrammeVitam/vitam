@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
@@ -132,12 +133,8 @@ public class ProbativeValueResourceTest {
             .exportProbativeValue(new ProbativeValueRequest(new Select().getFinalSelect(), singletonList("BinaryMaster")));
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
-        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
-
-        selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
-
         when(processingManagementClient
-            .executeOperationProcess(anyString(), eq("EXPORT_PROBATIVE_VALUE"), anyString(), anyString()))
+            .executeOperationProcess(anyString(), eq("EXPORT_PROBATIVE_VALUE"), anyString()))
             .thenReturn(new RequestResponseOK<JsonNode>(new Select().getFinalSelect()).setHttpCode(200));
         probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());

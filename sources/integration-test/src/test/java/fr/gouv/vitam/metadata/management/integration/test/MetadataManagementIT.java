@@ -1136,8 +1136,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // 3. Start initial Reclassification en mode continue
             VitamThreadUtils.getVitamSession().setRequestId(operation);
             ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(operation, Contexts.RECLASSIFICATION.getEventType(),
-                    Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
+                .executeOperationProcess(operation,  Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
 
             wait(operation);
 

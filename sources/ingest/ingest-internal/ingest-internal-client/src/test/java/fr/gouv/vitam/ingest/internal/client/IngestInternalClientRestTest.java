@@ -98,6 +98,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     private static final String PATH = "/ingest/v1";
     private static final String WROKFLOW_ID = "PROCESS_SIP_UNITARY";
+    private static final String WROKFLOW_IDENTIFIER = "DEFAULT_WORKFLOW";
     private static final String X_ACTION = "RESUME";
     private static final String CONTAINERID = "containerId";
     private static final String WORKFLOWID = "workFlowId";
@@ -287,7 +288,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
     }
 
@@ -328,7 +329,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
     }
 
@@ -368,7 +369,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
     }
@@ -407,7 +408,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
     }
@@ -593,7 +594,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.initWorkflow(workflow);
 
     }
@@ -603,7 +604,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.initWorkflow(workflow);
 
     }
@@ -613,7 +614,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.initWorkflow(workflow);
 
     }
@@ -623,7 +624,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_ID, INGEST);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.initWorkflow(workflow);
 
     }

@@ -189,14 +189,14 @@ public class ProcessPopulator {
         // add the parsed workflow object
         if (workflow.isPresent()) {
 
-            String wfIdentifier = workflow.get().getIdentifier();
+            String wfId = workflow.get().getId();
 
-            LOGGER.debug("Parsed workflow with identifier " + wfIdentifier);
+            LOGGER.debug("Parsed workflow with id " + wfId);
 
             if (update) {
-                poolWorkflows.put(wfIdentifier, workflow.get());
+                poolWorkflows.put(wfId, workflow.get());
             } else {
-                poolWorkflows.putIfAbsent(wfIdentifier, workflow.get());
+                poolWorkflows.putIfAbsent(wfId, workflow.get());
             }
         }
     }

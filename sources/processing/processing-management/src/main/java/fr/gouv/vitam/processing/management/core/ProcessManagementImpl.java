@@ -203,7 +203,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         Optional<WorkFlow> workFlow = poolWorkflow.values()
                 .stream()
-                .filter(w -> StringUtils.equals(w.getIdentifier(), workflowId) || StringUtils.equals(w.getIdentifierAlias(), workflowId))
+                .filter(w -> StringUtils.equals(w.getId(), workflowId))
                 .findFirst();
         if (!workFlow.isPresent()) {
             throw new ProcessingException("Workflow (" + workflowId + ") not found");

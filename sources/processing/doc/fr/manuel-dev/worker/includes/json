@@ -1,9 +1,8 @@
 {
-  "id": "DefaultIngestWorkflow",
+  "id": "DEFAULT_WORKFLOW",
   "name": "Default Ingest Workflow",
   "identifier": "PROCESS_SIP_UNITARY",
   "typeProc": "INGEST",
-  "identifierAlias": "DEFAULT_WORKFLOW",
   "comment": "Default Ingest Workflow V6",
   "steps": [
     {

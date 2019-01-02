@@ -1,5 +1,5 @@
 {
-  "id": "DefaultRulesUpdateWorkflow",
+  "id": "UPDATE_RULES_ARCHIVE_UNITS",
   "name": "Default Update Rules in Archive Units",
   "identifier": "UPDATE_RULES_ARCHIVE_UNITS",
   "typeProc": "UPDATE",

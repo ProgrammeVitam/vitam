@@ -26,35 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -70,6 +42,31 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 
 public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
@@ -77,7 +74,6 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     private static final String WORKFLOWID = "json1";
     private static final String CONTAINER = "c1";
     private static final String ACTION_ID = "action1";
-    private static final String CONTEXT_ID = "context1";
     private static final String ID = "id1";
 
 
@@ -251,26 +247,26 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     @Test(expected = InternalServerException.class)
     public void givenNotFoundWorkflowWhenProcessingOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenProcessingOperationThenReturnIllegalPrecondtionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
     }
 
     @Test(expected = NotAuthorizedException.class)
     public void givenUnauthorizedOperationWhenProcessingOperationThenReturnUnauthorized() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
     }
 
     @Test()
     public void givenBadRequestWhenProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
         assertNotNull(ret);
         assertTrue(ret.isOk());
 
@@ -283,7 +279,7 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void executeOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
         assertNotNull(ret);
         assertTrue(ret.isOk());
 
@@ -425,26 +421,26 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     @Test(expected = InternalServerException.class)
     public void givenInitProcessingOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenInitProcessingOperationThenReturnIllegalPrecondtionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = BadRequestException.class)
     public void givenBadRequestWhenInitProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInternalServerErrorWhenInitProcessingOperationThenReturnInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
 
     }
 
@@ -452,19 +448,19 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void initOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = InternalServerException.class)
     public void giveninitWorkFlowOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWheninitWorkFlowOperationThenReturnIllegalPrecondtionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTEXT_ID, CONTAINER, WORKFLOWID);
+        client.initVitamProcess(CONTAINER, WORKFLOWID);
     }
 
     @Test

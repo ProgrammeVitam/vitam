@@ -141,7 +141,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, CONTEXT_ID, "INGEST");
+    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     private static final String CHECK_LOGBOOK_DATA_AGENCIES = "integration-logbook/data/agencies.csv";
     private static final String ACCESS_CONTRATS_JSON = "integration-logbook/data/access_contrats.json";

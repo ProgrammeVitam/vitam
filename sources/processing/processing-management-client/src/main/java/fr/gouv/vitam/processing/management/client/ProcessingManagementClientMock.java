@@ -140,8 +140,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-        String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String actionId)
         throws InternalServerException, VitamClientException {
         return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS);
@@ -167,8 +166,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public void initVitamProcess(String contextId, String container, String workflow)
-        throws InternalServerException, VitamClientException, BadRequestException {}
+    public void initVitamProcess(String container, String workflowId)
+        throws InternalServerException, BadRequestException {}
 
 
 
@@ -182,7 +181,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflow, String actionId)
+    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
         throws InternalServerException, WorkflowNotFoundException {
         // TODO Add headers to response
         return Response.ok().build();
@@ -219,12 +218,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
-       throw new IllegalStateException("Method getWorkflowHeader not implemented");
+    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
+       throw new IllegalStateException("Method getWorkflowDetails not implemented");
     }
 
     @Override
-    public void initVitamProcess(String contextId, ProcessingEntry entry)
+    public void initVitamProcess(ProcessingEntry entry)
         throws InternalServerException, BadRequestException {
 
     }

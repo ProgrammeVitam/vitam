@@ -181,8 +181,9 @@ import static org.junit.Assert.fail;
  */
 public class IngestInternalIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
-    public static final String HOLDING_SCHEME = "HOLDINGSCHEME";
-    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME, "MASTERDATA");
+    public static final String HOLDING_SCHEME = "HOLDING_SCHEME";
+    private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
+    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -203,8 +204,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String LINE_2 = "line 2";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-    private static String DATA_MIGRATION = "DATA_MIGRATION";
-
 
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
@@ -217,8 +216,9 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
+    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
-    private WorkFlow ingestSip = WorkFlow.of(CONTEXT_ID, CONTEXT_ID, "INGEST");
+    private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
     private static String CONFIG_SIEGFRIED_PATH = "";
 
@@ -1041,11 +1041,10 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         ProcessingManagementClient processingManagementClient =
                 ProcessingManagementClientFactory.getInstance().getClient();
-        processingManagementClient.initVitamProcess(Contexts.DATA_MIGRATION.name(), guid.getId(), DATA_MIGRATION);
+        processingManagementClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
         RequestResponse<JsonNode> jsonNodeRequestResponse =
-                processingManagementClient.executeOperationProcess(guid.getId(), DATA_MIGRATION,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                processingManagementClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
         jsonNodeRequestResponse.toResponse();
 
 

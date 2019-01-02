@@ -1,5 +1,5 @@
 {
-  "id": "EvidenceAuditWorkflow",
+  "id": "EVIDENCE_AUDIT",
   "name": "export archive unit ",
   "identifier": "EVIDENCE_AUDIT",
   "typeProc": "AUDIT",

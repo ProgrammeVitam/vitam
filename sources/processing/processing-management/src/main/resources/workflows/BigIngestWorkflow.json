@@ -1,8 +1,7 @@
 {
-  "id": "BigIngestWorkflow",
+  "id": "BIG_WORKFLOW",
   "name": "Big Ingest Workflow",
-  "identifier": "BigIngestWorkflow",
-  "identifierAlias": "BigIngestWorkflow",
+  "identifier": "PROCESS_SIP_UNITARY",
   "typeProc": "INGEST",
   "comment": "Big Ingest Workflow V6",
   "steps": [
@@ -53,8 +52,8 @@
             ],
             "out": [
               {
-                "name": "mandatorySedaParameters.json",
-                "uri": "WORKSPACE:SedaParameters/mandatorySedaParameters.json"
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
               }
             ]
           }
@@ -121,6 +120,14 @@
               {
                 "name": "mapsGuid.file",
                 "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
               }
             ]
           }
@@ -179,13 +186,38 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
-        "element": "Units"
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
       },
       "actions": [
         {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_ARCHIVE_UNIT_PROFILE",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              }
+            ],
             "out": [
               {
                 "name": "unit",
@@ -244,7 +276,8 @@
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "ObjectGroup",
-        "type": "ObjectGroup"
+        "type": "ObjectGroup",
+        "bulkSize": 1000
       },
       "actions": [
         {
@@ -279,7 +312,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
-        "element": "Units",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json",
         "bulkSize": 1000
       },
       "actions": [
@@ -297,13 +331,12 @@
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
             ]
-
           }
         }
       ]
     },
     {
-      "workerGroupId": "DefaultWorker",
+      "workerGroupId": "BigWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
@@ -333,7 +366,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
-        "element": "Units"
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
       },
       "actions": [
         {
@@ -365,12 +399,13 @@
         {
           "action": {
             "actionKey": "OBJECT_GROUP_UPDATE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FINAL"
           }
         },
         {
           "action": {
-            "actionKey": "OG_COMMIT_LIFE_CYCLE",
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
             "behavior": "BLOCKING"
           }
         },
@@ -418,7 +453,7 @@
         {
           "action": {
             "actionKey": "ATR_NOTIFICATION",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "mapsUnits.file",
@@ -436,7 +471,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },
@@ -449,6 +484,11 @@
                 "name": "mapsOG.file",
                 "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
                 "optional": true
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json",
+                "optional": true
               }
             ],
             "out": [
@@ -457,6 +497,12 @@
                 "uri": "WORKSPACE:ATR/responseReply.xml"
               }
             ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
           }
         }
       ]

@@ -305,7 +305,7 @@ public class IngestInternalResourceTest {
 
         RestAssured.given()
                 .headers(
-                        GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_WORKFLOW_ID, START_CONTEXT,
+                        GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
                         GlobalDataRest.X_ACTION, ProcessAction.RESUME,
                         GlobalDataRest.X_ACTION_INIT, ProcessAction.START,
                         GlobalDataRest.X_CONTEXT_ID, START_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")

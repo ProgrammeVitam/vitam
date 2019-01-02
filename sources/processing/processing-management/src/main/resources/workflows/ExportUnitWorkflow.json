@@ -1,5 +1,5 @@
 {
-  "id": "ExportUnitWorkflow",
+  "id": "EXPORT_DIP",
   "name": "export archive unit ",
   "identifier": "EXPORT_DIP",
   "typeProc": "EXPORT_DIP",

@@ -63,11 +63,6 @@ public class GlobalDataRest {
     public static final String X_ACTION_INIT = "X_ACTION_INIT";
 
     /**
-     *  Workflow identifier
-     */
-    public static final String X_WORKFLOW_ID = "X_WORKFLOW_ID";
-
-    /**
      * Logbook type process
      */
     public static final String X_TYPE_PROCESS = "X_TYPE_PROCESS";

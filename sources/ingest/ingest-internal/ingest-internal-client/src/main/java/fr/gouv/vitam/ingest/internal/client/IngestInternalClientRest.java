@@ -132,7 +132,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 workflow);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier());
-        headers.add(GlobalDataRest.X_WORKFLOW_ID, workflow.getIdentifier());
         headers.add(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc());
         headers.add(GlobalDataRest.X_ACTION, actionAfterInit);
         headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.START);
@@ -161,8 +160,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public void initWorkflow(WorkFlow workFlow) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", workFlow);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, workFlow.getIdentifier());
-        headers.add(GlobalDataRest.X_WORKFLOW_ID, workFlow.getIdentifier());
+        headers.add(GlobalDataRest.X_CONTEXT_ID, workFlow.getId());
         headers.add(GlobalDataRest.X_TYPE_PROCESS, workFlow.getTypeProc());
         headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT);
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
@@ -489,7 +487,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowHeader(String workflowIdentifier) throws VitamClientException {
+    public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI + "/" + workflowIdentifier, null, null, null, MediaType.APPLICATION_JSON_TYPE);
