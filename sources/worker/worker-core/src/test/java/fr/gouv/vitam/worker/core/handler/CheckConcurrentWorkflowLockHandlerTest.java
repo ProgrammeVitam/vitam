@@ -9,11 +9,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.worker.core.utils.LightweightWorkflowLock;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -82,10 +80,10 @@ public class CheckConcurrentWorkflowLockHandlerTest {
 
         doReturn(Collections.singletonList(concurrentProcessDetail)).when(lightweightWorkflowLock)
             .listConcurrentWorkflows(
-                eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
+                eq(Arrays.asList("WORKFLOW1", "WORKFLOW2")),
                 eq(VitamThreadUtils.getVitamSession().getRequestId()));
 
-        doReturn("RECLASSIFICATION,ELIMINATION_ACTION").when(handlerIO).getInput(0);
+        doReturn("WORKFLOW1,WORKFLOW2").when(handlerIO).getInput(0);
 
         // When
         ItemStatus itemStatus = checkConcurrentWorkflowLockHandler.execute(parameters, handlerIO);
@@ -93,7 +91,7 @@ public class CheckConcurrentWorkflowLockHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
+            JsonHandler.getFromString(itemStatus.getEvDetailData()).get("error").asText())
             .isEqualTo(CONCURRENT_PROCESSES_FOUND);
     }
 
@@ -102,10 +100,10 @@ public class CheckConcurrentWorkflowLockHandlerTest {
 
         doReturn(Collections.EMPTY_LIST).when(lightweightWorkflowLock)
             .listConcurrentWorkflows(
-                eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
+                eq(Arrays.asList("WORKFLOW1", "WORKFLOW2")),
                 any());
 
-        doReturn("RECLASSIFICATION,ELIMINATION_ACTION").when(handlerIO).getInput(0);
+        doReturn("WORKFLOW1,WORKFLOW2").when(handlerIO).getInput(0);
 
         // When
         ItemStatus itemStatus = checkConcurrentWorkflowLockHandler.execute(parameters, handlerIO);
