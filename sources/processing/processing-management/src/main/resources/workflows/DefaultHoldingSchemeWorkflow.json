@@ -2,7 +2,7 @@
   "id": "DefaultHoldingSchemeWorkflow",
   "name": "Default Holding Scheme Workflow",
   "identifier": "HOLDINGSCHEME",
-  "externalIdentifier": "HOLDING_SCHEME",
+  "identifierAlias": "HOLDING_SCHEME",
   "typeProc": "MASTERDATA",
   "comment": "Default Holding Scheme Workflow V6",
   "steps": [

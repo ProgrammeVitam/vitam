@@ -53,8 +53,8 @@ public class WorkFlow {
     @JsonProperty("identifier")
     private String identifier;
 
-    @JsonProperty("externalIdentifier")
-    private String externalIdentifier;
+    @JsonProperty("identifierAlias")
+    private String identifierAlias;
 
     @JsonProperty("typeProc")
     private String typeProc;
@@ -78,7 +78,7 @@ public class WorkFlow {
             @JsonProperty("id") String id,
             @JsonProperty("name") String name,
             @JsonProperty("identifier") String identifier,
-            @JsonProperty("externalIdentifier") String externalIdentifier,
+            @JsonProperty("identifierAlias") String identifierAlias,
             @JsonProperty("typeProc") String typeProc,
             @JsonProperty("comment") String comment,
             @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
@@ -86,7 +86,7 @@ public class WorkFlow {
         this.id = id;
         this.name = name;
         this.identifier = identifier;
-        this.externalIdentifier = externalIdentifier;
+        this.identifierAlias = identifierAlias;
         this.typeProc = typeProc;
         this.comment = comment;
         this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.TEMPORARY);
@@ -100,14 +100,14 @@ public class WorkFlow {
     public static WorkFlow of(String identifier, String externalWorkflow, String evTypeProc) {
         WorkFlow workFlow = new WorkFlow();
         workFlow.setIdentifier(identifier);
-        workFlow.setExternalIdentifier(externalWorkflow);
+        workFlow.setIdentifierAlias(externalWorkflow);
         workFlow.setTypeProc(evTypeProc);
         return workFlow;
     }
 
     @JsonIgnore
     public WorkFlow getHeader() {
-        return new WorkFlow(id, name, identifier, externalIdentifier, typeProc, comment, lifecycleLog, steps);
+        return new WorkFlow(id, name, identifier, identifierAlias, typeProc, comment, lifecycleLog, steps);
     }
 
     /**
@@ -250,8 +250,8 @@ public class WorkFlow {
      */
     @Override
     public String toString() {
-        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\n",
-                getId(), getName(), getIdentifier(), getTypeProc(), getComment());
+        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\nidentifierAlias=%s\ncomments=%s\nlifecycleLog=%s\n",
+                getId(), getName(), getIdentifier(), getTypeProc(), getIdentifierAlias(), getComment(), getLifecycleLog());
     }
 
     public LifecycleState getLifecycleLog() {
@@ -262,11 +262,11 @@ public class WorkFlow {
         this.lifecycleLog = lifecycleLog;
     }
 
-    public String getExternalIdentifier() {
-        return externalIdentifier;
+    public String getIdentifierAlias() {
+        return identifierAlias;
     }
 
-    public void setExternalIdentifier(String externalIdentifier) {
-        this.externalIdentifier = externalIdentifier;
+    public void setIdentifierAlias(String identifierAlias) {
+        this.identifierAlias = identifierAlias;
     }
 }

@@ -2,7 +2,7 @@
   "id": "DefaultIngestBlankTestWorkflow",
   "name": "Default Ingest Blank Test Workflow",
   "identifier": "PROCESS_SIP_UNITARY_TEST",
-  "externalIdentifier": "BLANK_TEST",
+  "identifierAlias": "BLANK_TEST",
   "typeProc": "INGEST_TEST",
   "comment": "Default Ingest Blank Test Workflow V6",
   "steps": [

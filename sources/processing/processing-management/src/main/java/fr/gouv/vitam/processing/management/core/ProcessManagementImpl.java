@@ -64,7 +64,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
@@ -204,7 +203,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         Optional<WorkFlow> workFlow = poolWorkflow.values()
                 .stream()
-                .filter(w -> StringUtils.equals(w.getIdentifier(), workflowId) || StringUtils.equals(w.getExternalIdentifier(), workflowId))
+                .filter(w -> StringUtils.equals(w.getIdentifier(), workflowId) || StringUtils.equals(w.getIdentifierAlias(), workflowId))
                 .findFirst();
         if (!workFlow.isPresent()) {
             throw new ProcessingException("Workflow (" + workflowId + ") not found");

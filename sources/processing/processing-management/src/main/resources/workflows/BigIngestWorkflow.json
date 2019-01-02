@@ -2,7 +2,7 @@
   "id": "BigIngestWorkflow",
   "name": "Big Ingest Workflow",
   "identifier": "BigIngestWorkflow",
-  "externalIdentifier": "BigIngestWorkflow",
+  "identifierAlias": "BigIngestWorkflow",
   "typeProc": "INGEST",
   "comment": "Big Ingest Workflow V6",
   "steps": [

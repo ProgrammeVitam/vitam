@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -111,7 +112,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
     private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
-    private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
+    public static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
     private static final String MANIFEST_FILE_NAME_CHECK = "MANIFEST_FILE_NAME_CHECK";
 
     private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";
@@ -151,7 +152,7 @@ public class IngestExternalImpl implements IngestExternal {
 
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid,
-        AsyncResponse asyncResponse)
+                                              AsyncResponse asyncResponse)
             throws IngestExternalException, WorkspaceClientServerException, VitamClientException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
@@ -162,21 +163,24 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         WorkspaceFileSystem workspaceFileSystem;
         LogbookOperationParameters startedParameters = null;
-        WorkFlow workflow = null;
+        WorkFlow workflow;
         try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
 
             // Load workflow information from processing
-            workflow = ingestClient.getWorkflowHeader(workflowIdentifier);
-
+            Optional<WorkFlow> optional = ingestClient.getWorkflowHeader(workflowIdentifier);
+            if (!optional.isPresent()) {
+                throw new WorkflowNotFoundException("Workflow " + workflowIdentifier + " not found");
+            }
+            workflow = optional.get();
             LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(workflow.getTypeProc());
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
             startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationId, workflow.getIdentifier(), operationId,
-                logbookTypeProcess, StatusCode.STARTED,
-                messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
-                    operationId.toString(),
-                operationId);
+                    operationId, workflow.getIdentifier(), operationId,
+                    logbookTypeProcess, StatusCode.STARTED,
+                    messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
+                            operationId.toString(),
+                    operationId);
 
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
 
@@ -184,14 +188,14 @@ public class IngestExternalImpl implements IngestExternal {
 
             String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_EXT);
             LogbookOperationParameters sipSanityParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    GUIDFactory.newEventGUID(operationId),
-                    eventTypeStarted,
-                    operationId,
-                    logbookTypeProcess,
-                    StatusCode.OK,
-                    messageLogbookEngineHelper.getLabelOp(eventTypeStarted, StatusCode.OK),
-                    operationId);
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(operationId),
+                            eventTypeStarted,
+                            operationId,
+                            logbookTypeProcess,
+                            StatusCode.OK,
+                            messageLogbookEngineHelper.getLabelOp(eventTypeStarted, StatusCode.OK),
+                            operationId);
             helper.updateDelegate(sipSanityParameters);
 
             try {
@@ -219,10 +223,10 @@ public class IngestExternalImpl implements IngestExternal {
                 workspaceFileSystem.putObject(operationId.getId(), objectName.getId(), input);
                 // Implementation of asynchrone
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
-                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
-                    .build(), input);
+                        .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
+                        .build(), input);
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
@@ -462,7 +466,7 @@ public class IngestExternalImpl implements IngestExternal {
                     helper.updateDelegate(formatParameters);
                     helper.updateDelegate(manifestFileNameCheck);
 
-                    if (manifestFileNameCheck.getStatus().compareTo(StatusCode.OK) > 1) {
+                    if (manifestFileNameCheck.getStatus().compareTo(StatusCode.OK) > 0) {
                         logbookAndGenerateATR(preUploadResume, operationId, manifestFileNameCheck.getStatus(),
                                 isFileInfected, helper,
                                 MANIFEST_FILE_NAME_CHECK, "");
@@ -714,13 +718,13 @@ public class IngestExternalImpl implements IngestExternal {
     /**
      * This method is called when a workspace exception occurs
      *
-     * @param workflowIdenfier
+     * @param workflowIdentifier
      * @param typeProcess
      * @param operationId
      * @param asyncResponse
      * @throws VitamException
      */
-    public void createATRFatalWorkspace(String workflowIdenfier, String typeProcess, GUID operationId, AsyncResponse asyncResponse)
+    public void createATRFatalWorkspace(String workflowIdentifier, String typeProcess, GUID operationId, AsyncResponse asyncResponse)
             throws VitamException {
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(typeProcess);
@@ -728,11 +732,11 @@ public class IngestExternalImpl implements IngestExternal {
 
         LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 operationId,
-                workflowIdenfier,
+                workflowIdentifier,
                 operationId,
                 logbookTypeProcess,
                 StatusCode.STARTED,
-                messageLogbookEngineHelper.getLabelOp(workflowIdenfier, StatusCode.STARTED) + " : " +
+                messageLogbookEngineHelper.getLabelOp(workflowIdentifier, StatusCode.STARTED) + " : " +
                         operationId.getId(),
                 operationId);
         helper.createDelegate(startedParameters);
@@ -777,9 +781,9 @@ public class IngestExternalImpl implements IngestExternal {
 
         startedParameters.setStatus(StatusCode.FATAL);
         startedParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                messageLogbookEngineHelper.getOutcomeDetail(workflowIdenfier, StatusCode.FATAL));
+                messageLogbookEngineHelper.getOutcomeDetail(workflowIdentifier, StatusCode.FATAL));
         startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                messageLogbookEngineHelper.getLabelOp(workflowIdenfier, StatusCode.FATAL));
+                messageLogbookEngineHelper.getLabelOp(workflowIdentifier, StatusCode.FATAL));
 
         helper.updateDelegate(startedParameters);
 
@@ -787,13 +791,20 @@ public class IngestExternalImpl implements IngestExternal {
         try (IngestInternalClient ingestClient =
                      IngestInternalClientFactory.getInstance().getClient()) {
             ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(operationId.getId()));
+        } finally {
+            String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
+                    "TransferringAgencyToBeDefined",
+                    INGEST_INT_UPLOAD, null, StatusCode.FATAL, stpIngestFinalisationParameters.getEventDateTime());
+
+            handleResponseWithATR(operationId, asyncResponse, atr);
         }
-        String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
-                "TransferringAgencyToBeDefined",
-                INGEST_INT_UPLOAD, null, StatusCode.FATAL, stpIngestFinalisationParameters.getEventDateTime());
+    }
+
+    public void handleResponseWithATR(GUID operationId, AsyncResponse asyncResponse, String entity) {
+
 
         AsyncInputStreamHelper responseHelper =
-                new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));
+                new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(entity.getBytes(CharsetUtils.UTF8)));
         final ResponseBuilder responseBuilder =
                 Response.status(Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_OCTET_STREAM)
                         .header(GlobalDataRest.X_REQUEST_ID, operationId.getId())
@@ -803,8 +814,7 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private LogbookOperationParameters getAtrNotificationEvent(GUID operationId, LogbookTypeProcess logbookTypeProcess,
-                                                               StatusCode statusCode, GUID finalisationEventId)
-            throws InvalidGuidOperationException {
+                                                               StatusCode statusCode, GUID finalisationEventId) {
         GUID atrEventId = GUIDFactory.newEventGUID(operationId);
         final LogbookOperationParameters event =
                 LogbookParametersFactory.newLogbookOperationParameters(

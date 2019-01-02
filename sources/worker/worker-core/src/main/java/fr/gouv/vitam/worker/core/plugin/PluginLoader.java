@@ -38,12 +38,12 @@ import fr.gouv.vitam.processing.common.exception.InvocationPluginException;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.common.PluginProperties;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.security.VitamPluginClassLoader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -147,7 +147,7 @@ public class PluginLoader {
 
     private Optional<Class<ActionHandler>> loadExternalPlugins(String handlerID, PluginProperties pluginProperties) {
         try {
-            // No path traversal problem
+            SafeFileChecker.checkSafePluginsFilesPath(pluginProperties.getClassName());
             File jarFile = PropertiesUtils.fileFromConfigFolder(WORKER_PLUGIN_WORKSPACE + pluginProperties.getJarName());
             if (!jarFile.exists()) {
                 LOGGER.error("Jar file {} not found in {} folder. FullPath {}", pluginProperties.getJarName(), WORKER_PLUGIN_WORKSPACE, jarFile.getAbsolutePath());
@@ -155,14 +155,14 @@ public class PluginLoader {
             }
             URL[] urls = new URL[1];
             urls[0] = jarFile.toURI().toURL();
-            VitamPluginClassLoader pluginLoader = new VitamPluginClassLoader(urls);
+            URLClassLoader pluginLoader = new URLClassLoader(urls);
             // Load properties file
             SafeFileChecker.checkSafePluginsFilesPath(pluginProperties.getPropertiesFile());
             PluginPropertiesLoader.loadProperties(handlerID, pluginProperties.getPropertiesFile(), pluginLoader);
 
             return Optional.of((Class<ActionHandler>) pluginLoader.loadClass(pluginProperties.getClassName()));
         } catch (ClassNotFoundException | IOException e) {
-            LOGGER.error("could not find class: {}. the jar file {} should be be in {} folder", pluginProperties.getClassName(), pluginProperties.getJarName(), WORKER_PLUGIN_WORKSPACE);
+            LOGGER.error("could not find class: " + pluginProperties.getClassName() + ". the jar file " + pluginProperties.getJarName() + " should be be in " + WORKER_PLUGIN_WORKSPACE + " folder", e);
             return Optional.empty();
         }
     }

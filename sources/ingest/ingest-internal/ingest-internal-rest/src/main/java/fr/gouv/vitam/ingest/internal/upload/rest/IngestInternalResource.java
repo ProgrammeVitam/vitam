@@ -1098,21 +1098,25 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("workflows/{workfowIdentifer}")
+    @Path("workflows/{workfowIdentifier}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflowDefinitions(@PathParam("workfowIdentifer") String workfowIdentifer) {
+    public Response getWorkflowHeader(@PathParam("workfowIdentifier") String workfowIdentifier) {
         ProcessingManagementClient processingClient = processingManagementClientMock;
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
-            WorkFlow optionalWorkflow = processingClient.getWorkflowHeader(workfowIdentifer);
-            return Response.status(Status.OK)
-                    .header(GlobalDataRest.X_WORKFLOW_ID, optionalWorkflow.getIdentifier())
-                    .header(GlobalDataRest.X_TYPE_PROCESS, optionalWorkflow.getTypeProc())
-                    .entity(optionalWorkflow.getHeader())
-                    .build();
+            Optional<WorkFlow> optionalWorkflow = processingClient.getWorkflowHeader(workfowIdentifier);
+            if (optionalWorkflow.isPresent()) {
+                return Response.status(Status.OK)
+                        .header(GlobalDataRest.X_WORKFLOW_ID, optionalWorkflow.get().getIdentifier())
+                        .header(GlobalDataRest.X_TYPE_PROCESS, optionalWorkflow.get().getTypeProc())
+                        .entity(optionalWorkflow.get().getHeader())
+                        .build();
+            }
+
+            return Response.status(Status.NOT_FOUND).build();
         } catch (VitamClientException e) {
             LOGGER.error("Error while retrieving workflow definitions : ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)

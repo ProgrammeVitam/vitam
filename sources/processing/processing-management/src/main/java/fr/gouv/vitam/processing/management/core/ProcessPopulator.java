@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Temporary process populator
@@ -157,9 +158,9 @@ public class ProcessPopulator {
             LOGGER.debug("DirectoryNotFoundException thrown by populator: {}", workflowFolder);
             return new ArrayList<>();
         } else {
-            try {
-                LOGGER.debug("load external :" + workflowFolder.toPath().toString());
-                return Files.list(workflowFolder.toPath())
+            LOGGER.debug("load external :" + workflowFolder.toPath().toString());
+            try (Stream<Path> stream = Files.list(workflowFolder.toPath())) {
+                return stream
                         .filter(f -> f.toFile().isFile())
                         .filter(f -> f.toFile().getName().endsWith(".json"))
                         .filter(f -> f.toFile().lastModified() > fromDate)

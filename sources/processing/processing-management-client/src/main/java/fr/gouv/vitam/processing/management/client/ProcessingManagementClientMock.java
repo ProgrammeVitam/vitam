@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -218,7 +219,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public WorkFlow getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
+    public Optional<WorkFlow> getWorkflowHeader(String WorkflowIdentifier) throws VitamClientException {
        throw new IllegalStateException("Method getWorkflowHeader not implemented");
     }
 

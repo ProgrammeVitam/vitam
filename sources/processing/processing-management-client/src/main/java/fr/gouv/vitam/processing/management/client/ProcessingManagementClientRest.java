@@ -526,15 +526,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public WorkFlow getWorkflowHeader(String workflowIdentifier) throws VitamClientException {
+    public Optional<WorkFlow> getWorkflowHeader(String workflowIdentifier) throws VitamClientException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI + "/" + workflowIdentifier, null, null, null, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                return response.readEntity(WorkFlow.class);
+                return Optional.of(response.readEntity(WorkFlow.class));
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new VitamClientException("Workflow ("+workflowIdentifier+") not found");
+                return Optional.empty();
             } else {
                 throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
             }

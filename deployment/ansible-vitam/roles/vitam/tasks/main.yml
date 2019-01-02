@@ -152,6 +152,8 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'directory'
+  notify:
+    - restart service
 
 - name: Copy files and directories recursively
   template:
@@ -162,7 +164,8 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'file'
-
+  notify:
+    - restart service
 
 - name: ensure external messages file is absent
   file:

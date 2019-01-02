@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.Consumes;
@@ -51,6 +52,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import org.apache.commons.io.FilenameUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -231,7 +234,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
-        Integer tenantId, String contextId, String xAction, GUID guid, Optional<LocalFile> localFile) {
+        Integer tenantId, String contextId, String xAction, GUID operationId, Optional<LocalFile> localFile) {
 
         final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
         final LocalFileAction afterUploadAction =
@@ -242,33 +245,40 @@ public class IngestExternalResource extends ApplicationStatusResource {
             PreUploadResume preUploadResume = null;
             try {
                 preUploadResume =
-                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, guid, asyncResponse);
+                        ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, asyncResponse);
+            } catch (WorkflowNotFoundException ex) {
+                LOGGER.error(ex);
+                String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
+                        "TransferringAgencyToBeDefined",
+                        IngestExternalImpl.INGEST_INT_UPLOAD, ex.getMessage(), StatusCode.KO, LocalDateTime.now());
+                ingestExternal.handleResponseWithATR(operationId, asyncResponse, atr);
+                return;
             } catch (WorkspaceClientServerException e) {
                 LOGGER.error(e);
-                ingestExternal.createATRFatalWorkspace(e.getWorkflowIdentifier(), e.getLogbookTypeProcess(), guid, asyncResponse);
+                ingestExternal.createATRFatalWorkspace(e.getWorkflowIdentifier(), e.getLogbookTypeProcess(), operationId, asyncResponse);
                 return;
             }
-            ingestExternal.upload(preUploadResume, xAction, guid);
+            ingestExternal.upload(preUploadResume, xAction, operationId);
 
             if (localFile.isPresent()) {
 
                 String fullNormalizedPath =
-                    FilenameUtils.normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.get().getPath());
+                        FilenameUtils.normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.get().getPath());
                 if (fullNormalizedPath == null ||
-                    !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
+                        !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.BAD_REQUEST)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                            .entity(getErrorStream(
-                                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
-                                    "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() +
-                                        " could be accessed")))
-                            .build());
+                            Response.status(Status.BAD_REQUEST)
+                                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                                    .entity(getErrorStream(
+                                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
+                                                    "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() +
+                                                            " could be accessed")))
+                                    .build());
                 }
 
                 java.nio.file.Path path =
-                    Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+                        Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
 
                 switch (afterUploadAction) {
                     case DELETE:
@@ -276,10 +286,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         break;
                     case MOVE:
                         if (ingestExternalConfiguration.getSuccessfulUploadDir() != null &&
-                            !ingestExternalConfiguration.getSuccessfulUploadDir().isEmpty()) {
+                                !ingestExternalConfiguration.getSuccessfulUploadDir().isEmpty()) {
                             Files.move(path, Paths
-                                .get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()),
-                                StandardCopyOption.REPLACE_EXISTING);
+                                            .get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()),
+                                    StandardCopyOption.REPLACE_EXISTING);
                         }
                         break;
                     default:
@@ -290,38 +300,38 @@ public class IngestExternalResource extends ApplicationStatusResource {
             if (localFile.isPresent()) {
                 try {
                     if (afterUploadAction.equals(LocalFileAction.MOVE) &&
-                        ingestExternalConfiguration.getFailedUploadDir() != null &&
-                        !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
+                            ingestExternalConfiguration.getFailedUploadDir() != null &&
+                            !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
                         java.nio.file.Path path =
-                            Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+                                Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
                         Files.move(path,
-                            Paths.get(ingestExternalConfiguration.getFailedUploadDir(), localFile.get().getPath()),
-                            StandardCopyOption.REPLACE_EXISTING);
+                                Paths.get(ingestExternalConfiguration.getFailedUploadDir(), localFile.get().getPath()),
+                                StandardCopyOption.REPLACE_EXISTING);
                     }
                 } catch (IOException e) {
                     LOGGER.error(e);
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                            .entity(getErrorStream(
-                                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR,
-                                    e.getLocalizedMessage())))
-                            .build());
+                            Response.status(Status.INTERNAL_SERVER_ERROR)
+                                    .header(GlobalDataRest.X_REQUEST_ID, operationId.getId())
+                                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                                    .entity(getErrorStream(
+                                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR,
+                                                    e.getLocalizedMessage())))
+                                    .build());
                 }
             }
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                    .entity(getErrorStream(
-                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
-                            exc.getLocalizedMessage())))
-                    .build(),
-                uploadedInputStream);
+                    Response.status(Status.INTERNAL_SERVER_ERROR)
+                            .header(GlobalDataRest.X_REQUEST_ID, operationId.getId())
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                            .entity(getErrorStream(
+                                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
+                                            exc.getLocalizedMessage())))
+                            .build(),
+                    uploadedInputStream);
         }
     }
 
@@ -339,7 +349,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("/ingests/{objectId}/archivetransferreply")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "ingests:id:archivetransfertreply:read",
-        description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
+            description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
     public Response downloadArchiveTransferReplyAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.REPORTS);
     }
@@ -358,7 +368,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("/ingests/{objectId}/manifests")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "ingests:id:manifests:read",
-        description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
+            description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
     public Response downloadIngestManifestsAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);
     }
@@ -370,29 +380,29 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
-                .build();
+                    .entity(getErrorStream(
+                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
+                    .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
-                        e.getLocalizedMessage())))
-                .build();
+                    .entity(getErrorStream(
+                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
+                                    e.getLocalizedMessage())))
+                    .build();
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
-                        e.getLocalizedMessage())))
-                .build();
+                    .entity(getErrorStream(
+                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
+                                    e.getLocalizedMessage())))
+                    .build();
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
-                .build();
+                    .entity(getErrorStream(
+                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
+                    .build();
         }
     }
 
