@@ -2755,7 +2755,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/preservationScenario")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:create", isAdminOnly = true, description = "Import des perservation scénarios")
+    @Secured(permission = "preservationScenarios:create", description = "Import des perservation scénarios")
     public Response importPreservationScenario(JsonNode preservationScenarios) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {

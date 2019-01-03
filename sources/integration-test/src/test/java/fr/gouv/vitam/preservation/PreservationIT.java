@@ -206,13 +206,13 @@ public class PreservationIT extends VitamRuleRunner {
 
         client.importAccessContracts(singletonList(contract));
 
-        getVitamSession().setTenantId(0);
+        getVitamSession().setTenantId(1);
         getVitamSession().setRequestId(newGUID());
 
         List<GriffinModel> griffinModelList = getGriffinModels();
         client.importGriffins(griffinModelList);
 
-
+        getVitamSession().setTenantId(0);
         getVitamSession().setRequestId(newGUID());
         List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
 
