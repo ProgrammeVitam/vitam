@@ -59,6 +59,7 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckConcurrentWorkflowLockHandler;
 import fr.gouv.vitam.worker.core.handler.CheckDataObjectPackageActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckHeaderActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
@@ -196,6 +197,8 @@ public class WorkerImpl implements Worker {
         actions.put(PrepareAuditActionHandler.getId(),
             new PrepareAuditActionHandler());
 
+        actions.put(CheckConcurrentWorkflowLockHandler.getId(),
+            new CheckConcurrentWorkflowLockHandler());
         actions.put(ListUnitLifecycleTraceabilityActionHandler.getId(),
             new ListUnitLifecycleTraceabilityActionHandler());
         actions.put(ListObjectGroupLifecycleTraceabilityActionHandler.getId(),

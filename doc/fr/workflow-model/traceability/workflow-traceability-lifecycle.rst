@@ -38,6 +38,22 @@ Préparation des listes des cycles de vie
 **Étape 1** - STP_PREPARE_OG_LFC_TRACEABILITY -  distribution sur REF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+* Vérification des processus concurrents CHECK_CONCURRENT_WORKFLOW_LOCK
+
+  + **Règle** : le but est de vérifier s'il n'y a pas d'autres processus de traçabilité des journaux de cycle de vie des groupes d'objets concurrents.
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+    - OK : le contrôle de processus de traçabilité des journaux de cycle de vies des groupes d'objets concurrents s'est terminé avec succès (CHECK_CONCURRENT_WORKFLOW_LOCK.OK = Succès de la vérification des processus concurrents)
+
+    - KO : des processus concurrents de traçabilité des groupes d'objets sont en cours d'exécution (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Échec lors de la vérification des processus concurrents)
+
+    - FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK.FATAL = Erreur technique lors de la vérification des processus concurrents)
+
+
 * Liste cycles de vie à sécuriser - PREPARE_OG_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
 
@@ -137,6 +153,22 @@ Préparation des listes des cycles de vie
 
 **Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+* Vérification des processus concurrents CHECK_CONCURRENT_WORKFLOW_LOCK
+
+  + **Règle** : le but est de vérifier s'il n'y a pas d'autres processus de traçabilité des journaux de cycle de vie des unités archivistiques concurrents.
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+    - OK : le contrôle de processus de traçabilité des journaux de cycle de vies des unités archivistiques concurrents s'est terminé avec succès (CHECK_CONCURRENT_WORKFLOW_LOCK.OK = Succès de la vérification des processus concurrents)
+
+    - KO : des processus concurrents de traçabilité des unités archivistiques sont en cours d'exécution (CHECK_CONCURRENT_WORKFLOW_LOCK.KO = Échec lors de la vérification des processus concurrents)
+
+    - FATAL : une erreur technique est survenue lors de la vérification des processus concurrents (CHECK_CONCURRENT_WORKFLOW_LOCK.FATAL = Erreur technique lors de la vérification des processus concurrents)
+
 
 * Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 

@@ -16,6 +16,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "workflowIds",
+                "uri": "VALUE:LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PREPARE_OG_LFC_TRACEABILITY",
             "behavior": "BLOCKING",
             "out": [
