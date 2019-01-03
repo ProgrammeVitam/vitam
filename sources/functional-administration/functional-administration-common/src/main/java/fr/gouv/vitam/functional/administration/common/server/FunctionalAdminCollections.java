@@ -89,7 +89,7 @@ public enum FunctionalAdminCollections {
     ACCESS_CONTRACT(AccessContract.class, true, true),
 
     /**
-     * Access contract collection
+     * VITAM SEQUENCE collection
      */
     VITAM_SEQUENCE(VitamSequence.class, false, false),
 
@@ -119,7 +119,7 @@ public enum FunctionalAdminCollections {
 
     GRIFFIN(Griffin.class, false, false),
 
-    PRESERVATION_SCENARIO(PreservationScenario.class, false, false),
+    PRESERVATION_SCENARIO(PreservationScenario.class, true, false),
 
     /**
      * Ontology collection
@@ -130,10 +130,10 @@ public enum FunctionalAdminCollections {
     final private boolean multitenant;
     final private boolean usingScore;
 
-    FunctionalAdminCollections(final Class<?> clasz, boolean multitenant, boolean usingScore) {
-        this.multitenant = multitenant;
+    FunctionalAdminCollections(final Class<?> clasz, boolean multiTenant, boolean usingScore) {
+        this.multitenant = multiTenant;
         this.usingScore = usingScore;
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, multitenant, usingScore);
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore);
     }
 
     /**

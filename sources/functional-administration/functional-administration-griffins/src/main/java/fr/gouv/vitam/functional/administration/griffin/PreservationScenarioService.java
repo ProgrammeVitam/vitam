@@ -54,6 +54,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -72,6 +73,7 @@ import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.crea
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
+import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toSet;
 
 public class PreservationScenarioService {
@@ -230,6 +232,8 @@ public class PreservationScenarioService {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
+            preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
+            preservationScenarioModel.setCreationDate(getFormattedDateForMongo(preservationScenarioModel.getCreationDate()));
             JsonNode queryDslForUpdate = getUpdateDslQuery(preservationScenarioModel);
 
             mongoDbAccess.updateData(queryDslForUpdate, PRESERVATION_SCENARIO);
