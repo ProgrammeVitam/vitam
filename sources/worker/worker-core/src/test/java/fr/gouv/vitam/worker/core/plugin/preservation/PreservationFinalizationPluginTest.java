@@ -92,7 +92,7 @@ public class PreservationFinalizationPluginTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
         plugin = new PreservationFinalizationPlugin(
-            new PreservationReportService(batchReportFactory, workspaceClientFactory, storageClientFactory));
+            new PreservationReportService(batchReportFactory, storageClientFactory));
     }
 
     @Test

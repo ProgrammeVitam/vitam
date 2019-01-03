@@ -83,7 +83,7 @@ public class PreservationReportServiceTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
         preservationReportService =
-            new PreservationReportService(batchReportFactory, workspaceClientFactory, storageClientFactory);
+            new PreservationReportService(batchReportFactory, storageClientFactory);
     }
 
     @Test

@@ -40,6 +40,7 @@ public class ResultPreservation {
     private Map<String, List<OutputPreservation>> outputs;
 
     public ResultPreservation() {
+        //nothing
     }
 
     public static ResultPreservation of(String requestId, String id, Map<String, List<OutputPreservation>> outputList) {

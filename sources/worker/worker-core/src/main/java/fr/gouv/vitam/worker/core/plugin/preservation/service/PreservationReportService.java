@@ -35,11 +35,12 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,17 +56,16 @@ public class PreservationReportService {
     private static final String PRESERVATION_REPORT = "preservationReport";
 
     private final BatchReportClientFactory batchReportClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
 
     public PreservationReportService() {
-        this(BatchReportClientFactory.getInstance(), WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public PreservationReportService(BatchReportClientFactory reportFactory, WorkspaceClientFactory workspaceFactory, StorageClientFactory storageClientFactory) {
+    public PreservationReportService(BatchReportClientFactory reportFactory,
+        StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = reportFactory;
-        this.workspaceClientFactory = workspaceFactory;
         this.storageClientFactory = storageClientFactory;
     }
 
@@ -81,7 +81,7 @@ public class PreservationReportService {
         }
     }
 
-    public void exportReport(String processId, String workspaceContainerGUID) throws Exception {
+    public void exportReport(String processId, String workspaceContainerGUID) throws VitamException {
         String filename = String.format("%s-%s.jsonl", PRESERVATION_REPORT, processId);
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.generatePreservationReport(processId, new ReportExportRequest(filename));
@@ -96,7 +96,7 @@ public class PreservationReportService {
         try {
             return JsonHandler.toJsonNode(model);
         } catch (InvalidParseOperationException e) {
-            throw new RuntimeException("Could not serialize entries", e);
+            throw new VitamRuntimeException("Could not serialize entries", e);
         }
     }
 }

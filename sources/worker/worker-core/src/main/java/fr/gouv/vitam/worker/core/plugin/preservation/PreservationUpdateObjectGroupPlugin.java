@@ -30,7 +30,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.DIGEST_PRESERVATION_GENERATION;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.Arrays.asList;
 
@@ -39,6 +39,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -78,7 +79,7 @@ import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
 
-    private final static String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
+    private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
     private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationUpdateObjectGroupPlugin() {
@@ -86,7 +87,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public PreservationUpdateObjectGroupPlugin(MetaDataClientFactory metaDataClientFactory) {
+    PreservationUpdateObjectGroupPlugin(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
@@ -142,10 +143,13 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
                 .collect(Collectors.toList());
             finalQualifiersModelToUpdate.add(qualifierModel);
 
-            Integer totalBinaries = finalQualifiersModelToUpdate.stream()
+            Optional<Integer> totalBinaries = finalQualifiersModelToUpdate.stream()
                 .map(qualifier -> qualifierModel.getNbc())
-                .reduce(Integer::sum).get();
+                .reduce(Integer::sum);
 
+            if (!totalBinaries.isPresent()){
+                throw new IllegalStateException("not Found");
+            }
 
             Map<String, JsonNode> action = new HashMap<>();
             action.put(QUALIFIERS.exactToken(), JsonHandler.toJsonNode(finalQualifiersModelToUpdate));
@@ -155,7 +159,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             query.addHintFilter(OBJECTGROUPS.exactToken());
             JsonNode newUpdateQuery = query.addActions(
                 UpdateActionHelper.push(VitamFieldsHelper.operations(), batchResult.getRequestId()),
-                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalBinaries),
+                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalBinaries.get()),
                 setQualifier).getFinalUpdate();
 
             metaDataClient.updateObjectGroupById(newUpdateQuery, gotId);
@@ -186,10 +190,13 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         versionModel.setDataObjectGroupId(workflowBatchResult.getGotId());
         versionModel.setDataObjectVersion(workflowBatchResult.getUsage() + "_" + newDataObjectVersion);
         versionModel.setOpi(workflowBatchResult.getRequestId());
-        versionModel.setAlgorithm(DIGEST_PRESERVATION_GENERATION.getName());
+        versionModel.setAlgorithm(digestPreservationGeneration.getName());
 
-        FormatIdentifierResponse formatIdentifierResponse;
-        formatIdentifierResponse = outputExtra.getBinaryFormat().get();
+        Optional<FormatIdentifierResponse> formatIdentifierResponse = outputExtra.getBinaryFormat();
+
+        if (!formatIdentifierResponse.isPresent()){
+            throw new IllegalStateException("format not found");
+        }
 
         DbFileInfoModel fileInfoModel = new DbFileInfoModel();
         fileInfoModel.setFilename(outputExtra.getOutput().getOutputName());
@@ -213,9 +220,10 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         dbStorageModel.setStrategyId(storedInfoResult.getStrategy());
 
         DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
-        formatIdentificationModel.setFormatId(formatIdentifierResponse.getPuid());
-        formatIdentificationModel.setFormatLitteral(formatIdentifierResponse.getFormatLiteral());
-        formatIdentificationModel.setMimeType(formatIdentifierResponse.getMimetype());
+
+        formatIdentificationModel.setFormatId(formatIdentifierResponse.get().getPuid());
+        formatIdentificationModel.setFormatLitteral(formatIdentifierResponse.get().getFormatLiteral());
+        formatIdentificationModel.setMimeType(formatIdentifierResponse.get().getMimetype());
 
         versionModel.setStorage(dbStorageModel);
         versionModel.setFormatIdentificationModel(formatIdentificationModel);

@@ -37,7 +37,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.AbstractAccessionRegisterAction;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Accession Register Handler

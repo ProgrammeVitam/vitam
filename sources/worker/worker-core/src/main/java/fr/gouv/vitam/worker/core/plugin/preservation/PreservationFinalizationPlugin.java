@@ -56,7 +56,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public PreservationFinalizationPlugin(PreservationReportService preservationReportService) {
+    PreservationFinalizationPlugin(PreservationReportService preservationReportService) {
         this.preservationReportService = preservationReportService;
     }
 

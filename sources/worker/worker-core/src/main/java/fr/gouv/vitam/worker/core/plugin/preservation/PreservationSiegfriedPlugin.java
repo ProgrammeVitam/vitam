@@ -65,13 +65,14 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationSiegfriedPlugin extends ActionHandler {
     private static final String SUBSTATUS_UNKNOWN = "SUBSTATUS_UNKNOWN";
+    private static final String KO_FILE_FORMAT_NOT_FOUND = "KO - FILE_FORMAT_NOT_FOUND ";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationSiegfriedPlugin.class);
 
-    private final String itemId = "FILE_FORMAT";
+    private static final String ITEM_ID = "FILE_FORMAT";
     private final FormatIdentifierFactory siegfriedFactory;
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
 
-    public PreservationSiegfriedPlugin() throws Exception {
+    public PreservationSiegfriedPlugin() {
         this(FormatIdentifierFactory.getInstance());
     }
 
@@ -102,7 +103,7 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
 
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
-                ItemStatus itemStatus = new ItemStatus(itemId);
+                ItemStatus itemStatus = new ItemStatus(ITEM_ID);
                 itemStatus.disableLfc();
                 itemStatuses.add(itemStatus);
                 continue;
@@ -138,7 +139,7 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, KO, EventDetails.of(error))
+            return buildItemStatus(ITEM_ID, KO, EventDetails.of(error))
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
         }
@@ -149,9 +150,9 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
             .map(JsonHandler::unprettyPrint)
             .collect(Collectors.joining(", "));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatus(itemId, OK, EventDetails.of(binaryFormats));
+            return buildItemStatus(ITEM_ID, OK, EventDetails.of(binaryFormats));
         }
-        return buildItemStatus(itemId, WARNING, EventDetails.of(error, binaryFormats));
+        return buildItemStatus(ITEM_ID, WARNING, EventDetails.of(error, binaryFormats));
     }
 
     private OutputExtra getOutputExtra(Path inputFiles, OutputExtra a, Path batchDirectory,
@@ -165,12 +166,12 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
             if (format.isPresent()) {
                 return OutputExtra.withBinaryFormat(a, format.get());
             } else {
-                logger.warn("KO - FILE_FORMAT_NOT_FOUND " + SUBSTATUS_UNKNOWN);
-                return OutputExtra.inError("KO - FILE_FORMAT_NOT_FOUND " + SUBSTATUS_UNKNOWN);
+                logger.warn(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN);
+                return OutputExtra.inError(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN);
             }
 
         } catch (FileFormatNotFoundException e) {
-            logger.warn("KO - FILE_FORMAT_NOT_FOUND " + SUBSTATUS_UNKNOWN + ", {}", e);
+            logger.warn(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN + ", {}", e);
             return OutputExtra.inError(e.getMessage());
         } catch (FormatIdentifierNotFoundException e) {
             tryDeleteLocalPreservationFiles(batchDirectory);
