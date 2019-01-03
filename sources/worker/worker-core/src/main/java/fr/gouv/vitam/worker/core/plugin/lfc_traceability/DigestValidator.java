@@ -83,6 +83,7 @@ public class DigestValidator {
 
     private DigestValidationDetails validateDigest(String id, String strategyId, String digestInDb,
         Map<String, String> digestByOfferId, AlertService alertService, String objectType) {
+
         // Ensure all offers have digest information
         List<String> offersWithoutDigest = digestByOfferId.entrySet()
             .stream()
@@ -110,15 +111,13 @@ public class DigestValidator {
                         .collect(Collectors.joining(", ", "{", "}"))));
         }
 
-        boolean validationSucceeded = offersWithoutDigest.isEmpty() && offersWithInconsistentDigest.isEmpty();
+        // Digest is invalid if all offers are missing OR some offer digests do not match db digest
+        boolean hasOneOrMoreConsistentOffers = digestByOfferId.values()
+            .stream()
+            .anyMatch(digestInDb::equals);
 
-        String globalDigest;
-        if (validationSucceeded) {
-            globalDigest = digestInDb;
-        } else {
-            globalDigest = INVALID_HASH;
-        }
-
+        boolean isGloballyValid = !offersWithInconsistentDigest.isEmpty() && hasOneOrMoreConsistentOffers;
+        String globalDigest = isGloballyValid ? digestInDb : INVALID_HASH;
 
         Set<String> offerIds = digestByOfferId.keySet();
 
