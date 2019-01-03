@@ -865,6 +865,12 @@
                 <groupId>org.pacesys</groupId>
                 <artifactId>openstack4j-core</artifactId>
                 <version>${openstack4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.github.fge</groupId>
+                        <artifactId>jackson-coreutils</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.pacesys.openstack4j.connectors</groupId>
@@ -1040,6 +1046,16 @@
                 <groupId>org.glassfish.jersey.media</groupId>
                 <artifactId>jersey-media-json-jackson</artifactId>
                 <version>${jersey.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                        <artifactId>jackson-jaxrs-base</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                        <artifactId>jackson-jaxrs-json-provider</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
