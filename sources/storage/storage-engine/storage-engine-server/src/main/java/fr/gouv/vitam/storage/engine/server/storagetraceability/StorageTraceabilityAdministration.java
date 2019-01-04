@@ -94,21 +94,18 @@ public class StorageTraceabilityAdministration {
      * @return the traceability operation GUID
      * @throws TraceabilityException for any trouble in the traceability process
      */
-    public GUID generateTraceabilityStorageLogbook()
+    public void generateTraceabilityStorageLogbook(GUID requestId)
         throws TraceabilityException {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        
+
         LogbookTraceabilityHelper traceabilityHelper =
             new LogbookStorageTraceabilityHelper(logbookOperations, workspaceClient, traceabilityLogbookService,
-                eip, operationTraceabilityOverlapDelayInSeconds);
+                requestId, operationTraceabilityOverlapDelayInSeconds);
 
         TraceabilityService service = new TraceabilityService(timestampGenerator, traceabilityHelper, tenantId, tmpFolder);
 
         service.secureData();
-
-        return eip;
     }
 
 }
