@@ -81,10 +81,10 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
      * 
      * @param globalCompositeItemStatus
      * @param value
-     * @param globalOutcomeDetailSubcode
+     * @param globalOutcomeDetailSubCode
      */
     public void updateDetailItemStatus(final ItemStatus globalCompositeItemStatus, final String value,
-        final String globalOutcomeDetailSubcode) {
+        final String globalOutcomeDetailSubCode) {
         try {
             if (value != null) {
                 ObjectNode evDetData =
@@ -98,7 +98,9 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
                 globalCompositeItemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
                     JsonHandler.unprettyPrint(evDetData));
             }
-            globalCompositeItemStatus.setGlobalOutcomeDetailSubcode(globalOutcomeDetailSubcode);
+            if (null != globalOutcomeDetailSubCode) {
+                globalCompositeItemStatus.setGlobalOutcomeDetailSubcode(globalOutcomeDetailSubCode);
+            }
         } catch (InvalidParseOperationException e1) {
             LOGGER.error("Unexpected exception : evDetData invalid", e1);
             globalCompositeItemStatus.increment(StatusCode.FATAL);

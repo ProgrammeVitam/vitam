@@ -737,7 +737,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals("CHECK_MANIFEST_WRONG_ATTACHMENT", response.getGlobalOutcomeDetailSubcode());
+        assertEquals("NOT_FOUND_ATTACHMENT", response.getGlobalOutcomeDetailSubcode());
     }
 
     @Test
@@ -759,7 +759,7 @@ public class ExtractSedaActionHandlerTest {
 
         // Then
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("CHECK_MANIFEST_WRONG_ATTACHMENT");
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("NOT_FOUND_ATTACHMENT");
         verify(logbookLifeCyclesClient, never()).create(anyObject());
     }
 

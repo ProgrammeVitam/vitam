@@ -27,66 +27,32 @@
 
 package fr.gouv.vitam.processing.common.exception;
 
+import fr.gouv.vitam.common.model.UnitType;
+
 /**
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
 public class ProcessingUnitLinkingException extends ProcessingException {
-    private static final long serialVersionUID = 3818219095508337803L;
+    private final String manifestId;
+    private final UnitType unitType;
+    private final UnitType ingestType;
 
-    private String unitGuid;
-    private String unitIngestContractGuid;
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ProcessingUnitLinkingException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * @param cause associated cause
-     */
-    public ProcessingUnitLinkingException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message associated message
-     */
-    public ProcessingUnitLinkingException(String message) {
+    public ProcessingUnitLinkingException(String message, String manifestId, UnitType unitType, UnitType ingestType) {
         super(message);
+        this.manifestId = manifestId;
+        this.unitType = unitType;
+        this.ingestType = ingestType;
     }
 
-    /**
-     * @param message associated message
-     * @param unitGuid unit Guid
-     * @param unitIngestContractGuid unit Ingest Contract Guid
-     */
-    public ProcessingUnitLinkingException(String message, String unitGuid, String unitIngestContractGuid) {
-        super(message);
-        this.unitGuid = unitGuid;
-        this.unitIngestContractGuid = unitIngestContractGuid;
+    public String getManifestId() {
+        return manifestId;
     }
 
-    /**
-     * Get the unitGuid
-     * 
-     * @return unitGuid
-     */
-    public String getUnitGuid() {
-        return unitGuid;
+    public UnitType getUnitType() {
+        return unitType;
     }
 
-    /**
-     * Get the unitIngestContractGuid
-     * 
-     * @return unitIngestContractGuid
-     */
-    public String getUnitIngestContractGuid() {
-        return unitIngestContractGuid;
+    public UnitType getIngestType() {
+        return ingestType;
     }
-
-
-
 }

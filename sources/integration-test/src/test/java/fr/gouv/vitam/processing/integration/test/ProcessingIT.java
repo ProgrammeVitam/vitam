@@ -268,7 +268,7 @@ public class ProcessingIT {
     private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
     private static String BLANK_WORKFLOW_NAME = "PROCESS_SIP_UNITARY_TEST";
     private static String INGEST_TREE_WORFKLOW = "HOLDINGSCHEME";
-    private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
+    private static String FILINGSCHEME = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
@@ -1612,13 +1612,106 @@ public class ProcessingIT {
     }
 
 
-    // Attach AU to an existing AU by systemId = guid
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowAddAndLinkSIP() throws Exception {
+    public void test_link_to_invalid_unit_guid_then_to_not_exists_unit_ko() throws Exception {
+
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
 
+        // We link to a non existing unit
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+                "UnvalidGuid:");
+        // prepare zip
+        String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
+        ProcessWorkflow processWorflow = ingest(zipPath, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+
+        String operationId = processWorflow.getOperationId();
+
+        Document operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.INVALID_GUID_ATTACHMENT.KO"));
+
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // We link to a non existing unit
+        zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
+
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+                "aeaqaaaabeha2624aaqjmalhotiigyyaaaca");
+        // prepare zip
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
+        processWorflow = ingest(zipPath, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+
+        operationId = processWorflow.getOperationId();
+
+        operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NOT_FOUND_ATTACHMENT.KO"));
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_link_holdingscheme_to_filingscheme_ko() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+
+        // Import Filing scheme (Plan)
+        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), FILINGSCHEME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+
+        // get one unit
+        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
+        MongoCursor<Document> cursor = resultUnits.iterator();
+        String unit = cursor.next().getString("_id");
+
+        String tmp = FileUtils.getTempDirectoryPath() + "/" + ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1);
+        FileUtils.forceMkdir(new File(tmp));
+
+        // Enable attachment
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", ActivationStatus.INACTIVE.name());
+
+        // Create SIP with attachment to unit
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
+        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)", unit);
+        String zipPath = tmp + "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipPath);
+
+        // Attach to unitChild KO existing unit should not have a parent in the manifest
+        ProcessWorkflow processWorkflow = ingest(zipPath, INGEST_TREE_WORFKLOW, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+
+        String operationId = processWorkflow.getOperationId();
+        Document operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
+
+        try {
+            FileUtils.deleteDirectory(new File(tmp));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_multiple_unit_link_cases() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
         // 1. First we create an AU by sip (Tree) (RATP_1 -> RATP_2)
         ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), INGEST_TREE_WORFKLOW, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
@@ -1665,7 +1758,12 @@ public class ProcessingIT {
         zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipPath3);
 
         // Attach to unitChild KO existing unit should not have a parent in the manifest
-        ingest(zipPath3, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorkflow = ingest(zipPath3, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        String operationId = processWorkflow.getOperationId();
+        Document operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED.KO"));
+
 
         // Now update the ingest contract, set the check to ACTIVE and the link parent id takes unitChild value
         updateIngestContractLinkParentId("ArchivalAgreement0", unitChild, "ACTIVE");
@@ -1687,20 +1785,30 @@ public class ProcessingIT {
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath2);
 
         // Attach to unitChild KO because of ingest contract restriction
-        ProcessWorkflow processWorkflow4 = ingest(zipPath2, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        processWorkflow = ingest(zipPath2, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         // Check that we have an AU where in his up we have idUnit
         MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", unitRoot));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
-        MongoIterable<Document> operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", processWorkflow4.getOperationId()));
-        assertNotNull(operation);
-        assertNotNull(operation.first());
-        assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT.KO"));
+
+        operationId = processWorkflow.getOperationId();
+        operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NOT_FOUND_ATTACHMENT.KO"));
+
+        // Test Null Parent Link
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", "ACTIVE");
+        // Ingest should be OK
+        processWorkflow = ingest(zipPath2, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+
+        operationId = processWorkflow.getOperationId();
+        operaiton = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operaiton).isNotNull();
+        assertTrue(operaiton.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NULL_LINK_PARENT_ID_ATTACHMENT.KO"));
 
         // Now put check as inactive for the ingest contract
         updateIngestContractLinkParentId("ArchivalAgreement0", "", "INACTIVE");
-
         // Ingest should be OK
         ingest(zipPath2, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
@@ -1996,66 +2104,6 @@ public class ProcessingIT {
             e.printStackTrace();
         }
     }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowAddAndLinkSIPWithNotValidKeyValueKo() throws Exception {
-
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        tryImportFile();
-        // We link to a non existing unit
-        String zipPath = null;
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                ":GUID_ARCHIVE_UNIT_PARENT:");
-        // prepare zip
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
-
-
-        final String containerName = createOperationContainer();
-
-        // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-        // use link sip
-        final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
-
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
-
-        // call processing
-        RestAssured.port = PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        // /////
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-        assertNotNull(processWorkflow.getSteps());
-        try {
-            Files.delete(new File(zipPath).toPath());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     @RunWithCustomExecutor
     @Test
