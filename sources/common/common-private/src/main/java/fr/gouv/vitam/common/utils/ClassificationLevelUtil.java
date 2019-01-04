@@ -29,9 +29,8 @@ package fr.gouv.vitam.common.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.json.JsonHandler;
-
-import java.util.List;
 
 /**
  * classification level service
@@ -49,8 +48,6 @@ public class ClassificationLevelUtil {
         + ".#management."
         + SedaConstants.TAG_RULE_CLASSIFICATION + "."
         + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
-
-
 
     private ClassificationLevelUtil() {
     }
@@ -79,7 +76,5 @@ public class ClassificationLevelUtil {
         }
         return true;
     }
-
-
 
 }

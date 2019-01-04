@@ -89,6 +89,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             saveDocumentWithLfcInStorage(params, guid, fileName, itemStatus);
 
             itemStatus.increment(StatusCode.OK);
+
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
