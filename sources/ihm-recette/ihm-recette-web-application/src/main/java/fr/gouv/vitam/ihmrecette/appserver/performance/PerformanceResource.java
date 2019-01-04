@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.VitamResource;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 /**
  * resource defining performance
@@ -65,7 +66,7 @@ public class PerformanceResource implements VitamResource {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-    private ExecutorService performanceTestLauncher = Executors.newSingleThreadExecutor();
+    private ExecutorService performanceTestLauncher = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
     private PerformanceService performanceService;
 
@@ -82,8 +83,7 @@ public class PerformanceResource implements VitamResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response launchPerformanceTest(@HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId,
-        PerformanceModel model)
-        throws InterruptedException, FileNotFoundException {
+        PerformanceModel model) {
 
         if (performanceService.inProgress()) {
             return Response.accepted().build();

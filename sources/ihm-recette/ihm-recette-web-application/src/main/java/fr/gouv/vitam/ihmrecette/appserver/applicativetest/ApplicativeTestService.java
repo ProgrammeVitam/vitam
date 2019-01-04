@@ -30,6 +30,7 @@ import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,7 +92,7 @@ public class ApplicativeTestService {
     public ApplicativeTestService(Path tnrReportDirectory) {
         this.tnrReportDirectory = tnrReportDirectory;
         this.inProgress = new AtomicBoolean(false);
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
         this.cucumberLauncher = new CucumberLauncher(tnrReportDirectory);
         this.isTnrMasterActived = new AtomicBoolean(false);
     }

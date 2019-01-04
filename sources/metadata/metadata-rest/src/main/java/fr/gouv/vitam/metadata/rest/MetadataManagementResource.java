@@ -43,11 +43,13 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -187,6 +189,8 @@ public class MetadataManagementResource {
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraph() {
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
             return Response.ok().entity(map).build();
@@ -207,6 +211,8 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraphInProgress() {
+
+        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
         boolean inProgress = this.storeGraphService.isInProgress();
         if (inProgress) {
@@ -235,8 +241,10 @@ public class MetadataManagementResource {
             ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
 
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
             GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
-            return Response.ok().entity(response).build();
+            return Response.ok().header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId()).entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
@@ -255,6 +263,8 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response computeGraphByDSLInProgress() {
+
+        VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
         boolean inProgress = this.graphComputeService.isInProgress();
         if (inProgress) {
@@ -279,6 +289,7 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response computeGraph(@PathParam("collection") GraphComputeAction action, Set<String> documentsId) {
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
             MetadataCollections metadataCollections = MetadataCollections.UNIT;
             boolean computeObjectGroupGraph = GraphComputeAction.UNIT_OBJECTGROUP.equals(action);
