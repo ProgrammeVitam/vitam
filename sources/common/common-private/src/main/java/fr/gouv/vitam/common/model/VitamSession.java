@@ -28,6 +28,9 @@ package fr.gouv.vitam.common.model;
 
 import javax.validation.constraints.NotNull;
 
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.slf4j.MDC;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -105,7 +108,6 @@ public class VitamSession {
 
     /**
      * @param other the other to set
-     *
      * @return this
      */
     public VitamSession setOther(Object other) {
@@ -116,8 +118,8 @@ public class VitamSession {
     private void checkCallingThread() {
         if (Thread.currentThread() != owningThread) {
             throw new IllegalStateException(
-                "VitamSession should only be called by the thread that owns it ; here, caller was " +
-                    Thread.currentThread() + ", and owner was ");
+                    "VitamSession should only be called by the thread that owns it ; here, caller was " +
+                            Thread.currentThread() + ", and owner was ");
         }
     }
 
@@ -141,8 +143,8 @@ public class VitamSession {
         if (oldRequestId != requestId) {
             // KWA TODO: replace the check by thing like StringUtils.checkNullOrEmpty(toto)
             LOGGER.warn(
-                "Caution : inconsistency detected between content of the VitamSession (requestId:{}) and the Logging MDC (requestId:{})",
-                oldRequestId, requestId);
+                    "Caution : inconsistency detected between content of the VitamSession (requestId:{}) and the Logging MDC (requestId:{})",
+                    oldRequestId, requestId);
         }
         requestId = newRequestId;
         MDC.put(GlobalDataRest.X_REQUEST_ID, newRequestId);
@@ -160,7 +162,7 @@ public class VitamSession {
 
     /**
      * Get the server request id
-     * 
+     *
      * @return internalRequestId
      */
     public String getInternalRequestId() {
@@ -224,7 +226,7 @@ public class VitamSession {
 
     /**
      * Get vitam security context id
-     * 
+     *
      * @return contextId
      */
     public String getContextId() {
@@ -233,7 +235,7 @@ public class VitamSession {
 
     /**
      * Set vitam security context id
-     * 
+     *
      * @param contextId
      */
     public void setContextId(String contextId) {
@@ -243,7 +245,7 @@ public class VitamSession {
 
     /**
      * Get securityProfileIdentifier
-     * 
+     *
      * @return securityProfileIdentifier
      */
     public String getSecurityProfileIdentifier() {
@@ -252,7 +254,7 @@ public class VitamSession {
 
     /**
      * Set securityProfileIdentifier
-     * 
+     *
      * @param securityProfileIdentifier
      */
     public void setSecurityProfileIdentifier(String securityProfileIdentifier) {
@@ -261,7 +263,7 @@ public class VitamSession {
 
     /**
      * Get vitam application session id
-     * 
+     *
      * @return applicationSessionId
      */
     public String getApplicationSessionId() {
@@ -270,7 +272,7 @@ public class VitamSession {
 
     /**
      * Set vitam application session id
-     * 
+     *
      * @param applicationSessionId
      */
     public void setApplicationSessionId(String applicationSessionId) {
@@ -280,7 +282,7 @@ public class VitamSession {
 
     /**
      * Get personalCertificate
-     * 
+     *
      * @return personalCertificate
      */
     public String getPersonalCertificate() {
@@ -289,7 +291,7 @@ public class VitamSession {
 
     /**
      * Set personalCertificate
-     * 
+     *
      * @param personalCertificate
      */
     public void setPersonalCertificate(String personalCertificate) {
@@ -336,11 +338,29 @@ public class VitamSession {
     }
 
 
+    public void initIfAbsent(Integer tenantId) {
+        if (null == VitamThreadUtils.getVitamSession().getTenantId()) {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        }
+
+        if (Strings.isNullOrEmpty(VitamThreadUtils.getVitamSession().getRequestId())) {
+            VitamThreadUtils
+                    .getVitamSession()
+                    .setRequestId(GUIDFactory
+                            .newRequestIdGUID(VitamThreadUtils
+                                    .getVitamSession()
+                                    .getTenantId()
+                            )
+                            .getId()
+                    );
+        }
+    }
+
     @Override
     public String toString() {
         return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId +
-            "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
-            applicationSessionId + "', personalCertificate:'" +
-            personalCertificate + "'}";
+                "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
+                applicationSessionId + "', personalCertificate:'" +
+                personalCertificate + "'}";
     }
 }

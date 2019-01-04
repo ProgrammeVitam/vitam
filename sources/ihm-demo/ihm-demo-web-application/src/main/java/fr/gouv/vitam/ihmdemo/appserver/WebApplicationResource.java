@@ -73,6 +73,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -200,7 +201,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int GUID_INDEX = 0;
 
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
-    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
 
 
     private final Set<String> permissions;

@@ -26,19 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -61,23 +62,27 @@ public class ProcessWorkFlowsCleaner implements Runnable {
         this.processManagement = processManagement;
         processDataManagement = WorkspaceProcessDataManagement.getInstance();
         Executors
-            .newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, timeUnit);
+            .newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(this, period, period, timeUnit);
     }
 
 
-    @Override public void run() {
+    @Override
+    public void run() {
         timeLimit = LocalDateTime.now().minusHours(period);
+        // One RequestId for all tenant
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
         this.cleanProcessingByTenants();
     }
 
     ProcessDataManagement processDataManagement;
 
-    // clean workflow by teneant
+    // clean workflow by tenant
     private void cleanProcessingByTenants() {
         for (Map.Entry<Integer, Map<String, ProcessWorkflow>> entry : this.processManagement.getWorkFlowList()
             .entrySet()) {
             Map<String, ProcessWorkflow> map = entry.getValue();
             if (null != map && map.size() > 0) {
+                VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
                 cleanCompletedProcess(entry.getValue());
             }
         }
@@ -86,14 +91,14 @@ public class ProcessWorkFlowsCleaner implements Runnable {
     //clean workflow list
     private void cleanCompletedProcess(Map<String, ProcessWorkflow> map) {
         for (Map.Entry<String, ProcessWorkflow> element : map.entrySet()) {
-            if (isCleaneable(element.getValue())) {
+            if (isCleanable(element.getValue())) {
                 try {
                     processDataManagement
                         .removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
-                            element.getKey().toString());
+                                element.getKey());
                 } catch (Exception e) {
                     LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
-                        (ServerIdentity.getInstance().getServerId()), element.getKey().toString(), e);
+                        (ServerIdentity.getInstance().getServerId()), element.getKey(), e);
                 }
                 /**
                  *remove from workFlowList
@@ -107,8 +112,8 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     }
 
-    // check if the workflow is clennable
-    private boolean isCleaneable(ProcessWorkflow workflow) {
+    // check if the workflow is cleanable
+    private boolean isCleanable(ProcessWorkflow workflow) {
         return workflow.getState().equals(ProcessState.COMPLETED)
             && workflow.getProcessCompletedDate() != null &&
             workflow.getProcessCompletedDate().isBefore(timeLimit);

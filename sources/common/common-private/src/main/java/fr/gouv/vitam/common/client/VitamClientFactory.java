@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.SocketConfig;
@@ -476,6 +477,16 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
     }
 
+    /**
+     * Closes any pending connection.
+     */
+    @VisibleForTesting
+    public static void resetConnections() {
+        for (PoolingHttpClientConnectionManager manager : allManagers) {
+            manager.closeExpiredConnections();
+            manager.closeIdleConnections(0, TimeUnit.MICROSECONDS);
+        }
+    }
     private static void setupApachePool(PoolingHttpClientConnectionManager manager) {
         manager.setMaxTotal(VitamConfiguration.getMaxTotalClient());
         manager.setDefaultMaxPerRoute(VitamConfiguration.getMaxClientPerHost());

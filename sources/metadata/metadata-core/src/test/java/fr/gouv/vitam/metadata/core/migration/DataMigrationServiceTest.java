@@ -12,17 +12,21 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.GraphService;
 
+import fr.gouv.vitam.metadata.core.graph.GraphService;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -49,23 +53,27 @@ public class DataMigrationServiceTest {
     private static final String VITAM_TEST = "vitam-test";
 
     private static final int TEST_BULK_SIZE = 10;
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class, ObjectGroup.class)),
-            VITAM_TEST,
-            UNIT_COLLECTION,
-            OBJECT_GROUP_COLLECTION);
+            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class, ObjectGroup.class)),
+                    VITAM_TEST,
+                    UNIT_COLLECTION,
+                    OBJECT_GROUP_COLLECTION);
 
     private MongoCollection<Unit> unitCollection = mongoRule.getMongoCollection(UNIT_COLLECTION, Unit.class);
     private MongoCollection<ObjectGroup> ogCollection =
-        mongoRule.getMongoCollection(OBJECT_GROUP_COLLECTION, ObjectGroup.class);
+            mongoRule.getMongoCollection(OBJECT_GROUP_COLLECTION, ObjectGroup.class);
 
     private DataMigrationRepository repository =
-        new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
+            new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
 
     private GraphService graphService;
 
@@ -165,6 +173,7 @@ public class DataMigrationServiceTest {
         assertThat(unitCollection.find().iterator().hasNext()).isFalse();
     }
 
+    @RunWithCustomExecutor
     @Test
     public void mongoDataUpdate_checkGraphMigration() throws Exception {
 
@@ -191,24 +200,24 @@ public class DataMigrationServiceTest {
     }
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
-        throws InvalidParseOperationException, FileNotFoundException {
+            throws InvalidParseOperationException, FileNotFoundException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection);
 
         String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
         String expectedUnitDataSet =
-            JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                expectedDataSetFile)));
+                JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                        expectedDataSetFile)));
 
         JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find()
-            .sort(orderBy(ascending(MetadataDocument.ID)));
+                .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
             ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
@@ -235,7 +244,7 @@ public class DataMigrationServiceTest {
     }
 
     private void importUnitDataSetFile(String dataSetFile)
-        throws FileNotFoundException, InvalidParseOperationException {
+            throws FileNotFoundException, InvalidParseOperationException {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
@@ -244,7 +253,7 @@ public class DataMigrationServiceTest {
     }
 
     private void importObjectGroupDataSetFile(String dataSetFile)
-        throws FileNotFoundException, InvalidParseOperationException {
+            throws FileNotFoundException, InvalidParseOperationException {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {

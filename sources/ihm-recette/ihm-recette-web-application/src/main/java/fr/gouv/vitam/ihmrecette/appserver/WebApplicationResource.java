@@ -58,6 +58,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -165,7 +166,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_DELETE = "DELETE";
     public static final String DEFAULT = "default";
 
-    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
     private List<String> secureMode;
 
     /**

@@ -29,10 +29,13 @@ package fr.gouv.vitam.common.database.parser.query;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClient;
 import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClientFactory;
 
@@ -1185,10 +1188,12 @@ public class ParserTokens extends BuilderToken {
         private Integer period = VitamConfiguration.getExpireCacheEntriesDelay(); // default 5min
 
         public OntologiesLoader() {
-            Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
         }
 
-        @Override public void run() {
+        @Override
+        public void run() {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             loadOntologies();
         }
     }

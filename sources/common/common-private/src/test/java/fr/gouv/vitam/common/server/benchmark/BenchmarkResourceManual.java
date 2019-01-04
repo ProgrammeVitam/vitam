@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.HttpMethod;
 
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -201,7 +202,7 @@ public class BenchmarkResourceManual {
             try {
                 Thread.sleep(10000);
             } catch (final InterruptedException e) {}
-            final ExecutorService executorService = Executors.newCachedThreadPool();
+            final ExecutorService executorService = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
             final long available = Runtime.getRuntime().freeMemory();
             LOGGER.warn("START " + mode.name());
             final long start = System.nanoTime();

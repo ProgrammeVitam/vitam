@@ -36,6 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.model.ProcessState;
@@ -44,14 +51,26 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
 public class ProcessWorkFlowsCleanerTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static int tenant = VitamConfiguration.getAdminTenant();
+    @BeforeClass
+    public static void beforeClass() {
+        VitamConfiguration.setAdminTenant(0);
+    }
+    @AfterClass
+    public static void afterClass() {
+        VitamConfiguration.setAdminTenant(tenant);
+    }
     @Test
+    @RunWithCustomExecutor
     public void testCleaner(){
-
         //GIVEN
         ConcurrentHashMap<Integer, Map<String , ProcessWorkflow>> map = new ConcurrentHashMap<>();
-        map.put(0,new ConcurrentHashMap<String,ProcessWorkflow>());
-        map.put(1,new ConcurrentHashMap<String,ProcessWorkflow>());
+        map.put(0, new ConcurrentHashMap<>());
+        map.put(1, new ConcurrentHashMap<>());
         map.get(0).put("id1_tenant_0",  new ProcessWorkflow());
         map.get(0).put("id2_tenant_0",  new ProcessWorkflow());
         map.get(0).put("id3_tenant_0",  new ProcessWorkflow());
@@ -80,8 +99,8 @@ public class ProcessWorkFlowsCleanerTest {
         ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(processManagement, TimeUnit.HOURS);
         processWorkFlowsCleaner.run();
 
-       assertThat(map.get(0).size()).isEqualTo(2);
-       assertThat(map.get(1).size()).isEqualTo(2);
+        assertThat(map.get(0).size()).isEqualTo(2);
+        assertThat(map.get(1).size()).isEqualTo(2);
 
     }
 }
