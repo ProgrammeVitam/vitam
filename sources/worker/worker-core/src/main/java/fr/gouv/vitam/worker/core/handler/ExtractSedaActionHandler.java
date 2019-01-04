@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -97,19 +98,19 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
+import fr.gouv.vitam.processing.common.exception.ExceptionType;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
+import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
-import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
@@ -194,8 +195,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
-    private static final String SUBTASK_ATTACHEMENT = "CHECK_MANIFEST_WRONG_ATTACHMENT";
-    private static final String SUBTASK_ATTACHEMENT_LINK = "CHECK_MANIFEST_WRONG_ATTACHMENT_LINK";
+    public static final String SUBTASK_ERROR_PARSE_ATTACHMENT = "ERROR_PARSE_ATTACHMENT";
+    public static final String SUBTASK_EMPTY_KEY_ATTACHMENT = "EMPTY_KEY_ATTACHMENT";
+    public static final String SUBTASK_NULL_LINK_PARENT_ID_ATTACHMENT = "NULL_LINK_PARENT_ID_ATTACHMENT";
+    public static final String SUBTASK_TOO_MANY_FOUND_ATTACHMENT = "TOO_MANY_FOUND_ATTACHMENT";
+    public static final String SUBTASK_TOO_MANY_VERSION_BY_USAGE = "TOO_MANY_VERSION_BY_USAGE";
+    public static final String SUBTASK_NOT_FOUND_ATTACHMENT = "NOT_FOUND_ATTACHMENT";
+    public static final String SUBTASK_UNAUTHORIZED_ATTACHMENT = "UNAUTHORIZED_ATTACHMENT";
+    public static final String SUBTASK_INVALID_GUID_ATTACHMENT = "INVALID_GUID_ATTACHMENT";
+    public static final String SUBTASK_MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED = "MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED";
+
     private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
     private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
     private static final String MASTER_MANDATORY_REQUIRED = "MASTER_MANDATORY_REQUIRED";
@@ -491,15 +500,29 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final ProcessingDuplicatedVersionException e) {
             LOGGER.debug("ProcessingException: duplicated version", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingUnitNotFoundException e) {
-            LOGGER.debug("ProcessingException : unit not found", e);
+        } catch (final ProcessingNotFoundException e) {
+            LOGGER.debug("ProcessingException : " + e.getType() + " not found", e);
+
+            String message;
+
+            if (e.getType() == ExceptionType.UNIT) {
+                message = getMessageItemStatusAUNotFound(e.getManifestId(), e.getGuid(), e.isValidGuid());
+            } else {
+                message = getMessageItemStatusOGNotFound(e.getManifestId(), e.getGuid(), e.isValidGuid());
+            }
             updateDetailItemStatus(globalCompositeItemStatus,
-                    getMessageItemStatusAUNotFound(e.getUnitId(), e.getUnitGuid()), SUBTASK_ATTACHEMENT);
+                    message, e.getTaskKey());
+            globalCompositeItemStatus.increment(StatusCode.KO);
+
+        } catch (final ProcessingTooManyUnitsFoundException e) {
+            LOGGER.debug("ProcessingException : multiple units found", e);
+            updateDetailItemStatus(globalCompositeItemStatus,
+                    getMessageItemStatusAUNotFound(e.getUnitId(), e.getUnitGuid(), e.isValidGuid()), SUBTASK_TOO_MANY_FOUND_ATTACHMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingTooManyVersionsByUsageException e) {
             LOGGER.debug("ProcessingException :", e);
             updateDetailItemStatus(globalCompositeItemStatus,
-                    JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("MsgError", e.getMessage())), SUBTASK_ATTACHEMENT);
+                    JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("MsgError", e.getMessage())), SUBTASK_TOO_MANY_VERSION_BY_USAGE);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingMalformedDataException e) {
             LOGGER.debug("ProcessingException : Missing or malformed data in the manifest", e);
@@ -507,17 +530,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
             error.put("error", e.getMessage());
             updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error), SUBTASK_MALFORMED);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingObjectGroupNotFoundException e) {
-            LOGGER.debug("ProcessingException : ObjectGroup not found", e);
-            updateDetailItemStatus(globalCompositeItemStatus,
-                    getMessageItemStatusOGNotFound(e.getUnitId(), e.getObjectGroupGuid()), SUBTASK_ATTACHEMENT);
-            globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingUnauthorizeException e) {
-            LOGGER.debug("ProcessingException : unit not found", e);
-            globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);
+
+            updateItemStatusForManifestReferenceException(globalCompositeItemStatus, e);
             globalCompositeItemStatus.increment(StatusCode.KO);
+
         } catch (final MissingFieldException e) {
             LOGGER.debug("MissingFieldException", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
@@ -543,18 +561,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingUnitLinkingException e) {
             LOGGER.debug("ProcessingException: Linking FILING_UNIT or HOLDING_UNIT to INGEST Unauthorized", e);
-            if (e.getUnitGuid() != null && e.getUnitIngestContractGuid() != null) {
-                updateDetailItemStatus(globalCompositeItemStatus,
-                        getMessageItemStatusAULinkingException(e.getUnitGuid(), e.getUnitIngestContractGuid()),
-                        SUBTASK_ATTACHEMENT_LINK);
-            }
+            updateDetailItemStatus(globalCompositeItemStatus,
+                    getMessageItemStatusAULinkingException(e),
+                    SUBTASK_UNAUTHORIZED_ATTACHMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingObjectLinkingException e) {
-            if (e.getUnitGuid() != null && e.getObjectGroupId() != null) {
-                updateDetailItemStatus(globalCompositeItemStatus,
-                        getMessageItemStatusGOTLinkingException(e.getUnitGuid(), e.getObjectGroupId()),
-                        SUBTASK_ATTACHEMENT_LINK);
-            }
+        } catch (final ProcessingObjectGroupLinkingException e) {
+            updateDetailItemStatus(globalCompositeItemStatus,
+                    getMessageItemStatusGOTLinkingException(e.getUnitId(), e.getObjectGroupId()),
+                    SUBTASK_UNAUTHORIZED_ATTACHMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException | WorkerspaceQueueException e) {
             LOGGER.debug("ProcessingException", e);
@@ -586,6 +600,32 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
     }
 
+    private void updateItemStatusForManifestReferenceException(ItemStatus globalCompositeItemStatus, ProcessingManifestReferenceException e) {
+        String message;
+        String key = null;
+        if (e.getType() == ExceptionType.UNIT) {
+
+            ObjectNode error = JsonHandler.createObjectNode();
+            ObjectNode errorDetail = JsonHandler.createObjectNode();
+            errorDetail.put("ManifestUnitId", e.getManifestId());
+            errorDetail.put(SedaConstants.TAG_ARCHIVE_SYSTEM_ID, e.getUnitGuid());
+            errorDetail.put("ParentUnitId", e.getUnitParentId());
+            errorDetail.put("Message", e.getMessage());
+            error.set(e.getManifestId(), errorDetail);
+            message = JsonHandler.unprettyPrint(error);
+            key = SUBTASK_MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED;
+        } else {
+            ObjectNode error = JsonHandler.createObjectNode();
+            ObjectNode errorDetail = JsonHandler.createObjectNode();
+            errorDetail.put("ManifestGotId", e.getManifestId());
+            errorDetail.put("Message", e.getMessage());
+            error.set(e.getManifestId(), errorDetail);
+            message = JsonHandler.unprettyPrint(error);
+        }
+
+        updateDetailItemStatus(globalCompositeItemStatus, message, key);
+    }
+
     private UnitType getUnitType() {
         UnitType unitType =
                 UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(UNIT_TYPE_INPUT_RANK)));
@@ -613,7 +653,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return JsonHandler.unprettyPrint(error);
     }
 
-    private String getMessageItemStatusAUNotFound(final String unitId, final String unitGuid) {
+    private String getMessageItemStatusAUNotFound(final String unitId, String unitGuid, boolean isGuid) {
+        if (isGuid) {
+            unitGuid = "[MetadataName:" + ParserTokens.PROJECTIONARGS.ID.exactToken() + ", MetadataValue : " + unitGuid + "]";
+
+        }
         ObjectNode error = JsonHandler.createObjectNode();
         ObjectNode errorDetail = JsonHandler.createObjectNode();
         errorDetail.put(SedaConstants.TAG_ARCHIVE_UNIT, unitGuid);
@@ -628,14 +672,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return JsonHandler.unprettyPrint(error);
     }
 
-    private String getMessageItemStatusAULinkingException(final String unitGuid, final String unitIngestContractGuid) {
+    private String getMessageItemStatusAULinkingException(ProcessingUnitLinkingException e) {
         ObjectNode error = JsonHandler.createObjectNode();
-        error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitGuid);
-        error.put(SedaConstants.TAG_ARCHIVE_SYSTEM_ID, unitIngestContractGuid);
+        error.put(SedaConstants.TAG_ARCHIVE_UNIT, e.getManifestId());
+        error.put("ExistingUnitType", e.getUnitType().name());
+        error.put("IngestUnitType", e.getIngestType().name());
+        error.put("message", e.getMessage());
+
         return JsonHandler.unprettyPrint(error);
     }
 
-    private String getMessageItemStatusOGNotFound(final String unitId, final String objectGroupGuid) {
+    private String getMessageItemStatusOGNotFound(final String unitId, String objectGroupGuid, boolean isGuid) {
+        if (isGuid) {
+            objectGroupGuid = "[MetadataName:" + ParserTokens.PROJECTIONARGS.ID.exactToken() + ", MetadataValue : " + objectGroupGuid + "]";
+
+        }
         ObjectNode error = JsonHandler.createObjectNode();
         ObjectNode errorDetail = JsonHandler.createObjectNode();
         errorDetail.put(SedaConstants.TAG_DATA_OBJECT_GROUP, objectGroupGuid);
@@ -716,32 +767,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         unmarshaller.unmarshal(reader, ArchiveUnitType.class);
                     } catch (RuntimeException e) {
                         LOGGER.error(e);
-                        if (e.getCause() instanceof ProcessingUnitNotFoundException) {
-                            ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
-                            unitIdToGuid.put(exception.getUnitId(), exception.getUnitGuid());
-                            guidToUnitId.put(exception.getUnitGuid(), exception.getUnitId());
-                            saveGuidsMaps();
-                            if (exception.isValidGuid()) {
-                                createLifeCycleForError(SUBTASK_ATTACHEMENT,
-                                        getMessageItemStatusAUNotFound(exception.getUnitId(), exception.getUnitGuid()),
-                                        exception.getUnitGuid(), true, false, containerId, logbookLifeCycleClient,
-                                        typeProcess);
-                            }
-                        }
-                        if (e.getCause() instanceof ProcessingObjectGroupNotFoundException) {
-                            ProcessingObjectGroupNotFoundException exception =
-                                    (ProcessingObjectGroupNotFoundException) e.getCause();
-                            dataObjectIdToGuid.put(exception.getObjectGroupGuid(), exception.getObjectGroupGuid());
-                            saveGuidsMaps();
-                            createLifeCycleForError(SUBTASK_ATTACHEMENT,
-                                    getMessageItemStatusOGNotFound(exception.getUnitId(), exception.getObjectGroupGuid()),
-                                    exception.getObjectGroupGuid(), false, true, containerId, logbookLifeCycleClient,
-                                    typeProcess);
-                        }
-                        if (e.getCause() instanceof ProcessingException) {
-                            throw (ProcessingException) e.getCause();
-                        }
-                        throw e;
+                        return handleJaxbUnmarshalRuntimeException(containerId, logbookLifeCycleClient, typeProcess, e);
                     } catch (JAXBException e) {
                         LOGGER.error("unable to parse archiveUnit", e);
                         throw new InvalidParseOperationException(e);
@@ -753,7 +779,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() && event.asStartElement().getName().equals(dataObjectGroupName)) {
                     final StartElement element = event.asStartElement();
-                    // if(!element.getAttributes().hasNext())
                     currentGroupId = element.getAttributeByName(idQName).getValue();
                     continue;
                 }
@@ -1101,6 +1126,40 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
+    }
+
+    private ObjectNode handleJaxbUnmarshalRuntimeException(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, RuntimeException e) throws IOException, ProcessingException, InvalidParseOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        if (e.getCause() instanceof ProcessingNotFoundException) {
+            ProcessingNotFoundException exception = (ProcessingNotFoundException) e.getCause();
+
+            if (exception.getType() == ExceptionType.UNIT && exception.isValidGuid()) {
+                unitIdToGuid.put(exception.getManifestId(), exception.getGuid());
+                guidToUnitId.put(exception.getGuid(), exception.getManifestId());
+                saveGuidsMaps();
+
+                createLifeCycleForError(exception.getTaskKey(),
+                        getMessageItemStatusAUNotFound(exception.getManifestId(), exception.getGuid(), exception.isValidGuid()),
+                        exception.getGuid(), true, false, containerId, logbookLifeCycleClient,
+                        typeProcess);
+
+                throw exception;
+            }
+
+            if (exception.getType() == ExceptionType.GOT) {
+                dataObjectIdToGuid.put(exception.getGuid(), exception.getGuid());
+                saveGuidsMaps();
+                createLifeCycleForError(exception.getTaskKey(),
+                        getMessageItemStatusOGNotFound(exception.getManifestId(), exception.getGuid(), exception.isValidGuid()),
+                        exception.getGuid(), false, true, containerId, logbookLifeCycleClient,
+                        typeProcess);
+                throw exception;
+            }
+        }
+
+        if (e.getCause() instanceof ProcessingException) {
+            throw (ProcessingException) e.getCause();
+        }
+        throw e;
     }
 
     private void saveGuidsMaps() throws IOException, ProcessingException {
@@ -1779,18 +1838,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
         return sbRules.toString();
-    }
-
-    // FIXME: 12/12/18 remove this is just do a recheck. We suppose that _up are valid so no need to check according to unitIdToGuid
-    private ArrayNode ReCheckUnitParents(ArrayNode parents) {
-        final ArrayNode parentsList = JsonHandler.createArrayNode();
-        for (final JsonNode currentParentNode : parents) {
-            final String currentParentId = currentParentNode.asText();
-            if (unitIdToGuid.containsKey(currentParentId)) {
-                parentsList.add(unitIdToGuid.get(currentParentId));
-            }
-        }
-        return parentsList;
     }
 
     private void checkArchiveUnitIdReference(String llcEvDetData) throws ProcessingException {
