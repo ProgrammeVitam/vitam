@@ -55,6 +55,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -138,7 +140,7 @@ public class StorageTraceabilityAdministrationTest {
         ArgumentCaptor<byte[]> hashCapture = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
-        StorageTraceabilityIterator iterator = new StorageTraceabilityIterator(new ArrayList<OfferLog>());
+        StorageTraceabilityIterator iterator = new StorageTraceabilityIterator(new ArrayList<>());
         given(timestampGenerator.generateToken(hashCapture.capture(),
             eq(DigestType.SHA512), eq(null))).willReturn(hash);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
@@ -151,7 +153,8 @@ public class StorageTraceabilityAdministrationTest {
                 file, workspaceClient, timestampGenerator, OVERLAP_DELAY);
 
         // When
-        storageAdministration.generateTraceabilityStorageLogbook();
+        GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        storageAdministration.generateTraceabilityStorageLogbook(guid);
 
         // Then
         verify(logbookOperationsClient).update(captor.capture());
@@ -228,7 +231,8 @@ public class StorageTraceabilityAdministrationTest {
                 file, workspaceClient, timestampGenerator, OVERLAP_DELAY);
 
         // insert initial event
-        storageAdministration.generateTraceabilityStorageLogbook();
+        GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        storageAdministration.generateTraceabilityStorageLogbook(guid);
 
         TraceabilityEvent lastEvent = extractLastTimestampToken(true);
 
@@ -258,7 +262,8 @@ public class StorageTraceabilityAdministrationTest {
                 willReturn(iterator2);
 
         // When
-        storageAdministration.generateTraceabilityStorageLogbook();
+        GUID guid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
+        storageAdministration.generateTraceabilityStorageLogbook(guid2);
 
         // Then
         assertThat(archive2).
