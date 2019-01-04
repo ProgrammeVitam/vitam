@@ -27,24 +27,12 @@
 
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.InputStream;
-import java.util.Optional;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -68,6 +56,15 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServer
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.Optional;
 
 
 /**

@@ -1386,7 +1386,7 @@ public class ProcessingIT extends VitamRuleRunner {
         String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
-        ProcessWorkflow processWorflow = ingest(zipPath, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorflow = ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         String operationId = processWorflow.getOperationId();
 
@@ -1408,7 +1408,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
-        processWorflow = ingest(zipPath, WORFKLOW_NAME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        processWorflow = ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         operationId = processWorflow.getOperationId();
 
@@ -1428,7 +1428,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void test_link_holdingscheme_to_filingscheme_ko() throws Exception {
         prepareVitamSession();
         // Import Filing scheme (Plan)
-        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), FILINGSCHEME, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.FILING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
         // get one unit
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
@@ -1448,7 +1448,7 @@ public class ProcessingIT extends VitamRuleRunner {
         zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipPath);
 
         // Attach to unitChild KO existing unit should not have a parent in the manifest
-        ProcessWorkflow processWorkflow = ingest(zipPath, INGEST_TREE_WORFKLOW, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorkflow = ingest(zipPath, Contexts.HOLDING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         String operationId = processWorkflow.getOperationId();
         Document operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();

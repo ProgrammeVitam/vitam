@@ -26,16 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -65,6 +55,16 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Processing Management Client
