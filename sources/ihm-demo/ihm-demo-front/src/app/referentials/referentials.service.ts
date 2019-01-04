@@ -38,6 +38,26 @@ export class ReferentialsService {
       body.orderby = {'field': 'Name', 'sortType': 'ASC'};
     }
 
+    if (this.searchAPI === 'preservationScenarios') {
+      if (!body.ScenarioID) {
+        body.ScenarioID = 'all';
+      }
+      if (!body.ScenarioName) {
+        body.ScenarioName = 'all';
+      }
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
+    }
+
+    if (this.searchAPI === 'griffins') {
+      if (!body.GriffinID) {
+        body.GriffinID = 'all';
+      }
+      if (!body.GriffinName) {
+        body.GriffinName = 'all';
+      }
+      body.orderby = {'field': 'Name', 'sortType': 'ASC'};
+    }
+
     if (this.searchAPI === 'archiveunitprofiles') {
       if (!body.ArchiveUnitProfileID) {
         body.ArchiveUnitProfileID = 'all';

@@ -1695,10 +1695,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 RequestResponseOK<GriffinModel> requestResponseOK =
                     getFromString(entity, RequestResponseOK.class, GriffinModel.class);
 
-                if (requestResponseOK.getResults() == null ||
-                    requestResponseOK.getResults().isEmpty()) {
-                    throw new ReferentialNotFoundException("Griffin not found ");
-                }
+
                 return requestResponseOK;
             }
             return RequestResponse.parseFromResponse(response, GriffinModel.class);
@@ -1717,7 +1714,13 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input documentId json is mandatory", id);
         try {
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
-            return findGriffin(queryDsl);
+            RequestResponse<GriffinModel> requestResponse = findGriffin(queryDsl);
+
+            if (((RequestResponseOK)requestResponse).getResults() == null ||
+                ((RequestResponseOK)requestResponse).getResults().isEmpty()) {
+                throw new ReferentialNotFoundException("Griffin not found ");
+            }
+            return requestResponse;
         } catch (InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -1729,7 +1732,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ParametersChecker.checkParameter("The input documentId json is mandatory", id);
         try {
             JsonNode queryDsl = getIdentifierQuery(PreservationScenarioModel.TAG_IDENTIFIER, id);
-            return findPreservation(queryDsl);
+
+            RequestResponse<PreservationScenarioModel> requestResponseOK = findPreservation(queryDsl);
+
+            if (((RequestResponseOK)requestResponseOK).getResults() == null ||
+                ((RequestResponseOK)requestResponseOK).isEmpty()) {
+                throw new ReferentialNotFoundException("Griffin not found ");
+            }
+           return requestResponseOK;
         } catch (InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -1751,10 +1761,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 RequestResponseOK<PreservationScenarioModel> requestResponseOK =
                     getFromString(entity, RequestResponseOK.class, PreservationScenarioModel.class);
 
-                if (requestResponseOK.getResults() == null ||
-                    requestResponseOK.getResults().isEmpty()) {
-                    throw new ReferentialNotFoundException("Griffin not found ");
-                }
                 return requestResponseOK;
             }
             return RequestResponse.parseFromResponse(response, PreservationScenarioModel.class);

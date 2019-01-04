@@ -1207,6 +1207,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalFindDocuments(vitamContext, AdminCollections.PRESERVATION_SCENARIO, select,
             PreservationScenarioModel.class);
     }
+
+    @Override
+    public RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.GRIFFIN, select, GriffinModel.class);
+    }
 }
 
 

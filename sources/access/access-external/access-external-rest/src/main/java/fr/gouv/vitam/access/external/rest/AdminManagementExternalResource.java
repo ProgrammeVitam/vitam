@@ -2720,13 +2720,34 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+    @GET
+    @Path("/griffin")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "griffins:read", isAdminOnly = true, description = "Lister le contenu du référentiel des griffons")
+    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select) throws AdminManagementClientServerException {
+
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse result = client.findGriffin(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return buildErrorResponse(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage());
+            }
+        }
 
 
     @Path("/preservationScenario")
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "preservationScenario:read", description = "Lister le contenu du référentiel des contrats d'accès")
+    @Secured(permission = "preservationScenarios:read", description = "Lister le contenu du référentiel des préservation scénarios")
     public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
@@ -2781,7 +2802,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "griffins:read", description = "lecture d'un griffin par identifier")
+    @Secured(permission = "griffin:read", description = "lecture d'un griffin par identifier")
     public Response findGriffinByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -2811,7 +2832,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/preservationScenario/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:read", description = "lecture d'un scenario par identifier")
+    @Secured(permission = "preservationScenario:read", description = "lecture d'un scenario par identifier")
     public Response findPreservationByID(@PathParam("id_document") String documentId) {
 
         try {

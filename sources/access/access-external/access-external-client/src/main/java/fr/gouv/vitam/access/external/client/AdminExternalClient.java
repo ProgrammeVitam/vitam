@@ -861,4 +861,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
+
+    RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select)
+        throws VitamClientException;
+
 }

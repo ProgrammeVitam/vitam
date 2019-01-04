@@ -188,6 +188,11 @@ public final class DslQueryHelper {
     private static final String FILE_FORMAT_ID_GOT_FIELD = "#qualifiers.versions.FormatIdentification.FormatId";
     private static final String FILE_USAGE_GOT_FIELD = "#qualifiers.versions.DataObjectVersion";
     private static final String FILE_SIZE_GOT_FIELD = "#qualifiers.versions.Size";
+    private static final String SCENARIO_NAME = "ScenarioName";
+    private static final String GRIFFIN_NAME = "GriffinName";
+    private static final String SCENARIO_ID = "ScenarioID";
+    private static final String GRIFFIN_ID = "GriffinID";
+
 
 
     // empty constructor
@@ -377,6 +382,8 @@ public final class DslQueryHelper {
                     case CONTEXT_NAME:
                     case CONTRACT_NAME:
                     case PROFILE_NAME:
+                    case SCENARIO_NAME:
+                    case GRIFFIN_NAME:
                     case ARCHIVE_UNIT_PROFILE_NAME:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Name"));
@@ -403,6 +410,8 @@ public final class DslQueryHelper {
                     case CONTRACT_ID:
                     case CONTEXT_ID:
                     case PROFILE_ID:
+                    case SCENARIO_ID:
+                    case GRIFFIN_ID:
                     case ARCHIVE_UNIT_PROFILE_ID:
                     case ONTOLOGY_ID:
                         if (!"all".equals(searchValue)) {
