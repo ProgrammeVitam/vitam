@@ -102,8 +102,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class EvidenceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
-    private static final String EVIDENCE_AUDIT = "EVIDENCE_AUDIT";
-    private static final String RECTIFICATION_AUDIT = "RECTIFICATION_AUDIT";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
     private static final String OPERATION_ID_MANDATORY = "Operation id Mandatory";
     private static final String ACCESS_CONTRACT = "AccessContract";
@@ -205,11 +203,10 @@ public class EvidenceResource {
 
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
-                processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), operationId, EVIDENCE_AUDIT);
+                processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, EVIDENCE_AUDIT,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(),  ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
@@ -267,11 +264,10 @@ public class EvidenceResource {
                 createRectificationAuditOperation(operationId, contract);
 
                 processingClient
-                    .initVitamProcess(Contexts.RECTIFICATION_AUDIT.name(), operationId, RECTIFICATION_AUDIT);
+                    .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, RECTIFICATION_AUDIT,
-                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
             } catch (ContentAddressableStorageServerException |InvalidParseOperationException |LogbookClientException
@@ -298,7 +294,7 @@ public class EvidenceResource {
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
-                    RECTIFICATION_AUDIT,
+                    Contexts.RECTIFICATION_AUDIT.getEventType(),
                     GUIDReader.getGUID(operationId),
                     LogbookTypeProcess.AUDIT,
                     StatusCode.STARTED,

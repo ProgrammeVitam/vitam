@@ -32,6 +32,8 @@ package fr.gouv.vitam.workspace.api.exception;
 public class WorkspaceClientServerException extends ContentAddressableStorageException {
     private static final long serialVersionUID = -7976465493734475323L;
 
+    private String workflowIdentifier;
+    private String logbookTypeProcess;
     /**
      * Constructor
      * 
@@ -60,4 +62,19 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
         super(message, cause);
     }
 
+    public String getWorkflowIdentifier() {
+        return workflowIdentifier;
+    }
+
+    public void setWorkflowIdentifier(String workflowIdentifier) {
+        this.workflowIdentifier = workflowIdentifier;
+    }
+
+    public String getLogbookTypeProcess() {
+        return logbookTypeProcess;
+    }
+
+    public void setLogbookTypeProcess(String logbookTypeProcess) {
+        this.logbookTypeProcess = logbookTypeProcess;
+    }
 }

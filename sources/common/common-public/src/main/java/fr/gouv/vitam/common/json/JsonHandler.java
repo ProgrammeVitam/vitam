@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -245,18 +246,11 @@ public final class JsonHandler {
      */
     public static final JsonNode getFromInputStream(final InputStream stream1, final InputStream stream2)
         throws InvalidParseOperationException {
-        // if stream2 is null, forward call
+        ParametersChecker.checkParameter("InputStream 1", stream1);
+
         if (stream2 == null) {
             return getFromInputStream(stream1);
         }
-
-        // load and merge nodes
-        ParametersChecker.checkParameter("InputStream 1", stream1);
-        //ParametersChecker.checkParameter("InputStream 2", stream2); // check already done
-
-        // JsonNode node = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(stream1), JsonNode.class);
-        // ObjectReader updater = OBJECT_MAPPER.readerForUpdating(node);
-        // return updater.readValue(stream2);
 
         // Use manual merge
         return merge(getFromInputStream(stream1), getFromInputStream(stream2));
@@ -794,13 +788,7 @@ public final class JsonHandler {
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (final IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            StreamUtils.closeSilently(inputStream);
         }
     }
 
@@ -820,13 +808,7 @@ public final class JsonHandler {
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (final IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            StreamUtils.closeSilently(inputStream);
         }
     }
 

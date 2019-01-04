@@ -179,7 +179,7 @@
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDetachObjectGroupPlugin",
     "propertiesFile": "elimination_action_detach_object_group.properties"
   },
-  "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE":{
+  "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterUpdatePlugin",
     "propertiesFile": "elimination_action_update_accession_register.properties"
   },
@@ -228,28 +228,33 @@
     "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",
     "propertiesFile": "object_group_lfc_traceability_finalization_plugin.properties"
   },
-  "PRESERVATION_PREPARATION":{
+  "PRESERVATION_PREPARATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin"
   },
-  "PRESERVATION_ACTION":{
+  "PRESERVATION_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin"
   },
-  "PRESERVATION_FINALIZATION":{
+  "PRESERVATION_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin"
   },
-  "PRESERVATION_SIEGFRIED_IDENTIFICATION":{
+  "PRESERVATION_SIEGFRIED_IDENTIFICATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
   },
-  "PRESERVATION_BINARY_HASH":{
+  "PRESERVATION_BINARY_HASH": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash"
   },
-  "PRESERVATION_STORAGE_BINARY":{
+  "PRESERVATION_STORAGE_BINARY": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin"
   },
-  "PRESERVATION_INDEXATION_METADATA":{
+  "PRESERVATION_INDEXATION_METADATA": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationUpdateObjectGroupPlugin"
   },
-  "PRESERVATION_STORAGE_METADATA_LFC":{
+  "PRESERVATION_STORAGE_METADATA_LFC": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageMetadataAndLfc"
+  },
+  "HELLO_WORLD_PLUGIN": {
+    "className": "fr.vitam.plugin.custom.HelloWorldPlugin",
+    "propertiesFile": "hellow_world_plugin.properties",
+    "jarName": "hellow-world-plugin-1.14.0-SNAPSHOT.jar"
   }
 }

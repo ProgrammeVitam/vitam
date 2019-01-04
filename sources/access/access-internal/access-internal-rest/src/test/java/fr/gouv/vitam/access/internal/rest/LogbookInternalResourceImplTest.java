@@ -175,10 +175,10 @@ public class LogbookInternalResourceImplTest {
         LOGGER.warn("Start Mock");
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
+        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(),  anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenReturn(Response.ok().build());
         when(processManagementClient.isOperationCompleted(anyObject())).thenReturn(true);       
         when(workspaceClient.isExistingContainer(anyObject())).thenReturn(true);
@@ -218,7 +218,7 @@ public class LogbookInternalResourceImplTest {
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
         Mockito.doThrow(new BadRequestException("Bad Request")).when(processManagementClient)
-            .initVitamProcess(anyObject(), anyObject(), anyObject());
+            .initVitamProcess(anyObject(), anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post("/traceability/check").then().statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -238,10 +238,10 @@ public class LogbookInternalResourceImplTest {
         reset(workspaceClient);
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
+        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new InternalServerException("InternalServerException"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
@@ -262,10 +262,10 @@ public class LogbookInternalResourceImplTest {
         reset(workspaceClient);
         Mockito.doNothing().when(logbookOperationClient).bulkCreate(anyObject(), anyObject());
         Mockito.doNothing().when(logbookOperationClient).bulkUpdate(anyObject(), anyObject());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject(), anyObject());
+        Mockito.doNothing().when(processManagementClient).initVitamProcess(anyObject(), anyObject());
         when(logbookOperationClient.selectOperationById(anyObject()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
+        when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(),
             anyObject(), anyObject())).thenThrow(new WorkflowNotFoundException("Workflow not found"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))

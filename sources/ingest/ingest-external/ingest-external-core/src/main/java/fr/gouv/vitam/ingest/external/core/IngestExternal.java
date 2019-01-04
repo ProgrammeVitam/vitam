@@ -30,6 +30,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.container.AsyncResponse;
 
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
@@ -44,26 +45,25 @@ public interface IngestExternal {
      *
      * @param input
      * @param contextId
-     * @param action
      * @param guid
      * @param asyncResponse
      * @return PreUploadResume
      * @throws WorkspaceClientServerException error when workspace server is down
      */
-    PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
+    PreUploadResume preUploadAndResume(InputStream input, String contextId, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException, WorkspaceClientServerException;
+            throws IngestExternalException, WorkspaceClientServerException, VitamClientException;
 
 
     /**
      * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
      *
      * @param preUploadResume     informations returned
+     * @param xAction
      * @param guid
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
-    // TODO P0 add the file name as param from a header
-    StatusCode upload(PreUploadResume preUploadResume, GUID guid)
+    StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid)
         throws IngestExternalException;
 }

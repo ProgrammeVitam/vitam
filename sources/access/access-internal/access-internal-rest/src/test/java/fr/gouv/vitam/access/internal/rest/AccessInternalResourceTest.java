@@ -142,7 +142,7 @@ public class AccessInternalResourceTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
 
-        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any(), any());
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
         // When
         SelectMultiQuery select = new SelectMultiQuery();
@@ -174,7 +174,7 @@ public class AccessInternalResourceTest {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2011-01-23", select.getFinalSelect());
 
-        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any(), any());
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
         // When
         accessInternalResource.startEliminationAnalysisWorkflow(eliminationRequestBody);
@@ -205,7 +205,7 @@ public class AccessInternalResourceTest {
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2011-01-23", select.getFinalSelect());
 
-        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any(), any());
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
         // When
         accessInternalResource.startEliminationActionWorkflow(eliminationRequestBody);
@@ -236,14 +236,13 @@ public class AccessInternalResourceTest {
 
         ArgumentCaptor<ProcessingEntry> processingEntryArgumentCaptor = ArgumentCaptor.forClass(ProcessingEntry.class);
 
-        verify(processingClient).initVitamProcess(eq(context.name()), processingEntryArgumentCaptor.capture());
+        verify(processingClient).initVitamProcess(processingEntryArgumentCaptor.capture());
 
         assertThat(processingEntryArgumentCaptor.getValue().getContainer()).isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
         assertThat(processingEntryArgumentCaptor.getValue().getWorkflow()).isEqualTo(context.getEventType());
 
         verify(processingClient)
-            .executeOperationProcess(VitamThreadUtils.getVitamSession().getRequestId(), context.getEventType(),
-                context.name(), ProcessAction.RESUME.getValue());
+            .executeOperationProcess(VitamThreadUtils.getVitamSession().getRequestId(), context.name(), ProcessAction.RESUME.getValue());
     }
 
     private void checkSaveFileToWorkspace(String s) throws ContentAddressableStorageServerException {

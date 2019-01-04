@@ -1,5 +1,5 @@
 {
-  "id": "DefaultFilingSchemeWorkflow",
+  "id": "FILING_SCHEME",
   "name": "Default Filing Scheme Workflow",
   "identifier": "FILINGSCHEME",
   "typeProc": "INGEST",

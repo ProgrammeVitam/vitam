@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 /**
  * IOParameter for action or step
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
 public class IOParameter {
     @JsonProperty("name")
     private String name;
@@ -43,7 +42,6 @@ public class IOParameter {
     private ProcessingUri uri;
     @JsonProperty("optional")
     private boolean optional;
-    private String value;
 
     /**
      * @return name
@@ -70,14 +68,6 @@ public class IOParameter {
     }
 
     /**
-     * @return value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     *
      * @return optional
      */
     public boolean getOptional() {
@@ -95,21 +85,9 @@ public class IOParameter {
     }
 
     /**
-     * @param value the value to set
-     *
-     * @return this
-     */
-    public IOParameter setValue(String value) {
-        ParametersChecker.checkParameter("Value is a mandatory parameter", value);
-        this.value = value;
-        return this;
-    }
-
-    /**
      * Set the optional.
      *
      * @param optional the optional to set
-     *
      * @return this
      */
     public IOParameter setOptional(boolean optional) {

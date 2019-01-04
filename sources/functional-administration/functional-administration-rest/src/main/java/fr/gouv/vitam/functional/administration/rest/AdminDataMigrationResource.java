@@ -94,7 +94,6 @@ public class AdminDataMigrationResource {
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private ProcessingManagementClientFactory processingManagementClientFactory;
     private WorkspaceClientFactory workspaceClientFactory;
-    private static String DATA_MIGRATION = "DATA_MIGRATION";
 
 
     private final String ACCESSION_REGISTER_MIGRATION_MIGRATE_URI = "/migration/accessionregister/migrate";
@@ -169,11 +168,10 @@ public class AdminDataMigrationResource {
             createOperation(guid);
             workspaceClient.createContainer(guid.getId());
 
-            processingClient.initVitamProcess(Contexts.DATA_MIGRATION.name(), guid.getId(), DATA_MIGRATION);
+            processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
             RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(guid.getId(), DATA_MIGRATION,
-                            Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
         } catch (LogbookClientBadRequestException | BadRequestException e) {

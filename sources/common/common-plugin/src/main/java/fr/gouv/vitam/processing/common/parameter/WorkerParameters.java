@@ -298,7 +298,23 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @throws IllegalArgumentException if urlWorspace is null or empty
      */
     WorkerParameters setLogbookTypeProcess(LogbookTypeProcess logbookTypeProcess);
-    
+
+
+    /**
+     *
+     * @return workflowIdentifier
+     */
+    String getWorkflowIdentifier();
+
+    /**
+     * Set the logbook Type Process
+     *
+     * @param workflowIdentifier
+     * @return the current instance of WorkerParameters
+     * @throws IllegalArgumentException if urlWorspace is null or empty
+     */
+    WorkerParameters setWorkflowIdentifier(String workflowIdentifier);
+
     /**
      * Set parameters from another WorkerParameters
      *

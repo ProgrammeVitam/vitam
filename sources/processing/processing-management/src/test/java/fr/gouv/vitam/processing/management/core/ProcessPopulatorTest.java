@@ -24,25 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.utils;
+package fr.gouv.vitam.processing.management.core;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
+
+import java.util.Optional;
 
 public class ProcessPopulatorTest {
 
     @Test
-    public void testPopulator() throws WorkflowNotFoundException {
-        ProcessPopulator.populate("workflowJSONv1.json");
+    public void testPopulator() {
+        Optional<WorkFlow> res = ProcessPopulator.populate("workflowJSONv1.json");
+        Assertions.assertThat(res).isNotNull();
+
     }
 
-    @Test(expected = WorkflowNotFoundException.class)
+    @Test
     public void testPopulatorNotFound() throws WorkflowNotFoundException {
-        ProcessPopulator.populate("not_found");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPopulatorWithNull() throws WorkflowNotFoundException {
-        ProcessPopulator.populate(null);
+        Optional<WorkFlow> res = ProcessPopulator.populate("not_found");
+        Assertions.assertThat(res).isEmpty();
     }
 }

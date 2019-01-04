@@ -26,15 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -65,6 +56,16 @@ import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * Processing Management Client
  */
@@ -83,7 +84,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
 
-    private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String ACTION_ID_MUST_HAVE_A_VALID_VALUE = "Action id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
@@ -98,28 +98,26 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public void initVitamProcess(String contextId, String container, String workflow)
-        throws InternalServerException, BadRequestException {
-        initVitamProcess(contextId, new ProcessingEntry(container, workflow));
+    public void initVitamProcess(String container, String workflowId) throws BadRequestException, InternalServerException {
+        initVitamProcess(new ProcessingEntry(container, workflowId));
     }
 
     @Override
-    public void initVitamProcess(String contextId, ProcessingEntry entry)
-        throws InternalServerException, BadRequestException {
+    public void initVitamProcess( ProcessingEntry entry) throws InternalServerException, BadRequestException {
         Response response = null;
-        ParametersChecker.checkParameter("Params cannot be null", contextId);
+        ParametersChecker.checkParameter("Params cannot be null", entry);
         ParametersChecker.checkParameter(ERR_CONTAINER_IS_MANDATORY, entry.getContainer());
         ParametersChecker.checkParameter(ERR_WORKFLOW_IS_MANDATORY, entry.getWorkflow());
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
 
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, entry.getWorkflow());
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
         // add header action id default init
         try {
             response = performRequest(HttpMethod.POST, OPERATION_URI + "/" + entry.getContainer(), headers,
-                entry,
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                    entry,
+                    MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -147,21 +145,19 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-        String actionId)
-        throws InternalServerException, BadRequestException, WorkflowNotFoundException {
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflowId, String actionId)
+            throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId,
-                    getDefaultHeaders(contextId, actionId),
-                    JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflow)), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId,
+                            getDefaultHeaders(workflowId, actionId),
+                            JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflowId)), MediaType.APPLICATION_JSON_TYPE,
+                            MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -191,7 +187,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
      * Generate the default header map
      *
      * @param contextId the context id
-     * @param actionId the storage action id
+     * @param actionId  the storage action id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String contextId, String actionId) {
@@ -203,16 +199,16 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-        throws InternalServerException, BadRequestException {
+            throws InternalServerException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId,
-                    getDefaultHeaders(null, actionId),
-                    null, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId,
+                            getDefaultHeaders(null, actionId),
+                            null, MediaType.APPLICATION_JSON_TYPE,
+                            MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -245,9 +241,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id,
-                    null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id,
+                            null,
+                            MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -261,9 +257,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             }
 
             return new ItemStatus()
-                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
-                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
-                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
+                    .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                    .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                    .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
         } catch (final WorkflowNotFoundException e) {
             LOGGER.debug(e);
@@ -291,15 +287,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + operationId,
-                    null,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + operationId,
+                            null,
+                            MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.ACCEPTED.getStatusCode()) {
                 final ProcessState state =
-                    ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
+                        ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE));
                 final StatusCode status =
-                    StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+                        StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
                 if (ProcessState.PAUSE.equals(state) && StatusCode.STARTED.compareTo(status) <= 0) {
                     return true;
@@ -318,13 +314,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id)
-        throws InternalServerException, BadRequestException {
+            throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
-                    null, MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
+                            null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -356,13 +352,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public ItemStatus cancelOperationProcessExecution(String id)
-        throws InternalServerException, BadRequestException {
+            throws InternalServerException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id,
-                    null, MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id,
+                            null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -389,16 +385,16 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
+            throws ProcessingBadRequestException, WorkerAlreadyExistsException {
         ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
         ParametersChecker.checkParameter("workerDescription is a mandatory parameter", workerDescription);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, "/worker_family/" + familyId + "/" + "workers" + "/" + workerId, null,
-                    JsonHandler.toJsonNode(workerDescription), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.POST, "/worker_family/" + familyId + "/" + "workers" + "/" + workerId, null,
+                            JsonHandler.toJsonNode(workerDescription), MediaType.APPLICATION_JSON_TYPE,
+                            MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new ProcessingBadRequestException("Bad Request");
@@ -423,8 +419,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.DELETE, "/worker_family/" + familyId + "/" + "workers" +
-                    "/" + workerId, null, MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.DELETE, "/worker_family/" + familyId + "/" + "workers" +
+                            "/" + workerId, null, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
@@ -439,47 +435,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    @Deprecated
-    public void initWorkFlow(String contextId) throws InternalServerException, BadRequestException {
-        Response response = null;
-        ParametersChecker.checkParameter("Params cannot be null", contextId);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
-        // add header action id default init
-        try {
-            response = performRequest(HttpMethod.POST, OPERATION_URI, headers,
-                MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new BadRequestException(BAD_REQUEST_EXCEPTION);
-            }
-
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
+                            MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
         } catch (VitamClientInternalException e) {
@@ -495,13 +456,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     @SuppressWarnings("unchecked")
     @Override
     public Response executeCheckTraceabilityWorkFlow(String checkOperationId,
-        JsonNode query, String workflow, String contextId, String actionId)
-        throws InternalServerException, BadRequestException, WorkflowNotFoundException {
+                                                     JsonNode query, String workflowId, String actionId)
+            throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
 
 
         Response response = null;
@@ -509,13 +469,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // Add extra parameters to start correctly the check process
             Map<String, String> checkExtraParams = new HashMap<>();
             checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
-            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflow);
+            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
             processingEntry.setExtraParams(checkExtraParams);
 
             response =
-                performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
-                    getDefaultHeaders(contextId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
+                            getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
+                            MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
@@ -559,6 +519,24 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         }
     }
 
+    @Override
+    public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, WORKFLOWS_URI + "/" + workflowIdentifier, null, null, null, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return Optional.of(response.readEntity(WorkFlow.class));
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                return Optional.empty();
+            } else {
+                throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
+            }
+
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) throws ProcessingException {
@@ -566,7 +544,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, FORCE_PAUSE_URI, null, info,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
@@ -584,7 +562,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, REMOVE_FORCE_PAUSE_URI, null, info,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 

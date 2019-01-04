@@ -341,6 +341,19 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         return this;
     }
 
+
+    @Override
+    public String getWorkflowIdentifier() {
+        return mapParameters.get(WorkerParameterName.workflowIdentifier);
+    }
+
+    @Override
+    public WorkerParameters setWorkflowIdentifier(String workflowIdentifier) {
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "workflowIdentifier"), workflowIdentifier);
+        mapParameters.put(WorkerParameterName.workflowIdentifier, workflowIdentifier);
+        return this;
+    }
+
     @Override
     public WorkerParameters setFromParameters(WorkerParameters parameters) {
         for (final WorkerParameterName item : WorkerParameterName.values()) {

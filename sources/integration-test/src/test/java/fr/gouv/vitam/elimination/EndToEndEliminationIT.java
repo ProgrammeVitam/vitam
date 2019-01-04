@@ -60,8 +60,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -70,6 +69,7 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -173,7 +173,9 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final String STORAGE_PATH = "/storage/v1";
     private static final String OFFER_PATH = "/offer/v1";
     private static final String BATCH_REPORT_PATH = "/batchreport/v1";
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
+    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
+    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     private static final String SAINT_DENIS_UNIVERSITÉ_LIGNE_13 = "1_Saint Denis Université (ligne 13)";
     private static final String SAINT_DENIS_BASILIQUE = "Saint Denis Basilique";
@@ -317,9 +319,9 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
 
         // init workflow before execution
-        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+        client.initWorkflow(workflow);
 
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.OK);
 

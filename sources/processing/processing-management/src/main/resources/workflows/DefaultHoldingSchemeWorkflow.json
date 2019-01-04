@@ -1,5 +1,5 @@
 {
-  "id": "DefaultHoldingSchemeWorkflow",
+  "id": "HOLDING_SCHEME",
   "name": "Default Holding Scheme Workflow",
   "identifier": "HOLDINGSCHEME",
   "typeProc": "MASTERDATA",

@@ -1,5 +1,5 @@
 {
-  "id": "ProbativeValueExportWorkflow",
+  "id": "EXPORT_PROBATIVE_VALUE",
   "name": "export probative value",
   "identifier": "EXPORT_PROBATIVE_VALUE",
   "typeProc": "AUDIT",

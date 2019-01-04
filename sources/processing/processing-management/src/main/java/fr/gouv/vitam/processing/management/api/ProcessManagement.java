@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -55,14 +54,10 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
      * @param workflowId the workflow identifier
-     * @param logbookTypeProcess the process type
-     * @param tenantId the tenant identifier
-     * @param contextId the context ID
      * @return ProcessWorkflow
      * @throws ProcessingException if the process could not be initialized
      */
-    ProcessWorkflow init(WorkerParameters workerParameters, String workflowId, LogbookTypeProcess logbookTypeProcess,
-        Integer tenantId, String contextId, String applicationId) throws ProcessingException;
+    ProcessWorkflow init(WorkerParameters workerParameters, String workflowId) throws ProcessingException;
 
     /**
      * Handle a next action for the corresponding process workflow

@@ -1,8 +1,8 @@
 {
-  "id": "ExportUnitWorkflow",
+  "id": "EXPORT_DIP",
   "name": "export archive unit ",
   "identifier": "EXPORT_DIP",
-  "typeProc": "DIP",
+  "typeProc": "EXPORT_DIP",
   "comment": "Default export archiveUnit",
   "lifecycleLog": "DISABLED",
   "steps": [

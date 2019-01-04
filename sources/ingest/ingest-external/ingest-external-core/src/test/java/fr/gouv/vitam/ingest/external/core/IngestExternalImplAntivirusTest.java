@@ -105,9 +105,9 @@ public class IngestExternalImplAntivirusTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
     
@@ -126,9 +126,9 @@ public class IngestExternalImplAntivirusTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
     
@@ -147,9 +147,9 @@ public class IngestExternalImplAntivirusTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 }

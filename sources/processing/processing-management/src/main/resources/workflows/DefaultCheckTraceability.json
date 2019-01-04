@@ -1,5 +1,5 @@
 {
-  "id": "DefaultCheckTraceability",
+  "id": "CHECK",
   "name": "Default Check Traceability",
   "identifier": "CHECK_LOGBOOK_OP_SECURISATION",
   "typeProc": "CHECK",

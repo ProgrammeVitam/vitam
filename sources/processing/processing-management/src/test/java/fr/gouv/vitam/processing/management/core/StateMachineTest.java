@@ -47,7 +47,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -101,7 +100,7 @@ public class StateMachineTest {
             .setUrlWorkspace("http://localhost:8083")
             .setContainerName(GUIDFactory.newGUID().getId())
             .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
-            .putParameterValue(WorkerParameterName.context, "DEFAULT_WORKFLOW");
+            .setWorkflowIdentifier("DEFAULT_WORKFLOW");
 
         processDataAccess = ProcessDataAccessImpl.getInstance();
 
@@ -249,14 +248,14 @@ public class StateMachineTest {
     @Test
     @RunWithCustomExecutor
     public void tryAllActionsOnRunningState()
-        throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
+        throws ProcessingException, StateNotAllowedException, ProcessingEngineException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
+                workParams.getContainerName()
+            );
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
@@ -303,9 +302,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -354,9 +353,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -405,9 +404,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -441,9 +440,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -489,9 +488,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -536,9 +535,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -584,9 +583,9 @@ public class StateMachineTest {
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -626,17 +625,19 @@ public class StateMachineTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void whenShutdownThenPauseOnDistributorOccurred()
         throws ProcessingException, StateNotAllowedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngine processEngine =
             ProcessEngineFactory.get().create(mock(WorkerParameters.class), processDistributorMock);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
@@ -648,17 +649,19 @@ public class StateMachineTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void whenCancelThenCancelOnDistributorOccurred()
         throws ProcessingException, StateNotAllowedException {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngine processEngine =
             ProcessEngineFactory.get().create(mock(WorkerParameters.class), processDistributorMock);
 
         final ProcessWorkflow processWorkflow =
             processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
-                workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+                workParams.getContainerName()
+            );
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setState(ProcessState.RUNNING);

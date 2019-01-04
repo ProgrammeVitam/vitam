@@ -1,5 +1,5 @@
 {
-  "id": "MassUpdateUnitDescWorkflow",
+  "id": "MASS_UPDATE_UNIT_DESC",
   "name": "Mass Update Workflow",
   "identifier": "MASS_UPDATE_UNIT_DESC",
   "typeProc": "MASS_UPDATE",

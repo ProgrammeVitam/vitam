@@ -782,8 +782,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
                 .getClient()) {
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
-                    Contexts.AUDIT_WORKFLOW.getEventType());
+            final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(), Contexts.AUDIT_WORKFLOW.name());
             if (options.get(AUDIT_TYPE) == null || options.get(OBJECT_ID) == null) {
                 final Status status = Status.PRECONDITION_FAILED;
                 return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -832,7 +831,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
             entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
             entry.getExtraParams().put(ACTION_LIST, options.get(ACTION_LIST).textValue());
-            processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
+            processingClient.initVitamProcess(entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                     VitamThreadUtils.getVitamSession().getRequestId());
 

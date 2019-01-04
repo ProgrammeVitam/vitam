@@ -1,5 +1,5 @@
 {
-  "id": "RectificationAuditWorkflow",
+  "id": "RECTIFICATION_AUDIT",
   "name": "Rectification Audit Workflow ",
   "identifier": "RECTIFICATION_AUDIT",
   "typeProc": "AUDIT",

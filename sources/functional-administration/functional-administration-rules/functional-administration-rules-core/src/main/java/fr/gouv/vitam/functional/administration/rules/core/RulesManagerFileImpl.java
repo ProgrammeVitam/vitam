@@ -211,7 +211,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
 
     // event in logbook
-    private final String UPDATE_RULES_ARCHIVE_UNITS = "UPDATE_RULES_ARCHIVE_UNITS";
+    private final String UPDATE_RULES_ARCHIVE_UNITS = Contexts.UPDATE_RULES_ARCHIVE_UNITS.name();
     private static final String STP_IMPORT_RULES_BACKUP = "STP_IMPORT_RULES_BACKUP";
     private static final String STP_IMPORT_RULES_BACKUP_CSV = "STP_IMPORT_RULES_BACKUP_CSV";
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
@@ -600,8 +600,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     JsonHandler.writeToInpustream(arrayNode),
                     updateOperationGUID.getId());
 
-                processManagementClient.initVitamProcess(Contexts.UPDATE_RULES_ARCHIVE_UNITS.name(),
-                    updateOperationGUID.getId(), UPDATE_RULES_ARCHIVE_UNITS);
+                processManagementClient.initVitamProcess(updateOperationGUID.getId(), UPDATE_RULES_ARCHIVE_UNITS);
                 LOGGER.debug("Started Update in Resource");
                 RequestResponse<ItemStatus> ret =
                     processManagementClient

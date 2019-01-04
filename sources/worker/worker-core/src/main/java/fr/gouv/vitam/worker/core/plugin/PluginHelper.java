@@ -26,18 +26,12 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import fr.gouv.vitam.common.i18n.PluginPropertiesLoader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
-import fr.gouv.vitam.worker.common.PluginProperties;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
-
-import static java.lang.String.format;
 
 /**
  * Plugin Helper
@@ -47,28 +41,6 @@ public class PluginHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
     private PluginHelper() {}
-
-    /**
-     * Load action Handler
-     *
-     * @param actionId the action id
-     * @param plugin the plugin properties
-     * @return action Handler
-     * @throws PluginNotFoundException if the plugin is not present in the classpath
-     */
-    public static Class<ActionHandler> loadActionHandler(String actionId, PluginProperties plugin)
-        throws PluginNotFoundException {
-        PluginPropertiesLoader.loadProperties(actionId, plugin.getPropertiesFile());
-        Class<ActionHandler> pluginClass;
-        try {
-            pluginClass =
-                (Class<ActionHandler>) Thread.currentThread().getContextClassLoader().loadClass(plugin.getClassName());
-            return pluginClass;
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("could not find class: {}", plugin.getClassName());
-            throw new PluginNotFoundException(format("could not find class: %s", plugin.getClassName()), e);
-        }
-    }
 
     public static void tryDeleteLocalPreservationFiles(Path batchDirectory) {
         try {

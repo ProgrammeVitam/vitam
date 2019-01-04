@@ -41,6 +41,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -110,7 +112,9 @@ public class IngestInternalClientMockTest {
 
         final Response response = client.uploadInitialLogbook(operationList);
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(CONTEXTID, CONTEXTID, "INGEST");
+
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
 
     }
 

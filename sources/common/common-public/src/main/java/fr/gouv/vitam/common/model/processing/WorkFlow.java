@@ -28,9 +28,11 @@ package fr.gouv.vitam.common.model.processing;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -70,13 +72,13 @@ public class WorkFlow {
 
     @JsonCreator
     public WorkFlow(
-        @JsonProperty("id") String id,
-        @JsonProperty("name") String name,
-        @JsonProperty("identifier") String identifier,
-        @JsonProperty("typeProc") String typeProc,
-        @JsonProperty("comment") String comment,
-        @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
-        @JsonProperty("steps") List<Step> steps) {
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("identifier") String identifier,
+            @JsonProperty("typeProc") String typeProc,
+            @JsonProperty("comment") String comment,
+            @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
+            @JsonProperty("steps") List<Step> steps) {
         this.id = id;
         this.name = name;
         this.identifier = identifier;
@@ -84,7 +86,18 @@ public class WorkFlow {
         this.comment = comment;
         this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.TEMPORARY);
         this.steps = steps;
+        if (steps == null) {
+            this.steps = new ArrayList<>();
+        }
         steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
+    }
+
+    public static WorkFlow of(String id,String identifier, String evTypeProc) {
+        WorkFlow workFlow = new WorkFlow();
+        workFlow.setId(id);
+        workFlow.setIdentifier(identifier);
+        workFlow.setTypeProc(evTypeProc);
+        return workFlow;
     }
 
     /**
@@ -227,16 +240,16 @@ public class WorkFlow {
      */
     @Override
     public String toString() {
-        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\n",
-            getId(), getName(), getIdentifier(), getTypeProc(), getComment());
+        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\nlifecycleLog=%s\n",
+                getId(), getName(), getIdentifier(), getTypeProc(), getComment(), getLifecycleLog());
     }
 
     public LifecycleState getLifecycleLog() {
         return lifecycleLog;
     }
 
-    public void setLifecycleLog(LifecycleState lifecycleLog) {
+    public WorkFlow setLifecycleLog(LifecycleState lifecycleLog) {
         this.lifecycleLog = lifecycleLog;
+        return this;
     }
-
 }

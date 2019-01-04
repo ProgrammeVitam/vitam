@@ -184,10 +184,10 @@ public class LogbookLFCAdministrationTest {
         assertNotNull(operationGuid);
 
         ArgumentCaptor<ProcessingEntry> processingEntryArgumentCaptor = ArgumentCaptor.forClass(ProcessingEntry.class);
-        verify(processingManagementClient).initVitamProcess(anyString(), processingEntryArgumentCaptor.capture());
+        verify(processingManagementClient).initVitamProcess(processingEntryArgumentCaptor.capture());
 
         assertThat(processingEntryArgumentCaptor.getValue().getWorkflow())
-            .isEqualTo("LOGBOOK_UNIT_LFC_TRACEABILITY");
+            .isEqualTo("UNIT_LFC_TRACEABILITY");
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
             get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name())).isEqualTo(
                 TEMPORIZATION_DELAY.toString());

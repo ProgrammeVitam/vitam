@@ -24,35 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.vitam.plugin.custom;
 
-package fr.gouv.vitam.worker.core.plugin;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-
-import fr.gouv.vitam.processing.common.exception.PluginException;
-import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
-import fr.gouv.vitam.worker.common.PluginProperties;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-public class PluginHelperTest {
+public class HelloWorldPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HelloWorldPlugin.class);
+
+    private static final String HELLO_WORLD_PLUGIN = "HELLO_WORLD_PLUGIN";
+
+    public ItemStatus execute(WorkerParameters workerParameters, HandlerIO handlerIO) {
+        LOGGER.warn("===========================================================");
+        LOGGER.warn("=================   HELLO_WORLD_PLUGIN ........ =========== ");
+        LOGGER.warn("===========================================================");
+
+        // Add some event details data
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        infoNode.put("var_name", (String) handlerIO.getInput(0));
+        ItemStatus itemStatus = new ItemStatus(HELLO_WORLD_PLUGIN);
+        String unpretty = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setEvDetailData(unpretty);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), unpretty);
 
 
-    private static final String MESSAGE_PROPERTIES = "message_fr.properties";
-    private static final String DUMMY_HANDLER = "fr.gouv.vitam.worker.core.handler.DummyHandler";
-    private static final String ACTION_NAME = "actionName";
-
-    @Test
-    public void testPluginHelper() throws PluginException {
-        Class<ActionHandler> actionHandlerClass =
-            PluginHelper.loadActionHandler(ACTION_NAME, new PluginProperties(DUMMY_HANDLER,
-                MESSAGE_PROPERTIES));
-        assertThat(actionHandlerClass).isNotNull();
+        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(HELLO_WORLD_PLUGIN, itemStatus.increment(StatusCode.OK));
     }
 
 }

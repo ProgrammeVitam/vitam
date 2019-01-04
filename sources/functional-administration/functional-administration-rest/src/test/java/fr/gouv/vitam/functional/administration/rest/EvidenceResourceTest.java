@@ -115,7 +115,7 @@ public class EvidenceResourceTest {
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
 
         when(processingManagementClient
-            .executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString(), anyString()))
+            .executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString()))
             .thenReturn(new RequestResponseOK<JsonNode>(new Select().getFinalSelect()).setHttpCode(200));
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
 

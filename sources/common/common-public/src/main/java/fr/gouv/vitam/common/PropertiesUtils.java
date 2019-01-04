@@ -35,9 +35,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,6 +164,46 @@ public final class PropertiesUtils {
         return getResourceFile(resourcesFile).toPath();
     }
 
+
+    public static Stream<String> getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
+        URL dirURL = clazz.getClassLoader().getResource(path);
+        if (dirURL != null && dirURL.getProtocol().equals("file")) {
+            return Arrays.stream(new File(dirURL.toURI()).list());
+        }
+
+        if (dirURL == null) {
+            /*
+             * In case of a jar file, we can't actually find a directory.
+             * Have to assume the same jar as clazz.
+             */
+            String me = clazz.getName().replace(".", "/") + ".class";
+            dirURL = clazz.getClassLoader().getResource(me);
+        }
+
+        if (dirURL.getProtocol().equals("jar")) {
+            /* A JAR path */
+            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+            JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+            Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
+            while (entries.hasMoreElements()) {
+                String name = entries.nextElement().getName();
+                if (name.startsWith(path)) { //filter according to the path
+                    String entry = name.substring(path.length());
+                    int checkSubdir = entry.indexOf("/");
+                    if (checkSubdir >= 0) {
+                        // if it is a subdirectory, we just return the directory name
+                        entry = entry.substring(0, checkSubdir);
+                    }
+                    result.add(entry);
+                }
+            }
+            return result.stream();
+        }
+
+        throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
+    }
+
     /**
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
@@ -263,7 +311,7 @@ public final class PropertiesUtils {
      * Read the Yaml file and return the object read
      *
      * @param yamlFile the yaml file to read
-     * @param clasz the class representing the target object
+     * @param clasz    the class representing the target object
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
@@ -282,7 +330,7 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml file and return the object read
      *
-     * @param yamlFile the yaml file
+     * @param yamlFile      the yaml file
      * @param typeReference the type reference representing the target interface object
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
@@ -303,9 +351,9 @@ public final class PropertiesUtils {
      * Read the Yaml InputStream and return the object read
      *
      * @param yamlInputStream the yaml input stream to read
-     * @param clasz the class representing the target object
+     * @param clasz           the class representing the target object
      * @return the object read
-     * @throws IOException if read yaml input stream to class template exception occurred 
+     * @throws IOException if read yaml input stream to class template exception occurred
      */
     public static final <C> C readYaml(InputStream yamlInputStream, Class<C> clasz) throws IOException {
         if (yamlInputStream == null || clasz == null) {
@@ -323,7 +371,7 @@ public final class PropertiesUtils {
      * Read the Yaml file and return the object read
      *
      * @param yamlPath yaml file path
-     * @param clasz the class representing the target object
+     * @param clasz    the class representing the target object
      * @return the object read
      * @throws IOException if file not found exception
      */
@@ -339,7 +387,7 @@ public final class PropertiesUtils {
      * Write the Yaml file
      *
      * @param destination the destination file
-     * @param config the configuration object to write using Yaml format
+     * @param config      the configuration object to write using Yaml format
      * @throws IOException if write object config exception occurred
      */
     public static final void writeYaml(File destination, Object config) throws IOException {

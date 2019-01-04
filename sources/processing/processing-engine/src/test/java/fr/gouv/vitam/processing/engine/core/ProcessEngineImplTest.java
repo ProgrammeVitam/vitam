@@ -26,18 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -45,7 +41,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
@@ -53,17 +48,25 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
+
+import java.io.FileNotFoundException;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Do not forget init method on test method !
@@ -81,24 +84,24 @@ public class ProcessEngineImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void init() throws WorkflowNotFoundException, ProcessingException {
         LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID())
-            .setUrlMetadata("http://localhost:8083")
-            .setUrlWorkspace("http://localhost:8083")
-            .setContainerName(GUIDFactory.newGUID().getId())
-            .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
+                .setUrlMetadata("http://localhost:8083")
+                .setUrlWorkspace("http://localhost:8083")
+                .setContainerName(GUIDFactory.newGUID().getId())
+                .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
+                .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
         processDistributor = mock(ProcessDistributor.class);
 
         processData = ProcessDataAccessImpl.getInstance();
         processEngine =
-            ProcessEngineFactory.get().create(workParams, processDistributor);
+                ProcessEngineFactory.get().create(workParams, processDistributor);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -128,20 +131,21 @@ public class ProcessEngineImplTest {
     @RunWithCustomExecutor
     public void startTestWhenStatusCodeKOThenOK() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
-            .thenReturn(new ItemStatus().increment(StatusCode.KO));
+                .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
-            .onComplete(anyObject(), anyObject());
+                .onComplete(anyObject(), anyObject());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
         processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
 
@@ -164,21 +168,22 @@ public class ProcessEngineImplTest {
     @RunWithCustomExecutor
     public void startTestWhenStatusCodeOKThenOK() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
-            .thenReturn(new ItemStatus().increment(StatusCode.OK));
+                .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
 
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.OK)).when(iEventsProcessEngine)
-            .onComplete(anyObject(), anyObject());
+                .onComplete(anyObject(), anyObject());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
 
         processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
@@ -202,10 +207,15 @@ public class ProcessEngineImplTest {
     @Test(expected = ProcessingEngineException.class)
     @RunWithCustomExecutor
     public void startTestIEventsProcessEngineRequiredKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-            processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT, APPLICATION_ID);
+                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+                );
         processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
 
+    }
+
+    public static WorkFlow populate(String workflowFile) throws FileNotFoundException, InvalidParseOperationException {
+        return JsonHandler.getFromInputStream(PropertiesUtils.getConfigAsStream(workflowFile), WorkFlow.class);
     }
 }

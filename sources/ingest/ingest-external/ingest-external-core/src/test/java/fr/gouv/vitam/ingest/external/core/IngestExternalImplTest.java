@@ -107,8 +107,8 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID,  guid, responseAsync);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -123,8 +123,8 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
 
     }
@@ -141,9 +141,9 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -162,9 +162,9 @@ public class IngestExternalImplTest {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -183,9 +183,9 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -202,9 +202,9 @@ public class IngestExternalImplTest {
 
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -235,9 +235,9 @@ public class IngestExternalImplTest {
 
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -253,9 +253,9 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -278,9 +278,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -296,9 +296,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -314,9 +314,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -332,9 +332,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -350,9 +350,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -368,9 +368,9 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model =
-                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
+                ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 

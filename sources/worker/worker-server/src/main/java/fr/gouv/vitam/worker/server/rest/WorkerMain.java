@@ -27,13 +27,6 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletContextListener;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -47,9 +40,14 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.servlet.ServletContextListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Worker web server application
@@ -65,17 +63,18 @@ public class WorkerMain {
     private VitamStarter vitamStarter;
 
     public WorkerMain(String configurationFile)
-        throws PluginException, IOException {
+            throws IOException {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+                CONF_FILE_NAME), configurationFile);
+
         List<ServletContextListener> listeners = new ArrayList<>();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final WorkerConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+                    PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
             listeners.add(new WorkerRegistrationListener(configuration));
         }
         vitamStarter = new VitamStarter(WorkerConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, listeners);
+                BusinessApplication.class, AdminApplication.class, listeners);
     }
 
     /**
@@ -89,40 +88,39 @@ public class WorkerMain {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                        CONF_FILE_NAME));
             }
             WorkerMain main = new WorkerMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(args[0])) {
                 final WorkerConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+                        PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
                 WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             // Register LogbookLifecycle
             serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
-                // Workspace dependency
-                .register(WorkspaceClientFactory.getInstance())
-                // Metadata dependency
-                .register(MetaDataClientFactory.getInstance());
+                    // Workspace dependency
+                    .register(WorkspaceClientFactory.getInstance())
+                    // Metadata dependency
+                    .register(MetaDataClientFactory.getInstance());
             // Database dependency
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
 
             main.startAndJoin();
         } catch (Exception e) {
             LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+                    e.getMessage(), e);
 
             System.exit(1);
         }
     }
 
 
-
     /**
      * Start application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -131,7 +129,7 @@ public class WorkerMain {
 
     /**
      * Start and join application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -140,7 +138,7 @@ public class WorkerMain {
 
     /**
      * Stop application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {
@@ -149,7 +147,7 @@ public class WorkerMain {
 
     /**
      * Get the Vitam Starter
-     * 
+     *
      * @return
      */
     public VitamStarter getVitamStarter() {

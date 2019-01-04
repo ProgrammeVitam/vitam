@@ -199,13 +199,6 @@ public class ProcessManagementResourceTest {
                 GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
             .post(OPERATION_ID_URI).then()
-            .statusCode(Status.CREATED.getStatusCode());
-        given()
-            .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
-            .post(OPERATION_ID_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

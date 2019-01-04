@@ -199,7 +199,6 @@
   any_errors_fatal: true
   roles:
     - vitam
-    - processing_create_workflows
   vars:
     vitam_struct: "{{ vitam.processing }}"
 

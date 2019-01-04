@@ -49,8 +49,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -99,10 +97,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     private static final String PATH = "/ingest/v1";
-    private static final String CONTEXTID = "contextId";
+    private static final String WROKFLOW_ID = "PROCESS_SIP_UNITARY";
+    private static final String WROKFLOW_IDENTIFIER = "DEFAULT_WORKFLOW";
+    private static final String X_ACTION = "RESUME";
     private static final String CONTAINERID = "containerId";
     private static final String WORKFLOWID = "workFlowId";
     private static final String ID = "id1";
+    public static final String INGEST = "INGEST";
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -287,7 +288,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
     }
 
     @Test
@@ -327,7 +329,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
     }
 
     @Test
@@ -366,7 +369,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
     }
 
@@ -404,7 +408,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
     }
 
@@ -586,46 +591,11 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test(expected = VitamClientException.class)
-    public void givenUnauthorizedInitOperationStatusThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationInternalServerErrorThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationNotFoundThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitOperationPreConditionFailedThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
     public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.initWorkFlow(CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.initWorkflow(workflow);
 
     }
 
@@ -634,7 +604,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        client.initWorkFlow(CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.initWorkflow(workflow);
 
     }
 
@@ -643,7 +614,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initWorkFlow(CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.initWorkflow(workflow);
 
     }
 
@@ -652,7 +624,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initWorkFlow(CONTEXTID);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        client.initWorkflow(workflow);
 
     }
 
@@ -660,7 +633,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = VitamClientException.class)
     public void givenPostOperationStatusThenThrowVitamClientInternalException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
     }
 
     @Test(expected = VitamClientException.class)
@@ -668,7 +641,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
 
     }
 
@@ -677,7 +650,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
 
     }
 
@@ -686,7 +659,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
 
     }
 
@@ -695,7 +668,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
 
     }
 

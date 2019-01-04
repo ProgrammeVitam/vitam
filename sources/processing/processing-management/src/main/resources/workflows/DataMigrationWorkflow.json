@@ -1,5 +1,5 @@
 {
-  "id": "MigrationWorkflow",
+  "id": "DATA_MIGRATION",
   "name": "migration Workflow",
   "identifier": "DATA_MIGRATION",
   "typeProc": "DATA_MIGRATION",

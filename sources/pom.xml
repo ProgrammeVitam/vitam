@@ -44,6 +44,7 @@
         <module>internal-security</module>
         <module>elastic-kibana-interceptor</module>
         <module>batch-report</module>
+        <module>hellow-world-plugin</module>
     </modules>
 
 

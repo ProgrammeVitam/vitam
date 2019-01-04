@@ -1,0 +1,31 @@
+{
+  "id": "SampleIngestWorkflow",
+  "name": "Sample Ingest Workflow",
+  "identifier": "SAMPLE_PROCESS_SIP_UNITARY",
+  "typeProc": "INGEST",
+  "comment": "Sample Ingest Workflow V6",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CONTROL_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "HELLO_WORLD_PLUGIN",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "var_name",
+                "uri": "VALUE:Hello World"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
