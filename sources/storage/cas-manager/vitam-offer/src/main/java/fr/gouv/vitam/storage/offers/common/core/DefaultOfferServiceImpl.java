@@ -77,8 +77,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultOfferServiceImpl implements DefaultOfferService {
 
-    private static final String CONTAINER_ALREADY_EXISTS = "Container already exists";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private final ContentAddressableStorage defaultStorage;
@@ -156,7 +154,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
                                DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
-        // TODO: review this check and the defaultstorage implementation
         Stopwatch times = Stopwatch.createStarted();
         try {
             if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
@@ -169,6 +166,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         times = Stopwatch.createStarted();
         try {
             return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            throw e;
+        } catch (Exception ex) {
+            trySilentlyDeleteWormObject(containerName, objectId, type);
+            // Propagate the initial exception
+            throw ex;
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
@@ -195,6 +198,26 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         result.put("usableSpace", containerInformation.getUsableSpace());
         PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_CAPACITY", times.elapsed(TimeUnit.MILLISECONDS));
         return result;
+    }
+
+
+    /**
+     * In case not updatable containers, try
+     *
+     * @param containerName
+     * @param objectId
+     * @param type
+     */
+    private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
+        if (type.canUpdate()) {
+            return;
+        }
+        try {
+            defaultStorage.deleteObject(containerName, objectId);
+        } catch (Exception e) {
+            // Just warn, as if we have a write exception we can presumably got a delete exception (Ex. Network exception)
+            LOGGER.warn("Cannot silently delete object of warm container after write exception occurs", e);
+        }
     }
 
     @Override
