@@ -149,7 +149,7 @@
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'directory'
   notify:
