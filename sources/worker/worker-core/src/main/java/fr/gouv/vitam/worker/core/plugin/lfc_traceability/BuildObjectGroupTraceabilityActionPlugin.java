@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -68,6 +68,14 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
         buildTraceabilityData(handler, LogbookLifeCycleObjectGroup.class.getName(), itemStatus);
         LOGGER.info("Building object group traceability data finished with status " + itemStatus.getGlobalStatus());
         return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
+    }
+
+    @Override
+    protected TraceabilityStatistics getTraceabilityStatistics(DigestValidator digestValidator) {
+        return new TraceabilityStatistics(
+            null,
+            digestValidator.getMetadataValidationStatistics(),
+            digestValidator.getObjectValidationStatistics());
     }
 
     @Override

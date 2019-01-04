@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
+import fr.gouv.vitam.logbook.common.model.EntryTraceabilityStatistics;
 
 import java.util.List;
 import java.util.Map;
@@ -41,11 +41,13 @@ public class DigestValidator {
 
     private final AlertService alertService;
 
-    private int nbValidMetadata = 0;
-    private int nbInconsistentMetadata = 0;
+    private int nbMetadataOK = 0;
+    private int nbMetadataWarnings = 0;
+    private int nbMetadataErrors = 0;
 
-    private int nbValidObjects = 0;
-    private int nbInconsistentObjects = 0;
+    private int nbObjectOK = 0;
+    private int nbObjectWarnings = 0;
+    private int nbObjectErrors = 0;
 
     public DigestValidator(AlertService alertService) {
         this.alertService = alertService;
@@ -57,10 +59,12 @@ public class DigestValidator {
         DigestValidationDetails digestValidationDetails =
             validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "metadata");
 
-        if (digestValidationDetails.hasInconsistencies()) {
-            nbInconsistentMetadata++;
+        if (digestValidationDetails.isHasErrors()) {
+            nbMetadataErrors++;
+        } else if (digestValidationDetails.isHasWarnings()) {
+            nbMetadataWarnings++;
         } else {
-            nbValidMetadata++;
+            nbMetadataOK++;
         }
 
         return digestValidationDetails;
@@ -72,10 +76,12 @@ public class DigestValidator {
         DigestValidationDetails digestValidationDetails =
             validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "binary object");
 
-        if (digestValidationDetails.hasInconsistencies()) {
-            nbInconsistentObjects++;
+        if (digestValidationDetails.isHasErrors()) {
+            nbObjectErrors++;
+        } else if (digestValidationDetails.isHasWarnings()) {
+            nbObjectWarnings++;
         } else {
-            nbValidObjects++;
+            nbObjectOK++;
         }
 
         return digestValidationDetails;
@@ -111,21 +117,28 @@ public class DigestValidator {
                         .collect(Collectors.joining(", ", "{", "}"))));
         }
 
-        // Digest is invalid if all offers are missing OR some offer digests do not match db digest
         boolean hasOneOrMoreConsistentOffers = digestByOfferId.values()
             .stream()
             .anyMatch(digestInDb::equals);
 
-        boolean isGloballyValid = !offersWithInconsistentDigest.isEmpty() && hasOneOrMoreConsistentOffers;
-        String globalDigest = isGloballyValid ? digestInDb : INVALID_HASH;
+        boolean hasErrors = !offersWithInconsistentDigest.isEmpty() || !hasOneOrMoreConsistentOffers;
+        boolean hasWarnings = !offersWithoutDigest.isEmpty();
 
+        String globalDigest = hasErrors ? INVALID_HASH : digestInDb;
         Set<String> offerIds = digestByOfferId.keySet();
-
-        return new DigestValidationDetails(strategyId, offerIds, globalDigest, digestInDb, digestByOfferId);
+        return new DigestValidationDetails(strategyId, offerIds, globalDigest, digestInDb, digestByOfferId, hasErrors,
+            hasWarnings);
     }
 
-    public TraceabilityStatistics getValidationStatistics() {
-        return new TraceabilityStatistics(
-            this.nbValidMetadata, this.nbInconsistentMetadata, this.nbValidObjects, this.nbInconsistentObjects);
+    public EntryTraceabilityStatistics getMetadataValidationStatistics() {
+        return new EntryTraceabilityStatistics(nbMetadataOK, nbMetadataWarnings, nbMetadataErrors);
+    }
+
+    public EntryTraceabilityStatistics getObjectValidationStatistics() {
+        return new EntryTraceabilityStatistics(nbObjectOK, nbObjectWarnings, nbObjectErrors);
+    }
+
+    public boolean hasInconsistencies() {
+        return this.nbMetadataErrors + this.nbMetadataWarnings + this.nbObjectErrors + this.nbObjectWarnings > 0;
     }
 }

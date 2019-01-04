@@ -51,7 +51,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
     private static final String TRACEABILITY_DATA =
         "LogbookLifeCycleTraceabilityHelperTest/traceabilityData.jsonl";
     private static final String TRACEABILITY_STATISTICS =
-        "LogbookLifeCycleTraceabilityHelperTest/traceabilityStats.json";
+        "LogbookLifeCycleTraceabilityHelperTest/unitTraceabilityStats.json";
 
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
     private HandlerIOImpl handlerIO;
@@ -139,10 +139,11 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         helper.initialize();
 
         // Then
-        assertThat(helper.getTraceabilityStatistics().getNbValidMetadata()).isEqualTo(1);
-        assertThat(helper.getTraceabilityStatistics().getNbInconsistentMetadata()).isEqualTo(2);
-        assertThat(helper.getTraceabilityStatistics().getNbValidObjects()).isEqualTo(3);
-        assertThat(helper.getTraceabilityStatistics().getNbInconsistentObjects()).isEqualTo(4);
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbOK()).isEqualTo(1);
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbWarnings()).isEqualTo(2);
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbErrors()).isEqualTo(3);
+        assertThat(helper.getTraceabilityStatistics().getObjectGroups()).isNull();
+        assertThat(helper.getTraceabilityStatistics().getObjects()).isNull();
     }
 
     @Test

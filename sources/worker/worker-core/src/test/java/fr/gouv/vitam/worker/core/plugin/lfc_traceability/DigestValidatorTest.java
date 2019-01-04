@@ -50,7 +50,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 1, 0, 0, 0);
+        checkStats(instance, 1, 0, 0, 0, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
@@ -75,7 +75,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 1, 0, 0, 0);
+        checkStats(instance, 1, 0, 0, 0, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
@@ -96,11 +96,11 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
         assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
-        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 1, 0, 0);
+        checkStats(instance, 0, 1, 0, 0, 0, 0);
 
         verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
         verifyNoMoreInteractions(alertService);
@@ -127,7 +127,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 1, 0, 0);
+        checkStats(instance, 0, 0, 1, 0, 0, 0);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
         verifyNoMoreInteractions(alertService);
@@ -154,7 +154,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 1, 0);
+        checkStats(instance, 0, 0, 0, 1, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
@@ -179,7 +179,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 1, 0);
+        checkStats(instance, 0, 0, 0, 1, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
@@ -200,11 +200,11 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
         assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
-        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 1);
+        checkStats(instance, 0, 0, 0, 0, 1, 0);
 
         verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
         verifyNoMoreInteractions(alertService);
@@ -231,17 +231,21 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 1);
+        checkStats(instance, 0, 0, 0, 0, 0, 1);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
         verifyNoMoreInteractions(alertService);
     }
 
-    private void checkStats(DigestValidator instance, int validMetadata, int inconsistentMetadata, int validObjects,
-        int inconsistentObjects) {
-        assertThat(instance.getValidationStatistics().getNbValidMetadata()).isEqualTo(validMetadata);
-        assertThat(instance.getValidationStatistics().getNbInconsistentMetadata()).isEqualTo(inconsistentMetadata);
-        assertThat(instance.getValidationStatistics().getNbValidObjects()).isEqualTo(validObjects);
-        assertThat(instance.getValidationStatistics().getNbInconsistentObjects()).isEqualTo(inconsistentObjects);
+    private void checkStats(DigestValidator instance, int nbMetadataOK, int nbMetadataWarnings, int nbMetadataErrors,
+        int nbObjectOK, int nbObjectWarnings, int nbObjectErrors) {
+
+        assertThat(instance.getMetadataValidationStatistics().getNbOK()).isEqualTo(nbMetadataOK);
+        assertThat(instance.getMetadataValidationStatistics().getNbWarnings()).isEqualTo(nbMetadataWarnings);
+        assertThat(instance.getMetadataValidationStatistics().getNbErrors()).isEqualTo(nbMetadataErrors);
+
+        assertThat(instance.getObjectValidationStatistics().getNbOK()).isEqualTo(nbObjectOK);
+        assertThat(instance.getObjectValidationStatistics().getNbWarnings()).isEqualTo(nbObjectWarnings);
+        assertThat(instance.getObjectValidationStatistics().getNbErrors()).isEqualTo(nbObjectErrors);
     }
 }

@@ -28,46 +28,36 @@ package fr.gouv.vitam.logbook.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TraceabilityStatistics {
+public class EntryTraceabilityStatistics {
 
-    @JsonProperty("units")
-    private EntryTraceabilityStatistics units;
+    @JsonProperty("nbOK")
+    private int nbOK = 0;
 
-    @JsonProperty("objectGroups")
-    private EntryTraceabilityStatistics objectGroups;
+    @JsonProperty("nbWarnings")
+    private int nbWarnings = 0;
 
-    @JsonProperty("objects")
-    private EntryTraceabilityStatistics objects;
+    @JsonProperty("nbErrors")
+    private int nbErrors = 0;
 
-    public TraceabilityStatistics() {
+    public EntryTraceabilityStatistics() {
         // Empty constructor for deserialization
     }
 
-    public TraceabilityStatistics(EntryTraceabilityStatistics units,
-        EntryTraceabilityStatistics objectGroups, EntryTraceabilityStatistics objects) {
-        this.units = units;
-        this.objectGroups = objectGroups;
-        this.objects = objects;
+    public EntryTraceabilityStatistics(int nbOK, int nbWarnings, int nbErrors) {
+        this.nbOK = nbOK;
+        this.nbWarnings = nbWarnings;
+        this.nbErrors = nbErrors;
     }
 
-    public EntryTraceabilityStatistics getUnits() {
-        return units;
+    public int getNbOK() {
+        return nbOK;
     }
 
-    public EntryTraceabilityStatistics getObjectGroups() {
-        return objectGroups;
+    public int getNbWarnings() {
+        return nbWarnings;
     }
 
-    public EntryTraceabilityStatistics getObjects() {
-        return objects;
-    }
-
-    @Override
-    public String toString() {
-        return "TraceabilityStatistics{" +
-            "units=" + units +
-            ", objectGroups=" + objectGroups +
-            ", objects=" + objects +
-            '}';
+    public int getNbErrors() {
+        return nbErrors;
     }
 }

@@ -1,6 +1,12 @@
 {
-  "nbValidMetadata": 1,
-  "nbInconsistentMetadata": 2,
-  "nbValidObjects": 1,
-  "nbInconsistentObjects": 2
+  "objectGroups": {
+    "nbOK": 1,
+    "nbWarnings": 1,
+    "nbErrors": 1
+  },
+  "objects": {
+    "nbOK": 1,
+    "nbWarnings": 1,
+    "nbErrors": 1
+  }
 }

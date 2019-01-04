@@ -405,8 +405,11 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent.getEndDate(),
             beforeTraceability.minusSeconds(temporizationDelayInSeconds),
             afterTraceability.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent.getStatistics().getNbValidMetadata()).isEqualTo(2);
-        assertThat(traceabilityEvent.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getUnits().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent.getStatistics().getUnits().getNbErrors()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getObjectGroups()).isNull();
+        assertThat(traceabilityEvent.getStatistics().getObjects()).isNull();
     }
 
     @RunWithCustomExecutor
@@ -453,8 +456,11 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
             beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
             afterTraceability1.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent1.getStatistics().getNbValidMetadata()).isEqualTo(3);
-        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(3);
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups()).isNull();
+        assertThat(traceabilityEvent1.getStatistics().getObjects()).isNull();
 
         // Traceability 2 : Warning + empty
         assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
@@ -469,8 +475,11 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent3.getEndDate(),
             beforeTraceability3.minusSeconds(temporizationDelayInSeconds),
             afterTraceability3.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent3.getStatistics().getNbValidMetadata()).isEqualTo(0);
-        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbOK()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbErrors()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getObjectGroups()).isNull();
+        assertThat(traceabilityEvent3.getStatistics().getObjects()).isNull();
 
         // Traceability 4 : OK + Zip (chained to traceability 3)
         assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
@@ -480,8 +489,11 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent4.getEndDate(),
             beforeTraceability4.minusSeconds(temporizationDelayInSeconds),
             afterTraceability4.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent4.getStatistics().getNbValidMetadata()).isEqualTo(3);
-        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getUnits().getNbOK()).isEqualTo(3);
+        assertThat(traceabilityEvent4.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getObjectGroups()).isNull();
+        assertThat(traceabilityEvent4.getStatistics().getObjects()).isNull();
     }
 
     @RunWithCustomExecutor
@@ -661,10 +673,14 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent.getEndDate(),
             beforeTraceability.minusSeconds(temporizationDelayInSeconds),
             afterTraceability.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent.getStatistics().getNbValidMetadata()).isEqualTo(1);
-        assertThat(traceabilityEvent.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
-        assertThat(traceabilityEvent.getStatistics().getNbValidObjects()).isEqualTo(2);
-        assertThat(traceabilityEvent.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+
+        assertThat(traceabilityEvent.getStatistics().getUnits()).isNull();
+        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbOK()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(1);
+        assertThat(traceabilityEvent.getStatistics().getObjects().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
     }
 
     @RunWithCustomExecutor
@@ -711,10 +727,13 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
             beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
             afterTraceability1.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent1.getStatistics().getNbValidMetadata()).isEqualTo(2);
-        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getNbValidObjects()).isEqualTo(2);
-        assertThat(traceabilityEvent1.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getUnits()).isNull();
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 
         // Traceability 2 : Warning + empty
         assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
@@ -729,10 +748,13 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent3.getEndDate(),
             beforeTraceability3.minusSeconds(temporizationDelayInSeconds),
             afterTraceability3.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent3.getStatistics().getNbValidMetadata()).isEqualTo(0);
-        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentMetadata()).isEqualTo(1);
-        assertThat(traceabilityEvent3.getStatistics().getNbValidObjects()).isEqualTo(1);
-        assertThat(traceabilityEvent3.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getUnits()).isNull();
+        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbOK()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbOK()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 
         // Traceability 4 : OK + Zip (chained to traceability 3)
         assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
@@ -742,10 +764,13 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent4.getEndDate(),
             beforeTraceability4.minusSeconds(temporizationDelayInSeconds),
             afterTraceability4.minusSeconds(temporizationDelayInSeconds));
-        assertThat(traceabilityEvent4.getStatistics().getNbValidMetadata()).isEqualTo(2);
-        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentMetadata()).isEqualTo(0);
-        assertThat(traceabilityEvent4.getStatistics().getNbValidObjects()).isEqualTo(2);
-        assertThat(traceabilityEvent4.getStatistics().getNbInconsistentObjects()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getUnits()).isNull();
+        assertThat(traceabilityEvent4.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent4.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getObjects().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent4.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent4.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
     }
 
     private void wait(String operationId) {

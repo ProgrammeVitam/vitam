@@ -36,14 +36,18 @@ public class DigestValidationDetails {
     private final String globalDigest;
     private final String digestInDb;
     private final Map<String, String> digestByOfferId;
+    private final boolean hasErrors;
+    private final boolean hasWarnings;
 
     public DigestValidationDetails(String strategyId, Set<String> offerIds, String globalDigest,
-        String digestInDb, Map<String, String> digestByOfferId) {
+        String digestInDb, Map<String, String> digestByOfferId, boolean hasErrors, boolean hasWarnings) {
         this.strategyId = strategyId;
         this.offerIds = offerIds;
         this.globalDigest = globalDigest;
         this.digestInDb = digestInDb;
         this.digestByOfferId = digestByOfferId;
+        this.hasErrors = hasErrors;
+        this.hasWarnings = hasWarnings;
     }
 
     String getStrategyId() {
@@ -67,6 +71,14 @@ public class DigestValidationDetails {
     }
 
     public boolean hasInconsistencies() {
-        return this.globalDigest.equals(DigestValidator.INVALID_HASH);
+        return hasErrors || hasWarnings;
+    }
+
+    public boolean isHasErrors() {
+        return hasErrors;
+    }
+
+    public boolean isHasWarnings() {
+        return hasWarnings;
     }
 }

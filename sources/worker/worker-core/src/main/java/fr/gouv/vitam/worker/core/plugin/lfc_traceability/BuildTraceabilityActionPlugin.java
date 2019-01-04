@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.TraceabilityHashDetails;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.logbook.common.model.EntryTraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -117,7 +118,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private final StrategyIdOfferIdLoader strategyIdOfferIdLoader;
     private final AlertService alertService;
 
-    protected BuildTraceabilityActionPlugin() {
+    public BuildTraceabilityActionPlugin() {
         this(
             StorageClientFactory.getInstance(),
             VitamConfiguration.getBatchSize(),
@@ -171,7 +172,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
         handler.addOutputResult(TRACEABILITY_DATA_OUT_RANK, traceabilityDataFile, true, false);
 
-        TraceabilityStatistics traceabilityStatistics = digestValidator.getValidationStatistics();
+        TraceabilityStatistics traceabilityStatistics = getTraceabilityStatistics(digestValidator);
         try {
             File traceabilityStatsFile = handler.getNewLocalFile(
                 handler.getOutput(TRACEABILITY_STATISTICS_OUT_RANK).getPath());
@@ -183,19 +184,18 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         }
 
         LOGGER.info("Traceability statistics: " + traceabilityStatistics);
-        boolean isEmpty = nbEntries == 0;
-        boolean hasInconsistencies =
-            traceabilityStatistics.getNbInconsistentMetadata() + traceabilityStatistics.getNbInconsistentObjects() > 0;
-        if (isEmpty) {
+        if (nbEntries == 0) {
             itemStatus.increment(StatusCode.WARNING);
             itemStatus.setEvDetailData(buildEvDetData("No metadata entries to secure"));
-        } else if (hasInconsistencies) {
+        } else if (digestValidator.hasInconsistencies()) {
             itemStatus.increment(StatusCode.WARNING);
             itemStatus.setEvDetailData(buildEvDetData("Inconsistencies found"));
         } else {
             itemStatus.increment(StatusCode.OK);
         }
     }
+
+    protected abstract TraceabilityStatistics getTraceabilityStatistics(DigestValidator digestValidator);
 
     private String buildEvDetData(String message) {
         Map<String, String> evDetData = new HashMap<>();
