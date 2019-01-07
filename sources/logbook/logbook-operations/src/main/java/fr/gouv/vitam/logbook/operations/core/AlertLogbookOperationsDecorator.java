@@ -29,15 +29,19 @@ package fr.gouv.vitam.logbook.operations.core;
 import java.text.MessageFormat;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -84,6 +88,11 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
             throws LogbookNotFoundException, LogbookDatabaseException {
         logbookOperations.update(parameters);
         createAlertIfNecessary(parameters);
+    }
+
+    @Override
+    public RequestResponse<LogbookOperation> selectOperations(JsonNode select) throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+        return logbookOperations.selectOperations(select);
     }
 
     @Override
