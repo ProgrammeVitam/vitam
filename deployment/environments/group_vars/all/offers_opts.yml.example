@@ -1,0 +1,73 @@
+# This list is ordered. It can and has to be completed if more offers are necessary
+# Strategy order (1st has to be the prefered one)
+vitam_strategy:
+  - name: offer-fs-1
+    referent: true
+# status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
+#    status: ACTIVE
+#    vitam_site_name: prod-dc2
+#  - name: offer-swift-1
+# Example :
+#  - name: distant
+#    referent: true
+#    status: INACTIVE
+#    vitam_site_name: distant-dc2
+
+# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
+# ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
+# WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
+vitam_offers:
+  offer-fs-1:
+    # param can be filesystem-hash (recomended) or filesystem (not recomended)
+    provider: filesystem-hash
+  offer-swift-1:
+    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
+    provider: openstack-swift-v3
+    # swiftKeystoneAuthUrl : URL de connexion à keystone
+    swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
+    # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
+    swiftDomain: domaine
+    # swiftUser : identifiant de l'utilisateur
+    swiftUser: utilisateur
+    # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
+    # swiftProjectName : nom du projet openstack
+    swiftProjectName: monTenant
+    # swiftUrl: optional variable to force the swift URL
+    # swiftUrl: https://swift-hostname:port/swift/v1
+    #SSL TrustStore
+    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+    #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (by default 2 for Apache HttpClient)
+    swiftMaxConnectionsPerRoute: 200
+    #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (by default 20 for Apache HttpClient)
+    swiftMaxConnections: 1000
+    #Max time (in milliseconds) for waiting to establish connection
+    swiftConnectionTimeout: 200000
+    #Max time (in milliseconds) waiting for a data from the server (socket)
+    swiftReadTimeout: 2000
+    #Time (in seconds) to renew a token before expiration occurs (blocking)
+    swiftHardRenewTokenDelayBeforeExpireTime: 60
+
+    #Time (in seconds) to renew a token before expiration occurs
+    swiftSoftRenewTokenDelayBeforeExpireTime: 300
+  # example_swift_v1:
+  #    provider: openstack-swift
+  #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
+  #    swiftDomain: domain
+  #    swiftUser: user
+  #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
+  # example_swift_v3:
+  #    provider: openstack-swift-v3
+  #    swiftKeystoneAuthUrl: https://keystone/v3
+  #    swiftDomain: domaine
+  #    swiftUser: user
+  #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
+  #    swiftProjectName: monTenant
+  #    projectName: monTenant
+  # swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+  # swiftMaxConnectionsPerRoute: 200
+  # swiftMaxConnections: 1000
+  # swiftConnectionTimeout: 200000
+  # swiftReadTimeout: 2000
+  # Time (in seconds) to renew a token before expiration occurs
+  # swiftHardRenewTokenDelayBeforeExpireTime: 60
+  # swiftSoftRenewTokenDelayBeforeExpireTime: 300
