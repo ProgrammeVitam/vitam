@@ -90,12 +90,10 @@ public class LogbookAdministration {
      * @throws TraceabilityException if error on generating secure logbook
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)
-    public synchronized GUID generateSecureLogbook()
+    public synchronized void generateSecureLogbook(GUID guid)
         throws TraceabilityException {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
-        GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         LogbookOperationTraceabilityHelper helper =
             new LogbookOperationTraceabilityHelper(logbookOperations, guid,
@@ -105,7 +103,5 @@ public class LogbookAdministration {
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
         generator.secureData();
-
-        return guid;
     }
 }
