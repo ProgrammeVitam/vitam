@@ -45,6 +45,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleUnitParameters;
@@ -88,6 +91,15 @@ public class PluginHelper {
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
+    }
+
+    public static <T> ItemStatus buildItemStatusSubItems(String itemId, Stream<String> subItemIds, StatusCode statusCode, T eventDetails) {
+        final ItemStatus itemStatus = new ItemStatus(itemId);
+        itemStatus.increment(statusCode);
+        setEvDetData(itemStatus, eventDetails);
+        Map<String, ItemStatus> obIds = subItemIds.collect(Collectors.toMap(id -> id, id -> itemStatus));
+        itemStatus.setSubTasksStatus(obIds);
+        return new ItemStatus(itemId).setItemsStatus(itemId, itemStatus);
     }
 
     private static <TEventDetails> void setEvDetData(ItemStatus itemStatus, TEventDetails eventDetails) {

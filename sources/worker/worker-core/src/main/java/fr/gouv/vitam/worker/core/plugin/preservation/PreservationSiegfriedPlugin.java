@@ -61,14 +61,14 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.plugin.PluginHelper.tryDeleteLocalPreservationFiles;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationSiegfriedPlugin extends ActionHandler {
     private static final String SUBSTATUS_UNKNOWN = "SUBSTATUS_UNKNOWN";
     private static final String KO_FILE_FORMAT_NOT_FOUND = "KO - FILE_FORMAT_NOT_FOUND ";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationSiegfriedPlugin.class);
 
-    private static final String ITEM_ID = "FILE_FORMAT";
+    static final String ITEM_ID = "FILE_FORMAT";
     private final FormatIdentifierFactory siegfriedFactory;
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
 
@@ -134,12 +134,13 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
     }
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
+        Stream<String> subItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
         String error = outputExtras.stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatus(ITEM_ID, KO, EventDetails.of(error))
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, KO, EventDetails.of(error))
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
         }
@@ -150,9 +151,9 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
             .map(JsonHandler::unprettyPrint)
             .collect(Collectors.joining(", "));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatus(ITEM_ID, OK, EventDetails.of(binaryFormats));
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, EventDetails.of(binaryFormats));
         }
-        return buildItemStatus(ITEM_ID, WARNING, EventDetails.of(error, binaryFormats));
+        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, EventDetails.of(error, binaryFormats));
     }
 
     private OutputExtra getOutputExtra(Path inputFiles, OutputExtra a, Path batchDirectory,

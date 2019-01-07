@@ -48,6 +48,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -144,6 +146,13 @@ public class PreservationSiegfriedPluginTest {
 
         // Then
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        String binaryGUID =
+            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID();
+
+        assertThat(itemStatuses).extracting(ItemStatus::getItemsStatus).
+            extracting(itemStatus -> itemStatus.get(PreservationSiegfriedPlugin.ITEM_ID))
+            .extracting(ItemStatus::getSubTaskStatus)
+            .extracting(subItemStatus -> subItemStatus.get(binaryGUID)).isNotEmpty();
     }
 
     @Test
@@ -284,4 +293,5 @@ public class PreservationSiegfriedPluginTest {
         // Then
         assertThatThrownBy(siegfriedError).isInstanceOf(RuntimeException.class);
     }
+
 }

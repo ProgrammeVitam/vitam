@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PreservationGenerateBinaryHashTest {
 
+    private static final String PRESERVATION_BINARY_HASH_SUBTASK = "PRESERVATION_BINARY_HASH";
     @InjectMocks
     private PreservationGenerateBinaryHash binaryHashPlugin;
 
@@ -109,7 +110,8 @@ public class PreservationGenerateBinaryHashTest {
         assertThat(((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults())
             .extracting(w -> w.getOutputExtras().get(0).getBinaryHash())
             .extracting(Optional::get)
-            .containsOnly("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e");
+            .containsOnly(
+                "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e");
     }
 
     @Test
@@ -172,5 +174,31 @@ public class PreservationGenerateBinaryHashTest {
         // Then
         assertThatThrownBy(checkParameters).isInstanceOf(IllegalStateException.class)
             .hasMessage("Not implemented.");
+    }
+
+    @Test
+    public void should_include_binary_id_in_subtask() throws Exception {
+        // Given
+        String outputName = "empty-file";
+        OutputPreservation output = new OutputPreservation();
+        output.setOutputName(outputName);
+        output.setStatus(PreservationStatus.OK);
+        output.setAction(ActionTypePreservation.GENERATE);
+        List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
+        Files.createFile(file.toPath().resolve(outputName));
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
+        handler.addOutputResult(0, batchResults);
+
+        // When
+        List<ItemStatus> itemStatuses = binaryHashPlugin.executeList(null, handler);
+        String binaryGUID =
+            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID();
+        // Then
+        assertThat(itemStatuses).extracting(ItemStatus::getItemsStatus).
+            extracting(itemStatus -> itemStatus.get(PRESERVATION_BINARY_HASH_SUBTASK))
+            .extracting(ItemStatus::getSubTaskStatus)
+            .extracting(subItemStatus -> subItemStatus.get(binaryGUID)).isNotEmpty();
     }
 }
