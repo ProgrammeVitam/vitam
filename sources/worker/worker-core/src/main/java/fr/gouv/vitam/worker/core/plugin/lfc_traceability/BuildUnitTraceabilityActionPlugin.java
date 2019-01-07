@@ -53,11 +53,9 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
     }
 
     @VisibleForTesting
-    BuildUnitTraceabilityActionPlugin(
-        StorageClientFactory storageClientFactory,
+    BuildUnitTraceabilityActionPlugin(StorageClientFactory storageClientFactory,
         int batchSize, AlertService alertService) {
-        super(storageClientFactory, batchSize, new StrategyIdOfferIdLoader(storageClientFactory),
-            alertService);
+        super(storageClientFactory, batchSize, alertService);
     }
 
     @Override
@@ -74,10 +72,7 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
 
     @Override
     protected TraceabilityStatistics getTraceabilityStatistics(DigestValidator digestValidator) {
-        return new TraceabilityStatistics(
-            digestValidator.getMetadataValidationStatistics(),
-            null,
-            null);
+        return TraceabilityStatistics.ofUnitTraceabilityStatistics(digestValidator.getMetadataValidationStatistics());
     }
 
     @Override

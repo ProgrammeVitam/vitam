@@ -43,11 +43,20 @@ public class TraceabilityStatistics {
         // Empty constructor for deserialization
     }
 
-    public TraceabilityStatistics(EntryTraceabilityStatistics units,
+    private TraceabilityStatistics(EntryTraceabilityStatistics units,
         EntryTraceabilityStatistics objectGroups, EntryTraceabilityStatistics objects) {
         this.units = units;
         this.objectGroups = objectGroups;
         this.objects = objects;
+    }
+
+    public static TraceabilityStatistics ofUnitTraceabilityStatistics(EntryTraceabilityStatistics units) {
+        return new TraceabilityStatistics(units, null, null);
+    }
+
+    public static TraceabilityStatistics ofObjectGroupsTraceabilityStatistics(EntryTraceabilityStatistics objectGroups,
+        EntryTraceabilityStatistics objects) {
+        return new TraceabilityStatistics(null, objectGroups, objects);
     }
 
     public EntryTraceabilityStatistics getUnits() {

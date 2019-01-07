@@ -55,8 +55,7 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
     BuildObjectGroupTraceabilityActionPlugin(
         StorageClientFactory storageClientFactory,
         int batchSize, AlertService alertService) {
-        super(storageClientFactory, batchSize, new StrategyIdOfferIdLoader(storageClientFactory),
-            alertService);
+        super(storageClientFactory, batchSize, alertService);
     }
 
     @Override
@@ -72,8 +71,7 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
 
     @Override
     protected TraceabilityStatistics getTraceabilityStatistics(DigestValidator digestValidator) {
-        return new TraceabilityStatistics(
-            null,
+        return TraceabilityStatistics.ofObjectGroupsTraceabilityStatistics(
             digestValidator.getMetadataValidationStatistics(),
             digestValidator.getObjectValidationStatistics());
     }

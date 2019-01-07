@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.TraceabilityHashDetails;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.logbook.common.model.EntryTraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -115,14 +114,12 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
     private final StorageClientFactory storageClientFactory;
     private final int batchSize;
-    private final StrategyIdOfferIdLoader strategyIdOfferIdLoader;
     private final AlertService alertService;
 
     public BuildTraceabilityActionPlugin() {
         this(
             StorageClientFactory.getInstance(),
             VitamConfiguration.getBatchSize(),
-            new StrategyIdOfferIdLoader(StorageClientFactory.getInstance()),
             new AlertServiceImpl());
     }
 
@@ -130,11 +127,9 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     BuildTraceabilityActionPlugin(
         StorageClientFactory storageClientFactory,
         int batchSize,
-        StrategyIdOfferIdLoader strategyIdOfferIdLoader,
         AlertService alertService) {
         this.storageClientFactory = storageClientFactory;
         this.batchSize = batchSize;
-        this.strategyIdOfferIdLoader = strategyIdOfferIdLoader;
         this.alertService = alertService;
     }
 
@@ -146,6 +141,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
             handler.getNewLocalFile(handler.getOutput(TRACEABILITY_DATA_OUT_RANK).getPath());
 
         DigestValidator digestValidator = new DigestValidator(alertService);
+        StrategyIdOfferIdLoader strategyIdOfferIdLoader = new StrategyIdOfferIdLoader(
+            this.storageClientFactory);
 
         int nbEntries = 0;
 
@@ -163,7 +160,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 List<LfcMetadataPair> lfcMetadataPairList = bulkIterator.next();
                 nbEntries += lfcMetadataPairList.size();
 
-                processBulk(lfcMetadataPairList, jsonLineWriter, lifecycleType, digestValidator);
+                processBulk(lfcMetadataPairList, jsonLineWriter, lifecycleType, digestValidator, strategyIdOfferIdLoader);
             }
 
         } catch (IOException e) {
@@ -204,7 +201,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     }
 
     private void processBulk(List<LfcMetadataPair> lfcMetadataPairList, JsonLineWriter jsonLineWriter,
-        String lifecycleType, DigestValidator digestValidator)
+        String lifecycleType, DigestValidator digestValidator,
+        StrategyIdOfferIdLoader strategyIdOfferIdLoader)
         throws ProcessingException {
 
         LOGGER.debug("Processing " + lfcMetadataPairList.size() + " traceability data entries");
@@ -215,10 +213,12 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 DataCategory.UNIT : DataCategory.OBJECTGROUP;
 
             Map<String, DigestValidationDetails> metadataDigestsById = computeMetadataDigests(
-                lfcMetadataPairList, lifecycleType, storageClient, dataCategory, digestValidator);
+                lfcMetadataPairList, lifecycleType, storageClient, dataCategory, digestValidator,
+                strategyIdOfferIdLoader);
 
             Map<String, Map<String, DigestValidationDetails>> objectDigestsByObjectGroupId =
-                computeObjectDigests(lfcMetadataPairList, lifecycleType, storageClient, digestValidator);
+                computeObjectDigests(lfcMetadataPairList, lifecycleType, storageClient, digestValidator,
+                    strategyIdOfferIdLoader);
 
             for (LfcMetadataPair lfcMetadataPair : lfcMetadataPairList) {
                 String id = lfcMetadataPair.getLfc().get(LogbookDocument.ID).textValue();
@@ -239,7 +239,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private Map<String, DigestValidationDetails> computeMetadataDigests(
         List<LfcMetadataPair> lfcMetadataPairList, String lifecycleType,
         StorageClient storageClient, DataCategory dataCategory,
-        DigestValidator digestValidator)
+        DigestValidator digestValidator,
+        StrategyIdOfferIdLoader strategyIdOfferIdLoader)
         throws IOException, StorageServerClientException, ProcessingException {
 
         Map<String, String> metadataDigestsInDb = computeMetadataDigestsInDb(lfcMetadataPairList, lifecycleType);
@@ -258,7 +259,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         for (String strategyId : metadataIdsByStrategyId.keySet()) {
 
             Collection<String> metadataIds = metadataIdsByStrategyId.get(strategyId);
-            Collection<String> offerIds = this.strategyIdOfferIdLoader.getOfferIds(strategyId);
+            Collection<String> offerIds = strategyIdOfferIdLoader.getOfferIds(strategyId);
 
             Collection<String> metadataFilenames = metadataIds.stream()
                 .map(id -> id + JSON_EXTENSION)
@@ -312,7 +313,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
     private Map<String, Map<String, DigestValidationDetails>> computeObjectDigests(
         List<LfcMetadataPair> lfcMetadataPairList, String lifecycleType,
-        StorageClient storageClient, DigestValidator digestValidator)
+        StorageClient storageClient, DigestValidator digestValidator, StrategyIdOfferIdLoader strategyIdOfferIdLoader)
         throws StorageServerClientException, ProcessingException {
 
         if (lifecycleType.equals(LogbookLifeCycleUnit.class.getName())) {
@@ -353,7 +354,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         for (String strategyId : objectIdsByStrategyId.keySet()) {
 
             List<String> objectIds = objectIdsByStrategyId.get(strategyId);
-            List<String> offerIds = this.strategyIdOfferIdLoader.getOfferIds(strategyId);
+            List<String> offerIds = strategyIdOfferIdLoader.getOfferIds(strategyId);
 
             Map<String, Map<String, String>> offerDigestsByObjectIds = getOfferDigests(
                 storageClient, DataCategory.OBJECT, strategyId, offerIds, objectIds, batchSize);
