@@ -43,6 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -217,6 +220,18 @@ public class LogbookOperationsImplTest {
 
 
     @Test
+    public void selectOperationsTest() throws Exception {
+        Mockito.reset(mongoDbAccess);
+        Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(anyObject(), anyBoolean());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        Select select = new Select();
+        RequestResponse<LogbookOperation> response = logbookOperationsImpl.selectOperations(select.getFinalSelect());
+        assertNotNull(response);
+        assertEquals(1, response.toJsonNode().get("$hits").get("total").asLong());
+    }
+
+
+    @Test
     public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
         Mockito.reset(mongoDbAccess);
         Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(anyObject(), anyBoolean());
@@ -301,8 +316,8 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 
-    private MongoCursor createFakeMongoCursor() {
-        return new MongoCursor() {
+    private VitamMongoCursor createFakeMongoCursor() {
+        return new VitamMongoCursor(new MongoCursor() {
             boolean f = true;
 
             @Override
@@ -340,7 +355,7 @@ public class LogbookOperationsImplTest {
             public ServerAddress getServerAddress() {
                 return null;
             }
-        };
+        }, 1, null);
     }
 
 }

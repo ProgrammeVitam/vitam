@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -256,7 +258,7 @@ public class LogbookMongoDbAccessTest {
         assertEquals(0, mongoDbAccess.getLogbookOperationSize());
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        try (MongoCursor<LogbookOperation> cursorOperation =
+        try (VitamMongoCursor<LogbookOperation> cursorOperation =
             mongoDbAccess.getLogbookOperations(select.getFinalSelect(), true)) {
             assertFalse(cursorOperation.hasNext());
         }
@@ -417,7 +419,7 @@ public class LogbookMongoDbAccessTest {
         JsonNode node =
             JsonHandler.getFromString(
                 "{ $query: { $eq: { _id: \"" + eip + "\" } }, $projection: {}, $filter: {} }");
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
@@ -429,7 +431,7 @@ public class LogbookMongoDbAccessTest {
         }
         node = JsonHandler.getFromString("{ $query: { $eq: { _id: \"" + eip + "\"} }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
@@ -490,7 +492,7 @@ public class LogbookMongoDbAccessTest {
 
         node = JsonHandler.getFromString("{ $query: { $exists : '_id' }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
@@ -500,7 +502,7 @@ public class LogbookMongoDbAccessTest {
         node =
             JsonHandler.getFromString(
                 "{ $query: { $exists : '_id' }, $projection: {}, $filter: {} }");
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
@@ -520,7 +522,7 @@ public class LogbookMongoDbAccessTest {
         node = JsonHandler.getFromString("{ $query: { $eq: { 'evTypeProc' : 'TRACEABILITY' } }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
 
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
@@ -532,7 +534,7 @@ public class LogbookMongoDbAccessTest {
             "{ $query: { $and : [{ $eq: { 'evTypeProc' : 'TRACEABILITY' }}, { $eq: { 'outcome' : 'XXXXX' }} ]} }, $projection: { " +
                 LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
 
-        try (MongoCursor<LogbookOperation> cursor =
+        try (VitamMongoCursor<LogbookOperation> cursor =
             mongoDbAccess.getLogbookOperations(node, true)) {
             assertFalse(cursor.hasNext());
             assertNull(cursor.next());
@@ -670,6 +672,7 @@ public class LogbookMongoDbAccessTest {
         // full
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(node);
+
         try (MongoCursor<LogbookLifeCycleUnit> cursor =
             mongoDbAccess.getLogbookLifeCycleUnitsFull(LogbookCollections.LIFECYCLE_UNIT, parser.getRequest())) {
             assertTrue(cursor.hasNext());

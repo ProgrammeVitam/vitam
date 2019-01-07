@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -69,6 +71,11 @@ public class LogbookOperationsDecoratorTest {
     private static class TestClass extends LogbookOperationsDecorator {
         TestClass(LogbookOperations logbookOperations) {
             super(logbookOperations);
+        }
+
+        @Override
+        public RequestResponse<LogbookOperation> selectOperations(JsonNode select) {
+            return null;
         }
     }
 

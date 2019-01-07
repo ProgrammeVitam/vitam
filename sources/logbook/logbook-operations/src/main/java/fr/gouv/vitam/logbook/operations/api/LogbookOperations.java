@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -83,6 +84,9 @@ public interface LogbookOperations {
      */
     List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
+
+    RequestResponse<LogbookOperation> selectOperations(JsonNode select)
+            throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Select logbook operation entries

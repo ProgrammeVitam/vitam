@@ -28,7 +28,6 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
@@ -47,6 +46,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -54,6 +54,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -142,6 +145,33 @@ public class LogbookOperationsImpl implements LogbookOperations {
         return operations;
     }
 
+    @Override
+    public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
+            throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
+        VitamMongoCursor cursor = mongoDbAccess.getLogbookOperations(select, true);
+        List<LogbookOperation> operations = new ArrayList<>();
+        while (cursor.hasNext()) {
+            LogbookOperation doc = (LogbookOperation) cursor.next();
+            filterFinalResponse(doc);
+            operations.add(doc);
+        }
+        long offset = 0;
+        long limit = 0;
+        if (select.get("$filter") != null) {
+            if (select.get("$filter").get("$offset") != null) {
+                offset = select.get("$filter").get("$offset").asLong();
+            }
+            if (select.get("$filter").get("$limit") != null) {
+                limit = select.get("$filter").get("$limit").asLong();
+            }
+        }
+
+        DatabaseCursor hitss = (cursor.getScrollId() != null) ? new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
+                : new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
+        return new RequestResponseOK<LogbookOperation>(select)
+                .addAllResults(operations).setHits(hitss);
+    }
+
     private void filterFinalResponse(VitamDocument<?> document) {
         for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
@@ -183,7 +213,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
         throws LogbookNotFoundException, LogbookDatabaseException, VitamDBException {
         final List<LogbookOperation> result = new ArrayList<>();
-        try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
+        try (final VitamMongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
             if (logbook == null || !logbook.hasNext()) {
                 // TODO: seriously, thrown a not found exception here ??? Not found only if I search a specific
                 // operation with an ID, not if the logbook is empty ! But fix this and evreything may be broken
@@ -253,7 +283,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         LogbookOperation logbookOperation = null;
         try {
             logbookOperation =
-                Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+                mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
         } catch (VitamDBException e) {
             LOGGER.error(e);
         }
@@ -274,7 +304,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         LogbookOperation logbookOperation = null;
         try {
             logbookOperation =
-                Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+                mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
         } catch (VitamDBException e) {
             LOGGER.error(e);
         }

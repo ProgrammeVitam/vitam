@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.database.server.DbRequestHelper;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.database.translators.elasticsearch.SelectToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
@@ -344,7 +345,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
+    public VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
@@ -377,7 +378,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection, Select select)
+    public VitamMongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection, Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
@@ -399,7 +400,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(LogbookCollections collection,
+    public VitamMongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(LogbookCollections collection,
         Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
@@ -579,7 +580,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookNotFoundException
      */
     @SuppressWarnings("rawtypes")
-    private final MongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
+    private final VitamMongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
         throws LogbookDatabaseException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
@@ -606,7 +607,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws InvalidParseOperationException
      */
     @SuppressWarnings("rawtypes")
-    private MongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
+    private VitamMongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -626,7 +627,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (limit > 0) {
             find = find.limit(limit);
         }
-        return find.iterator();
+        return new VitamMongoCursor(find.iterator());
     }
 
     /**
@@ -637,7 +638,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookException
      */
     @SuppressWarnings("rawtypes")
-    private MongoCursor selectExecute(final LogbookCollections collection, Select select)
+    private VitamMongoCursor selectExecute(final LogbookCollections collection, Select select)
         throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
@@ -1461,7 +1462,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws InvalidCreateOperationException if a MongoDb query can't be created from ES results
      * @throws LogbookException if an exception occured while executing the ES query
      */
-    private MongoCursor<?> findDocumentsElasticsearch(LogbookCollections collection,
+    private VitamMongoCursor findDocumentsElasticsearch(LogbookCollections collection,
         SelectParserSingle parser)
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException, VitamDBException {
         Integer tenantId = HeaderIdHelper.getTenantId();
@@ -1472,11 +1473,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 sorts, requestToEs.getFinalOffset(),
                 requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
-            return new EmptyMongoCursor();
+            return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
         final SearchHits hits = elasticSearchResponse.getHits();
         if (hits.getTotalHits() == 0) {
-            return new EmptyMongoCursor();
+            return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
         final Iterator<SearchHit> iterator = hits.iterator();
         // get document with Elasticsearch then create a new request to mongodb with unique object's attribute
@@ -1488,8 +1489,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         // replace query with list of ids from es
         parser.getRequest().setQuery(new NopQuery());
-        return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
-            idsSorted, null);
+        return new VitamMongoCursor(DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
+            idsSorted, null), hits.getTotalHits(), elasticSearchResponse.getScrollId());
     }
 
 
