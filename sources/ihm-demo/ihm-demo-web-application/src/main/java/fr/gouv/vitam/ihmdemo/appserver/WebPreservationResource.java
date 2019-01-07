@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -42,7 +43,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
@@ -56,6 +59,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
@@ -107,21 +111,50 @@ public class WebPreservationResource {
     @Path("/preservationScenarios")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("preservationScenarios:read")
-    public Response getPreservationScenarios(@Context HttpServletRequest request) {
+    public Response getPreservationScenarios(@Context HttpServletRequest request, String select) {
 
         VitamContext vitamContext = getVitamContext(request);
         RequestResponse<PreservationScenarioModel> response;
-        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
 
-            response = client.findPreservationScenario(vitamContext, new Select().getFinalSelect());
+        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            response = client.findPreservationScenario(vitamContext, query);
 
             if (response instanceof RequestResponseOK) {
                 return Response.status(Response.Status.OK).entity(response).build();
             }
             return Response.status(response.getHttpCode()).entity(response).build();
-        } catch (VitamClientException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+    @POST
+    @Path("/griffins")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("griffins:read")
+    public Response getPreservationGriffins(@Context HttpServletRequest request, String select) {
+        VitamContext vitamContext = getVitamContext(request);
+        RequestResponse<GriffinModel> response;
+
+        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            response =
+                client.findGriffin(vitamContext, query);
+            if (response instanceof RequestResponseOK) {
+                return Response.status(Response.Status.OK).entity(response).build();
+            }
+            return Response.status(response.getHttpCode()).entity(response).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -134,7 +167,9 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.importGriffin(
-                    UserInterfaceTransactionManager.getVitamContext(request), input,request.getHeader(GlobalDataRest.X_FILENAME));
+                    UserInterfaceTransactionManager.getVitamContext(request), input,
+                    request.getHeader(GlobalDataRest.X_FILENAME));
+
             if (response instanceof RequestResponseOK) {
                 return Response.status(Response.Status.OK).build();
             }
@@ -144,7 +179,7 @@ public class WebPreservationResource {
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
-            LOGGER.error( e);
+            LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -158,7 +193,8 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.importPreservationScenario(
-                    UserInterfaceTransactionManager.getVitamContext(request), input,request.getHeader(GlobalDataRest.X_FILENAME));
+                    UserInterfaceTransactionManager.getVitamContext(request), input,
+                    request.getHeader(GlobalDataRest.X_FILENAME));
             if (response instanceof RequestResponseOK) {
                 return Response.status(Response.Status.OK).build();
             }
@@ -168,7 +204,7 @@ public class WebPreservationResource {
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
-            LOGGER.error( e);
+            LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -50,7 +50,8 @@ export class MenuComponent implements OnInit {
               {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
               {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
-              {label: 'Import des griffons', routerLink: ['admin/import/griffins']}
+              {label: 'Import des griffons', routerLink: ['admin/import/griffins']},
+              {label: 'Import des scénario de preservation', routerLink: ['admin/import/scenarios']}
             ];
           } else {
             importItems = [

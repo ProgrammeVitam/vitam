@@ -382,11 +382,10 @@ export class SearchReferentialsComponent extends PageComponent {
           this.breadcrumbName = 'Griffons';
           this.specificTitle = 'Griffons';
           this.referentialData = [
-            new FieldDefinition('GriffInName', 'Intitulé', 4, 10),
-            FieldDefinition.createIdField('GriffInID', 'Identifiant', 4, 10),
-            new FieldDefinition('Description', 'Description', 4, 10)
+            new FieldDefinition('GriffinName', 'Intitulé', 4, 10),
+            FieldDefinition.createIdField('GriffinID', 'Identifiant', 4, 10)
           ];
-          this.searchForm = {'GriffInID': 'all', 'GriffInName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.searchForm = {'GriffinID': 'all', 'GriffinName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
           this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
@@ -394,22 +393,25 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
               () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('ExecutableName', 'ExecutableName', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('ExecutableVersion', 'ExecutableVersion', undefined,
               () => ({'width': '125px'}))
           ];
           this.referentialPath = 'admin/griffins/all';
           this.referentialIdentifier = 'Identifier';
-          this.getLastImportOkOperation('griffins', 'IMPORT_GRIFFIN.OK');
-          this.actionLabel = 'Exporter le référentiel';
           break;
         case 'scenarios':
-          this.searchReferentialsService.setSearchAPI('scenarios');
+          this.searchReferentialsService.setSearchAPI('preservationScenarios');
           this.breadcrumbName = 'Scenarios';
           this.specificTitle = 'Scenarios';
           this.referentialData = [
             new FieldDefinition('ScenarioName', 'Intitulé', 4, 10),
-            FieldDefinition.createIdField('ScenarioID', 'Identifiant', 4, 10),
-            new FieldDefinition('Description', 'Description', 4, 10)
+            FieldDefinition.createIdField('ScenarioID', 'Identifiant', 4, 10)
           ];
+
+
           this.searchForm = {'ScenarioID': 'all', 'ScenarioName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
           this.initialSortKey = 'Name';
           this.columns = [
@@ -418,12 +420,11 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
               () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('ActionList', 'ActionList', undefined,
               () => ({'width': '125px'}))
           ];
-          this.referentialPath = 'admin/griffins/all';
-          this.referentialIdentifier = 'Identifier';
-          this.getLastImportOkOperation('griffins', 'IMPORT_SCENARIO.OK');
-          this.actionLabel = 'Exporter le référentiel';
+          this.referentialPath = 'admin/scenarios/all';
           break;
         default:
           this.router.navigate(['ingest/sip']);
