@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,6 +83,8 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         "BuildObjectGroupTraceabilityActionPlugin/batchDigestsObjects.json";
     private static final String TRACEABILITY_DATA_FILE =
         "BuildObjectGroupTraceabilityActionPlugin/traceabilityData.jsonl";
+    private static final String TRACEABILITY_STATS_FILE =
+        "BuildObjectGroupTraceabilityActionPlugin/traceabilityStats.json";
 
     private static final String BATCH_DIGESTS_GOT_PART1_FILE =
         "BuildObjectGroupTraceabilityActionPlugin/batchDigestsGotsPart1.json";
@@ -98,6 +101,8 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         "BuildObjectGroupTraceabilityActionPlugin/batchDigestsObjectsBadDigest.json";
     private static final String TRACEABILITY_DATA_BAD_HASH_FILE =
         "BuildObjectGroupTraceabilityActionPlugin/traceabilityDataBadDigest.jsonl";
+    private static final String TRACEABILITY_STATS_BAD_HASH_FILE =
+        "BuildObjectGroupTraceabilityActionPlugin/traceabilityStatsBadDigest.json";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -142,8 +147,12 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
         doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
             .when(handler).getOutput(0);
-        File traceabilityFile = folder.newFile();
-        doReturn(traceabilityFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
+            .when(handler).getOutput(1);
+        File traceabilityDataFile = folder.newFile();
+        File traceabilityStatsFile = folder.newFile();
+        doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(traceabilityStatsFile).when(handler).getNewLocalFile("traceabilityStats.json");
 
         List<String> offerIds = Arrays.asList("vitam-iaas-app-02.int", "vitam-iaas-app-03.int");
         doReturn(offerIds).when(storageClient).getOffers(anyString());
@@ -169,7 +178,9 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(traceabilityFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
+        assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
+        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
         verify(storageClient)
@@ -189,8 +200,12 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
         doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
             .when(handler).getOutput(0);
-        File traceabilityFile = folder.newFile();
-        doReturn(traceabilityFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
+            .when(handler).getOutput(1);
+        File traceabilityDataFile = folder.newFile();
+        File traceabilityStatsFile = folder.newFile();
+        doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(traceabilityStatsFile).when(handler).getNewLocalFile("traceabilityStats.json");
 
         List<String> offerIds = Arrays.asList("vitam-iaas-app-02.int", "vitam-iaas-app-03.int");
         doReturn(offerIds).when(storageClient).getOffers(anyString());
@@ -226,7 +241,9 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(traceabilityFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
+        assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
+        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
         verify(storageClient, times(2))
@@ -247,8 +264,12 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
         doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
             .when(handler).getOutput(0);
-        File traceabilityFile = folder.newFile();
-        doReturn(traceabilityFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
+            .when(handler).getOutput(1);
+        File traceabilityDataFile = folder.newFile();
+        File traceabilityStatsFile = folder.newFile();
+        doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(traceabilityStatsFile).when(handler).getNewLocalFile("traceabilityStats.json");
 
         List<String> offerIds = Arrays.asList("vitam-iaas-app-02.int", "vitam-iaas-app-03.int");
         doReturn(offerIds).when(storageClient).getOffers(anyString());
@@ -274,9 +295,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
-        assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(traceabilityFile).hasSameContentAs(PropertiesUtils.getResourceFile(
+        assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(
             TRACEABILITY_DATA_BAD_HASH_FILE));
+        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE)));
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
         verify(storageClient)
@@ -284,7 +307,8 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         assertThat(objectIds.getValue()).containsExactlyInAnyOrder("aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
             "aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq", "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq");
 
-        // 2x2 alerts (missing digest and digest mismatch)
-        verify(alertService, times(4)).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        // 2x2 alerts (WARN for missing digest and ERROR for digest mismatch)
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), anyString());
     }
 }

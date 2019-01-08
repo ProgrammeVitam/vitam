@@ -94,7 +94,9 @@ import java.util.zip.ZipFile;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
@@ -106,9 +108,6 @@ public class EvidenceService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceService.class);
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String TMP = "tmp";
-    private static final String ZIP = ".zip";
-    private static final String DATA_TXT = "data.txt";
-    private static final String extension = ".txt";
     private static final String FILE_NAME = "FileName";
     private static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
     private static final String NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE =
@@ -122,12 +121,18 @@ public class EvidenceService {
         "Invalid version. Database version (%s) not yet secured. Last secured version was (%s)";
     private static final String KO_UNSECURED_DATABASE_VERSION =
         "Invalid version. Database version (%s) has not been secured. Last secured version was (%s)";
+    public static final String OK = ".OK";
+    public static final String WARNING = ".WARNING";
     private static final String LOGBOOK_UNIT_LFC_TRACEABILITY = Contexts.UNIT_LFC_TRACEABILITY.getEventType();
-    private static final String LOGBOOK_UNIT_LFC_TRACEABILITY_OK = LOGBOOK_UNIT_LFC_TRACEABILITY + ".OK";
+    private static final String LOGBOOK_UNIT_LFC_TRACEABILITY_OK = LOGBOOK_UNIT_LFC_TRACEABILITY + OK;
+    private static final String LOGBOOK_UNIT_LFC_TRACEABILITY_WARNING = LOGBOOK_UNIT_LFC_TRACEABILITY + WARNING;
     private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY =
         Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType();
-    private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + ".OK";
-    public static final String OK = ".OK";
+    private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + OK;
+    private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_WARNING = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + WARNING;
+
+    private static final String EVENTS_EVDETDATA_FILENAME = "events.evDetData.FileName";
+    private static final String EVENTS_OUT_DETAIL = "events.outDetail";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -734,7 +739,8 @@ public class EvidenceService {
         Select select = new Select();
         BooleanQuery query = and().add(
             eq(LogbookMongoDbName.eventType.getDbname(), eventType),
-            eq("events.outDetail", eventType + OK),
+            in(EVENTS_OUT_DETAIL, eventType + OK, eventType + WARNING),
+            exists(EVENTS_EVDETDATA_FILENAME),
             QueryHelper.lte("events.evDetData.StartDate", lastPersistedDate),
             gte("events.evDetData.EndDate", lastPersistedDate)
         );
@@ -764,13 +770,16 @@ public class EvidenceService {
                 case UNIT:
                     query = and().add(
                         eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_UNIT_LFC_TRACEABILITY),
-                        eq("events.outDetail", LOGBOOK_UNIT_LFC_TRACEABILITY_OK)
+                        in(EVENTS_OUT_DETAIL, LOGBOOK_UNIT_LFC_TRACEABILITY_OK, LOGBOOK_UNIT_LFC_TRACEABILITY_WARNING),
+                        exists(EVENTS_EVDETDATA_FILENAME)
                     );
                     break;
                 case OBJECTGROUP:
                     query = and().add(
                         eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY),
-                        eq("events.outDetail", EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK)
+                        in(EVENTS_OUT_DETAIL, EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK,
+                            EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_WARNING),
+                        exists(EVENTS_EVDETDATA_FILENAME)
                     );
                     break;
                 default:

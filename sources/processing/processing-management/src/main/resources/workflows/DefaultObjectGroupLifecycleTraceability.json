@@ -60,6 +60,10 @@
               {
                 "name": "traceabilityData.file",
                 "uri": "WORKSPACE:traceabilityData.jsonl"
+              },
+              {
+                "name": "traceabilityStats.file",
+                "uri": "WORKSPACE:traceabilityStats.json"
               }
             ]
           }
@@ -80,6 +84,10 @@
               {
                 "name": "traceabilityData.file",
                 "uri": "WORKSPACE:traceabilityData.jsonl"
+              },
+              {
+                "name": "traceabilityStats.file",
+                "uri": "WORKSPACE:traceabilityStats.json"
               }
             ]
           }

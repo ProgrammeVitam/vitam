@@ -50,6 +50,8 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         "LogbookLifeCycleTraceabilityHelperTest/traceabilityInformation.json";
     private static final String TRACEABILITY_DATA =
         "LogbookLifeCycleTraceabilityHelperTest/traceabilityData.jsonl";
+    private static final String TRACEABILITY_STATISTICS =
+        "LogbookLifeCycleTraceabilityHelperTest/unitTraceabilityStats.json";
 
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
     private HandlerIOImpl handlerIO;
@@ -88,6 +90,10 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityInformation.json")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityData.jsonl")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityStats.json")));
         itemStatus = new ItemStatus(HANDLER_ID);
     }
 
@@ -99,6 +105,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutIOParameters(in);
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
@@ -115,12 +122,39 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_extract_correctly_statistics() throws Exception {
+        // Given
+        GUID guid = GUIDFactory.newOperationLogbookGUID(0);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
+        handlerIO.addInIOParameters(in);
+
+        LogbookUnitLifeCycleTraceabilityHelper helper =
+            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
+                workspaceClientFactory, null);
+
+        // When
+        helper.initialize();
+
+        // Then
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbOK()).isEqualTo(1);
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbWarnings()).isEqualTo(2);
+        assertThat(helper.getTraceabilityStatistics().getUnits().getNbErrors()).isEqualTo(3);
+        assertThat(helper.getTraceabilityStatistics().getObjectGroups()).isNull();
+        assertThat(helper.getTraceabilityStatistics().getObjects()).isNull();
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_correctly_save_data_and_compute_start_date_for_first_traceability() throws Exception {
         // Given
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
         handlerIO.addOutIOParameters(in);
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
         when(logbookOperationsClient.selectOperation(anyObject()))
@@ -153,6 +187,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutIOParameters(in);
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
@@ -178,6 +213,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutIOParameters(in);
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
         LogbookUnitLifeCycleTraceabilityHelper helper =

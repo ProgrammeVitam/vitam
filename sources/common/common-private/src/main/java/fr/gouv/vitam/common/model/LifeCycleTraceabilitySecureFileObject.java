@@ -57,6 +57,8 @@ public class LifeCycleTraceabilitySecureFileObject {
     private String hashMetadata;
     @JsonProperty("hGlobalFStorage")
     private String hashGlobalFromStorage;
+    @JsonProperty("hGlobalDetails")
+    private TraceabilityHashDetails traceabilityHashDetails;
     @JsonProperty("hOGDocsStorage")
     private List<ObjectGroupDocumentHash> objectGroupDocumentHashList;
     @JsonProperty("up")
@@ -331,4 +333,13 @@ public class LifeCycleTraceabilitySecureFileObject {
         this.idGot = idGot;
     }
 
+    public TraceabilityHashDetails getTraceabilityHashDetails() {
+        return traceabilityHashDetails;
+    }
+
+    public LifeCycleTraceabilitySecureFileObject setTraceabilityHashDetails(
+        TraceabilityHashDetails traceabilityHashDetails) {
+        this.traceabilityHashDetails = traceabilityHashDetails;
+        return this;
+    }
 }

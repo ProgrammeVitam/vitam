@@ -24,65 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.logbook.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * ObjectGroupDocumentHash class
- */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+public class TraceabilityStatistics {
 
-    public ObjectGroupDocumentHash(){
+    @JsonProperty("units")
+    private EntryTraceabilityStatistics units;
+
+    @JsonProperty("objectGroups")
+    private EntryTraceabilityStatistics objectGroups;
+
+    @JsonProperty("objects")
+    private EntryTraceabilityStatistics objects;
+
+    public TraceabilityStatistics() {
+        // Empty constructor for deserialization
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
+    private TraceabilityStatistics(EntryTraceabilityStatistics units,
+        EntryTraceabilityStatistics objectGroups, EntryTraceabilityStatistics objects) {
+        this.units = units;
+        this.objectGroups = objectGroups;
+        this.objects = objects;
     }
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
+    public static TraceabilityStatistics ofUnitTraceabilityStatistics(EntryTraceabilityStatistics units) {
+        return new TraceabilityStatistics(units, null, null);
     }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
+    public static TraceabilityStatistics ofObjectGroupsTraceabilityStatistics(EntryTraceabilityStatistics objectGroups,
+        EntryTraceabilityStatistics objects) {
+        return new TraceabilityStatistics(null, objectGroups, objects);
     }
 
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
+    public EntryTraceabilityStatistics getUnits() {
+        return units;
     }
 
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
+    public EntryTraceabilityStatistics getObjectGroups() {
+        return objectGroups;
     }
 
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+    public EntryTraceabilityStatistics getObjects() {
+        return objects;
+    }
+
+    @Override
+    public String toString() {
+        return "TraceabilityStatistics{" +
+            "units=" + units +
+            ", objectGroups=" + objectGroups +
+            ", objects=" + objects +
+            '}';
     }
 }

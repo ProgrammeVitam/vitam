@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.digest.DigestType;
 
 /**
@@ -36,71 +37,92 @@ public class TraceabilityEvent {
     /**
      * traceability logbook type
      */
+    @JsonProperty("LogType")
     private TraceabilityType logType;
 
     /**
      * traceability start date
      */
+    @JsonProperty("StartDate")
     private String startDate;
 
     /**
      * traceability end date
      */
+    @JsonProperty("EndDate")
     private String endDate;
 
     /**
      * time stamp token (base64 encoded)
      */
+    @JsonProperty("Hash")
     private String hash;
 
     /**
      * time stamp token (base64 encoded)
      */
+    @JsonProperty("TimeStampToken")
     private byte[] timeStampToken;
 
     /**
      * Start date of the previous traceability
      */
+    @JsonProperty("PreviousLogbookTraceabilityDate")
     private String previousLogbookTraceabilityDate;
 
     /**
      * Start date of the next traceability 1 month before - logbook.mounth(-1).next()
      */
+    @JsonProperty("MinusOneMonthLogbookTraceabilityDate")
     private String minusOneMonthLogbookTraceabilityDate;
 
     /**
      * Start date of the next traceability 1 year before - logbook.year(-1).next()
      */
+    @JsonProperty("MinusOneYearLogbookTraceabilityDate")
     private String minusOneYearLogbookTraceabilityDate;
 
     /**
      * Number of securised elements
      */
+    @JsonProperty("NumberOfElements")
     private long numberOfElements;
 
     /**
      * name of the secure archive in the storage
      */
+    @JsonProperty("FileName")
     private String fileName;
 
     /**
      * Total size of the ZIP entry
      */
+    @JsonProperty("Size")
     private long size;
     /**
      * securisationVersion
      */
+    @JsonProperty("SecurisationVersion")
     private String securisationVersion;
 
     /**
      * Digest Algorithm
      */
+    @JsonProperty("DigestAlgorithm")
     private DigestType digestAlgorithm;
+
 
     /**
      * Max entries reached (unit & object group lifecycle traceability operation are limited in size)
      */
+    @JsonProperty("MaxEntriesReached")
     private boolean maxEntriesReached;
+
+    /**
+     * Traceability statistics
+     */
+    @JsonProperty("Statistics")
+    private TraceabilityStatistics statistics;
 
     /**
      * Empty constructor for Jackson
@@ -111,8 +133,7 @@ public class TraceabilityEvent {
 
     /**
      * Constructor 
-     * 
-     * @param logType logType
+     *  @param logType logType
      * @param startDate startDate
      * @param endDate endDate
      * @param hash  hash
@@ -124,11 +145,13 @@ public class TraceabilityEvent {
      * @param fileName fileName
      * @param size size
      * @param digestAlgorithm digestAlgorithm
+     * @param statistics
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate, long numberOfElements, String fileName, long size,
-        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion ) {
+        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion,
+        TraceabilityStatistics statistics) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -144,6 +167,7 @@ public class TraceabilityEvent {
         this.maxEntriesReached = maxEntriesReached;
         this.securisationVersion = securisationVersion;
 
+        this.statistics = statistics;
     }
 
     /**
@@ -245,10 +269,11 @@ public class TraceabilityEvent {
         return securisationVersion;
     }
 
-    /**
-     * setter for securisationVersion
-     **/
-    public void setSecurisationVersion(String securisationVersion) {
-        this.securisationVersion = securisationVersion;
+    public boolean isMaxEntriesReached() {
+        return maxEntriesReached;
+    }
+
+    public TraceabilityStatistics getStatistics() {
+        return statistics;
     }
 }

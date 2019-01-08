@@ -228,7 +228,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, List<String> offerIds,
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds,
         Collection<String> objectIds) {
         throw new  UnsupportedOperationException("Not Implemented");
     }

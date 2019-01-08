@@ -24,65 +24,61 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * ObjectGroupDocumentHash class
- */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+public class DigestValidationDetails {
 
-    public ObjectGroupDocumentHash(){
+    private final String strategyId;
+    private final Set<String> offerIds;
+    private final String globalDigest;
+    private final String digestInDb;
+    private final Map<String, String> digestByOfferId;
+    private final boolean hasErrors;
+    private final boolean hasWarnings;
+
+    public DigestValidationDetails(String strategyId, Set<String> offerIds, String globalDigest,
+        String digestInDb, Map<String, String> digestByOfferId, boolean hasErrors, boolean hasWarnings) {
+        this.strategyId = strategyId;
+        this.offerIds = offerIds;
+        this.globalDigest = globalDigest;
+        this.digestInDb = digestInDb;
+        this.digestByOfferId = digestByOfferId;
+        this.hasErrors = hasErrors;
+        this.hasWarnings = hasWarnings;
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
+    String getStrategyId() {
+        return strategyId;
     }
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
+    String getDigestInDb() {
+        return digestInDb;
     }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
+    Map<String, String> getDigestByOfferId() {
+        return digestByOfferId;
     }
 
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
+    Set<String> getOfferIds() {
+        return offerIds;
     }
 
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
+    String getGlobalDigest() {
+        return globalDigest;
     }
 
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+    public boolean hasInconsistencies() {
+        return hasErrors || hasWarnings;
+    }
+
+    public boolean isHasErrors() {
+        return hasErrors;
+    }
+
+    public boolean isHasWarnings() {
+        return hasWarnings;
     }
 }

@@ -21,6 +21,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
@@ -65,6 +66,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
+    private static final int TRACEABILITY_STATISTICS_RANK = 3;
 
     private final HandlerIO handlerIO;
     private final LogbookOperationsClient logbookOperationsClient;
@@ -76,6 +78,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private LogbookOperation lastTraceabilityOperation = null;
     private List<String> expectedLogbookId = null;
     private JsonNode traceabilityInformation = null;
+    private TraceabilityStatistics traceabilityStatistics;
     private LocalDateTime traceabilityStartDate;
     private LocalDateTime traceabilityEndDate;
 
@@ -124,6 +127,11 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             File traceabilityInformationFile = (File) handlerIO.getInput(TRACEABILITY_INFORMATION_RANK);
             if (traceabilityInformationFile != null) {
                 traceabilityInformation = JsonHandler.getFromFile(traceabilityInformationFile);
+            }
+
+            File statsFile = (File) handlerIO.getInput(TRACEABILITY_STATISTICS_RANK);
+            if (operationFile != null) {
+                traceabilityStatistics = JsonHandler.getFromFile(statsFile, TraceabilityStatistics.class);
             }
 
         } catch (InvalidParseOperationException e) {
@@ -176,6 +184,11 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     @Override
     public boolean getMaxEntriesReached() {
         return maxEntriesReached;
+    }
+
+    @Override
+    public TraceabilityStatistics getTraceabilityStatistics() {
+        return traceabilityStatistics;
     }
 
     @Override

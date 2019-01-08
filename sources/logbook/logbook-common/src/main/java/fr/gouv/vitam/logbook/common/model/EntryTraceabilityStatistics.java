@@ -24,65 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.logbook.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * ObjectGroupDocumentHash class
- */
-public  class ObjectGroupDocumentHash {
-    @JsonProperty("id")
-    private String id;
-    @JsonProperty("hObject")
-    private String hObject;
-    @JsonProperty("hDetails")
-    private TraceabilityHashDetails traceabilityHashDetails;
+public class EntryTraceabilityStatistics {
 
-    public ObjectGroupDocumentHash(){
+    @JsonProperty("nbOK")
+    private int nbOK = 0;
+
+    @JsonProperty("nbWarnings")
+    private int nbWarnings = 0;
+
+    @JsonProperty("nbErrors")
+    private int nbErrors = 0;
+
+    public EntryTraceabilityStatistics() {
+        // Empty constructor for deserialization
     }
 
-    public ObjectGroupDocumentHash(String id,  String hObject, TraceabilityHashDetails traceabilityHashDetails){
-        this.hObject = hObject;
-        this.id = id;
-        this.traceabilityHashDetails = traceabilityHashDetails;
-    }
-    /**
-     * return document object id
-     * @return
-     */
-    public String getId() {
-        return id;
+    public EntryTraceabilityStatistics(int nbOK, int nbWarnings, int nbErrors) {
+        this.nbOK = nbOK;
+        this.nbWarnings = nbWarnings;
+        this.nbErrors = nbErrors;
     }
 
-    /**
-     * * return document object hash
-     * @return
-     */
-    public String gethObject() {
-        return hObject;
+    public int getNbOK() {
+        return nbOK;
     }
 
-    /**
-     * setter for id
-     **/
-    public void setId(String id) {
-        this.id = id;
+    public int getNbWarnings() {
+        return nbWarnings;
     }
 
-    /**
-     * setter for hObject
-     **/
-    public void sethObject(String hObject) {
-        this.hObject = hObject;
-    }
-
-    public TraceabilityHashDetails getTraceabilityHashDetails() {
-        return traceabilityHashDetails;
-    }
-
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
-        this.traceabilityHashDetails = traceabilityHashDetails;
+    public int getNbErrors() {
+        return nbErrors;
     }
 }

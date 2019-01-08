@@ -49,6 +49,7 @@ import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventTypeProcess;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 
 public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCycleTraceabilityHelper {
 
@@ -100,10 +101,13 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCy
         final Select select = new Select();
         final Query query = QueryHelper.gt(eventDateTime.getDbname(), date.toString());
         final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
-        final Query findEvent = QueryHelper
-            .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
-                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".OK");
-        select.setQuery(QueryHelper.and().add(query, type, findEvent));
+        final Query eventStatus = QueryHelper
+            .in(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
+                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".OK",
+                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".WARNING");
+        final Query hasTraceabilityFile = QueryHelper.exists(
+            String.format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName"));
+        select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile));
         select.setLimitFilter(0, 1);
         return select;
     }
