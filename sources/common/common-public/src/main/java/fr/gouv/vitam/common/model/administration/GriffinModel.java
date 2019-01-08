@@ -54,10 +54,6 @@ public class GriffinModel {
 
     private static final String TAG_EXECUTABLE_NAME = "ExecutableName";
 
-    private static final List<String> alterableFields = Lists
-        .newArrayList(TAG_DESCRIPTION, TAG_NAME, TAG_EXECUTABLE_NAME, TAG_EXECUTABLE_VERSION, TAG_CREATION_DATE,
-            TAG_LAST_UPDATE);
-
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 
@@ -168,8 +164,4 @@ public class GriffinModel {
         this.executableVersion = executableVersion;
     }
 
-    @JsonIgnore
-    public static List<String> getAlterableFields() {
-        return alterableFields;
-    }
 }

@@ -1737,7 +1737,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             if (((RequestResponseOK)requestResponseOK).getResults() == null ||
                 ((RequestResponseOK)requestResponseOK).isEmpty()) {
-                throw new ReferentialNotFoundException("Griffin not found ");
+                throw new ReferentialNotFoundException("Préservation Scenario not found ");
             }
            return requestResponseOK;
         } catch (InvalidCreateOperationException e) {

@@ -41,7 +41,7 @@ export class ImportComponent  extends PageComponent {
       this.referentialType = params['referentialType'];
       if (!this.authenticationService.isTenantAdmin()) {
           this.referentialTypes = this.referentialTypes.filter(
-              item => item.value !== 'format' && item.value !== 'context'  && item.value !== 'ontology'
+              item => item.value !== 'format' && item.value !== 'context'  && item.value !== 'ontology'&& item.value !== 'griffins'
           );
       }
       switch (this.referentialType)
@@ -124,6 +124,7 @@ export class ImportComponent  extends PageComponent {
           this.breadcrumbName = "Import des scénario de preservation ";
           break;
         default:
+          debugger;
           this.router.navigate(['ingest/sip']);
       }
 

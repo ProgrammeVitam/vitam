@@ -3,4 +3,8 @@ export class Griffin {
   Identifier: string;
   Name : string;
   Description : string;
+  CreationDate : string;
+  LastUpdate : string;
+  ExecutableName :  string;
+  ExecutableVersion : string;
 }

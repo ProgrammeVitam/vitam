@@ -33,10 +33,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,19 +48,22 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
+import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Set;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager.getVitamContext;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * WebPreservationResource class
@@ -83,7 +83,7 @@ public class WebPreservationResource {
         this.accessExternalClientFactory = accessExternalClientFactory;
     }
 
-    WebPreservationResource() {
+    WebPreservationResource(Set<String> permissions) {
         this(AdminExternalClientFactory.getInstance(), AccessExternalClientFactory.getInstance());
     }
 
@@ -99,11 +99,11 @@ public class WebPreservationResource {
             VitamContext vitamContext = getVitamContext(request);
             RequestResponse response = client.launchPreservation(vitamContext, preservationRequest);
 
-            return Response.status(Response.Status.OK).entity(response).build();
+            return status(Status.OK).entity(response).build();
 
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return status(Status.BAD_REQUEST).build();
         }
     }
 
@@ -124,12 +124,12 @@ public class WebPreservationResource {
             response = client.findPreservationScenario(vitamContext, query);
 
             if (response instanceof RequestResponseOK) {
-                return Response.status(Response.Status.OK).entity(response).build();
+                return status(Status.OK).entity(response).build();
             }
-            return Response.status(response.getHttpCode()).entity(response).build();
+            return status(response.getHttpCode()).entity(response).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return status(Status.BAD_REQUEST).build();
         }
     }
 
@@ -149,12 +149,12 @@ public class WebPreservationResource {
             response =
                 client.findGriffin(vitamContext, query);
             if (response instanceof RequestResponseOK) {
-                return Response.status(Response.Status.OK).entity(response).build();
+                return status(Status.OK).entity(response).build();
             }
-            return Response.status(response.getHttpCode()).entity(response).build();
+            return status(response.getHttpCode()).entity(response).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -171,16 +171,16 @@ public class WebPreservationResource {
                     request.getHeader(GlobalDataRest.X_FILENAME));
 
             if (response instanceof RequestResponseOK) {
-                return Response.status(Response.Status.OK).build();
+                return status(Status.OK).build();
             }
             if (response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(response.getStatus()).entity(response).build();
+                return status(response.getStatus()).entity(response).build();
             }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -196,16 +196,68 @@ public class WebPreservationResource {
                     UserInterfaceTransactionManager.getVitamContext(request), input,
                     request.getHeader(GlobalDataRest.X_FILENAME));
             if (response instanceof RequestResponseOK) {
-                return Response.status(Response.Status.OK).build();
+                return status(Status.OK).build();
             }
             if (response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(response.getStatus()).entity(response).build();
+                return status(response.getStatus()).entity(response).build();
             }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GET
+    @Path("griffin/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("griffin:read")
+    public Response getGriffinById(@Context HttpServletRequest request, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<GriffinModel> response =
+                adminClient.findGriffinById(
+                    UserInterfaceTransactionManager.getVitamContext(request),
+                    id);
+            if (response instanceof RequestResponseOK) {
+                return status(Status.OK).entity(response).build();
+            }
+            if (response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return status(response.getHttpCode()).entity(response).build();
+            }
+            return status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GET
+    @Path("scenario/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("preservationScenario:read")
+    public Response getPreservationScenarioById(@Context HttpServletRequest request, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<PreservationScenarioModel> response =
+                adminClient.findPreservationScenarioById(
+                    UserInterfaceTransactionManager.getVitamContext(request),
+                    id);
+            if (response instanceof RequestResponseOK) {
+                return status(Status.OK).entity(response).build();
+            }
+            if (response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return status(response.getHttpCode()).entity(response).build();
+            }
+            return status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

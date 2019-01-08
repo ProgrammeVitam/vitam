@@ -12,9 +12,7 @@ import {ColumnDefinition} from '../../common/generic-table/column-definition';
 import {ReferentialsService} from './../referentials.service';
 import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
 import {AuthenticationService} from '../../authentication/authentication.service';
-import {AgenciesComponent} from '../details/agencies/agencies.component';
 import {LogbookService} from '../../ingest/logbook.service';
-import {GriffinsComponent} from '../details/griffins/griffins.component';
 
 
 @Component({
@@ -399,7 +397,7 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('ExecutableVersion', 'ExecutableVersion', undefined,
               () => ({'width': '125px'}))
           ];
-          this.referentialPath = 'admin/griffins/all';
+          this.referentialPath = 'admin/griffins';
           this.referentialIdentifier = 'Identifier';
           break;
         case 'scenarios':
@@ -410,7 +408,6 @@ export class SearchReferentialsComponent extends PageComponent {
             new FieldDefinition('ScenarioName', 'Intitulé', 4, 10),
             FieldDefinition.createIdField('ScenarioID', 'Identifiant', 4, 10)
           ];
-
 
           this.searchForm = {'ScenarioID': 'all', 'ScenarioName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
           this.initialSortKey = 'Name';
@@ -424,8 +421,10 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('ActionList', 'ActionList', undefined,
               () => ({'width': '125px'}))
           ];
-          this.referentialPath = 'admin/scenarios/all';
+          this.referentialPath = 'admin/scenarios';
+          this.referentialIdentifier = 'Identifier';
           break;
+
         default:
           this.router.navigate(['ingest/sip']);
       }

@@ -34,6 +34,7 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
@@ -46,6 +47,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -226,6 +228,14 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         } catch (final DatabaseException | VitamDBException e) {
             throw new ReferentialException("find Document Exception", e);
         }
+    }
+    @Override
+    public void replaceDocument(JsonNode document, String identifier, String identifierName,
+        FunctionalAdminCollections vitamCollection) throws DatabaseException {
+        final DbRequestSingle dbRequest = new DbRequestSingle(vitamCollection.getVitamCollection());
+
+        dbRequest.replaceDocument(document,identifier,identifierName,vitamCollection.getVitamCollection());
+
     }
 
     @Override

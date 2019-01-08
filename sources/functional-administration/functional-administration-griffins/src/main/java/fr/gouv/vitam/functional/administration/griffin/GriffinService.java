@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -64,6 +66,7 @@ import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -216,14 +219,14 @@ public class GriffinService {
 
     private void updateGriffins(@NotNull List<GriffinModel> listToUpdate)
         throws ReferentialException, SchemaValidationException, BadRequestException, InvalidCreateOperationException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, DatabaseException {
 
         for (GriffinModel griffinModel : listToUpdate) {
 
             formatDateForMongo(griffinModel);
 
-            JsonNode queryDslForUpdate = getUpdateDslQuery(griffinModel);
-            mongoDbAccess.updateData(queryDslForUpdate, GRIFFIN);
+            mongoDbAccess.replaceDocument(JsonHandler.toJsonNode(griffinModel), griffinModel.getIdentifier(), IDENTIFIER,
+                FunctionalAdminCollections.GRIFFIN);
         }
     }
 
@@ -239,37 +242,6 @@ public class GriffinService {
         }
         creationDate = getFormattedDateForMongo(creationDate);
         griffinModel.setCreationDate(creationDate);
-    }
-
-
-    private JsonNode getUpdateDslQuery(@NotNull GriffinModel griffinModel)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-
-        final List<SetAction> actions = getSetActionsFromModel(griffinModel);
-
-        SetAction[] setActions = actions.toArray(new SetAction[0]);
-        final Update update = new Update();
-        update.setQuery(eq(IDENTIFIER, griffinModel.getIdentifier()));
-        update.addActions(setActions);
-
-        return update.getFinalUpdate();
-    }
-
-    private List<SetAction> getSetActionsFromModel(@NotNull GriffinModel griffinModel)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        JsonNode jsonModel = JsonHandler.toJsonNode(griffinModel);
-        final List<SetAction> actions = new ArrayList<>();
-
-        for (String field : GriffinModel.getAlterableFields()) {
-
-            JsonNode fieldNode = jsonModel.get(field);
-            if (fieldNode != null) {
-                String value = fieldNode.textValue();
-                SetAction action = new SetAction(field, value);
-                actions.add(action);
-            }
-        }
-        return actions;
     }
 
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
