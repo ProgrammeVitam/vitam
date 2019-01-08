@@ -49,19 +49,4 @@ public class UpdateToMongodb extends RequestToMongodb {
     public UpdateToMongodb(AbstractParser<?> updateParser) {
         super(updateParser);
     }
-
-    /**
-     * gives the update part of updateOne(query, update)
-     *
-     * @return the orderBy MongoDB command
-     * @throws InvalidParseOperationException if invalid parse operation
-     */
-    public Bson getFinalUpdateActions() throws InvalidParseOperationException {
-        final List<Action> actions = requestParser.getRequest().getActions();
-        final List<Bson> bactions = new ArrayList<>(actions.size());
-        for (final Action action : actions) {
-            bactions.add(UpdateActionToMongodb.getCommand(action));
-        }
-        return Updates.combine(bactions);
-    }
 }
