@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -396,8 +397,12 @@ public class LogbookResource extends ApplicationStatusResource {
         }
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
+            GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final GUID guid = logbookAdministration.generateSecureLogbook();
+            VitamThreadUtils.getVitamSession().setRequestId(guid);
+
+            logbookAdministration.generateSecureLogbook(guid);
             final List<String> resultAsJson = new ArrayList<>();
 
             resultAsJson.add(guid.toString());

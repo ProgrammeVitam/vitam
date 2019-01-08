@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -1391,8 +1392,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
+            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final GUID guid = traceabilityLogbookAdministration.generateTraceabilityStorageLogbook();
+            VitamThreadUtils.getVitamSession().setRequestId(guid);
+
+            traceabilityLogbookAdministration.generateTraceabilityStorageLogbook(guid);
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<GUID>()
                     .addResult(guid))
