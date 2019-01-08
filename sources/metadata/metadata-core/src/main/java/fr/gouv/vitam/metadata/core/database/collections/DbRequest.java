@@ -1039,10 +1039,6 @@ public class DbRequest {
             int tries = 0;
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
-                        MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
-                }
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
