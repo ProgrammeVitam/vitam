@@ -72,6 +72,8 @@ curator:
 
 kibana:
     header_value: "reporting"
+    import_delay: 10
+    import_retries: 10
     log:
         baseuri: "kibana_log"
         api_call_timeout: 120
