@@ -10,7 +10,7 @@
 {% if inventory_hostname in groups['hosts-mongod-data'] %}
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
-  metricsets: ["dbstats", "status"]
+  metricsets: ["dbstats", "status", "metrics", "replstatus"]
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
   period: {{ metricbeat.mongodb.period }}s
