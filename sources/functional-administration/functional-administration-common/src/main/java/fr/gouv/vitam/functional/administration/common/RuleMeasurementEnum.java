@@ -50,6 +50,7 @@ public enum RuleMeasurementEnum {
     /**
      * Second
      */
+    @Deprecated()
     SECOND("second", Calendar.SECOND, ChronoUnit.SECONDS);
 
     private final String type;

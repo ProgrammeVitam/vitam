@@ -28,7 +28,9 @@
 package fr.gouv.vitam.common.database.server;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.function.Function;
@@ -43,22 +45,14 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -66,10 +60,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.QueryPattern;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -251,7 +241,8 @@ public class MongoDbInMemory {
         return false;
     }
 
-    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
+    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
+        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
 
@@ -526,23 +517,31 @@ public class MongoDbInMemory {
     }
 
     private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
-        ObjectNode newRule = JsonHandler.createObjectNode();
-        newRule.put(RULE_KEY, ruleAction.getRule());
-        newRule.put(START_DATE_KEY, ruleAction.getStartDate());
-        computeEndDate(newRule, bindRuleToDuration);
-        return newRule;
+        try {
+            ObjectNode newRule = JsonHandler.createObjectNode();
+            newRule.put(RULE_KEY, ruleAction.getRule());
+            newRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
+            computeEndDate(newRule, bindRuleToDuration);
+            return newRule;
+        } catch(ParseException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void updateJsonNodeUsingRuleAction(ObjectNode unitRule, RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
-        if (ruleAction.getRule() != null) {
-            unitRule.put(RULE_KEY, ruleAction.getRule());
-        }
+        try {
+            if (ruleAction.getRule() != null) {
+                unitRule.put(RULE_KEY, ruleAction.getRule());
+            }
 
-        if (ruleAction.getStartDate() != null) {
-            unitRule.put(START_DATE_KEY, ruleAction.getStartDate());
-        }
+            if (ruleAction.getStartDate() != null) {
+                unitRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
+            }
 
-        computeEndDate(unitRule, bindRuleToDuration);
+            computeEndDate(unitRule, bindRuleToDuration);
+        } catch (ParseException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void computeEndDate(ObjectNode unitRule, Map<String, DurationData> bindRuleToDuration) {
@@ -555,17 +554,13 @@ public class MongoDbInMemory {
 
         String startDateString = unitRule.get(START_DATE_KEY).asText();
         if (startDateString == null) { return; }
-        LocalDateTime startDate;
-        try {
-            startDate = LocalDateUtil.fromDate(LocalDateUtil.getSimpleFormattedDate(startDateString));
-        } catch (ParseException e) {
-            throw new IllegalStateException("Unable to parse StartDate from database", e);
-        }
+        LocalDate startDate = LocalDateUtil.getLocalDateFromSimpleFormattedDate(startDateString);
+
         Integer duration = durationData.getDurationValue();
         TemporalUnit temporalUnit = durationData.getDurationUnit();
 
-        LocalDateTime endDate = startDate.plus(duration, temporalUnit);
-        unitRule.put(END_DATE_KEY, LocalDateUtil.getFormattedDateForMongo(endDate));
+        LocalDate endDate = startDate.plus(duration, temporalUnit);
+        unitRule.put(END_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(endDate));
     }
 
     /**
