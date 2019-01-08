@@ -463,6 +463,12 @@ public class ItemStatus {
         return this;
     }
 
+    public ItemStatus setSubTasksStatus(Map<String, ItemStatus> tasks) {
+        ParametersChecker.checkParameterDefault("taskId", "TaskId is required");
+        this.subTaskStatus.putAll(tasks);
+        return this;
+    }
+
     /**
      * @return evDetailData
      */

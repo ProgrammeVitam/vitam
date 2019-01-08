@@ -26,6 +26,22 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
+
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -43,25 +59,9 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
 public class PreservationStorageBinaryPlugin extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationStorageBinaryPlugin.class);
-    private  static final String ITEM_ID = "OBJECT_STORAGE_TASK";
+    static final String ITEM_ID = "OBJECT_STORAGE_TASK";
 
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
@@ -123,12 +123,13 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
     }
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
+        Stream<String> subItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
         String error = outputExtras.stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatus(ITEM_ID, KO, PluginHelper.EventDetails.of(error))
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, KO, PluginHelper.EventDetails.of(error))
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode("SUBSTATUS_UNKNOWN");
         }
@@ -139,9 +140,9 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             .map(JsonHandler::unprettyPrint)
             .collect(Collectors.joining(", "));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatus(ITEM_ID, OK, PluginHelper.EventDetails.of(storedInfos));
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, PluginHelper.EventDetails.of(storedInfos));
         }
-        return buildItemStatus(ITEM_ID, WARNING, PluginHelper.EventDetails.of(storedInfos, error));
+        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, PluginHelper.EventDetails.of(storedInfos, error));
     }
 
     private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra) {
