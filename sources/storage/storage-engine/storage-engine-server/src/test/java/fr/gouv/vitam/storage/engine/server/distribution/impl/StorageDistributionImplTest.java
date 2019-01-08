@@ -72,7 +72,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -345,7 +344,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageAlreadyExistsException.class)
     public void testObjectAlreadyInOffer() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final String objectId = "already_in_offer";
+        final String objectId = "conflict";
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");

@@ -24,35 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.offers.common.core;
 
-package fr.gouv.vitam.storage.engine.common;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 /**
- * Common storage values
+ * Thrown when updating an existing non updatable object.
  */
-public final class StorageConstants {
-    /**
-     * X-Command header INIT value
-     */
-    public static final String COMMAND_INIT = "INIT";
+public class NonUpdatableContentAddressableStorageException extends ContentAddressableStorageException {
+
+    private static final long serialVersionUID = 672300958086946348L;
 
     /**
-     * X-Command header WRITE value
+     * Constructor
+     *
+     * @param message as String message to associate with the exception
      */
-    public static final String COMMAND_WRITE = "WRITE";
+    public NonUpdatableContentAddressableStorageException(String message) {
+        super(message);
+    }
 
     /**
-     * X-Command header END value
+     * Constructor
+     *
+     * @param cause as String to associate with the exception
      */
-    public static final String COMMAND_END = "END";
+    public NonUpdatableContentAddressableStorageException(Throwable cause) {
+        super(cause);
+    }
 
     /**
-     * Storage object verification
+     * Constructor
+     *
+     * @param message : message to associate with the exception
+     * @param cause : cause to associate with the exception
      */
-    public static final String OBJECT_VERIFICATION = "objectVerification";
-
-    private StorageConstants() {
-        // Just hiding empty constructor
+    public NonUpdatableContentAddressableStorageException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

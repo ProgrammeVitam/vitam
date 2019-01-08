@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.storage.filesystem;
 
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +49,7 @@ public class FileSystemTest extends ContentAddressableStorageTestAbstract{
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new FileSystem(configuration);
-        ContentAddressableStorage.existingContainer.clear();
+        ContentAddressableStorageAbstract.disableContainerCaching();
     }
 
 }

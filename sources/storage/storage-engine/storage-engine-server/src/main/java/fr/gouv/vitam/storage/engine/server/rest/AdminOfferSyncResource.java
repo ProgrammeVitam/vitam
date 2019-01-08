@@ -102,6 +102,9 @@ public class AdminOfferSyncResource {
 
         ParametersChecker.checkParameter("source offer is mandatory.", offerSyncRequest.getSourceOffer());
         ParametersChecker.checkParameter("target offer is mandatory.", offerSyncRequest.getTargetOffer());
+        if(offerSyncRequest.getSourceOffer().equals(offerSyncRequest.getTargetOffer())) {
+            throw new IllegalArgumentException("Source offer cannot be the same as target offer");
+        }
         ParametersChecker.checkParameter("tenantId is mandatory.", offerSyncRequest.getTenantId());
         ParametersChecker.checkParameter("container is mandatory.", offerSyncRequest.getContainer());
 

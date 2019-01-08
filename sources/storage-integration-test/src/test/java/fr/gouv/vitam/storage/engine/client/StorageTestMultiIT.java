@@ -53,15 +53,12 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -150,15 +147,12 @@ public class StorageTestMultiIT {
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
         OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
 
-    @After
-    public void before() {
-        ContentAddressableStorage.existingContainer.clear();
-    }
-
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
+
+        ContentAddressableStorageAbstract.disableContainerCaching();
 
         LogbookOperationsClientFactory.changeMode(null);
         
@@ -184,6 +178,7 @@ public class StorageTestMultiIT {
         defaultOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
         defaultOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
+        ContentAddressableStorageAbstract.disableContainerCaching();
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -269,7 +264,6 @@ public class StorageTestMultiIT {
     }
 
     public static void afterTest() {
-        ContentAddressableStorage.existingContainer.clear();
         cleanWorkspace();
         mongoRule.handleAfter();
         try {

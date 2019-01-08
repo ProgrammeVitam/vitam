@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
@@ -107,6 +108,7 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
         firstOfferApplication = new DefaultOfferMain(offerConfig.getAbsolutePath());
         firstOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
+        ContentAddressableStorageAbstract.disableContainerCaching();
 
 
         // Second offer

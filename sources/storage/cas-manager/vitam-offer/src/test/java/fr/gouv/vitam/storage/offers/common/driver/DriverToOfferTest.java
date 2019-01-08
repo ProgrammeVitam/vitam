@@ -44,6 +44,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -140,6 +141,7 @@ public class DriverToOfferTest {
 
             application = new DefaultOfferMain(newWorkspaceOfferConf.getAbsolutePath());
             application.start();
+            ContentAddressableStorageAbstract.disableContainerCaching();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Wokspace Offer Application Server", e);
@@ -201,7 +203,7 @@ public class DriverToOfferTest {
             final MessageDigest messageDigest = MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid,
-                        VitamConfiguration.getDefaultDigestType().name(), digestInputStream);
+                        VitamConfiguration.getDefaultDigestType().getName(), digestInputStream);
                 request.setSize(archiveFile.length());
                 final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
@@ -242,7 +244,7 @@ public class DriverToOfferTest {
         for (int i = 0; i < 150; i++) {
             try (FakeInputStream fis = new FakeInputStream(50)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), "f" + i,
-                        VitamConfiguration.getDefaultDigestType().name(), fis);
+                        VitamConfiguration.getDefaultDigestType().getName(), fis);
                 request.setSize(50);
                 connection.putObject(request);
             }

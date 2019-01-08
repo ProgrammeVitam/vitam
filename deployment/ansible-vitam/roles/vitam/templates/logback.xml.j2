@@ -92,7 +92,7 @@
 	  <appender-ref ref="SECURITY" />
   </logger>
   {% if vitam_struct.vitam_component == 'storage' %}
-  <logger name="fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncServiceImpl">
+  <logger name="fr.gouv.vitam.storage.engine.server.offersynchronization" level="INFO">
        <appender-ref ref="OFFERSYNC" />
   </logger>
   {% endif %}

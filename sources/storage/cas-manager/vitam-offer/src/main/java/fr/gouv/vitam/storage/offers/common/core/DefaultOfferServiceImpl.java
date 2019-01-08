@@ -35,9 +35,13 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
@@ -49,12 +53,10 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -87,6 +89,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private OfferLogDatabaseService offerDatabaseService;
 
     private StorageConfiguration configuration;
+
+    private AlertService alertService = new AlertServiceImpl();
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
@@ -132,38 +136,88 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-            throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        Stopwatch times = Stopwatch.createStarted();
-        boolean existsContainer = defaultStorage.isExistingContainer(containerName);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER", times.elapsed(TimeUnit.MILLISECONDS));
-        if (!existsContainer) {
-            times = Stopwatch.createStarted();
-            defaultStorage.createContainer(containerName);
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER", times.elapsed(TimeUnit.MILLISECONDS));
+    public String createObject(String containerName, String objectId, InputStream objectPart,
+                               DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
+
+        ensureContainerExists(containerName);
+
+        String existingDigest = checkNonRewritableObjects(containerName, objectId, objectPart, type, digestType);
+        if(existingDigest != null) {
+            return existingDigest;
         }
 
-        objectInit.setId(objectGUID);
-        times = Stopwatch.createStarted();
-        offerDatabaseService.save(containerName, objectInit.getId(), OfferLogAction.WRITE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
-        return objectInit;
+        logObjectWriteInOfferLog(containerName, objectId);
+
+        return putObject(containerName, objectId, objectPart, size, digestType, type);
+
     }
 
-
-    @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-                               DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
-        Stopwatch times = Stopwatch.createStarted();
-        try {
-            if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
-                throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
-                        "and cannot be updated");
-            }
-        } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_EXISTS_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+    void ensureContainerExists(String containerName) throws ContentAddressableStorageServerException {
+        // Create container if not exists
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        boolean existsContainer = defaultStorage.isExistingContainer(containerName);
+        PerformanceLogger
+            .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER", stopwatch.elapsed(
+            TimeUnit.MILLISECONDS));
+        if (!existsContainer) {
+            stopwatch = Stopwatch.createStarted();
+            defaultStorage.createContainer(containerName);
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER", stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
-        times = Stopwatch.createStarted();
+    }
+
+    private String checkNonRewritableObjects(String containerName, String objectId, InputStream objectPart,
+        DataCategory type, DigestType digestType) throws ContentAddressableStorageException {
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+
+             if(type.canUpdate() || !isObjectExist(containerName, objectId)) {
+                 return null;
+             }
+
+            // Compute file digest
+            Digest digest = new Digest(digestType);
+            digest.update(objectPart);
+            String streamDigest = digest.digestHex();
+
+            // Check actual object digest (without cache for full checkup)
+            String actualObjectDigest = defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
+
+            if(streamDigest.equals(actualObjectDigest)) {
+                LOGGER.warn("Non rewritable object updated with same content. Ignoring duplicate. Object Id '" + objectId + "' in " + containerName);
+                return actualObjectDigest;
+            } else {
+                alertService.createAlert(VitamLogLevel.ERROR, String.format(
+                    "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
+                    objectId, containerName, actualObjectDigest, streamDigest));
+                throw new NonUpdatableContentAddressableStorageException("Object with id " + objectId + " already exists " +
+                    "and cannot be updated");
+            }
+
+        } catch (IOException e) {
+            throw new ContentAddressableStorageException("Could not read input stream", e);
+        } finally {
+            PerformanceLogger
+                .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_EXISTS_PUT_OBJECT", stopwatch.elapsed(
+                TimeUnit.MILLISECONDS));
+        }
+    }
+
+    private void logObjectWriteInOfferLog(String containerName, String objectId)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        // Log in offer log
+        Stopwatch times = Stopwatch.createStarted();
+        offerDatabaseService.save(containerName, objectId, OfferLogAction.WRITE);
+        PerformanceLogger
+            .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(
+            TimeUnit.MILLISECONDS));
+    }
+
+    private String putObject(String containerName, String objectId, InputStream objectPart, Long size,
+        DigestType digestType, DataCategory type) throws ContentAddressableStorageException {
+        // Write object
+        Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             return defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
         } catch (ContentAddressableStorageNotFoundException e) {
@@ -173,7 +227,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             // Propagate the initial exception
             throw ex;
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger
+                .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", stopwatch.elapsed(
+                TimeUnit.MILLISECONDS));
         }
     }
 

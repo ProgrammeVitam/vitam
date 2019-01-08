@@ -41,14 +41,10 @@ import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
@@ -117,7 +113,6 @@ public class TransferThread implements Callable<ThreadResponseData> {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
-            checkRewritableObject(request, connection);
 
             // ugly way to get digest from stream
             // TODO: How to do the cleaner ?
@@ -148,32 +143,5 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 Response.Status.CREATED, request.getGuid());
         }
         return response;
-    }
-
-    private void checkRewritableObject(StoragePutRequest request, Connection connection)
-        throws StorageDriverException, StorageAlreadyExistsException {
-        final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
-            .getGuid());
-
-        DataCategory dataCategory = DataCategory.getByFolder(request.getType());
-
-        if(dataCategory.canUpdate()) {
-            return;
-        }
-
-        if (connection.objectExistsInOffer(req)) {
-            switch (dataCategory) {
-                case LOGBOOK:
-                case OBJECT:
-                case MANIFEST:
-                case REPORT:
-                case PROFILE:
-                case BACKUP:
-                    throw new StorageAlreadyExistsException(VitamCodeHelper
-                        .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
-                default:
-                    throw new UnsupportedOperationException("Not implemented");
-            }
-        }
     }
 }

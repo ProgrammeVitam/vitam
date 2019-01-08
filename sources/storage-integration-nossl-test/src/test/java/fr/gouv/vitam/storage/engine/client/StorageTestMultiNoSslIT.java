@@ -48,7 +48,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -166,6 +166,7 @@ public class StorageTestMultiNoSslIT {
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
+        ContentAddressableStorageAbstract.disableContainerCaching();
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -253,7 +254,6 @@ public class StorageTestMultiNoSslIT {
     }
 
     public static void afterTest() {
-        ContentAddressableStorage.existingContainer.clear();
         cleanWorkspace();
         mongoRule.handleAfter();
         try {
