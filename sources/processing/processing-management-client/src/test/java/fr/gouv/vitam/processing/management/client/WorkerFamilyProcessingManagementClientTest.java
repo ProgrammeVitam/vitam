@@ -27,17 +27,14 @@
 package fr.gouv.vitam.processing.management.client;
 
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -60,15 +57,10 @@ public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestAppl
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
-    @ClassRule
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(WorkerFamilyProcessingManagementClientTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(WorkerFamilyProcessingManagementClientTest.class, factory);
 
 
     @BeforeClass
@@ -77,9 +69,8 @@ public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestAppl
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

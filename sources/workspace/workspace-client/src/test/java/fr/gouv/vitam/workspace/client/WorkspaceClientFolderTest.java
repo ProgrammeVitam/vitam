@@ -29,17 +29,14 @@ package fr.gouv.vitam.workspace.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -69,16 +66,11 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
 
-    @ClassRule
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(WorkspaceClientFolderTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(WorkspaceClientFolderTest.class, factory);
 
 
     @BeforeClass
@@ -87,9 +79,8 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

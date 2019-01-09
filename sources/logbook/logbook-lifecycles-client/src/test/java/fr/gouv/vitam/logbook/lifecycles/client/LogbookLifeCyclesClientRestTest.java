@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -56,7 +56,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -83,23 +82,15 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
-
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/logbook/v1";
     protected static LogbookLifeCyclesClientRest client;
 
 
     protected static ExpectedResults mock;
-
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static LogbookLifeCyclesClientFactory factory = LogbookLifeCyclesClientFactory.getInstance();
-    @ClassRule
+
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(LogbookLifeCyclesClientRestTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(LogbookLifeCyclesClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -108,9 +99,8 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

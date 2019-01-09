@@ -27,19 +27,16 @@
 package fr.gouv.vitam.common.external.client;
 
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.ForbiddenException;
@@ -76,15 +73,11 @@ public class DefaultClientTest extends ResteasyTestApplication {
 
     private static DefaultClient client;
 
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static TestVitamClientFactory
         factory = new TestVitamClientFactory<DefaultClient>(
-        serverPortNumber, RESOURCE_PATH);
-    @ClassRule
+        1, RESOURCE_PATH);
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(DefaultClientTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(DefaultClientTest.class, factory);
 
 
     @BeforeClass
@@ -93,9 +86,8 @@ public class DefaultClientTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
@@ -135,10 +127,10 @@ public class DefaultClientTest extends ResteasyTestApplication {
     public void constructorWithGivenClient() throws VitamClientException {
         final Client mock = mock(Client.class);
         final TestVitamClientFactory<DefaultClient> testMockFactory =
-            new TestVitamClientFactory<>(serverPortNumber, RESOURCE_PATH, mock);
+            new TestVitamClientFactory<>(vitamServerTestRunner.getBusinessPort(), RESOURCE_PATH, mock);
         try (DefaultClient testClient = testMockFactory.getClient()) {
             assertEquals(mock, testClient.getHttpClient());
-            assertEquals("http://localhost:" + serverPortNumber + client.getResourcePath(),
+            assertEquals("http://localhost:" + vitamServerTestRunner.getBusinessPort() + client.getResourcePath(),
                 testClient.getServiceUrl());
         }
     }

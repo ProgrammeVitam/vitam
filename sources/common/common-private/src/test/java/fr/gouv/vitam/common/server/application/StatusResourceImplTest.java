@@ -27,20 +27,20 @@
 package fr.gouv.vitam.common.server.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -51,6 +51,7 @@ import org.junit.Test;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -59,66 +60,41 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
- *
  */
-public class StatusResourceImplTest {
+public class StatusResourceImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusResourceImplTest.class);
 
     // URI
     private static final String ADMIN_RESOURCE_URI = "/";
-    private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
+    private static final String TEST_RESOURCE_URI = "/test/v1";
     private static final String ADMIN_STATUS_URI = "/admin/v1" + BasicClient.STATUS_URL;
-    private static final String ADMIN_URI = "/admin/v1";
     private static final String MODULE_STATUS_URI = TEST_RESOURCE_URI + BasicClient.STATUS_URL;
-    private static final String TEST_CONF = "test-multiple-connector.conf";
 
-    private static int serverPort;
-    private static int serverAdminPort;
-    private static TestApplication application;
-    private static TestVitamAdminClientFactory factory;
+
+    private static TestVitamAdminClientFactory factory =
+        new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(StatusResourceImplTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-                new MinimalTestVitamApplicationFactory<TestApplication>() {
-
-
-                    @Override
-                    public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                            throws IllegalStateException {
-                        final TestApplication application = new TestApplication(TEST_CONF);
-                        return startAndReturn(application);
-                    }
-
-                };
-
-        serverAdminPort = JunitHelper.getInstance().findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
-
-        final StartApplicationResponse<TestApplication> response =
-                testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-
         RestAssured.basePath = ADMIN_RESOURCE_URI;
 
-        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
+        factory = new TestVitamAdminClientFactory(vitamServerTestRunner.getAdminPort(), ADMIN_STATUS_URI);
 
         LOGGER.debug("Beginning tests");
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        JunitHelper.getInstance().releasePort(serverAdminPort);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new AdminStatusResource(), new TestResourceImpl());
     }
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
@@ -146,17 +122,19 @@ public class StatusResourceImplTest {
 
     /**
      * Test that the server is lunched with at least tow port number, admin port and business port number
+     *
      * @throws Exception
      */
     @Test
     public void givenStartedServer_assert_application_lunched_on_multiple_port_number() throws Exception {
-        int portBusiness = application.getVitamServer().getPort();
+        int portBusiness = vitamServerTestRunner.getBusinessPort();
         assertThat(portBusiness).isPositive();
-        int portAdmin = application.getVitamServer().getAdminPort();
+        int portAdmin = vitamServerTestRunner.getAdminPort();
         assertThat(portAdmin).isPositive();
     }
 
     // Status
+
     /**
      * when GET :adminPortNumber/admin/v1/status on admin port number we should got OK (200)
      * Tests the state of the module service API by get
@@ -166,17 +144,17 @@ public class StatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnStatusOk() throws Exception {
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
-        RestAssured.port = serverAdminPort;
+        RestAssured.port = vitamServerTestRunner.getAdminPort();
 
         RestAssured.given()
-                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                .when()
-                .get(ADMIN_STATUS_URI).then().statusCode(Status.OK.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().statusCode(Status.OK.getStatusCode());
 
-        factory.changeServerPort(serverAdminPort);
+        factory.changeServerPort(vitamServerTestRunner.getAdminPort());
 
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
@@ -192,17 +170,17 @@ public class StatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_OnBusinessPort_ThenReturnStatusNotFound() throws Exception {
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
-        RestAssured.port = serverPort;
+        RestAssured.port = vitamServerTestRunner.getBusinessPort();
 
         RestAssured.given()
-                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                .when()
-                .get(ADMIN_STATUS_URI).then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        factory.changeServerPort(serverPort);
+        factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
 
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
@@ -221,15 +199,15 @@ public class StatusResourceImplTest {
         Response response;
 
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
-        RestAssured.port = serverAdminPort;
+        RestAssured.port = vitamServerTestRunner.getAdminPort();
 
         response =
-                RestAssured.given()
-                        .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                        .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                        .when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+            RestAssured.given()
+                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+                .when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals(result.get("status").toString(), "true");
@@ -237,7 +215,7 @@ public class StatusResourceImplTest {
         assertEquals(message.getStatus(), true);
         LOGGER.debug(message.toString());
 
-        factory.changeServerPort(serverAdminPort);
+        factory.changeServerPort(vitamServerTestRunner.getAdminPort());
 
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             message = clientAdmin.adminStatus();
@@ -254,17 +232,17 @@ public class StatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatusNoContent() throws Exception {
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
 
-        RestAssured.port = serverPort;
+        RestAssured.port = vitamServerTestRunner.getBusinessPort();
 
         RestAssured.given()
-                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                .when()
-                .get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        factory.changeServerPort(serverPort);
+        factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
 
         factory.changeResourcePath(TEST_RESOURCE_URI);
 
@@ -277,24 +255,24 @@ public class StatusResourceImplTest {
 
     /**
      * Tests the state of the module service API by get
-     *  When GET business resource on GET with adminPort number we should got Not_Found (404)
+     * When GET business resource on GET with adminPort number we should got Not_Found (404)
      *
      * @throws Exception
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturn404() throws Exception {
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
 
-        RestAssured.port = serverAdminPort;
+        RestAssured.port = vitamServerTestRunner.getAdminPort();
 
         RestAssured.given()
-                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                .when()
-                .get(MODULE_STATUS_URI).then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(MODULE_STATUS_URI).then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        factory.changeServerPort(serverAdminPort);
+        factory.changeServerPort(vitamServerTestRunner.getAdminPort());
 
         factory.changeResourcePath(TEST_RESOURCE_URI);
 
@@ -313,16 +291,16 @@ public class StatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetNotFoundResource_ThenReturnNotFoudWithoutJettyVersion() throws Exception {
         final Map<String, String> headersMap =
-                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI + "/NotFound");
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI + "/NotFound");
 
-        RestAssured.port = serverPort;
+        RestAssured.port = vitamServerTestRunner.getBusinessPort();
 
         final Response response = RestAssured.given()
-                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-                .when()
-                .get(MODULE_STATUS_URI + "/NotFound").then().statusCode(Status.NOT_FOUND.getStatusCode())
-                .extract().response();
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(MODULE_STATUS_URI + "/NotFound").then().statusCode(Status.NOT_FOUND.getStatusCode())
+            .extract().response();
 
         final String body = response.getBody().asString();
         assertFalse(body.contains("Powered by Jetty"));

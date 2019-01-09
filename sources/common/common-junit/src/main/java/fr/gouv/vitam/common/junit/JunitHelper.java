@@ -26,33 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.junit;
 
-import java.io.File;
+import com.google.common.testing.GcFinalization;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.rules.ExternalResource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import com.google.common.testing.GcFinalization;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.plugins.Plugin;
-import org.elasticsearch.transport.BindTransportException;
-import org.elasticsearch.transport.Netty4Plugin;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.TemporaryFolder;
 
 
 /**
@@ -64,7 +53,7 @@ public class JunitHelper extends ExternalResource {
     private static final int MAX_PORT = 65535;
     private static final int BUFFER_SIZE = 65536;
     private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
-            "Could not find a free TCP/IP port to start embedded Server on";
+        "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
 
     private final Set<Integer> portAlreadyUsed = new HashSet<>();
@@ -108,41 +97,10 @@ public class JunitHelper extends ExternalResource {
         int port = getAvailablePort();
 
         if (PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) ||
-                PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
+            PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
             setJettyPortSystemProperty(environmentVariable, port);
         }
         return port;
-    }
-
-    /**
-     * Find an available port, set the Property jetty.port and call the factory to start the application in one
-     * synchronized step.
-     *
-     * @param testFactory the {@link VitamApplicationTestFactory} to use
-     * @return the available and used port if it exists and the started application
-     * @throws IllegalStateException if no port available
-     */
-    public final synchronized StartApplicationResponse<?> findAvailablePortSetToApplication(
-            VitamApplicationTestFactory<?> testFactory) {
-        if (testFactory == null) {
-            throw new IllegalStateException("Factory must not be null");
-        }
-        final int port = findAvailablePort();
-        try {
-            final StartApplicationResponse<?> response = testFactory.startVitamApplication(port);
-            final int realPort = response.getServerPort();
-            if (realPort <= 0) {
-                portAlreadyUsed.remove(Integer.valueOf(port));
-                throw new IllegalStateException(COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON);
-            }
-            if (realPort != port) {
-                portAlreadyUsed.add(Integer.valueOf(realPort));
-                portAlreadyUsed.remove(Integer.valueOf(port));
-            }
-            return response;
-        } finally {
-            unsetJettyPortSystemProperty();
-        }
     }
 
     private final int getAvailablePort() {
@@ -286,13 +244,13 @@ public class JunitHelper extends ExternalResource {
      * Set JettyPort System Property
      *
      * @param environmentVariable
-     * @param port                set to jetty server
+     * @param port set to jetty server
      */
     public static final void setJettyPortSystemProperty(String environmentVariable, int port) {
         if (!PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) &&
-                !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
+            !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
             throw new IllegalArgumentException(
-                    "JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
+                "JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
 
         SystemPropertyUtil.set(environmentVariable, Integer.toString(port));
     }
@@ -320,7 +278,7 @@ public class JunitHelper extends ExternalResource {
             // finally call the constructor
             c.newInstance();
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
-                IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
+            IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }

@@ -28,13 +28,11 @@ package fr.gouv.vitam.worker.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -45,7 +43,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -77,15 +74,10 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static WorkerClientFactory factory =
         WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
-    @ClassRule
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -94,9 +86,8 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
@@ -109,7 +100,6 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     @Path("/worker/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
-        public static final String APPLICATION_ZIP = "application/zip";
 
         public MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;

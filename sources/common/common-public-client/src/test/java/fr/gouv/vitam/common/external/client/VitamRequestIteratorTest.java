@@ -33,13 +33,12 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.BadRequestException;
@@ -80,14 +79,11 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
     private static DefaultClient client;
 
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static fr.gouv.vitam.common.client.TestVitamClientFactory
-        factory = new TestVitamClientFactory<DefaultClient>(serverPortNumber, RESOURCE_PATH);
-    @ClassRule
+        factory = new TestVitamClientFactory<DefaultClient>(1, RESOURCE_PATH);
+
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(VitamRequestIteratorTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(VitamRequestIteratorTest.class, factory);
 
 
     @BeforeClass
@@ -95,6 +91,11 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
 
     @Override
     public Set<Object> getResources() {

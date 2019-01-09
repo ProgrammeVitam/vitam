@@ -71,7 +71,7 @@ public class BenchmarkClientRest extends DefaultClient {
                 final Status status = Status.fromStatusCode(response.getStatus());
                 switch (status) {
                     case OK:
-                        final long sizeRead = response.readEntity(long.class);
+                        final long sizeRead = response.readEntity(Long.class);
                         LOGGER.debug(Response.Status.OK.getReasonPhrase() + " : " + sizeRead);
                         return sizeRead;
                     default:

@@ -26,27 +26,24 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import java.io.IOException;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 /**
  * ShutDown Hook Filter save and remove request-id in ThreadManager
  */
 public class ShutDownHookFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
-    AbstractVitamApplication application;
     ThreadManager threadManager;
-    
-    public ShutDownHookFilter(AbstractVitamApplication application, ThreadManager threadManager) {
-        this.application = application; 
+
+    public ShutDownHookFilter(ThreadManager threadManager) {
         this.threadManager = threadManager;
     }
-    
+
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
         throws IOException {
@@ -54,15 +51,17 @@ public class ShutDownHookFilter implements ContainerRequestFilter, ContainerResp
     }
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {        
-        boolean isShuttingDown = application.getServerStatus();
-           
-        if (isShuttingDown){
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+
+        // TODO: 09/01/19 fix this to be used by Resteasy server
+        boolean isShuttingDown = false;
+
+        if (isShuttingDown) {
             requestContext.abortWith(Response.status(Response.Status.GONE).build());
         } else {
             threadManager.addRequest(requestContext.getHeaders());
         }
-        
+
     }
 
 

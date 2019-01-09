@@ -151,7 +151,6 @@ public class VitamStarter {
         try {
 
             configureVitamParameters();
-            platformSecretConfiguration();
 
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
 
@@ -172,24 +171,6 @@ public class VitamStarter {
     }
 
     /**
-     * To allow override on non Vitam platform such as IHM
-     */
-    protected void platformSecretConfiguration() {
-        // Load Platform secret from vitam.conf file
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
-
-            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
-            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
-
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
-        }
-    }
-
-    /**
      * Allow override Vitam parameters
      */
     protected void configureVitamParameters() {
@@ -198,6 +179,8 @@ public class VitamStarter {
                 PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
 
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
+            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
+            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
             LOGGER.error(e);
@@ -256,7 +239,6 @@ public class VitamStarter {
 
     protected Handler buildAdminHandler(String configurationFile, VitamApplicationConfiguration configuration) {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
-
         servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());
         servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 

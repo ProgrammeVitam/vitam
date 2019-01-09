@@ -26,24 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
 
 /**
  * TestResourceImpl implements ApplicationStatusResource
  */
-@Path(TestApplication.TEST_RESOURCE_URI)
+@Path("/test/v1")
 @Consumes("application/json")
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
@@ -52,19 +49,16 @@ public class TestResourceImpl extends ApplicationStatusResource {
 
     /**
      *
-     * @param configuration to associate with TestResourceImpl
      */
-    public TestResourceImpl(TestConfiguration configuration) {
+    public TestResourceImpl() {
         super(new BasicVitamStatusServiceImpl());
         LOGGER.debug("TestResource initialized");
     }
 
     /**
-     *
-     * @param configuration to associate with TestResourceImpl
      * @param statusService
      */
-    public TestResourceImpl(TestConfiguration configuration, VitamStatusService statusService) {
+    public TestResourceImpl(VitamStatusService statusService) {
         super(statusService);
         LOGGER.debug("TestResource initialized");
     }

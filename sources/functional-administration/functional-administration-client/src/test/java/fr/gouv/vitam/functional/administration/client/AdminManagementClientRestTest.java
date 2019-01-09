@@ -32,13 +32,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -50,7 +48,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -64,7 +62,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -113,15 +110,10 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static AdminManagementClientFactory factory = AdminManagementClientFactory.getInstance();
-    @ClassRule
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(AdminManagementClientRestTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(AdminManagementClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -130,9 +122,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

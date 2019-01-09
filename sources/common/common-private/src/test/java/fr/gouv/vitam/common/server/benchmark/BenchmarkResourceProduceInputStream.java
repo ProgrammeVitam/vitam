@@ -68,9 +68,8 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     /**
      * Constructor BenchmarkResourceProduceInputStream
      *
-     * @param configuration the Benchmark Configuration
      */
-    public BenchmarkResourceProduceInputStream(BenchmarkConfiguration configuration) {
+    public BenchmarkResourceProduceInputStream() {
         LOGGER.info("init Ingest External Resource server");
     }
 
@@ -230,23 +229,19 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Consumes(MediaType.WILDCARD)
     public void downloadPostIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
         LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-                final String method = HttpMethod.POST;
-                Response response = null;
-                try (final BenchmarkClientRest client =
-                    BenchmarkClientFactory.getInstance().getClient()) {
-                    response =
-                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
-                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    buildReponse(asyncResponse, response);
-                } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR).build());
-                }
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
+            LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+            final String method = HttpMethod.POST;
+            Response response = null;
+            try (final BenchmarkClientRest client =
+                BenchmarkClientFactory.getInstance().getClient()) {
+                response =
+                    client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                buildReponse(asyncResponse, response);
+            } catch (final VitamClientInternalException e) {
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
             }
         });
     }
@@ -263,23 +258,19 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Consumes(MediaType.WILDCARD)
     public void downloadPutIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
         LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-                final String method = HttpMethod.PUT;
-                Response response = null;
-                try (final BenchmarkClientRest client =
-                    BenchmarkClientFactory.getInstance().getClient()) {
-                    response =
-                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
-                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    buildReponse(asyncResponse, response);
-                } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR).build());
-                }
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
+            LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+            final String method = HttpMethod.PUT;
+            Response response = null;
+            try (final BenchmarkClientRest client =
+                BenchmarkClientFactory.getInstance().getClient()) {
+                response =
+                    client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                buildReponse(asyncResponse, response);
+            } catch (final VitamClientInternalException e) {
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
             }
         });
     }
@@ -296,23 +287,19 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Consumes(MediaType.WILDCARD)
     public void downloadGetIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
         LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-                final String method = HttpMethod.GET;
-                Response response = null;
-                try (final BenchmarkClientRest client =
-                    BenchmarkClientFactory.getInstance().getClient()) {
-                    response =
-                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
-                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    buildReponse(asyncResponse, response);
-                } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR).build());
-                }
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
+            LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+            final String method = HttpMethod.GET;
+            Response response = null;
+            try (final BenchmarkClientRest client =
+                BenchmarkClientFactory.getInstance().getClient()) {
+                response =
+                    client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                buildReponse(asyncResponse, response);
+            } catch (final VitamClientInternalException e) {
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
             }
         });
     }
@@ -320,14 +307,12 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     /**
      * Download indirect using POST
      *
-     * @param asyncResponse AsyncResponse model
-     * @throws VitamClientInternalException
      */
     @Path(DOWNLOAD_INDIRECT + HttpMethod.POST)
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
-    public Response downloadPostIndirect() throws VitamClientInternalException {
+    public Response downloadPostIndirect() {
         LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         final String method = HttpMethod.POST;
         Response response = null;

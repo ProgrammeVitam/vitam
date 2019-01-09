@@ -26,71 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.benchmark;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
 
-public class BenchmarkResourceInputStreamIT {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+public class BenchmarkResourceInputStreamIT extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceInputStreamIT.class);
 
-    private static final String BENCHMARK_CONF = "benchmark-test.conf";
-    private static BenchmarkApplicationProduceInputStream application;
-    private static int serverPort = 8889;
+    static BenchmarkClientFactory factory = BenchmarkClientFactory.getInstance();
+    static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(BenchmarkResourceInputStreamIT.class, factory);
+
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new BenchmarkResourceProduceInputStream());
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<BenchmarkApplicationProduceInputStream> testFactory =
-            new MinimalTestVitamApplicationFactory<BenchmarkApplicationProduceInputStream>() {
-
-                @Override
-                public StartApplicationResponse<BenchmarkApplicationProduceInputStream> startVitamApplication(
-                    int reservedPort)
-                    throws IllegalStateException {
-                    final BenchmarkApplicationProduceInputStream application =
-                        new BenchmarkApplicationProduceInputStream(BENCHMARK_CONF);
-                    return startAndReturn(application);
-                }
-
-            };
-        final StartApplicationResponse<BenchmarkApplicationProduceInputStream> response =
-            testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        BenchmarkClientFactory.setConfiguration(serverPort);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Throwable {
         LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+        vitamServerTestRunner.runAfter();
     }
 
     @Test
@@ -109,8 +88,9 @@ public class BenchmarkResourceInputStreamIT {
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
             long start = System.nanoTime();
-            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            Response response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
@@ -173,8 +153,9 @@ public class BenchmarkResourceInputStreamIT {
 
             method = HttpMethod.POST;
             start = System.nanoTime();
-            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
@@ -187,8 +168,9 @@ public class BenchmarkResourceInputStreamIT {
 
             method = HttpMethod.PUT;
             start = System.nanoTime();
-            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
@@ -207,8 +189,9 @@ public class BenchmarkResourceInputStreamIT {
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
             long start = System.nanoTime();
-            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            Response response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));

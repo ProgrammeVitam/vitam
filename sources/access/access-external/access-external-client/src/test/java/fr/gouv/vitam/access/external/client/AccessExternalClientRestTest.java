@@ -3,25 +3,22 @@ package fr.gouv.vitam.access.external.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -59,22 +56,15 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
     final String ID = "identfier1";
-    final String USAGE = "BinaryMaster";
-    final int VERSION = 1;
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
-    @ClassRule
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(AccessExternalClientRestTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(AccessExternalClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -83,9 +73,8 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
