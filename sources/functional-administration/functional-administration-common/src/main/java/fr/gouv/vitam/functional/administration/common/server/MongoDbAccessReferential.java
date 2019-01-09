@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -110,6 +111,9 @@ public interface MongoDbAccessReferential {
     VitamDocument<?> getDocumentByUniqueId(String id,
         FunctionalAdminCollections collection, String field)
         throws ReferentialException;
+
+    void replaceDocument(JsonNode document, String identifier, String identifierName,
+        FunctionalAdminCollections vitamCollection) throws DatabaseException;
 
     /**
      * Update with queryDsl

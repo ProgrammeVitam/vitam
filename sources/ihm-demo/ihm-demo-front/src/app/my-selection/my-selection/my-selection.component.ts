@@ -476,7 +476,12 @@ export class MySelectionComponent extends PageComponent {
           ];
         this.form.scearioResults = [];
 
-        this.referentialsService.getScenarios().subscribe(
+        let scenarioFilter = {
+          ScenarioID: "all",
+          ScenarioName: "all"
+        };
+
+        this.referentialsService.getScenarios(scenarioFilter).subscribe(
           (response) => {
             console.log('');
             if (response.httpCode == 200 && response.$results && response.$results.length > 0) {

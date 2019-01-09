@@ -99,7 +99,9 @@ export class MenuComponent implements OnInit {
                     {label: 'Formats', routerLink: ['admin/search/format']},
                     {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
                     {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
-                    {label: 'Services agents', routerLink: ['admin/search/agencies']}
+                    {label: 'Services agents', routerLink: ['admin/search/agencies']},
+                    {label: 'Griffons', routerLink: ['admin/search/griffins']},
+                    {label: 'Scénarios de preservation', routerLink: ['admin/search/scenarios']}
                   ]
                 },
                 {

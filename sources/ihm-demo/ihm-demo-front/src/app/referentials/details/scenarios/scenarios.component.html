@@ -1,13 +1,25 @@
 <p-panel [header]="panelHeader">
   <div class="ui-g">
     <div class="ui-g-8 ui-g-offset-2 textAlignLeft" *ngIf="scenario">
-      <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'"  [value]="scenario.Identifier" [labelSize]="4"
-                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="scenario.Name" [labelSize]="4"
-                            class="ui-g-12 " [updateMode]="false" ></vitam-metadata-field>
-      <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'"  [value]="scenario.Description" [labelSize]="4"
-                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-
+      <vitam-metadata-field [title]="keyToLabel('Identifier')" [originalTitle]="'Identifier'"  [value]="scenario.Identifier" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('Name')" [originalTitle]="'Name'"  [value]="scenario.Name" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel" ></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('Description')" [originalTitle]="'Description'"  [value]="scenario.Description" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel" ></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('CreationDate')" [originalTitle]="'CreationDate'"  [value]="scenario.CreationDate" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('LastUpdate')" [originalTitle]="'LastUpdate'"  [value]="scenario.LastUpdate" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('GriffinByFormat')" [originalTitle]="'GriffinByFormat'"  [value]="scenario.GriffinByFormat" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('ActionList')" [originalTitle]="'ActionList'"  [value]="scenario.ActionList" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('DefaultGriffin')" [originalTitle]="'DefaultGriffin'"  [value]="scenario.DefaultGriffin" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
+      <vitam-metadata-field [title]="keyToLabel('MetadataFilter')" [originalTitle]="'MetadataFilter'"  [value]="scenario.MetadataFilter" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
     </div>
   </div>
 </p-panel>
+

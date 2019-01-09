@@ -109,6 +109,7 @@ import {ArchiveUnitFacetComponent} from './archive-unit/archive-unit-facet/archi
 import {ObjectsGroupFacetComponent} from './admin/objectsgroup/objectsgroup-facet/objectsgroup-facet.component';
 import {AccessionRegisterSymbolicComponent} from './referentials/details/accession-register-symbolic/accession-register-symbolic.component';
 import {GriffinsComponent} from './referentials/details/griffins/griffins.component';
+import {ScenariosComponent} from './referentials/details/scenarios/scenarios.component';
 
 const appRoutes: Routes = [
   {
@@ -201,7 +202,10 @@ const appRoutes: Routes = [
     path: 'admin/agencies/:type/:id', component: AgenciesComponent, data: {permission: 'admin:accession-register:read'}
   },
   {
-    path: 'admin/griffins/:id',component: GriffinsComponent, data: {permission: 'admin:accession-register:read'}
+    path: 'admin/griffins/:id',component: GriffinsComponent, data: {permission: 'griffin:read'}
+  },
+  {
+    path: 'admin/scenarios/:id',component: ScenariosComponent, data: {permission: 'preservationScenario:read'}
   },
 
   {
@@ -289,7 +293,7 @@ const appRoutes: Routes = [
     TreeSearchComponent,
     AgenciesComponent,
     GriffinsComponent,
-
+    ScenariosComponent,
     AuditComponent,
     TreeSearchComponent,
     EventDisplayComponent,

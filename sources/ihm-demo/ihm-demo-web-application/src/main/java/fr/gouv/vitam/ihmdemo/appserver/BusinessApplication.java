@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static fr.gouv.vitam.ihmdemo.common.utils.PermissionReader.getMethodsAnnotatedWith;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +40,7 @@ import javax.ws.rs.core.Context;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 /**
  * Business application for ihm demo declaring resources and filters
@@ -63,8 +65,15 @@ public class BusinessApplication extends Application {
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new WebApplicationResource(configuration));
-            singletons.add(new WebPreservationResource());
+
+            Set<String> permissions= getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
+
+            Set<String> methodsAnnotatedWith =
+                getMethodsAnnotatedWith(WebPreservationResource.class, RequiresPermissions.class);
+            permissions.addAll(methodsAnnotatedWith);
+
+            singletons.add(new WebApplicationResource(permissions, configuration));
+            singletons.add(new WebPreservationResource(permissions));
 
         } catch (IOException e) {
             throw new RuntimeException(e);
