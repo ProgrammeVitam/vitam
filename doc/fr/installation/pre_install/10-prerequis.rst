@@ -46,7 +46,7 @@ Systèmes d'exploitation
 Seules deux distributions Linux suivantes sont supportées à ce jour :
 
 * CentOS 7
-* Debian 8 (jessie)
+* Debian 9 (stretch)
 
 SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
 
@@ -71,12 +71,12 @@ Déploiement sur environnement CentOS
 Déploiement sur environnement Debian
 ------------------------------------
 
-* Disposer d'une plate-forme Linux Debian "jessie" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
+* Disposer d'une plate-forme Linux Debian "stretch" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
 
   + une configuration de temps synchronisée (ex: en récupérant le temps à un serveur centralisé)
   + Des autorisations de flux conformément aux besoins décrits dans le :term:`DAT`
   + une configuration des serveurs de noms correcte (cette configuration sera surchargée lors de l'installation)
-  + un accès à un dépôt (ou son miroir) Debian (base et extras) et jessie-backports
+  + un accès à un dépôt (ou son miroir) Debian (base et extras) et stretch-backports
   + un accès internet, car le dépôt docker sera ajouté
 
 * Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)

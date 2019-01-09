@@ -36,7 +36,7 @@ Repository pour environnement Debian
 
 Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
-   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb jessie vitam-product vitam-external
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb stretch vitam-product vitam-external
 
 
 .. note:: remplacer <vitam_version> par la version à déployer.
