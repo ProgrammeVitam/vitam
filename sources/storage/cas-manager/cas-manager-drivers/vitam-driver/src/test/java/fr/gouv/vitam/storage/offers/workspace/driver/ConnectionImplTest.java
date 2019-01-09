@@ -65,6 +65,7 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -96,6 +97,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class ConnectionImplTest extends ResteasyTestApplication {
@@ -111,7 +113,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     private static final String TYPE = "object";
     private static Driver driver;
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static TestVitamClientFactory factory =
         new TestVitamClientFactory(1, "/offer/v1", mock(Client.class));
@@ -120,7 +122,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() throws VitamApplicationServerException {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
 
         tenant = Instant.now().getNano();
         driver = DriverImpl.getInstance();
@@ -134,8 +137,6 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -237,6 +238,11 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         } catch (final Exception e) {
 
         }
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
     }
 
     @Test(expected = VitamApplicationServerException.class)

@@ -1271,7 +1271,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
         Response response = null;
-        RequestResponse result = null;
         try {
             response = performRequest(POST, AUDIT_RULE_URI, null, null,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);

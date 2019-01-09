@@ -72,7 +72,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
     private static boolean startup = true;
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static DefaultClient client;
 
@@ -83,7 +83,8 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (DefaultClient) vitamServerTestRunner.getClient();
     }
     @AfterClass
@@ -93,8 +94,6 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

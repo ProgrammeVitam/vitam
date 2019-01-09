@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -62,11 +63,14 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class WorkspaceClientFolderTest extends WorkspaceClientTest {
+public class WorkspaceClientFolderTest extends ResteasyTestApplication {
+
+    protected static WorkspaceClient client;
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
@@ -74,7 +78,8 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (WorkspaceClient) vitamServerTestRunner.getClient();
     }
 
@@ -85,12 +90,11 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
         return Sets.newHashSet(new MockFolderResource(mock));
     }
 
     @Path("workspace/v1/containers")
-    public static class MockFolderResource extends MockResource {
+    public static class MockFolderResource {
 
         private final ExpectedResults expectedResponse;
 

@@ -61,8 +61,7 @@ public class DriverImplTest extends ResteasyTestApplication {
     private static final String DRIVER_NAME = "DefaultOfferDriver";
     private static StorageOffer offer = new StorageOffer();
 
-
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static TestVitamClientFactory factory = new TestVitamClientFactory(1, "/offer/v1", mock(Client.class));
 
@@ -71,7 +70,8 @@ public class DriverImplTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
     }
 
     @AfterClass
@@ -81,8 +81,6 @@ public class DriverImplTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

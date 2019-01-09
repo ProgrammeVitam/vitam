@@ -8,15 +8,22 @@ import static org.junit.Assert.fail;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.external.client.configuration.ClientConfigurationImpl;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class AccessExternalClientV2FactoryTest {
-    @Before
-    public void initFileConfiguration() {
+    @BeforeClass
+    public static void initFileConfiguration() {
         AccessExternalClientV2Factory
             .changeMode(AccessExternalClientV2Factory.changeConfigurationFile("access-external-client-test.conf"));
 
+    }
+
+    @AfterClass
+    public static void after() {
+        AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl("localhost", 100));
     }
 
     @Test

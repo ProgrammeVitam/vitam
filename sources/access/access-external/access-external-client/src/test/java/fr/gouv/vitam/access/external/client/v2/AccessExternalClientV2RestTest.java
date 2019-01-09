@@ -40,16 +40,15 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
-    protected static ExpectedResults mock;
-
-    static AccessExternalClientV2Factory factory = AccessExternalClientV2Factory.getInstance();
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(AccessExternalClientV2RestTest.class, factory);
+        new VitamServerTestRunner(AccessExternalClientV2RestTest.class, AccessExternalClientV2Factory.getInstance());
 
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
         client = (AccessExternalClientV2Rest) vitamServerTestRunner.getClient();
     }
 
@@ -60,8 +59,6 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

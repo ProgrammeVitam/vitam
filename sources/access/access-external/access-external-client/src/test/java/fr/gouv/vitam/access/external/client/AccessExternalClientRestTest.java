@@ -59,7 +59,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -68,7 +68,8 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
         client = (AccessExternalClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -79,8 +80,6 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -235,9 +234,6 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.post();
         }
 
-
-        // Functionalities related to TRACEABILITY operation
-
         @POST
         @Path(AccessExtAPI.TRACEABILITY_API + "/check")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -322,6 +318,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     }
 
     @RunWithCustomExecutor
+    @Test
     public void givenRequestNull_whenSelectUnit_ThenErrorResponse()
         throws Exception {
         assertThat(client.selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null).getHttpCode())
@@ -401,6 +398,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void givenrEQUESTBlank_IDFilledwhenSelectUnitById_ThenVitamError()
         throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         assertThat(client
             .selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), createDslQueryById(queryDsql), ID)
             .getHttpCode()).isEqualByComparingTo(Status.NO_CONTENT.getStatusCode());
@@ -466,9 +464,12 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
 
 
     @RunWithCustomExecutor
+    @Test
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
+
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            null, ID).getHttpCode())
+            JsonHandler.createObjectNode(), ID).getHttpCode())
             .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 

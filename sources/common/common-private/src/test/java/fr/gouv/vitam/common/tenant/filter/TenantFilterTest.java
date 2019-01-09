@@ -40,12 +40,11 @@ import java.util.Vector;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.grizzly.servlet.WebappContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,7 +64,7 @@ public class TenantFilterTest {
     private static Map<String, String> headersMap;
 
     private static FilterConfig mockFilterConfig;
-    private static WebappContext mockedContext;
+    private static ServletContext mockedContext;
     private static Enumeration<String> httpServletRequestHeaders;
 
     private static final String NOT_STATUS_ADMIN_URI = "/containers/containerid";
@@ -75,7 +74,7 @@ public class TenantFilterTest {
 
         filter = new TenantFilter();
         mockFilterConfig = mock(FilterConfig.class);
-        mockedContext = mock(WebappContext.class);
+        mockedContext = mock(ServletContext.class);
 
         List<String> tenants = new ArrayList<>();
         tenants.add("0");
