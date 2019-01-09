@@ -1,11 +1,11 @@
 ---
 
 # FIXME : will need more testing to be sure it is mandatory here
-- name: install openjdk from jessie-backports only when Debian
+- name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian"
   apt:
     name: openjdk-8-jre-headless
     state: latest
-    default_release: jessie-backports
+    default_release: "{{ ansible_distribution_release }}-backports"
   when: ansible_os_family == "Debian"
 
 

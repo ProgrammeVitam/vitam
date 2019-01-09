@@ -10,8 +10,6 @@ case "$1" in
 		chmod 750 /vitam/conf/consul
 		chown -R vitam:vitam /vitam/data/consul
 		chmod 750 /vitam/data/consul
-		# A faire en fin
-		setcap CAP_NET_BIND_SERVICE=+eip /vitam/bin/consul/consul
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

@@ -7,7 +7,7 @@
 #########################################################################################
 
 # Set the base image to Debian 8
-FROM debian:8.7
+FROM debian:9.5
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 #ENV DEBIAN_FRONTEND noninteractive
@@ -16,26 +16,18 @@ RUN apt-get clean && apt-get update && apt-get install -y apt-utils
 
 # Make sure the package repository and packages are up to date.
 
-COPY deb/jessie-backports.list /etc/apt/sources.list.d
+COPY deb/stretch-backports.list /etc/apt/sources.list.d
 
 RUN apt-get clean && apt-get update && apt-get upgrade -y
 
-RUN apt-get update && apt-get install -y -t jessie-backports openjdk-8-jdk-headless
+RUN apt-get update && apt-get install -t stretch-backports -y openjdk-8-jdk-headless
+
+RUN apt-get install -y systemd-sysv
 
 ################################  Configure systemd  ###############################
 
 # Hint for systemd that we are running inside a container
 ENV container docker
-
-# Remove useless units
-RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ "$i" == "systemd-tmpfiles-setup.service" ] || rm -f $i; done); \
-    rm -f /lib/systemd/system/multi-user.target.wants/*;\
-    rm -f /etc/systemd/system/*.wants/*;\
-    rm -f /lib/systemd/system/local-fs.target.wants/*; \
-    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-    rm -f /lib/systemd/system/basic.target.wants/*;\
-    rm -f /lib/systemd/system/anaconda.target.wants/*;
 
 RUN cd /lib/systemd/system/sysinit.target.wants/ && \
 		ls | grep -v systemd-tmpfiles-setup.service | xargs rm -f && \
@@ -71,7 +63,7 @@ RUN apt-get clean && apt-get update && apt-get install -y curl && apt-get clean
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 # Install & configure maven
-RUN curl -k https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz --output /tmp/maven.tgz \
+RUN curl -k http://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz --output /tmp/maven.tgz \
    && tar xvzf /tmp/maven.tgz --directory /opt \
    && rm -f /tmp/maven.tgz \
    && ln -s /opt/apache-maven-3.3.9 /opt/maven \
@@ -81,9 +73,6 @@ RUN curl -k https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3
 # Add Maven & java to path
 ENV M2_HOME /opt/maven
 ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
-
-# Add golang-1.6 to PATH
-ENV PATH ${PATH}:/usr/lib/go-1.6/bin
 
 ################################  Install ansible  ###############################
 # for sudo in automatic deployment ; note : ansible needs epel repo
@@ -95,26 +84,15 @@ RUN apt-get update && apt-get install -y sudo net-tools \
 # Editor & unzip
 RUN apt-get install -y vim unzip wget
 
-RUN apt-get install -y golang-1.6
+RUN apt-get install -y -t stretch-backports golang
 
-#RUN apt-get install -y -t jessie-backports node-gyp nodejs-dev libssl1.0.0
-
-#RUN apt-get install -y --force-yes -t jessie-backports libssl1.0.0>=1.0.1t-1+deb8u5 && \
-RUN apt-get install -y --force-yes -t jessie-backports libssl1.0.0 libssl-dev && \
-    apt-get install -y node-gyp  nodejs-dev && \
-    apt-get install -y npm && \
+RUN apt-get install -y node-gyp  nodejs-dev && \
     apt-get install -y nodejs && \
     ln -s /usr/bin/nodejs /usr/bin/node
 
-RUN apt-get clean && apt-get update && apt-get install -t jessie-backports -y ansible
+RUN apt-get -t stretch-backports -y install ansible
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim
-
-##################################  Ansible 2.4             #################################
-RUN sudo echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list \
-  && sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 93C4A3FD7BB9C367 \
-  && sudo apt-get update \
-  && sudo apt-get install -y ansible
 
 ##################################  Declare local deb repo  #################################
 
@@ -146,7 +124,7 @@ RUN chmod 664 /etc/sudoers.d/sudo-nopwd
 ENV TERM xterm
 
 # If we don't install openjdk a 2nd time, sometimes it doesn't work, why ???
-RUN apt-get install -y -t jessie-backports openjdk-8-jdk-headless
+RUN apt-get install -t stretch-backports -y openjdk-8-jdk-headless
 
 ##################################  CONTAINER SETTINGS  #################################
 
@@ -170,3 +148,6 @@ COPY vitam-mongo-cli-rs /usr/bin
 COPY deb/vitam-recreate-repo /usr/bin
 
 RUN  chmod a+x /usr/bin/vitam-*
+
+# System tuning for elasticsearch
+RUN echo "vm.max_map_count = 262144" >> /etc/sysctl.conf

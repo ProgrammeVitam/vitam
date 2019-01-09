@@ -25,16 +25,6 @@
     owner: root
     group: root
     mode: 0755
-#  when: ansible_os_family == "RedHat"
-
-# - name: apply custom config file for clamAV
-#   template:
-#     src: scan.conf.j2
-#     dest: /etc/clamd.conf
-#     owner: root
-#     group: root
-#     mode: 0644
-#   when: ansible_os_family == "Debian"
 
 - name: apply custom config file for clamAV
   template:
@@ -43,10 +33,6 @@
     owner: root
     group: root
     mode: 0644
-#  when: ansible_os_family == "RedHat"
-# notify disabled as there are possibilities "debian" or "centos"
-  # notify:
-  #   - restart clamav
 
 - block:
 
@@ -61,25 +47,39 @@
       path: "/etc/sysconfig/freshclam"
       regexp: '^FRESHCLAM_DELAY(.)*'
       replace: '#FRESHCLAM_DELAY\1'
-  
-  - name: change check periodicity for clamAV database updates 
+
+  - name: change check periodicity for clamAV database updates
     lineinfile:
-      path: "/etc/freshclam.conf" 
+      path: "/etc/freshclam.conf"
       regexp: '^[# \t]*Checks'
       line: "Checks {{ clamav.db_update_periodicity }}"
-
 
   when: ansible_os_family == "RedHat"
 
 - block:
-# cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
+
+  - name: Make sure /var/run/clamav exists
+    file:
+      name: /var/run/clamav
+      state: directory
+      owner: clamav
+      group: root
+
+  # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
   - name: apply systemD config file for clamAV under debian
     template:
-      src: extend.conf.j2
-      dest: /etc/systemd/system/clamav-daemon.socket.d/extend.conf
+      src: clamav-daemon.socket.j2
+      dest: /etc/systemd/system/clamav-daemon.socket
       owner: root
       group: root
       mode: 0644
+
+  - name: Start clamav socket
+    systemd:
+      name: clamav-daemon.socket
+      daemon_reload: yes
+      enabled: yes
+      state: started
 
   - name: stop clamav-freshclam service to force update
     systemd:
@@ -97,8 +97,8 @@
       block: |
         HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
         HTTPProxyPort {{ http_proxy_environnement | urlsplit('port') }}
-    when: 
-      - http_proxy_environnement is defined 
+    when:
+      - http_proxy_environnement is defined
       - http_proxy_environnement != ''
 
   - name: update database for clamAV
@@ -120,9 +120,9 @@
       enabled: yes
       state: restarted
 
-  - name: change check periodicity for clamAV database updates 
+  - name: change check periodicity for clamAV database updates
     lineinfile:
-      path: "/etc/clamav/freshclam.conf" 
+      path: "/etc/clamav/freshclam.conf"
       regexp: '^[# \t]*Checks'
       line: "Checks {{ clamav.db_update_periodicity }}"
 
@@ -132,4 +132,3 @@
 #     state: restarted
 
   when: ansible_os_family == "Debian"
-

@@ -46,17 +46,24 @@
   when:
     - ansible_os_family == "Debian"
 
-- name: Update yum cache
-  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
-  tags:
-    - enable_vitam_repo
-    - update_package_vitam
-  when: ansible_os_family == "RedHat"
+- block:
+  - name: "check {{ ansible_distribution_release }}-backports repo are present"
+    apt_repository:
+      repo: "{{ item }}"
+      state: present
+    with_items:
+      - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
+      - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
 
-- name: Update apt cache
-  apt:
-    update_cache: yes
-  tags:
-    - enable_vitam_repo
-    - update_package_vitam
-  when: ansible_os_family == "Debian"
+  - name: run apt-update
+    apt:
+      update_cache: yes
+    tags:
+      - update_package_vitam
+
+  - name: Make sure acl package is installed (for setfacl usage with become_user)
+    package:
+      name: acl
+      state: present
+
+  when: ansible_distribution == "Debian"

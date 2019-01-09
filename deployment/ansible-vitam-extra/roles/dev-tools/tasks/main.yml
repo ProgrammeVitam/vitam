@@ -12,13 +12,27 @@
     with_items:
     - docker
 
-  - name: add GPG docker repo key
-    apt_key:
-      url: "https://download.docker.com/linux/debian/gpg"
+# Need to wait for this bug to be resolved:
+# https://github.com/ansible/ansible/pull/42443
+  # - name: add GPG docker repo key
+  #   apt_key:
+  #     url: "https://download.docker.com/linux/debian/gpg"
+  #     state: present
+  #     validate_certs: no
+  #   environment:
+  #     https_proxy: "{{ http_proxy_environnement }}"
+  #     http_proxy:  "{{ http_proxy_environnement }}"
+
+  - name: Make sure curl is installed
+    package:
+      name: curl
       state: present
-      validate_certs: no
+
+  - name: add GPG docker repo key
+    shell: "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -"
     environment:
       https_proxy: "{{ http_proxy_environnement }}"
+      http_proxy:  "{{ http_proxy_environnement }}"
 
   - name: install apt-transport-https as Docker repository is https
     package:
@@ -148,4 +162,3 @@
     restart_policy: always
     ports:
       - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"
-
