@@ -68,8 +68,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     /**
      * @param mongoClient client of mongo
-     * @param dbname name of database
-     * @param recreate true if recreate type
+     * @param dbname      name of database
+     * @param recreate    true if recreate type
      */
     protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate) {
         super(mongoClient, dbname, recreate);
@@ -198,7 +198,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult deleteDocument(JsonNode delete, FunctionalAdminCollections collection)
-            throws ReferentialException, BadRequestException, SchemaValidationException {
+        throws ReferentialException, BadRequestException, SchemaValidationException {
         try {
             final DeleteParserSingle parser = new DeleteParserSingle(collection.getVarNameAdapater());
             parser.parse(delete);
@@ -229,13 +229,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             throw new ReferentialException("find Document Exception", e);
         }
     }
+
     @Override
-    public void replaceDocument(JsonNode document, String identifier, String identifierName,
+    public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
         FunctionalAdminCollections vitamCollection) throws DatabaseException {
         final DbRequestSingle dbRequest = new DbRequestSingle(vitamCollection.getVitamCollection());
 
-        dbRequest.replaceDocument(document,identifier,identifierName,vitamCollection.getVitamCollection());
-
+        dbRequest.replaceDocument(document, identifierValue, identifierKey, vitamCollection.getVitamCollection());
     }
 
     @Override

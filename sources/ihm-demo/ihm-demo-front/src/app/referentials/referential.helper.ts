@@ -44,8 +44,8 @@ export class ReferentialHelper {
 
   getScenarioTranslations() {
     return {
-      '_id': 'Identifiant',
-      '#id': 'Identifiant',
+      'Identifier': 'Identifiant',
+      'Name': 'Intitulé',
       'MetadataFilter': 'MetadataFilter',
       'GriffinByFormat': 'GriffinByFormat',
       'GriffinByFormat.FormatList': 'FormatList',

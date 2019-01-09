@@ -124,7 +124,6 @@ export class ImportComponent  extends PageComponent {
           this.breadcrumbName = "Import des scénario de preservation ";
           break;
         default:
-          debugger;
           this.router.navigate(['ingest/sip']);
       }
 

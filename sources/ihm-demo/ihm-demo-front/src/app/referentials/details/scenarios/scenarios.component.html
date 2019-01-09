@@ -1,9 +1,9 @@
 <p-panel [header]="panelHeader">
   <div class="ui-g">
     <div class="ui-g-8 ui-g-offset-2 textAlignLeft" *ngIf="scenario">
-      <vitam-metadata-field [title]="keyToLabel('Identifiant')" [originalTitle]="'Identifier'"  [value]="scenario.Identifier" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('Identifier')" [originalTitle]="'Identifier'"  [value]="scenario.Identifier" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel"></vitam-metadata-field>
-      <vitam-metadata-field [title]="keyToLabel('Intitulé')" [originalTitle]="'Name'"  [value]="scenario.Name" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('Name')" [originalTitle]="'Name'"  [value]="scenario.Name" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel" ></vitam-metadata-field>
       <vitam-metadata-field [title]="keyToLabel('Description')" [originalTitle]="'Description'"  [value]="scenario.Description" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false" [keyToLabel]="keyToLabel" ></vitam-metadata-field>

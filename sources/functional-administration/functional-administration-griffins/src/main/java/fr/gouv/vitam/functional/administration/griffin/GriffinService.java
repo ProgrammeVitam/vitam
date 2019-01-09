@@ -218,15 +218,15 @@ public class GriffinService {
     }
 
     private void updateGriffins(@NotNull List<GriffinModel> listToUpdate)
-        throws ReferentialException, SchemaValidationException, BadRequestException, InvalidCreateOperationException,
-        InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, DatabaseException {
 
         for (GriffinModel griffinModel : listToUpdate) {
 
             formatDateForMongo(griffinModel);
 
-            mongoDbAccess.replaceDocument(JsonHandler.toJsonNode(griffinModel), griffinModel.getIdentifier(), IDENTIFIER,
-                FunctionalAdminCollections.GRIFFIN);
+            mongoDbAccess
+                .replaceDocument(JsonHandler.toJsonNode(griffinModel), griffinModel.getIdentifier(), IDENTIFIER,
+                    FunctionalAdminCollections.GRIFFIN);
         }
     }
 

@@ -11,7 +11,7 @@ export class ReferentialsService {
   searchAPI: string;
   ACCESS_CONTRACT: string = 'accesscontracts';
 
-  constructor(private resourceService: ResourcesService) {}
+  constructor(private resourceService: ResourcesService) { }
 
   getResults(body: any): Observable<VitamResponse> {
 
@@ -292,7 +292,7 @@ export class ReferentialsService {
     return this.resourceService.post(`${this.ACCESS_CONTRACT}`, new HttpHeaders(), criteria);
   }
 
-  getScenarios(){
-    return this.resourceService.post("preservationScenarios", new HttpHeaders());
+  getScenarios(criteria) {
+    return this.resourceService.post('preservationScenarios', new HttpHeaders(), criteria);
   }
 }

@@ -53,7 +53,7 @@ export class ScenariosComponent extends PageComponent {
         });
         let newBreadcrumb = [
           {label: 'Administration', routerLink: ''},
-          {label: 'Griffons', routerLink: 'admin/search/scenarios'},
+          {label: 'Scenarios', routerLink: 'admin/search/scenarios'},
           {label: 'Détail du scenario ' + this.id, routerLink: ''}
         ];
 
