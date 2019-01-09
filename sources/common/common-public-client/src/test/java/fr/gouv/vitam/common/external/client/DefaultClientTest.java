@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -63,13 +64,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class DefaultClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static DefaultClient client;
 
@@ -81,7 +83,8 @@ public class DefaultClientTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
@@ -90,10 +93,13 @@ public class DefaultClientTest extends ResteasyTestApplication {
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -101,10 +107,10 @@ public class DefaultClientTest extends ResteasyTestApplication {
     @Path(RESOURCE_PATH)
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
-        private final ExpectedResults expectedResponse;
+        private final ExpectedResults mock;
 
-        public MockResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
+        public MockResource(ExpectedResults mock) {
+            this.mock = mock;
         }
 
         @GET
@@ -112,7 +118,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         @Override
         public Response status() {
-            return expectedResponse.get();
+            return mock.get();
         }
     }
 
@@ -310,7 +316,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
             // Ignore
         }
         // try to get the retry when unavailable host
-        vitamServerTestRunner.runAfter();
+        vitamServerTestRunner.stop();
         try {
             response =
                 client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
@@ -340,5 +346,6 @@ public class DefaultClientTest extends ResteasyTestApplication {
             LOGGER.info(e);
         }
 
+        vitamServerTestRunner.start();
     }
 }

@@ -72,16 +72,16 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static WorkerClientFactory factory =
         WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
     public static VitamServerTestRunner
         vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
 
-
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (WorkerClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -92,8 +92,6 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

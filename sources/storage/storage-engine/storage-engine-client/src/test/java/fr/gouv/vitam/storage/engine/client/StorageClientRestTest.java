@@ -57,6 +57,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,6 +87,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 /**
@@ -100,7 +102,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     protected static StorageClientRest client;
     private static final Integer TENANT_ID = 0;
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static StorageClientFactory factory = StorageClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -108,7 +110,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (StorageClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -117,10 +120,13 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -388,9 +394,13 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.existsContainer("idStrategy"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(
             client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
@@ -401,9 +411,13 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.existsContainer("idStrategy"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(
             client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
@@ -444,6 +458,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             // nothing to do
         }
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.existsContainer("idStrategy");
@@ -459,8 +474,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 
@@ -471,8 +489,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
 
         assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 

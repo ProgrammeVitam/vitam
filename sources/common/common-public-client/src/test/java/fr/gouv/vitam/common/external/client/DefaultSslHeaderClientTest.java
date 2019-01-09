@@ -101,7 +101,8 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
 
         KeyStore p12 = KeyStore.getInstance("pkcs12");
         p12.load(PropertiesUtils.getConfigAsStream("tls/client/client.p12"), "azerty4".toCharArray());

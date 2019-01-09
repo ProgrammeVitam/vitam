@@ -109,8 +109,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     private static IngestInternalClientRest client;
 
-    private static ExpectedResults mock;
-    private static ExpectedResults mockLogbook;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private final static ExpectedResults mockLogbook = mock(ExpectedResults.class);
 
     static IngestInternalClientFactory factory = IngestInternalClientFactory.getInstance();
 
@@ -121,7 +121,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (IngestInternalClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -132,8 +133,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mockLogbook = mock(ExpectedResults.class);
-        mock = mock(ExpectedResults.class);
         return Sets.newHashSet(new MockRessource(mock, mockLogbook));
     }
 
@@ -150,8 +149,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
         @Path("/ingests")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
-            CommonMediaType.TAR})
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             InputStream uploadedInputStream) {
@@ -175,8 +173,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
         @Path("/operations/{id}")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
-            CommonMediaType.TAR,
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
             CommonMediaType.BZIP2})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,

@@ -30,14 +30,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -68,6 +67,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class VitamRequestIteratorTest extends ResteasyTestApplication {
@@ -75,19 +75,20 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
     private static boolean startup = true;
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static DefaultClient client;
 
-    static fr.gouv.vitam.common.client.TestVitamClientFactory
-        factory = new TestVitamClientFactory<DefaultClient>(1, RESOURCE_PATH);
+    static TestVitamClientFactory
+        factory = new TestVitamClientFactory<>(1, RESOURCE_PATH);
 
     public static VitamServerTestRunner
         vitamServerTestRunner = new VitamServerTestRunner(VitamRequestIteratorTest.class, factory);
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
@@ -97,10 +98,13 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -129,6 +133,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
 
     }
+
     @Test
     public void testIterator() {
         startup = true;
@@ -138,8 +143,8 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-            response.addResult(node1);
             final List<ObjectNode> list = new ArrayList<>();
+            list.add(node1);
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -207,8 +212,8 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-            response.addResult(node1);
             final List<ObjectNode> list = new ArrayList<>();
+            list.add(node1);
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -382,20 +387,24 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         try {
             VitamRequestIterator.isEndOfCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.add(GlobalDataRest.X_CURSOR, "");
         try {
             VitamRequestIterator.isEndOfCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.clear();
         map.add(GlobalDataRest.X_CURSOR, "true");
         assertTrue(VitamRequestIterator.isNewCursor(headers));
@@ -410,10 +419,12 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             assertTrue(VitamRequestIterator.isEndOfCursor(headers));
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.clear();
         map.add(GlobalDataRest.X_CURSOR, "false");
         map.add(GlobalDataRest.X_CURSOR_ID, "value");

@@ -95,7 +95,6 @@
         <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
         <slf4j.version>1.8.0-beta2</slf4j.version>
         <logback.version>1.3.0-alpha4</logback.version>
-        <jersey.version>2.27</jersey.version>
         <resteasy.client.version>4.0.0.Beta5</resteasy.client.version>
         <jclouds.version>2.1.1</jclouds.version>
         <jclouds-ceph.version>2.1.1</jclouds-ceph.version>
@@ -126,7 +125,7 @@
         <json-unit-version>2.1.1</json-unit-version>
         <jhades.version>1.0.4</jhades.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
-        <powermock.version>1.7.4</powermock.version>
+        <powermock.version>2.0.0</powermock.version>
         <json-sanitize.version>1.2.0</json-sanitize.version>
         <commons-collections4.version>4.2</commons-collections4.version>
         <unix.user>vitam</unix.user>
@@ -147,7 +146,6 @@
         <zjsonpatch.version>0.4.6</zjsonpatch.version>
         <!-- Metrics -->
         <metrics.version>4.1.0-rc2</metrics.version>
-        <metrics.jersey.version>4.1.0-rc2</metrics.jersey.version>
         <metrics.jvm.version>4.1.0-rc2</metrics.jvm.version>
         <metrics.elastic.version>2.2.0</metrics.elastic.version>
         <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
@@ -996,18 +994,10 @@
                 <version>${staxon.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-jaxrs</artifactId>
                 <version>${resteasy.client.version}</version>
             </dependency>
-
-
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-client</artifactId>
@@ -1018,49 +1008,11 @@
                 <artifactId>resteasy-jackson2-provider</artifactId>
                 <version>${resteasy.client.version}</version>
             </dependency>
-
-            <!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId>
-                <version>${jersey.version}</version> </dependency> -->
             <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet-core</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-jetty-http</artifactId>
-                <version>${jersey.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.eclipse.jetty</groupId>
-                        <artifactId>jetty-util</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.connectors</groupId>
-                <artifactId>jersey-jetty-connector</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-json-jackson</artifactId>
-                <version>${jersey.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                        <artifactId>jackson-jaxrs-base</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                        <artifactId>jackson-jaxrs-json-provider</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-multipart</artifactId>
-                <version>${jersey.version}</version>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-common</artifactId>
+                <version>2.27</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -1158,6 +1110,10 @@
                     <exclusion>
                         <artifactId>commons-fileupload</artifactId>
                         <groupId>commons-fileupload</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-beanutils-core</artifactId>
+                        <groupId>commons-beanutils</groupId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1259,11 +1215,6 @@
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-jersey2</artifactId>
-                <version>${metrics.jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.jvm.version}</version>
             </dependency>
@@ -1341,29 +1292,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-                <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-                <artifactId>jersey-test-framework-provider-jetty</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.test-framework</groupId>
-                <artifactId>jersey-test-framework-core</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
@@ -1378,12 +1306,6 @@
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito-common</artifactId>
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>

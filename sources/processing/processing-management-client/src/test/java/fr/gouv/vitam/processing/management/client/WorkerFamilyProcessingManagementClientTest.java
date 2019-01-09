@@ -34,6 +34,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,21 +51,22 @@ import javax.ws.rs.core.Response;
 import java.util.Set;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestApplication {
     private static ProcessingManagementClient client;
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(WorkerFamilyProcessingManagementClientTest.class, factory);
 
-
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -73,10 +75,13 @@ public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestAppl
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

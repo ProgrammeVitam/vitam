@@ -76,6 +76,12 @@ public abstract class ResteasyTestApplication extends Application {
          * @return Mock Response
          */
         Response options();
+
+
+
+        Response headContainer();
+
+        Response headFolder();
     }
 
     public abstract Set<Object> getResources();

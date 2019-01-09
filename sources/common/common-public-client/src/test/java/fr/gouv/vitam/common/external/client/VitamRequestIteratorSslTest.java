@@ -79,7 +79,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
 
     private static boolean startup = true;
-    private static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
     private static VitamClientFactory<DefaultClient> factory;
 
     public static VitamServerTestRunner
@@ -89,7 +89,6 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
         return Sets.newHashSet(new SslResource(mock));
     }
 
@@ -116,7 +115,8 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 

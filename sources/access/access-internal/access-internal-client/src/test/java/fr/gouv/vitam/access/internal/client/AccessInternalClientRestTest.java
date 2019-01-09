@@ -81,13 +81,14 @@ import static org.mockito.Mockito.when;
 public class AccessInternalClientRestTest extends ResteasyTestApplication {
     private static final String DUMMY_REQUEST_ID = "reqId";
     private static AccessInternalClientRest client;
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     public static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(AccessInternalClientRestTest.class, AccessInternalClientFactory.getInstance());
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
         client = (AccessInternalClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -98,8 +99,6 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

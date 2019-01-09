@@ -72,7 +72,10 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        server1.start();
+        server2.start();
+
     }
 
     @AfterClass

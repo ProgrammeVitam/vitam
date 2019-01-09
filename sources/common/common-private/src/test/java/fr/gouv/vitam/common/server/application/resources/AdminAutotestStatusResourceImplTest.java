@@ -74,10 +74,11 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         vitamServerTestRunner =
         new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
 
-    private static VitamServiceRegistry serviceRegistry;
+    private final static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
-    public static void setUpBeforeClass() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         VitamConfiguration.setConnectTimeout(100);
 
         final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
@@ -122,7 +123,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
     @Override
     public Set<Object> getResources() {
-        serviceRegistry = new VitamServiceRegistry();
         return Sets.newHashSet(new AdminStatusResource(serviceRegistry), new TestResourceImpl());
     }
 

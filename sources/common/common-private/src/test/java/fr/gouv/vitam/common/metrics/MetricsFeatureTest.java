@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Set;
@@ -41,7 +42,9 @@ import static org.junit.Assert.assertNotNull;
 
 public class MetricsFeatureTest extends ResteasyTestApplication {
 
-    private static CommonBusinessApplication commonBusinessApplication;
+    private final static CommonBusinessApplication
+        commonBusinessApplication = new CommonBusinessApplication();
+    ;
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
@@ -57,8 +60,12 @@ public class MetricsFeatureTest extends ResteasyTestApplication {
 
     @Override
     public Set<Class<?>> getClasses() {
-        commonBusinessApplication = new CommonBusinessApplication();
         return commonBusinessApplication.getClasses();
+    }
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
     }
 
     @AfterClass
