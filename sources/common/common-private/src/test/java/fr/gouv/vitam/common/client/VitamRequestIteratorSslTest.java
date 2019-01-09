@@ -26,23 +26,26 @@
  */
 package fr.gouv.vitam.common.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client.configuration.SSLKey;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
-import javax.servlet.DispatcherType;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
@@ -54,55 +57,44 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
-import fr.gouv.vitam.common.client.configuration.SSLKey;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication.ExpectedResults;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
-
-public class VitamRequestIteratorSslTest {
+public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorSslTest.class);
 
 
     private static final String BASE_URI = "/ingest-ext/v1";
-    private static final String INGEST_EXTERNAL_CONF = "standard-application-ssl-test.conf";
     private static final String SHIRO_FILE = "shiro.ini";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
-    private static TestVitamApplication application;
-    private static int serverPort;
 
     private static boolean startup = true;
-    private static final ExpectedResults mock = mock(ExpectedResults.class);
+    private static ExpectedResults mock;
     private static VitamClientFactory<DefaultClient> factory;
+
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(VitamRequestIteratorSslTest.class, false, false, false, true);
+
+
+
+    @Override
+    public Set<Object> getResources() {
+        mock = mock(ExpectedResults.class);
+        return Sets.newHashSet(new SslResource(mock));
+    }
 
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
@@ -126,77 +118,10 @@ public class VitamRequestIteratorSslTest {
         }
     }
 
-    private static class TestVitamApplication
-        extends AbstractVitamApplication<TestVitamApplication, BenchmarkConfiguration> {
-
-        protected TestVitamApplication(String config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        protected TestVitamApplication(BenchmarkConfiguration config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            VitamConfiguration.setFilterActivation(false);
-            VitamConfiguration.setSecret("vitamsecret");
-            // Nothing
-        }
-
-        @Override
-        protected void checkJerseyMetrics(ResourceConfig resourceConfig) {
-            // Nothing
-        }
-
-        @Override
-        protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
-            File shiroFile = null;
-            try {
-                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-            } catch (final FileNotFoundException e) {
-                throw new VitamApplicationServerException(e.getMessage());
-            }
-            LOGGER.info("Start Shiro configuration");
-            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
-            context.addEventListener(new EnvironmentLoaderListener());
-            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(new SslResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-       final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
-
-                @Override
-                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestVitamApplication application = new TestVitamApplication(INGEST_EXTERNAL_CONF);
-                    final StartApplicationResponse<TestVitamApplication> response = startAndReturn(application);
-                    return response;
-                }
-
-            };
-        final StartApplicationResponse<TestVitamApplication> response = testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        LOGGER.warn("Start configuration: " + serverPort);
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -212,16 +137,8 @@ public class VitamRequestIteratorSslTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Test
@@ -242,7 +159,7 @@ public class VitamRequestIteratorSslTest {
 
             };
         try (DefaultClient client = factory.getClient()) {
-            // Only Apache Pool has this, not the JerseyClient
+            // Only Apache Pool has this
             assertNull(client.getHttpClient().getHostnameVerifier());
         }
     }
@@ -269,13 +186,11 @@ public class VitamRequestIteratorSslTest {
     @Test
     public void givenCertifValidThenReturnOK() {
         LOGGER.warn("Start Client configuration: " + factory);
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
-                client.checkStatus();
-            } catch (final VitamException e) {
-                LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
-                fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
-            }
+        try (final DefaultClient client = factory.getClient()) {
+            client.checkStatus();
+        } catch (final VitamException e) {
+            LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
+            fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
         }
     }
 
@@ -285,7 +200,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -324,7 +239,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.NOT_FOUND);
             when(mock.get())
@@ -338,7 +253,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
             when(mock.get())
@@ -357,7 +272,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -385,7 +300,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -424,7 +339,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -443,7 +358,7 @@ public class VitamRequestIteratorSslTest {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);

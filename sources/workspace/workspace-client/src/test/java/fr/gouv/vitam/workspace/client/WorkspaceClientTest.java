@@ -26,13 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 
 import javax.ws.rs.core.Response;
 

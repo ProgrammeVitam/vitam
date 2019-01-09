@@ -1018,11 +1018,6 @@
                 <artifactId>resteasy-jackson2-provider</artifactId>
                 <version>${resteasy.client.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.jboss.resteasy</groupId>
-                <artifactId>resteasy-undertow</artifactId>
-                <version>${resteasy.client.version}</version>
-            </dependency>
 
             <!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId>
                 <version>${jersey.version}</version> </dependency> -->

@@ -26,94 +26,58 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.benchmark;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import java.util.Set;
 
-public class BenchmarkResourceMinimalTest {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+public class BenchmarkResourceMinimalTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceMinimalTest.class);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String BENCHMARK_CONF = "benchmark-test.conf";
-    private static BenchmarkApplication application;
-    private static int serverPort = 8889;
-    private static final int NB_CLIENT = VitamConfiguration.getMaxClientPerHost();
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<BenchmarkApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<BenchmarkApplication>() {
+    static BenchmarkClientFactory factory = BenchmarkClientFactory.getInstance();
+    static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(BenchmarkResourceIT.class, factory);
 
-                @Override
-                public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final BenchmarkApplication application = new BenchmarkApplication(BENCHMARK_CONF);
-                    return startAndReturn(application);
-                }
 
-            };
-        final StartApplicationResponse<BenchmarkApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        BenchmarkClientFactory.setConfiguration(serverPort);
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new BenchmarkResource());
     }
+
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Throwable {
         LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+        vitamServerTestRunner.runAfter();
+
     }
 
-    @Test
-    public void testBadMinimalTestInitialization() {
-        final MinimalTestVitamApplicationFactory<BenchmarkApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<BenchmarkApplication>() {
-
-                @Override
-                public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    throw new IllegalStateException("Test should failed");
-                }
-
-            };
-        try {
-            testFactory.findAvailablePortSetToApplication();
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {
-            // nothing to do
-        }
-    }
+    private static final int NB_CLIENT = VitamConfiguration.getMaxClientPerHost();
 
     @Test
     public final void testStatus() {

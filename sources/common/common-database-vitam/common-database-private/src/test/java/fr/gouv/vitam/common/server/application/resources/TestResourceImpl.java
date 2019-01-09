@@ -26,43 +26,36 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
-import java.util.Arrays;
-import java.util.List;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
 
 /**
  * TestResourceImpl implements ApplicationStatusResource
  */
-@Path(TestApplication.TEST_RESOURCE_URI)
+@Path("/test/v1")
 @Consumes("application/json")
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
 public class TestResourceImpl extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestResourceImpl.class);
-    private static final List<Integer> tenants = Arrays.asList(0, 1, 2);
 
     /**
      *
-     * @param configuration to associate with TestResourceImpl
      */
-    public TestResourceImpl(TestConfiguration configuration) {
+    public TestResourceImpl() {
         super(new BasicVitamStatusServiceImpl());
         LOGGER.debug("TestResource initialized");
     }
 
     /**
-     *
-     * @param configuration to associate with TestResourceImpl
      * @param statusService
      */
-    public TestResourceImpl(TestConfiguration configuration, VitamStatusService statusService) {
+    public TestResourceImpl(VitamStatusService statusService) {
         super(statusService);
         LOGGER.debug("TestResource initialized");
     }

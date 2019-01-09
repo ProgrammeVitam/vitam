@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -79,15 +79,11 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     private static final DigestType ALGO = DigestType.MD5;
     private static final String MESSAGE_DIGEST = "DigestHex";
 
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
 
-    @ClassRule
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(WorkspaceClientObjectTest.class, factory, serverPortNumber);
+        new VitamServerTestRunner(WorkspaceClientObjectTest.class, factory);
 
 
     @BeforeClass
@@ -96,9 +92,8 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     private InputStream stream = null;

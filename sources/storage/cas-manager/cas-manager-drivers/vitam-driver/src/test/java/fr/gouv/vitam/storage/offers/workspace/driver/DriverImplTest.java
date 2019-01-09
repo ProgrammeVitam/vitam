@@ -28,19 +28,16 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.GET;
@@ -67,14 +64,10 @@ public class DriverImplTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
+    static TestVitamClientFactory factory = new TestVitamClientFactory(1, "/offer/v1", mock(Client.class));
 
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
-    static TestVitamClientFactory factory = new TestVitamClientFactory(serverPortNumber, "/offer/v1", mock(Client.class));
-    @ClassRule
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(DriverImplTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(DriverImplTest.class, factory);
 
 
     @BeforeClass
@@ -82,9 +75,8 @@ public class DriverImplTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
@@ -120,7 +112,7 @@ public class DriverImplTest extends ResteasyTestApplication {
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
         try {
-            offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
+            offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
             offer.setId("default");
             when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
             Driver driver = DriverImpl.getInstance();
@@ -135,7 +127,7 @@ public class DriverImplTest extends ResteasyTestApplication {
 
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
-        offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
         offer.setId("default2");
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         Driver driver = DriverImpl.getInstance();
