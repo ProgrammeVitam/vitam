@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -51,17 +52,26 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -93,16 +103,16 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static LogbookOperationsClientFactory factory = LogbookOperationsClientFactory.getInstance();
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(LogbookOperationsClientRestTest.class, factory);
 
-
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (LogbookOperationsClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -111,97 +121,308 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/logbook/v1")
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
-        private final ExpectedResults expectedResponse;
+        private final ExpectedResults mock;
 
         public MockResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
+            this.mock = expectedResponse;
+        }
+
+        @GET
+        @Path("/operations/{id_op}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getOperationOnlyById(@PathParam("id_op") String id) {
+            return mock.get();
         }
 
         @GET
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getLogbookOperation(LogbookOperationParameters parameters) {
-            return expectedResponse.get();
+        public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) {
+            return mock.get();
         }
 
         @POST
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createLogbookOperation(LogbookOperationParameters parameters) {
-            return expectedResponse.post();
+        public Response createOperation(@PathParam("id_op") String operationId,
+            LogbookOperationParameters operation) {
+            return mock.post();
         }
 
         @PUT
-        @Path("/operations")
+        @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response bulkUpdateLogbookOperation(String parameters) {
-            return expectedResponse.put();
+        public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
+            return mock.put();
         }
 
 
         @POST
         @Path("/operations/traceability")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response traceability() {
-            return expectedResponse.post();
-        }
-
-        @POST
-        @Path("/lifecycles/units/traceability")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response traceabilityLfcUnit() {
-            return expectedResponse.post();
-        }
-
-        @POST
-        @Path("/lifecycles/objectgroups/traceability")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response traceabilityLfcObjectGroup() {
-            return expectedResponse.post();
-        }
-
-        @GET
-        @Path("/lifecycles/traceability/check/{id}")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
-            return expectedResponse.get();
+        public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+            return mock.post();
         }
 
         @POST
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response bulkCreateLogbookOperation(String parameters) {
-            return expectedResponse.post();
+        public Response bulkCreateOperation(JsonNode query) {
+            return mock.post();
         }
 
         @GET
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response selectLogbookOperation(String parameters) {
-            return expectedResponse.get();
+        public Response selectOperation(JsonNode query) {
+            return mock.get();
         }
 
         @PUT
-        @Path("/operations/{id_op}")
+        @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateLogbookOperation(LogbookOperationParameters parameters) {
-            return expectedResponse.put();
+        public Response updateOperationBulk(String arrayNodeOperations) {
+            return mock.put();
+        }
+
+        @GET
+        @Path("/operations/{id_op}/unitlifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
+            return mock.get();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId, LogbookLifeCycleUnitParameters parameters) {
+            return mock.post();
+
+        }
+
+        @POST
+        @Path("/operations/{id_op}/bulklifecycles/unit/temporary")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+            return mock.post();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/bulklifecycles/got/temporary")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitLifeCyclesGOTTemporaryByOperation(@PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+            return mock.post();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/bulklifecycles/unit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitLifeCyclesUnitByOperation(@PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+            return mock.post();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/bulklifecycles/got")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitLifeCyclesGOTByOperation(@PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+            return mock.post();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            LogbookLifeCycleUnitParameters parameters) {
+            return mock.put();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response deleteUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId) {
+            return mock.delete();
+        }
+
+
+        @Deprecated
+        @PUT
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}/commit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId) {
+            return mock.put();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/unitlifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkCreateUnit(@PathParam("id_op") String idOp, String array) {
+            return mock.post();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/lifecycles/objectgroup/bulk")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response createLifeCycleObjectGroupBulk(@PathParam("id_op") String idOp,
+            List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels) {
+            return mock.put();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/lifecycles/unit/bulk")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response createLifeCycleUnitBulk(@PathParam("id_op") String idOp,
+            List<LogbookLifeCycleUnitModel> logbookLifeCycleModels) {
+            return mock.put();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/unitlifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateBulkUnit(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
+            return mock.put();
+        }
+
+        @GET
+        @Path("/unitlifecycles/{id_lc}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) {
+            return mock.get();
+        }
+
+        @HEAD
+        @Path("/unitlifecycles/{id_lc}")
+        public Response getUnitLifeCycleStatus(@PathParam("id_lc") String unitLifeCycleId) {
+            return mock.head();
+        }
+
+
+        @GET
+        @Path("/unitlifecycles")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getUnitLifeCycle(JsonNode queryDsl,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/raw/unitlifecycles/bylastpersisteddate")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawUnitLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/raw/unitlifecycles/byid/{id}")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawUnitLifeCycleById(@PathParam("id") String id) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/operations/{id_op}/objectgrouplifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
+            return mock.get();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId, LogbookLifeCycleObjectGroupParameters parameters) {
+            return mock.post();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            LogbookLifeCycleObjectGroupParameters parameters) {
+            return mock.put();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response deleteObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId) {
+            return mock.delete();
+        }
+
+        @Deprecated
+        @PUT
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId) {
+            return mock.put();
+        }
+
+        @POST
+        @Path("/operations/{id_op}/objectgrouplifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkCreateObjectGroup(@PathParam("id_op") String idOp, String array) {
+            return mock.post();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/objectgrouplifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateBulkObjectGroup(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
+            return mock.put();
         }
 
         @GET
@@ -209,31 +430,133 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         @Override
         public Response status() {
-            return expectedResponse.get();
+            return mock.get();
+        }
+
+        @GET
+        @Path("/objectgrouplifecycles/{id_lc}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/objectgrouplifecycles")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupLifeCycle(@HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode queryDsl) {
+            return mock.get();
+        }
+
+        @HEAD
+        @Path("/objectgrouplifecycles/{id_lc}")
+        public Response getObjectGroupLifeCycleStatus(@PathParam("id_lc") String objectGroupLifeCycleId) {
+            return mock.head();
+        }
+
+        @GET
+        @Path("/raw/objectgrouplifecycles/bylastpersisteddate")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawObjectGroupLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/raw/objectgrouplifecycles/byid/{id}")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawObjectGroupLifeCycleById(@PathParam("id") String id) {
+            return mock.get();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/unitlifecycles")
+        public Response rollBackUnitLifeCyclesByOperation(@PathParam("id_op") String operationId) {
+            return mock.delete();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/objectgrouplifecycles")
+        public Response rollBackObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId) {
+            return mock.delete();
         }
 
         @POST
+        @Path("/lifecycles/units/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceabilityLfcUnit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+            return mock.post();
+        }
+
+        @POST
+        @Path("/lifecycles/objectgroups/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceabilityLfcObjectGroup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+            return mock.post();
+        }
+
+
+        @GET
+        @Path("/lifecycles/traceability/check/{id}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
+            return mock.get();
+        }
+
         @Path("/reindex")
+        @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response launchReindexation(JsonNode options) {
-            return expectedResponse.post();
+        public Response reindex(IndexParameters indexParameters) {
+            return mock.post();
         }
 
-        @POST
         @Path("/alias")
+        @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response switchIndexes(JsonNode options) {
-            return expectedResponse.post();
+        public Response changeIndexes(SwitchIndexParameters switchIndexParameters) {
+            return mock.post();
+        }
+
+        @Path("/auditTraceability")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchTraceabilityAudit(AuditLogbookOptions options) {
+            return mock.post();
+
+        }
+
+        @DELETE
+        @Path("/objectgrouplifecycles/bulkDelete")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response deleteObjectGroups(List<String> objectGroupIds) {
+            return mock.delete();
+        }
+
+        @DELETE
+        @Produces(MediaType.APPLICATION_JSON)
+        @Path("/lifeCycleUnits/bulkDelete")
+        public Response deleteUnits(List<String> unitsIdentifier) {
+            return mock.delete();
+        }
+
+
+        @POST
+        @Path("raw/unitlifecycles/bulk")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response createLifeCycleUnitBulkRaw(List<JsonNode> logbookLifecycles) {
+            return mock.post();
         }
 
         @POST
-        @Path("/auditTraceability")
+        @Path("raw/objectgrouplifecycles/bulk")
         @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response launchTraceabilityAudit(JsonNode options) {
-            return expectedResponse.post();
+        public Response createLifeCycleObjectGroupBulkRaw(List<JsonNode> logbookLifecycles) {
+            return mock.post();
         }
 
     }

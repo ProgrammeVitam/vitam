@@ -282,7 +282,7 @@ public class WorkspaceFileSystemTest {
             getInputStream("empty_zip.zip"));
     }
 
-    @Test(expected = ContentAddressableStorageCompressedFileException.class)
+    @Test(expected = ContentAddressableStorageException.class)
     public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
@@ -295,7 +295,7 @@ public class WorkspaceFileSystemTest {
         storage.uncompressObject(null, null, null, null);
     }
 
-    @Test(expected = ContentAddressableStorageCompressedFileException.class)
+    @Test(expected = ContentAddressableStorageException.class)
     public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);

@@ -14,11 +14,13 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.JUnit4ClassRunner;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@RunWithCustomExecutor
 @RunWith(MockitoJUnitRunner.class)
 public class OfferSyncProcessTest {
 
@@ -49,20 +52,21 @@ public class OfferSyncProcessTest {
     private static final String DEFAULT_STRATEGY = "default";
     private static final String CONTAINER = "2_unit";
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Mock RestoreOfferBackupService restoreOfferBackupService;
+    @Mock
+    private RestoreOfferBackupService restoreOfferBackupService;
 
-    @Mock StorageDistribution distribution;
+    @Mock
+    private StorageDistribution distribution;
 
     private List<OfferLog> sourceOfferLogs;
     private Map<String, byte[]> sourceDataFiles;
     private Map<String, byte[]> targetDataFiles;
 
     @Before
-    @RunWithCustomExecutor
     public void setup() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -84,7 +88,7 @@ public class OfferSyncProcessTest {
                 .collect(Collectors.toList());
 
         }).when(restoreOfferBackupService).getListing(
-            eq(DEFAULT_STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), anyLong(), anyInt(), eq(Order.ASC));
+            eq(DEFAULT_STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
 
         doAnswer((args) -> {
 

@@ -84,7 +84,7 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
     private static final String EXECUTION_MODE = "defaultContext";
     private static final String ID = "id1";
 
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -93,7 +93,8 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (IngestExternalClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -104,8 +105,6 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

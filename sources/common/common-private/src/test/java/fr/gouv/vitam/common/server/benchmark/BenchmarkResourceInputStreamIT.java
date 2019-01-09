@@ -63,7 +63,8 @@ public class BenchmarkResourceInputStreamIT extends ResteasyTestApplication {
     }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
     }
 
     @AfterClass

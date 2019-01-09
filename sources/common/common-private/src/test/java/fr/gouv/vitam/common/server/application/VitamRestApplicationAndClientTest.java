@@ -73,7 +73,7 @@ public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRestApplicationAndClientTest.class);
 
     private static final String RESOURCE_PATH = "/vitam-test/v1";
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static BasicClient client;
     private static VitamRestTestClient testClient;
@@ -85,7 +85,8 @@ public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (DefaultClient) vitamServerTestRunner.getClient();
         testClient = new VitamRestTestClient(factory);
 
@@ -98,7 +99,6 @@ public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
         return Sets.newHashSet(new MockResource(mock));
     }
 

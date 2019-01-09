@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -63,12 +64,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class DefaultClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
     private static final String RESOURCE_PATH = "/vitam-test/v1";
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static DefaultClient client;
 
@@ -79,7 +81,8 @@ public class DefaultClientTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
@@ -87,10 +90,14 @@ public class DefaultClientTest extends ResteasyTestApplication {
     public static void tearDownAfterClass() throws Throwable {
         vitamServerTestRunner.runAfter();
     }
+
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 
@@ -307,7 +314,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
             // Ignore
         }
         // try to get the retry when unavailable host
-        vitamServerTestRunner.runAfter();
+        vitamServerTestRunner.stop();
         try {
             response =
                 client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
@@ -336,6 +343,6 @@ public class DefaultClientTest extends ResteasyTestApplication {
             // Ignore
             LOGGER.info(e);
         }
-
+        vitamServerTestRunner.start();
     }
 }

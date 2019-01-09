@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -42,6 +44,7 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -49,13 +52,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -68,6 +72,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
@@ -78,7 +83,7 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
     private static final String ACTION_ID = "action1";
     private static final String ID = "id1";
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -87,7 +92,8 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -96,84 +102,100 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new ProcessingResource(mock));
     }
 
     @Path("/processing/v1")
     public static class ProcessingResource {
-        private final ExpectedResults expectedResponse;
+        private final ExpectedResults mock;
 
-        public ProcessingResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
+        public ProcessingResource(ExpectedResults mock) {
+            this.mock = mock;
         }
 
-        @Path("/workflows")
+        @Path("workflows")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkflowDefinitions() {
-            return expectedResponse.get();
+            return mock.get();
         }
 
-        @Path("operations")
+        @Path("workflows/{workfowId}")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkflowDefinitions(@PathParam("workfowId") String workfowId) {
+            return mock.get();
+        }
+
+        @Path("operations/{id}")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response executeVitamProcess(ProcessingEntry workflow) {
-            return expectedResponse.get();
+        public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
+            ProcessingEntry process) {
+            return mock.post();
         }
 
-        @Path("operations")
-        @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response updateVitamProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow) {
-            return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response updateOperationProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow, @PathParam("id") String id) {
-            return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response executeOperationProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow, @PathParam("id") String id) {
-            return expectedResponse.post();
-        }
-
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
-            return expectedResponse.get();
+            return mock.get();
         }
 
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
+        @PUT
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+            return mock.put();
+        }
+
+        @Path("operations/{id}")
         @DELETE
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response cancelOperationProcessExecution(@PathParam("id") String id) {
-            return expectedResponse.delete();
+        public Response interruptWorkFlowExecution(@PathParam("id") String id) {
+            return mock.delete();
         }
 
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
         @HEAD
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getOperationProcessStatus(@PathParam("id") String id) {
-            return expectedResponse.head();
+        public Response getWorkFlowState(@PathParam("id") String id) {
+            return mock.head();
+        }
+
+        @GET
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findProcessWorkflows(ProcessQuery query) {
+            return mock.get();
+        }
+
+        @Path("/forcepause")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response forcePause(ProcessPause info) {
+            return mock.post();
+        }
+
+        @Path("/removeforcepause")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeForcePause(ProcessPause info) {
+            return mock.post();
         }
     }
 

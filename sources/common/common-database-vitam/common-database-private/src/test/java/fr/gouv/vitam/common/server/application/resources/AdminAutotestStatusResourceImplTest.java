@@ -95,7 +95,8 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
     private static VitamServiceRegistry serviceRegistry;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         VitamConfiguration.setConnectTimeout(100);
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         elasticsearchNode = new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT);
@@ -124,7 +125,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
     @Override
     public Set<Object> getResources() {
-        serviceRegistry = new VitamServiceRegistry();
         return Sets.newHashSet(new AdminStatusResource(serviceRegistry), new TestResourceImpl());
     }
 

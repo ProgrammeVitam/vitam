@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,14 +62,17 @@ public class BenchmarkResourceMinimalTest extends ResteasyTestApplication {
 
     static BenchmarkClientFactory factory = BenchmarkClientFactory.getInstance();
     static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(BenchmarkResourceIT.class, factory);
+        vitamServerTestRunner = new VitamServerTestRunner(BenchmarkResourceMinimalTest.class, factory);
 
 
     @Override
     public Set<Object> getResources() {
         return Sets.newHashSet(new BenchmarkResource());
     }
-
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+    }
 
     @AfterClass
     public static void tearDownAfterClass() throws Throwable {
@@ -81,7 +85,7 @@ public class BenchmarkResourceMinimalTest extends ResteasyTestApplication {
 
     @Test
     public final void testStatus() {
-        try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
+        try (BenchmarkClientRest client = factory.getClient()) {
             client.checkStatus();
         } catch (final VitamApplicationServerException e) {
             fail("Cannot connect to server");
@@ -96,14 +100,14 @@ public class BenchmarkResourceMinimalTest extends ResteasyTestApplication {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         VitamThreadUtils.getVitamSession().setContractId("contractId");
-        assertNotNull(BenchmarkClientFactory.getInstance().getDefaultConfigCient());
-        try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
+        assertNotNull(factory.getDefaultConfigCient());
+        try (BenchmarkClientRest client = factory.getClient()) {
             for (int i = 0; i < NB_CLIENT; i++) {
                 client.checkStatus();
             }
         }
         for (int j = 0; j < NB_CLIENT; j++) {
-            try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
+            try (BenchmarkClientRest client = factory.getClient()) {
                 for (int i = 0; i < 10; i++) {
                     client.checkStatus();
                 }

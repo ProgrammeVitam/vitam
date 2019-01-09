@@ -88,7 +88,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
 
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static AdminExternalClientFactory factory = AdminExternalClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -96,7 +96,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
         client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -107,8 +108,6 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

@@ -81,7 +81,7 @@ public class VitamMetricsConfigurationImplTest extends ResteasyTestApplication {
     private static final PrintStream out = System.out; // NOSONAR since Logger test
     private static final StringBuilder buf = new StringBuilder();
 
-    private static CommonBusinessApplication commonBusinessApplication;
+    private final static CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
@@ -94,7 +94,6 @@ public class VitamMetricsConfigurationImplTest extends ResteasyTestApplication {
 
     @Override
     public Set<Class<?>> getClasses() {
-        commonBusinessApplication = new CommonBusinessApplication();
         return commonBusinessApplication.getClasses();
     }
 
@@ -128,7 +127,8 @@ public class VitamMetricsConfigurationImplTest extends ResteasyTestApplication {
     }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = BASE_PATH;
     }

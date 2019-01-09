@@ -50,6 +50,7 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -73,6 +74,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class MetaDataClientRestTest extends ResteasyTestApplication {
@@ -81,7 +83,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     private static final String VALID_QUERY = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
 
 
-    protected static ExpectedResults mock;
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static MetaDataClientFactory factory = MetaDataClientFactory.getInstance();
     public static VitamServerTestRunner
@@ -89,7 +91,8 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         client = (MetaDataClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -98,10 +101,13 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         vitamServerTestRunner.runAfter();
     }
 
+    @Before
+    public void  before() {
+        reset(mock);
+    }
+
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

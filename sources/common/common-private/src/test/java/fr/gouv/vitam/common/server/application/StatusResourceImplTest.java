@@ -76,14 +76,12 @@ public class StatusResourceImplTest extends ResteasyTestApplication {
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(StatusResourceImplTest.class, factory);
+        new VitamServerTestRunner(StatusResourceImplTest.class, VitamServerTestRunner.AdminApp.class, factory, true);
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         RestAssured.basePath = ADMIN_RESOURCE_URI;
-
-        factory = new TestVitamAdminClientFactory(vitamServerTestRunner.getAdminPort(), ADMIN_STATUS_URI);
-
         LOGGER.debug("Beginning tests");
     }
 
@@ -94,7 +92,7 @@ public class StatusResourceImplTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        return Sets.newHashSet(new AdminStatusResource(), new TestResourceImpl());
+        return Sets.newHashSet(new TestResourceImpl());
     }
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {

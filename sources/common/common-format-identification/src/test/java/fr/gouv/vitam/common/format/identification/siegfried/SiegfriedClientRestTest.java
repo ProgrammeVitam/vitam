@@ -65,7 +65,7 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
 
-    protected static ExpectedResults mock;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
 
@@ -74,7 +74,8 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
         client = (SiegfriedClientRest) vitamServerTestRunner.getClient();
     }
 
@@ -85,8 +86,6 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        mock = mock(ExpectedResults.class);
-
         return Sets.newHashSet(new MockResource(mock));
     }
 

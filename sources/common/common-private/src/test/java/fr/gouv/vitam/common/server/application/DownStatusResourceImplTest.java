@@ -27,21 +27,21 @@
 package fr.gouv.vitam.common.server.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -76,14 +76,26 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
         vitamServerTestRunner =
         new VitamServerTestRunner(DownStatusResourceImplTest.class, factory, true);
 
+    private final static VitamStatusService statusService = new VitamStatusService() {
+        @Override
+        public boolean getResourcesStatus() {
+            return false;
+        }
+
+        @Override
+        public ObjectNode getAdminStatus() {
+            return JsonHandler.createObjectNode();
+        }
+    };
+
     @Override
     public Set<Object> getResources() {
-        return Sets.newHashSet(new AdminStatusResource(), new TestResourceImpl());
+        return Sets.newHashSet(new AdminStatusResource(statusService), new TestResourceImpl(statusService));
     }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = ADMIN_RESOURCE_URI;
     }
@@ -115,8 +127,6 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
     public static void tearDownAfterClass() throws Throwable {
         LOGGER.debug("Ending tests");
         vitamServerTestRunner.runAfter();
-        JunitHelper.getInstance().releasePort(vitamServerTestRunner.getBusinessPort());
-        VitamClientFactory.resetConnections();
     }
 
     // Status
@@ -154,7 +164,7 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
         final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
-        RestAssured.port = vitamServerTestRunner.getBusinessPort();
+        RestAssured.port = vitamServerTestRunner.getAdminPort();
 
         response = RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
@@ -174,7 +184,6 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
     }
 
     // Status
-
     /**
      * Tests the state of the module service API by get
      *

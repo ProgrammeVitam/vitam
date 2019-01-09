@@ -66,6 +66,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.util.encoders.DecoderException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ProcessingException;
@@ -502,7 +503,7 @@ public class UserInterfaceTransactionManager {
             result.put("genTime", LocalDateUtil.getString(
                 LocalDateUtil.fromDate(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime())));
             result.put("signerCertIssuer", signerCertIssuer.toString());
-        } catch (TSPException | IOException e) {
+        } catch (TSPException | IOException | DecoderException e) {
             LOGGER.error("Error while transforming timestamp", e);
             throw new BadRequestException("Error while transforming timestamp", e);
         }
