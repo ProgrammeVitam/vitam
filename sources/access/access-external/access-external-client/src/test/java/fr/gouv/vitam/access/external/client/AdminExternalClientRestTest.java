@@ -9,7 +9,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -21,7 +20,6 @@ import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -38,12 +36,11 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -83,7 +80,6 @@ import static org.mockito.Mockito.when;
 public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     private static final String ID = "id";
-    protected static final String HOSTNAME = "localhost";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     protected static AdminExternalClientRest client;
     final int TENANT_ID = 0;
@@ -94,14 +90,9 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static AdminExternalClientFactory factory = AdminExternalClientFactory.getInstance();
-    @ClassRule
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(AdminExternalClientRestTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(AdminExternalClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -110,9 +101,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

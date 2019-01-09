@@ -26,71 +26,52 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.benchmark;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import javax.ws.rs.HttpMethod;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-public class BenchmarkResourceIT {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class BenchmarkResourceIT extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceIT.class);
 
     private static final int REPEAT_TIME = 5;
     private static final int START_SIZE = 100;
     private static final long MAX_SIZE_CHECKED = 1000000L;
 
-    private static final String BENCHMARK_CONF = "benchmark-test.conf";
-    private static BenchmarkApplication application;
-    private static int serverPort = 8889;
+    static BenchmarkClientFactory factory = BenchmarkClientFactory.getInstance();
+    static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(BenchmarkResourceIT.class, factory);
+
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new BenchmarkResource());
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<BenchmarkApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<BenchmarkApplication>() {
-
-                @Override
-                public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final BenchmarkApplication application = new BenchmarkApplication(BENCHMARK_CONF);
-                    return startAndReturn(application);
-                }
-
-            };
-        final StartApplicationResponse<BenchmarkApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        BenchmarkClientFactory.setConfiguration(serverPort);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Throwable {
         LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+        vitamServerTestRunner.runAfter();
     }
 
     private static void checkSizeLimit(BenchmarkClientRest client, String method, long size, List<String> list) {
@@ -192,4 +173,5 @@ public class BenchmarkResourceIT {
             }
         }
     }
+
 }

@@ -27,51 +27,34 @@
 
 package fr.gouv.vitam.common.server.application.session;
 
-import static org.junit.Assert.fail;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
-
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.server.application.TestApplication;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+
+import static org.junit.Assert.fail;
 
 /**
  * Tests for the requestId propagation between servers.
  */
 public class VitamShutDownHookIT {
 
-    private static int serverPort1;
-    private static TestApplication application1;
     private static LocalhostClientFactory server1ClientFactory;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Configure and start server 1
-        final StartApplicationResponse<AbstractTestApplication> response1 =
-            AbstractTestApplication.startTestApplication(new Server1TestApplication("session/server3.conf"));
-        serverPort1 = response1.getServerPort();
-        application1 = response1.getApplication();
         // Configure local client factory
-        server1ClientFactory = new LocalhostClientFactory(serverPort1, "server1");
+        server1ClientFactory = new LocalhostClientFactory(1, "server1");
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        // Stop server 1
-        if (application1 != null) {
-            application1.stop();
-        }
-        JunitHelper.getInstance().releasePort(serverPort1);
-        // Stop server 1
         server1ClientFactory.shutdown();
         VitamClientFactory.resetConnections();
     }
@@ -95,7 +78,7 @@ public class VitamShutDownHookIT {
             });
             Thread thread2 = VitamThreadFactory.getInstance().newThread(() -> {
                 try {
-                    application1.stop();
+                    // TODO: 09/01/19 STOP SERVER
                 } catch (Exception e) {
                     fail("should not fail");
                 }

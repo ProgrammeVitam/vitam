@@ -30,17 +30,14 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.GET;
@@ -70,14 +67,10 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
-    @ClassRule
+
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(SiegfriedClientRestTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(SiegfriedClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -86,9 +79,8 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override

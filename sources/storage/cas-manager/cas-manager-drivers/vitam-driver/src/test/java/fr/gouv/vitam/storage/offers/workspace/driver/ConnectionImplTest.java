@@ -30,20 +30,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.junit.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -67,7 +66,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
@@ -75,7 +73,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
-import com.google.common.collect.Sets;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -116,15 +113,10 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     protected static ExpectedResults mock;
 
-
-    static JunitHelper junitHelper = JunitHelper.getInstance();
-    static int serverPortNumber = junitHelper.findAvailablePort();
-
     static TestVitamClientFactory factory =
-        new TestVitamClientFactory(serverPortNumber, "/offer/v1", mock(Client.class));
-    @ClassRule
+        new TestVitamClientFactory(1, "/offer/v1", mock(Client.class));
     public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class, factory, serverPortNumber);
+        vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class, factory);
 
 
     @BeforeClass
@@ -136,9 +128,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        JunitHelper.getInstance().releasePort(serverPortNumber);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
@@ -151,7 +142,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     public static void beforeTest() throws VitamApplicationServerException {
         String offerId = "default" + new Random().nextDouble();
         offer.setId(offerId);
-        offer.setBaseUrl("http://" + HOSTNAME + ":" + serverPortNumber);
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
         driver.addOffer(offer, null);
         try {
             connection = (AbstractConnection) driver.connect(offer.getId());

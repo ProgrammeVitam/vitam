@@ -44,15 +44,25 @@ import javax.ws.rs.core.Response;
 public class MediaTypeJerseyMetricsResource {
 
     static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home4:GET:*:application/json",
-        "/home4:GET:*:application/xml",
-        "/home4/users:GET:*:application/json",
-        "/home4:GET:*:application/octet-stream,text/plain",
-        "/home4:POST:multipart/form-data:*",
-        "/home4:POST:application/xhtml+xml:*",
-        "/home4/users:POST:multipart/form-data:*",
-        "/home4:POST:application/svg+xml,application/atom+xml:*",
-        "/home4:DELETE:multipart/form-data:application/json,text/plain"));
+        "/home4/:POST:multipart/form-data:*:meter",
+        "/home4//users:GET:*:application/json:timer",
+        "/home4/:GET:*:application/json:meter",
+        "/home4/:POST:application/svg+xml,application/atom+xml:*:meter",
+        "/home4/:DELETE:multipart/form-data:application/json,text/plain:meter",
+        "/home4//users:GET:*:application/json:meter",
+        "/home4/:POST:application/xhtml+xml:*:timer",
+        "/home4//users:POST:multipart/form-data:*:meter",
+        "/home4/:GET:*:application/xml:meter",
+        "/home4/:GET:*:application/json:timer",
+        "/home4/:GET:*:application/octet-stream,text/plain:meter",
+        "/home4/:POST:application/xhtml+xml:*:meter",
+        "/home4/:POST:application/svg+xml,application/atom+xml:*:timer",
+        "/home4/:POST:multipart/form-data:*:timer",
+        "/home4/:DELETE:multipart/form-data:application/json,text/plain:timer",
+        "/home4//users:POST:multipart/form-data:*:timer",
+        "/home4/:GET:*:application/octet-stream,text/plain:timer",
+        "/home4/:GET:*:application/xml:timer"
+    ));
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

@@ -27,67 +27,65 @@
 
 package fr.gouv.vitam.common.server.application.session;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.MDC;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.TestApplication;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Tests for the requestId propagation between servers.
  */
-public class VitamRequestIdFiltersIT {
+public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIdFiltersIT.class);
 
-    private static int serverPort2;
-    private static TestApplication application2;
-    private static int serverPort1;
-    private static TestApplication application1;
-    private static LocalhostClientFactory server1ClientFactory;
+
+    public static VitamServerTestRunner
+        server1 =
+        new VitamServerTestRunner(VitamRequestIdFiltersIT.class, new LocalhostClientFactory(1, "/server1"));
+
+
+    public static VitamServerTestRunner
+        server2 =
+        new VitamServerTestRunner(VitamRequestIdFiltersIT.class, new LocalhostClientFactory(1, "/server2"));
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Start server 2
-        final StartApplicationResponse<AbstractTestApplication> response2 =
-            AbstractTestApplication.startTestApplication(new Server2TestApplication());
-        serverPort2 = response2.getServerPort();
-        application2 = response2.getApplication();
-        // Configure and start server 1
-        Server1TestApplication.setServer2Port(serverPort2);
-        final StartApplicationResponse<AbstractTestApplication> response1 =
-            AbstractTestApplication.startTestApplication(new Server1TestApplication());
-        serverPort1 = response1.getServerPort();
-        application1 = response1.getApplication();
-        // Configure local client factory
-        server1ClientFactory = new LocalhostClientFactory(serverPort1, "server1");
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        // Stop server 1
-        if (application1 != null) {
-            application1.stop();
-        }
-        JunitHelper.getInstance().releasePort(serverPort1);
-        // Stop server 2
-        if (application2 != null) {
-            application2.stop();
-        }
-        JunitHelper.getInstance().releasePort(serverPort2);
-        // Stop server 1
-         server1ClientFactory.shutdown();
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        server1.runAfter();
+        server2.runAfter();
     }
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new HeaderIdContainerFilter(), new Server1Resource(), new Server2Resource());
+    }
+
 
     /**
      * Test purpose : validate simple RequestId propagation between server 1 and 2 ; sequence :
@@ -104,7 +102,8 @@ public class VitamRequestIdFiltersIT {
      */
     @Test
     public void testServer1ToServer2RequestIdPropagation() {
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("callWithRequestId");
             Assert.assertEquals("id-from-server-1", propagatedId);
         }
@@ -116,9 +115,10 @@ public class VitamRequestIdFiltersIT {
     @Test
     public void testServer1ToServer2NoRequestIdSet() {
         // KWA TODO: explain a little what we do...
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("callWithoutRequestId");
-            Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId);
+            Assert.assertEquals("<REQUEST_ID_EMPTY>", propagatedId);
         }
     }
 
@@ -130,15 +130,17 @@ public class VitamRequestIdFiltersIT {
     public void testRequestIdCleanupBetweenRequests() {
         // KWA TODO: explain a little what we do...
         LOGGER.info("First request");
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("callWithRequestId");
             Assert.assertEquals("id-from-server-1", propagatedId);
         }
         LOGGER.info("Second request");
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId2 = client.doRequest("callWithoutRequestId");
             LOGGER.info("Assert");
-            Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId2);
+            Assert.assertEquals("<REQUEST_ID_EMPTY>", propagatedId2);
         }
     }
 
@@ -149,7 +151,8 @@ public class VitamRequestIdFiltersIT {
     @Test
     public void testServer1ToServer2RequestIdPropagationWithThreadPool() {
         // KWA TODO: explain a little what we do...
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("callWithThreadPoolRequestId");
             Assert.assertEquals("id-from-server-1-with-threadpool", propagatedId);
         }
@@ -160,7 +163,8 @@ public class VitamRequestIdFiltersIT {
      */
     @Test
     public void testServer2SetRequestIdInResponsePropagation() {
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("callToGetRequestIdInResponse");
             Assert.assertEquals("id-from-server-2", propagatedId);
         }
@@ -171,10 +175,123 @@ public class VitamRequestIdFiltersIT {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-1");
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-2-should-not-be-taken");
-        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
+            .getClient()) {
             final String propagatedId = client.doRequest("directResponse", headers);
             Assert.assertEquals("header-1", propagatedId);
         }
+    }
+
+
+    /**
+     * Implementation of test Server1 ; note : returned values from REST interfaces should serve to the validation of
+     * the results in {@link VitamRequestIdFiltersIT}
+     */
+    @Path("/server1")
+    public static class Server1Resource {
+
+        @GET
+        @Path("/callWithRequestId")
+        public String setRequestIdAndCallServer2() throws VitamThreadAccessException {
+            VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1");
+            LOGGER.debug("RequestId set.");
+            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
+                .getClient()) {
+                return client.doRequest("failIfNoRequestId");
+            }
+        }
+
+        @GET
+        @Path("/callWithoutRequestId")
+        public String justCallServer2() {
+            LOGGER.debug("RequestId not set.");
+            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
+                .getClient()) {
+                return client.doRequest("failIfNoRequestId");
+            }
+        }
+
+        @GET
+        @Path("/callWithThreadPoolRequestId")
+        public String setRequestIdAndCallServer2WithThreadPool()
+            throws ExecutionException, InterruptedException, VitamThreadAccessException {
+            VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1-with-threadpool");
+            LOGGER.debug("RequestId set. Forwarding execution to ThreadPool.");
+            final Future<String> future = VitamThreadPoolExecutor.getDefaultExecutor()
+                .submit(() -> {
+                        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
+                            .getClient()) {
+                            return client.doRequest("failIfNoRequestId");
+                        }
+                    }
+                );
+            return future.get();
+        }
+
+
+        @GET
+        @Path("/callToGetRequestIdInResponse")
+        public String justCallServer2ForRequestIdInResponse() throws VitamThreadAccessException {
+            LOGGER.debug("RequestId not set.");
+            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
+                .getClient()) {
+                client.doRequest("setRequestIdInResponse");
+            }
+
+            final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
+            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is
+            // working
+            return reqId;
+        }
+
+        @GET
+        @Path("/directResponse")
+        public String directResponse() throws VitamThreadAccessException {
+            return VitamThreadUtils.getVitamSession().getRequestId();
+        }
+
+
+
+        @GET
+        @Path("/testWaitFiveSecond")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response wait5second() {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+            }
+            return Response.status(Response.Status.OK).build();
+        }
+
+        @GET
+        @Path("/testReturnImmediately")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response wait0second() {
+            return Response.status(Response.Status.OK).build();
+        }
+    }
+
+
+    @Path("/server2")
+    public static class Server2Resource {
+        public final static String NO_REQUEST_ID_FOUND = "<REQUEST_ID_EMPTY>";
+
+        @GET
+        @Path("/failIfNoRequestId")
+        public String failIfNoRequestId() throws VitamThreadAccessException {
+            final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
+            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is
+            // working
+            return reqId == null ? NO_REQUEST_ID_FOUND : reqId;
+        }
+
+        @GET
+        @Path("/setRequestIdInResponse")
+        public String setRequestIdInResponse() throws VitamThreadAccessException {
+            VitamThreadUtils.getVitamSession().setRequestId("id-from-server-2");
+            return "";
+        }
+
     }
 
 }
