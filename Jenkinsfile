@@ -76,6 +76,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
             environment {
