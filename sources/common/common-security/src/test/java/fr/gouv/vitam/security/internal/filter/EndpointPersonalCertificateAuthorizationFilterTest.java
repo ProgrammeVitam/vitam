@@ -22,8 +22,8 @@ import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificate
 import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE;
 import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -116,7 +116,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
         verify(internalSecurityClient).isPersonalCertificateRequiredByPermission(PERMISSION);
         verify(context).getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
         verify(internalSecurityClient).checkPersonalCertificate(eq(CERTIFICATE), eq(PERMISSION));
-        verify(context).abortWith(anyObject());
+        verify(context).abortWith(any());
     }
 
     @Test
@@ -134,6 +134,6 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
         verify(internalSecurityClient).isPersonalCertificateRequiredByPermission(PERMISSION);
         verify(context).getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
         verify(internalSecurityClient).checkPersonalCertificate(null, PERMISSION);
-        verify(context).abortWith(anyObject());
+        verify(context).abortWith(any());
     }
 }

@@ -26,15 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.core;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -126,8 +127,8 @@ public class LogbookLifeCyclesImplTest {
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenCreateLCUnitWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookLifeCycleUnit(anyObject(),
-            anyObject());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookLifeCycleUnit(any(),
+            any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
@@ -135,8 +136,8 @@ public class LogbookLifeCyclesImplTest {
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateLCUnitWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(anyObject(),
-            anyObject(), anyObject(), anyBoolean());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(any(),
+            any(), any(), anyBoolean());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
@@ -145,8 +146,8 @@ public class LogbookLifeCyclesImplTest {
 
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateLCUnitWhenLCUnitAlreadyExistsThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookLifeCycleUnit(anyObject(),
-            anyObject());
+        Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookLifeCycleUnit(any(),
+            any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
@@ -154,8 +155,8 @@ public class LogbookLifeCyclesImplTest {
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateLCUnitWhenLCUnitNotExistsThenThrowLogbookException() throws Exception {
-        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(anyObject(),
-            anyObject(), anyObject(), anyBoolean());
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(any(),
+            any(), any(), anyBoolean());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
     }
@@ -163,7 +164,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenCreateLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .createLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+            .createLogbookLifeCycleObjectGroup(any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
@@ -172,7 +173,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), anyObject());
+            .updateLogbookLifeCycleObjectGroup(any(), any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
@@ -181,7 +182,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateAndCommitLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-                .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), anyObject(), eq(true));
+                .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
@@ -190,7 +191,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateLCOGWhenLCOGAlreadyExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess)
-            .createLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+            .createLogbookLifeCycleObjectGroup(any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
@@ -199,7 +200,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateOGLCWhenOGLCNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), anyObject());
+            .updateLogbookLifeCycleObjectGroup(any(), any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
@@ -208,7 +209,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateAndCommitOGLCWhenOGLCNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-                .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), anyObject(), eq(true));
+                .updateLogbookLifeCycleObjectGroup(any(), any(), any(), eq(true));
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
@@ -217,7 +218,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenDeleteOGLCWhenOGLCNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+            .rollbackLogbookLifeCycleObjectGroup(any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
@@ -226,7 +227,7 @@ public class LogbookLifeCyclesImplTest {
     @Test
     public void givenDeleteOGLCWhenOGLCNotExistsAndPurgeDisabledThenDoNotThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-                .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+                .rollbackLogbookLifeCycleObjectGroup(any(), any());
         VitamConfiguration.setPurgeTemporaryLFC(false);
         try {
             logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
@@ -239,7 +240,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenDeleteLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+            .rollbackLogbookLifeCycleObjectGroup(any(), any());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
@@ -248,8 +249,8 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenSelectObjectGroupLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .getLogbookLifeCycleObjectGroups(anyObject(), Matchers.anyBoolean(),
-                anyObject());
+            .getLogbookLifeCycleObjectGroups(any(), anyBoolean(),
+                any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectObjectGroup(null, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
@@ -257,8 +258,8 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectObjectGroupLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .getLogbookLifeCycleObjectGroups(anyObject(), Matchers.anyBoolean(),
-                anyObject());
+            .getLogbookLifeCycleObjectGroups(any(), anyBoolean(),
+                any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectObjectGroup(null, true, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
@@ -266,7 +267,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenSelectUnitLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .getLogbookLifeCycleUnits(anyObject(), Matchers.anyBoolean(), anyObject());
+            .getLogbookLifeCycleUnits(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectUnit(null, true, LogbookCollections.LIFECYCLE_UNIT);
     }
@@ -274,7 +275,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectUnitLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .getLogbookLifeCycleUnits(anyObject(), Matchers.anyBoolean(), anyObject());
+            .getLogbookLifeCycleUnits(any(), anyBoolean(), any());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectUnit(null, true, LogbookCollections.LIFECYCLE_UNIT);
     }

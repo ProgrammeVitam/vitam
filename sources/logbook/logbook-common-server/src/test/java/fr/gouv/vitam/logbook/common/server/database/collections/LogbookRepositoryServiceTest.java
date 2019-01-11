@@ -1,13 +1,14 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,10 +28,10 @@ public class LogbookRepositoryServiceTest {
         VitamElasticsearchRepository vitamElasticsearchRepository = Mockito.mock(VitamElasticsearchRepository.class);
         LogbookRepositoryService logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider);
         
-        Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(Matchers.any())).thenReturn(vitamMongoRepository);
-        Mockito.doNothing().when(vitamMongoRepository).saveOrUpdate(Matchers.any(List.class));
-        Mockito.when(vitamRepositoryProvider.getVitamESRepository(Matchers.any())).thenReturn(vitamElasticsearchRepository);
-        Mockito.doNothing().when(vitamElasticsearchRepository).saveOrUpdate(Matchers.any(List.class));
+        Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(any())).thenReturn(vitamMongoRepository);
+        Mockito.doNothing().when(vitamMongoRepository).saveOrUpdate(any(List.class));
+        Mockito.when(vitamRepositoryProvider.getVitamESRepository(any())).thenReturn(vitamElasticsearchRepository);
+        Mockito.doNothing().when(vitamElasticsearchRepository).saveOrUpdate(any(List.class));
         
         List<JsonNode> logbookItems = new ArrayList<>();
         logbookItems.add(JsonHandler.createObjectNode());

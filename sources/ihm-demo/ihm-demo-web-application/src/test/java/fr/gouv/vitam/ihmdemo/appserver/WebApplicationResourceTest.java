@@ -80,7 +80,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -105,10 +104,10 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -230,7 +229,7 @@ public class WebApplicationResourceTest {
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -765,7 +764,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -785,7 +784,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -808,7 +807,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -1127,7 +1126,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1149,7 +1148,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1171,7 +1170,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1312,7 +1311,7 @@ public class WebApplicationResourceTest {
             .thenReturn(ClientMockResultHelper.getAccessionRegisterSummary());
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1337,7 +1336,7 @@ public class WebApplicationResourceTest {
             .thenReturn(vitamError);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1352,7 +1351,7 @@ public class WebApplicationResourceTest {
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1365,7 +1364,7 @@ public class WebApplicationResourceTest {
     public void testGetAccessionRegisterDetailOK() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterDetail(any(), any(), any()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterDetail());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), any()))
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1435,7 +1434,7 @@ public class WebApplicationResourceTest {
         // Mock AccessExternal response
         PowerMockito
             .when(
-                UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.any(), any()))
+                UserInterfaceTransactionManager.checkTraceabilityOperation(any(), any()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1507,7 +1506,7 @@ public class WebApplicationResourceTest {
 
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         PowerMockito
-            .when(adminExternalClient.launchAudit(any(), Mockito.any()))
+            .when(adminExternalClient.launchAudit(any(), any()))
             .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)

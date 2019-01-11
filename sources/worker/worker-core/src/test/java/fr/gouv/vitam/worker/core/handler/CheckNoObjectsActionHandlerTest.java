@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -83,7 +83,7 @@ public class CheckNoObjectsActionHandlerTest {
     public void checkManifestHavingObjectOrNot()
             throws Exception {
         final CheckNoObjectsActionHandler handler = new CheckNoObjectsActionHandler();
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaOK);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaOK);
         WorkerParameters parameters =
                 params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
                         .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
@@ -92,7 +92,7 @@ public class CheckNoObjectsActionHandlerTest {
         handler.close();
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaKO);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaKO);
         final ItemStatus responseKO = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(responseKO.getGlobalStatus(), StatusCode.KO);

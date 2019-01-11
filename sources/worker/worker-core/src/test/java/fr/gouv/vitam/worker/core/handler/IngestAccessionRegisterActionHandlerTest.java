@@ -31,7 +31,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -155,7 +155,7 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         RequestResponse<AccessionRegisterDetailModel> res =
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
                 .thenReturn(res);
 
         // When
@@ -184,7 +184,7 @@ public class IngestAccessionRegisterActionHandlerTest {
                 .thenReturn(originatingAgencies);
 
 
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
                 .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
@@ -231,7 +231,7 @@ public class IngestAccessionRegisterActionHandlerTest {
                         .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                         .setDescription("Document already exists in database");
 
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
                 .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);

@@ -29,8 +29,8 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -150,8 +150,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnit);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
@@ -161,8 +161,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testMetadataException() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenThrow(new MetaDataExecutionException(""));
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);
+        when(metadataClient.insertUnitBulk(any())).thenThrow(new MetaDataExecutionException(""));
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnit);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
@@ -172,8 +172,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testWorkspaceException() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(workspaceClient.getObject(any(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
@@ -185,8 +185,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testIndexUnitWithRulesOk() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithRules);
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnitWithRules);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
@@ -196,8 +196,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testIndexUnitUpdateChildOk() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitChild);
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnitChild);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
@@ -207,8 +207,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testIndexUnitUpdateParentOk() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitParent);
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnitParent);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
@@ -218,8 +218,8 @@ public class IndexUnitActionPluginTest {
     @Test
     public void testIndexWithRules() throws Exception {
         // Given
-        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithMgtRules);
+        when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(archiveUnitWithMgtRules);
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then

@@ -37,8 +37,8 @@ import fr.gouv.vitam.worker.core.impl.WorkspaceTransferTask;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import org.junit.Test;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -85,7 +85,7 @@ public class WorkspaceTransferTaskTest {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doThrow(new ContentAddressableStorageException(""))
             .when(handlerIO)
-            .unzipInputStreamOnWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyBoolean());
+            .unzipInputStreamOnWorkspace(any(), any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.UNZIP);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);
@@ -97,7 +97,7 @@ public class WorkspaceTransferTaskTest {
     public void whenGetTransferThenKO() throws ProcessingException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doThrow(new ProcessingException(""))
-            .when(handlerIO).transferInputStreamToWorkspace(anyObject(), anyObject(), anyObject(), anyBoolean());
+            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);
@@ -110,7 +110,7 @@ public class WorkspaceTransferTaskTest {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doAnswer(o -> o)
             .when(handlerIO)
-            .unzipInputStreamOnWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyBoolean());
+            .unzipInputStreamOnWorkspace(any(), any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.UNZIP);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);
@@ -122,7 +122,7 @@ public class WorkspaceTransferTaskTest {
     public void whenGetTransferThenOK() throws ProcessingException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doAnswer(o -> o)
-            .when(handlerIO).transferInputStreamToWorkspace(anyObject(), anyObject(), anyObject(), anyBoolean());
+            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);

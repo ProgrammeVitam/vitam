@@ -24,10 +24,6 @@ package fr.gouv.vitam.common.storage.swift; /***********************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.when;
-
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +35,10 @@ import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.model.identity.URLResolverParams;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.openstack.identity.internal.DefaultEndpointURLResolver;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class VitamEndpointUrlResolverTestShould {
 
@@ -66,7 +66,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findURLV2_when_StorageConfiguration_getSwiftUrl_return_null() throws Exception {
         // Given
-        when(defaultResolver.findURLV2(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV2(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn(null);
         // When
         String urlv2 = vitamEndpointUrlResolver.findURLV2(urlResolverParams);
@@ -77,7 +77,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findUrlV2_when_StorageConfiguration_getSwiftUrl_return_empty_String() throws Exception {
         // Given
-        when(defaultResolver.findURLV2(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV2(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn(" ");
         // When
         String urlv2 = vitamEndpointUrlResolver.findURLV2(urlResolverParams);
@@ -88,7 +88,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findUrlV2_when_StorageConfiguration_getSwiftUrl_return_good_Url() throws Exception {
         // Given
-        when(defaultResolver.findURLV2(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV2(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn("/swift/v3");
         // When
         String urlv2 = vitamEndpointUrlResolver.findURLV2(urlResolverParams);
@@ -99,7 +99,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findURLV3_when_StorageConfiguration_getSwiftUrl_return_null() throws Exception {
         // Given
-        when(defaultResolver.findURLV3(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV3(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn(null);
         // When
         String urlv3 = vitamEndpointUrlResolver.findURLV3(urlResolverParams);
@@ -110,7 +110,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findURLV3_when_StorageConfiguration_getSwiftUrl_return_empty_String() throws Exception {
         // Given
-        when(defaultResolver.findURLV3(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV3(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn(" ");
         // When
         String urlv3 = vitamEndpointUrlResolver.findURLV3(urlResolverParams);
@@ -121,7 +121,7 @@ public class VitamEndpointUrlResolverTestShould {
     @Test
     public void findURLV3_when_StorageConfiguration_getSwiftUrl_return_good_Url() throws Exception {
         // Given
-        when(defaultResolver.findURLV3(anyObject())).thenReturn("/swift/v1");
+        when(defaultResolver.findURLV3(any())).thenReturn("/swift/v1");
         when(configuration.getSwiftUrl()).thenReturn("/swift/v3");
         // When
         String urlv3 = vitamEndpointUrlResolver.findURLV3(urlResolverParams);

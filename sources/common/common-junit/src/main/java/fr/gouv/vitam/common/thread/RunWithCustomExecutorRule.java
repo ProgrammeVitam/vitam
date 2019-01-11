@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.common.thread;
 
-import java.lang.annotation.Annotation;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-
 import org.junit.ClassRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import java.lang.annotation.Annotation;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Junit Test rule used to run tests with a given {@link Executor} ; such tests should be annotated with the
@@ -45,14 +45,14 @@ import org.junit.runners.model.Statement;
  * Usage example : <code>
  * public class ExampleTest {
  *
- *  @Rule
- *  public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+ *   @Rule
+ *   public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
  *
- *  @Test
- *  @RunWithCustomExecutor
- *  public void runInVitamThreadTest() {
- *    [...]
- *  }
+ *   @Test
+ *   @RunWithCustomExecutor
+ *   public void runInVitamThreadTest() {
+ *     [...]
+ *   }
  * }
  * </code>
  *
@@ -80,11 +80,6 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
         } else {
             return base;
         }
-    }
-
-    @Override
-    public int order() {
-        return 0;
     }
 
     @Override

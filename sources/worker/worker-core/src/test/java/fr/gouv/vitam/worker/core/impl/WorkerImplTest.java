@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -156,7 +156,7 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
 
-        when(actionHandler.executeList(anyObject(), anyObject()))
+        when(actionHandler.executeList(any(), any()))
             .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
@@ -187,7 +187,7 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
-        when(actionHandler.executeList(anyObject(), anyObject()))
+        when(actionHandler.executeList(any(), any()))
             .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
@@ -219,7 +219,7 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
-        when(actionHandler.executeList(anyObject(), anyObject()))
+        when(actionHandler.executeList(any(), any()))
             .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
