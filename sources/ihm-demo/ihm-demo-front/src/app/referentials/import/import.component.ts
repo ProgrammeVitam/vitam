@@ -114,14 +114,14 @@ export class ImportComponent  extends PageComponent {
           this.uploadAPI = 'griffins';
           this.importSucessMsg = 'Les griffons ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des griffins";
+          this.breadcrumbName = "Import des griffons";
           break;
         case "scenarios":
           this.extensions = ["json"];
           this.uploadAPI = 'scenarios';
           this.importSucessMsg = 'Les scénarios de preservation ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des scénario de preservation ";
+          this.breadcrumbName = "Import des scénarios de preservation ";
           break;
         default:
           this.router.navigate(['ingest/sip']);

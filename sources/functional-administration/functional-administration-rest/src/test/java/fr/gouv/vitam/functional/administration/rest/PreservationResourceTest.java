@@ -1,5 +1,6 @@
 package fr.gouv.vitam.functional.administration.rest;
 
+import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.administration.GriffinModel;
@@ -21,12 +22,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,12 +46,14 @@ public class PreservationResourceTest {
         preservationResource = new PreservationResource(preservationScenarioService, griffinService);
     }
 
+
+
     @Test
     public void shouldImportGriffin() throws Exception {
 
         //Given
         //When
-        Response griffinResponse = preservationResource.importGriffin(new ArrayList<>(), Mockito.mock(UriInfo.class));
+        Response griffinResponse = preservationResource.importGriffin(new ArrayList<>(), mock(UriInfo.class));
         //Then
         assertThat(griffinResponse.getStatus()).isEqualTo(201);
     }
@@ -76,7 +81,7 @@ public class PreservationResourceTest {
 
         //Given
         //When
-        Response griffinResponse = preservationResource.importPreservationScenario(new ArrayList<>(), Mockito.mock(UriInfo.class));
+        Response griffinResponse = preservationResource.importPreservationScenario(new ArrayList<>(), mock(UriInfo.class));
         //Then
         assertThat(griffinResponse.getStatus()).isEqualTo(201);
     }

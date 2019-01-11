@@ -1,0 +1,44 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "_id": "aeaaaaaaaabzbimkabjlwalimf5gccyaaaaq",
+      "evId": "aeaaaaaaaabzbimkabjlwalimf5gccyaaaaq",
+      "evParentId": null,
+      "evType": "IMPORT_GRIFFIN",
+      "evDateTime": "2019-01-18T15:00:36.851",
+      "evDetData": null,
+      "evIdProc": "aeaaaaaaaabzbimkabjlwalimf5gccyaaaaq",
+      "evTypeProc": "MASTERDATA",
+      "outcome": "STARTED",
+      "outDetail": "IMPORT_GRIFFIN.STARTED",
+      "outMessg": "Début du processus d'import du référentiel des griffons",
+      "agId": "{\"Name\":\"P-ASN-FIRESTORM\",\"Role\":\"UnknownRole\",\"ServerId\":999334282,\"SiteId\":0,\"GlobalPlatformId\":59810186}",
+      "agIdApp": null,
+      "agIdPers": null,
+      "evIdAppSession": null,
+      "evIdReq": "aeaaaaaaaabzbimkabjlwalimf5gccyaaaaq",
+      "agIdExt": null,
+      "rightsStatementIdentifier": null,
+      "obId": "aeaaaaaaaabzbimkabjlwalimf5gccyaaaaq",
+      "obIdReq": null,
+      "obIdIn": null,
+      "events": [],
+      "_tenant": 1,
+      "_v": 0,
+      "_lastPersistedDate": "2019-01-18T15:00:36.852"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {},
+    "$filter": {},
+    "$projection": {}
+  }
+}

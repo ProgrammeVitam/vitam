@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -56,7 +55,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -137,8 +135,7 @@ public class PreservationScenarioService {
     }
 
     void classifyDataInInsertUpdateOrDeleteLists(@NotNull List<PreservationScenarioModel> listToImport,
-        @NotNull List<PreservationScenarioModel> listToInsert,
-        @NotNull List<PreservationScenarioModel> listToUpdate,
+        @NotNull List<PreservationScenarioModel> listToInsert, @NotNull List<PreservationScenarioModel> listToUpdate,
         @NotNull List<String> listToDelete)
         throws ReferentialException, BadRequestException, InvalidParseOperationException {
 
@@ -167,10 +164,9 @@ public class PreservationScenarioService {
         }
     }
 
-    private void classifyModelToImportIntoInsertOrUpdateList(@NotNull
-        PreservationScenarioModel preservationScenarioModel,
-        @NotNull Set<String> dataBaseIds,
-        @NotNull List<PreservationScenarioModel> listToInsert,
+    private void classifyModelToImportIntoInsertOrUpdateList(
+        @NotNull PreservationScenarioModel preservationScenarioModel,
+        @NotNull Set<String> dataBaseIds, @NotNull List<PreservationScenarioModel> listToInsert,
         @NotNull List<PreservationScenarioModel> listToUpdate) {
 
         if (dataBaseIds.contains(preservationScenarioModel.getIdentifier())) {
@@ -213,7 +209,6 @@ public class PreservationScenarioService {
         if (hashTenant != null) {
             modelNode.set("_tenant", hashTenant);
         }
-
         return modelNode;
     }
 
@@ -231,8 +226,7 @@ public class PreservationScenarioService {
     }
 
     private void updateScenarios(@NotNull List<PreservationScenarioModel> listToUpdate)
-        throws  InvalidParseOperationException,
-        DatabaseException {
+        throws InvalidParseOperationException, DatabaseException {
 
         for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
 
@@ -243,21 +237,6 @@ public class PreservationScenarioService {
             mongoDbAccess.replaceDocument(JsonHandler.toJsonNode(preservationScenarioModel),
                 preservationScenarioModel.getIdentifier(), IDENTIFIER,
                 FunctionalAdminCollections.PRESERVATION_SCENARIO);
-        }
-    }
-
-    private JsonNode getUpdateDslQuery(@NotNull PreservationScenarioModel preservationScenarioModel) {
-
-        try {
-            Update update = new Update();
-            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(preservationScenarioModel);
-            update.addActions(set(jsonNode));
-
-            update.setQuery(eq(Griffin.IDENTIFIER, preservationScenarioModel.getIdentifier()));
-
-            return update.getFinalUpdate();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            throw new IllegalStateException("Illegal state");
         }
     }
 
