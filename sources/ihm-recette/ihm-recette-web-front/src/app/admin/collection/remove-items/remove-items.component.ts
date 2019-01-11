@@ -17,7 +17,7 @@ export class RemoveItemsComponent implements OnInit {
   public success = false;
 
   isTenantDefine = function () {
-    if (this.name !== 'formats' && this.name !== 'contextes' && this.name !== 'ontologies' && this.name !== 'griffins') {
+    if (this.name !== 'formats' && this.name !== 'contextes' && this.name !== 'ontologies' && this.name !== 'griffons') {
       return this.tenant !== '';
     } else {
       return true;
