@@ -1,5 +1,6 @@
+%define        version 6.5.4
 Name:          vitam-elasticsearch-analysis-icu
-Version:       6.5.1
+Version:        %{version}
 Release:       1%{?dist}
 Summary:       The ICU Analysis plugin for ElasticSearch integrates Lucene ICU module into elasticsearch, adding ICU relates analysis components.
 Group:         Applications/File
