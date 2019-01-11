@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -176,6 +177,12 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             LOGGER.error("THIS SHOULD RAIZED AN EXCEPTION");
             fail("THIS SHOULD NOT RAIZED EXCEPTION");
         } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 
@@ -208,6 +215,12 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         } catch (final VitamException e) {
             LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
             fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
 
     }
@@ -241,6 +254,12 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             client.checkStatus(headers);
             fail("SHould Raized an exception");
         } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
 
     }
@@ -272,6 +291,12 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             client.checkStatus(headers);
             fail("SHould Raized an exception");
         } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 }
