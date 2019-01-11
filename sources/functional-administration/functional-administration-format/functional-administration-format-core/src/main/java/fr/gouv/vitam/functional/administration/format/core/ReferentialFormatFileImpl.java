@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -66,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatImportEventDetails;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
@@ -85,7 +88,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -105,6 +110,7 @@ import static fr.gouv.vitam.functional.administration.common.FileFormat.CREATED_
 import static fr.gouv.vitam.functional.administration.common.FileFormat.PUID;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.UPDATE_DATE;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.VERSION_PRONOM;
+import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
@@ -147,6 +153,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public void importFile(InputStream xmlPronom, String filename)
         throws VitamException {
+
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         final List<FileFormatModel> newFileFormalModels = checkFile(xmlPronom);
 
@@ -277,18 +284,11 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private void updateExistingFormat(FileFormatModel fileFormatModel) {
         try {
 
-            final UpdateParserSingle
-                updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
-            Update update = new Update();
-            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(fileFormatModel);
-            update.addActions(set(jsonNode));
-            update.setQuery(QueryHelper.eq(PUID, fileFormatModel.getPuid()));
+            mongoAccess.replaceDocument(JsonHandler.toJsonNode(fileFormatModel), fileFormatModel.getPuid(), PUID,
+                    FunctionalAdminCollections.FORMATS);
 
-            updateParserActive.parse(update.getFinalUpdate());
-
-            mongoAccess.updateData(update.getFinalUpdate(), FORMATS);
-        } catch (ReferentialException | SchemaValidationException | BadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
-            throw new RuntimeException(
+        } catch (DatabaseException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException(
                 "Could not update format document with puid " + fileFormatModel.getPuid(), e);
         }
     }
@@ -354,8 +354,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             if (previousVersion == newVersion) {
                 report.addWarning("Same referential version: " + newVersion);
             } else if (previousVersion > newVersion) {
-                report.addWarning("New imported referential version " + previousVersion +
-                    " is older than previous referential version " + newVersion);
+                report.addWarning("New imported referential version " + newVersion +
+                    " is older than previous referential version " + previousVersion);
             }
         }
 
@@ -506,13 +506,26 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public List<FileFormatModel> checkFile(InputStream xmlPronom)
         throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        /*
-         * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is
-         * thrown
-         */
-        final List<FileFormatModel> fileFormatModels = PronomParser.getPronom(xmlPronom);
-        StreamUtils.closeSilently(xmlPronom);
-        return fileFormatModels;
+
+        File xmlPronomFile = null;
+        try {
+            xmlPronomFile = PropertiesUtils.fileFromTmpFolder(
+                VitamThreadUtils.getVitamSession().getRequestId() + ".xml");
+
+            FileUtils.copyInputStreamToFile(xmlPronom, xmlPronomFile);
+            /*
+             * Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is
+             * thrown
+             */
+
+            return PronomParser.getPronom(xmlPronomFile);
+
+        } catch (IOException e) {
+            throw new ReferentialException(e);
+        } finally {
+            StreamUtils.closeSilently(xmlPronom);
+            FileUtils.deleteQuietly(xmlPronomFile);
+        }
     }
 
     @Override

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.common.utils;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -134,7 +135,7 @@ public class ValidationXsdUtilsTest {
     
     @Test
     public void testValidRNGOK()
-        throws XMLStreamException, SAXException, IOException {
+        throws Exception {
         try {
             ValidationXsdUtils.checkFileRNG(PropertiesUtils.getResourceAsStream("manifest_ok_profile.xml"), 
                 PropertiesUtils.getResourceFile("Profil20.rng")); 

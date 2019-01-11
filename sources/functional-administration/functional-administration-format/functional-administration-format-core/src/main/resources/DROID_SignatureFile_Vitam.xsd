@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    xmlns:sf="http://www.nationalarchives.gov.uk/pronom/SignatureFile" 
+    targetNamespace="http://www.nationalarchives.gov.uk/pronom/SignatureFile" 
+    elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">
+           The PRONOM File Format Signature Specification Schema
+           
+           Crown Copyright @ 2005-2007.  All rights reserved.
+
+           Developed by:
+           Tessella Support Services plc
+           3 Vineyard Chambers
+           Abingdon, OX14 3PX
+           United Kingdom
+           http://www.tessella.com
+
+           Tessella/NPD/4950
+           PRONOM 6
+
+		  /!\ ADAPTED BY VITAM FOR Pronom signature formats validation (versions 88 to 94 as of january 2019)
+			  Usage authorization for Vitam granted generously by the UK National Archives
+
+       	</xsd:documentation>
+	</xsd:annotation>
+	<xsd:element name="FFSignatureFile" type="sf:SignatureFileType">
+		<xsd:key name="FormatIdKey">
+			<xsd:annotation>
+				<xsd:documentation>
+                   Define ID as key (ensuring they are also unique)
+               		</xsd:documentation>
+			</xsd:annotation>
+			<xsd:selector xpath="sf:FileFormatCollection/sf:FileFormat"/>
+			<xsd:field xpath="@ID"/>
+		</xsd:key>
+		<xsd:key name="SignatureIdKey">
+			<xsd:annotation>
+				<xsd:documentation>
+                   Define ID as key (ensuring they are also unique)
+               </xsd:documentation>
+			</xsd:annotation>
+			<xsd:selector xpath="sf:InternalSignatureCollection/sf:InternalSignature"/>
+			<xsd:field xpath="@ID"/>
+		</xsd:key>
+		<xsd:keyref name="fileformat-haspriorityover-formatid" refer="sf:FormatIdKey">
+			<xsd:annotation>
+				<xsd:documentation>
+                   Ensure file formats refer to other formats that exist
+               		</xsd:documentation>
+			</xsd:annotation>
+			<xsd:selector xpath="sf:FileFormatCollection/sf:FileFormat/sf:HasPriorityOverFileFormatID"/>
+			<xsd:field xpath="*"/>
+		</xsd:keyref>
+		<xsd:keyref name="fileformat-to-signatureid" refer="sf:SignatureIdKey">
+			<xsd:annotation>
+				<xsd:documentation>
+                   Ensure file formats refer to signatures that exist
+               		</xsd:documentation>
+			</xsd:annotation>
+			<xsd:selector xpath="sf:FileFormatCollection/sf:FileFormat/sf:InternalSignatureID"/>
+			<xsd:field xpath="*"/>
+		</xsd:keyref>
+	</xsd:element>
+	<xsd:complexType name="SignatureFileType">
+		<xsd:all>
+			<xsd:element name="FileFormatCollection">
+				<xsd:complexType>
+					<xsd:choice minOccurs="0" maxOccurs="unbounded">
+						<xsd:element name="FileFormat" type="sf:FileFormatType"/>
+					</xsd:choice>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="InternalSignatureCollection">
+				<xsd:complexType>
+					<xsd:choice minOccurs="0" maxOccurs="unbounded">
+						<xsd:element name="InternalSignature" type="sf:InternalSignatureType"/>
+					</xsd:choice>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:all>
+		<xsd:attribute name="Version" type="xsd:positiveInteger" use="required"/>
+		<xsd:attribute name="DateCreated" type="xsd:dateTime" use="required"/>
+	</xsd:complexType>
+	<xsd:simpleType name="String50">
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="50"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="String100">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/><!-- Vitam update : minLength added in order to transform attribute Name to an NonEmptyToken string -->
+			<xsd:maxLength value="100"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="String150">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/><!-- Vitam update : minLength added in order to transform attribute PUID to an NonEmptyToken string -->
+			<xsd:maxLength value="150"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="NonEmptyString">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="FileFormatType">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="InternalSignatureID" type="xsd:nonNegativeInteger"/>
+			<!-- Vitam update : Some PRONOM files have empty extension -->
+			<xsd:element name="Extension" type="xsd:string"/>
+			<xsd:element name="HasPriorityOverFileFormatID" type="xsd:nonNegativeInteger"/>
+		</xsd:choice>
+		<xsd:attribute name="ID" type="xsd:nonNegativeInteger" use="required"/>
+		<xsd:attribute name="Name" type="sf:String100" use="required"/>
+		<xsd:attribute name="Version" type="sf:String50" use="optional"/>
+		<xsd:attribute name="PUID" type="sf:String150" use="required"/><!-- Vitam update : use="optional" becomes use="required" -->
+    <xsd:attribute name="MIMEType" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="InternalSignatureType">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="ByteSequence" type="sf:ByteSequenceType"/>
+		</xsd:choice>
+		<xsd:attribute name="ID" type="xsd:nonNegativeInteger" use="required"/>
+		<xsd:attribute name="Specificity" use="required">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="Generic"/>
+					<xsd:enumeration value="Specific"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ByteSequenceType">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="SubSequence" type="sf:SubSequenceType"/>
+		</xsd:choice>
+		<xsd:attribute name="Reference" use="optional">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="BOFoffset"/>
+					<xsd:enumeration value="EOFoffset"/>
+					<xsd:enumeration value="IndirectBOFoffset"/>
+					<xsd:enumeration value="IndirectEOFoffset"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="Endianness" use="optional">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="Big-endian"/>
+					<xsd:enumeration value="Little-endian"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+    <xsd:attribute name="IndirectOffsetLocation" type="xsd:integer" use="optional"/>
+    <xsd:attribute name="IndirectOffsetLength" type="xsd:integer" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="SubSequenceType">
+		<xsd:sequence>
+			<xsd:element name="Sequence" type="sf:HexBytes"/>
+			<xsd:element name="DefaultShift" type="xsd:integer"/>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="Shift" type="sf:ShiftType"/>
+				<xsd:element name="LeftFragment" type="sf:FragmentType"/>
+				<xsd:element name="RightFragment" type="sf:FragmentType"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="Position" type="xsd:integer" use="required"/>
+		<xsd:attribute name="SubSeqMinOffset" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="SubSeqMaxOffset" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="MinFragLength" type="xsd:integer" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="ShiftType">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:integer">
+				<xsd:attribute name="Byte" type="sf:HexByte" use="optional"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:simpleType name="HexByte">
+		<xsd:annotation>
+			<xsd:documentation>
+               A byte expressed as hexadecimal
+           </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case -->
+			<xsd:pattern value="[0-9A-Fa-f]{2}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="HexBytes">
+		<xsd:annotation>
+			<xsd:documentation>
+               One or more bytes expressed as hexadecimal
+           </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case -->
+			<xsd:pattern value="([0-9A-Fa-f]{2})+"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="HexByteRange">
+		<xsd:annotation>
+			<xsd:documentation>
+               One or more bytes expressed as hexadecimal, with patterns.
+               Eg. [A1:A4] 
+           </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case & support for & in pattern -->
+			<xsd:pattern value="(\[!?&amp;?([0-9A-Fa-f]{2})+(:([0-9A-Fa-f]{2})+)?\]|[0-9A-Fa-f]{2})+"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="FragmentType">
+		<xsd:simpleContent>
+			<xsd:extension base="sf:HexByteRange">
+				<xsd:attribute name="Position" type="xsd:integer" use="required"/>
+				<xsd:attribute name="MinOffset" type="xsd:integer" use="required"/>
+				<xsd:attribute name="MaxOffset" type="xsd:integer" use="required"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+</xsd:schema>
+	 

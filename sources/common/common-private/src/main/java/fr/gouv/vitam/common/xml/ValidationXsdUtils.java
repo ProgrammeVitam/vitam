@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.common.xml;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -60,7 +60,7 @@ public class ValidationXsdUtils {
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
-    public static final String CATALOG_FILENAME = "seda-vitam/catalog.xml";
+    private static final String CATALOG_FILENAME = "xsd_validation/catalog.xml";
 
     /**
      * @param xmlFile the file to validate
@@ -117,9 +117,8 @@ public class ValidationXsdUtils {
      * @return true if validated
      * @throws SAXException
      * @throws IOException
-     * @throws XMLStreamException
      */
-    public static boolean checkFileRNG(InputStream xmlFile, File xsdFile) throws XMLStreamException, SAXException, IOException {
+    public static boolean checkFileRNG(InputStream xmlFile, File xsdFile) throws SAXException, IOException {
         try {
             final Schema schema = getSchema(xsdFile);
             final Validator validator = schema.newValidator();
@@ -130,7 +129,7 @@ public class ValidationXsdUtils {
         }
     }
 
-    private static Schema getSchema(String xsdFile) throws SAXException, FileNotFoundException, MalformedURLException {
+    private static Schema getSchema(String xsdFile) throws SAXException {
         // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
         final SchemaFactory factory =
             SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
@@ -142,8 +141,8 @@ public class ValidationXsdUtils {
         return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
     }
 
-    private static Schema getSchema(File file) throws SAXException, MalformedURLException, FileNotFoundException {
-        SchemaFactory factory = null;
+    private static Schema getSchema(File file) throws SAXException {
+        SchemaFactory factory;
         if (file.getName().endsWith(RNG_SUFFIX)) {
             System.setProperty(RNG_PROPERTY_KEY,
                 RNG_FACTORY);

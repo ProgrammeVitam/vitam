@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+	<!-- This will redirect the namespace URI to the local schema file, which 
+		should be found in the same directory as the catalog.xml -->
+	<uri name="http://www.w3.org/XML/1998/namespace" uri="xml.xsd" />
+	<uri name="http://www.w3.org/1999/xlink" uri="xlink.xsd" />
+</catalog>

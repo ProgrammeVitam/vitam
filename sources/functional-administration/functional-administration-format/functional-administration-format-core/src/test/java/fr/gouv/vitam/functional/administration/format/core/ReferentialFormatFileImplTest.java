@@ -178,11 +178,13 @@ public class ReferentialFormatFileImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
         formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
     }
 
     @Test(expected = ReferentialException.class)
+    @RunWithCustomExecutor
     public void testFormatXMLKO() throws FileNotFoundException, ReferentialException {
         formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
     }
