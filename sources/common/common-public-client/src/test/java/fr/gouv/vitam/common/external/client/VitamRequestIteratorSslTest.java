@@ -36,11 +36,13 @@ import fr.gouv.vitam.common.external.client.configuration.SSLKey;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.SslConfig;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -77,14 +79,28 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
 
     private static final String BASE_URI = "/ingest-ext/v1";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
+    private static final String INGEST_EXTERNAL_SERVER_CONF = "standard-server-secure.conf";
 
     private static boolean startup = true;
     private final static ExpectedResults mock = mock(ExpectedResults.class);
     private static VitamClientFactory<DefaultClient> factory;
 
+
+    private final static SecureClientConfiguration configurationServer =
+        changeConfigurationFile(INGEST_EXTERNAL_SERVER_CONF);
+
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(DefaultSslHeaderClientTest.class, false, false, false, false);
+        new VitamServerTestRunner(VitamRequestIteratorSslTest.class, VitamServerTestRunner.AdminApp.class,
+            new SslConfig(
+                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPath(),
+                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPassword(),
+                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPath(),
+                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPassword()
+            ),
+            null,
+            false, false, false, true, false);
+
 
 
     @Override
@@ -95,17 +111,17 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
     public static class SslResource extends ApplicationStatusResource {
-        private final ExpectedResults expectedResponse;
+        private final ExpectedResults mock;
 
-        public SslResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
+        public SslResource(ExpectedResults mock) {
+            this.mock = mock;
         }
 
         @GET
         @Path("/iterator")
         @Produces(MediaType.APPLICATION_JSON)
         public Response iterator(@Context HttpHeaders headers) {
-            final Response response = expectedResponse.get();
+            final Response response = mock.get();
             final boolean checkStart = VitamRequestIterator.isNewCursor(headers);
             VitamRequestIterator.isEndOfCursor(headers);
             assertEquals(startup, checkStart);
@@ -135,6 +151,12 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     @AfterClass
     public static void tearDownAfterClass() throws Throwable {
         vitamServerTestRunner.runAfter();
+        try {
+            factory.shutdown();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
     }
 
     @Test
@@ -157,6 +179,12 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         try (DefaultClient client = factory.getClient()) {
             // Only Apache Pool has this
             assertNull(client.getHttpClient().getHostnameVerifier());
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 

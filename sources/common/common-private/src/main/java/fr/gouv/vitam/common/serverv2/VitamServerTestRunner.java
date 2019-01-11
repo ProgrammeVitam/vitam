@@ -46,11 +46,16 @@ import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
 import javax.servlet.DispatcherType;
@@ -109,7 +114,8 @@ public class VitamServerTestRunner {
         Class<? extends Application> adminApplication,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter,
         boolean hasXsrFilter) {
-        this(application, adminApplication, null, hasTenantFilter, hasAuthorizationFilter, hasSession, hasShiroFilter,
+        this(application, adminApplication, null, null, hasTenantFilter, hasAuthorizationFilter, hasSession,
+            hasShiroFilter,
             hasXsrFilter);
     }
 
@@ -134,29 +140,8 @@ public class VitamServerTestRunner {
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {
-        this(application, adminApplication, factory, hasTenantFilter, hasAuthorizationFilter, hasSession, false, false);
-    }
-
-    public VitamServerTestRunner(Class<? extends Application> application,
-        Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
-        boolean hasShiroFilter, boolean hasXsrFilter) {
-        this.application = application;
-        this.adminAapplication = adminApplication;
-        this.factory = factory;
-        businessPort = getAvailablePort();
-        adminPort = getAvailablePort();
-        server = VitamServerFactory.newVitamServer(businessPort);
-
-        prepare(hasTenantFilter, hasAuthorizationFilter, hasSession, hasShiroFilter,
-            hasXsrFilter);
-
-        if (null != factory) {
-            factory.changeServerPort(businessPort);
-            _client = factory.getClient();
-        } else {
-            _client = null;
-        }
+        this(application, adminApplication, null, factory, hasTenantFilter, hasAuthorizationFilter, hasSession, false,
+            false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application) {
@@ -214,9 +199,76 @@ public class VitamServerTestRunner {
     public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
         boolean hasShiroFilter, boolean hasXsrFilter) {
-        this(application, application, factory, hasTenantFilter, hasAuthorizationFilter, hasSession,
+        this(application, application, null, factory, hasTenantFilter, hasAuthorizationFilter, hasSession,
             hasShiroFilter, hasXsrFilter);
     }
+
+    public VitamServerTestRunner(Class<? extends Application> application,
+        Class<? extends Application> adminApplication, SslConfig configuration,
+        VitamClientFactoryInterface<?> factory,
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
+        boolean hasShiroFilter, boolean hasXsrFilter) {
+        this.application = application;
+        this.adminAapplication = adminApplication;
+        this.factory = factory;
+        businessPort = getAvailablePort();
+        adminPort = getAvailablePort();
+
+        if (null != configuration) {
+            server = VitamServerFactory.newVitamServerWithoutConnector(businessPort);
+            createSslConnector(configuration);
+        } else {
+            server = VitamServerFactory.newVitamServer(businessPort);
+            ServerConnector connector = (ServerConnector) server.getServer().getConnectors()[0];
+            connector.setName("business");
+        }
+
+        prepare(hasTenantFilter, hasAuthorizationFilter, hasSession, hasShiroFilter,
+            hasXsrFilter);
+
+        if (null != factory) {
+            factory.changeServerPort(businessPort);
+            _client = factory.getClient();
+        } else {
+            _client = null;
+        }
+    }
+
+    /**
+     * This is the same configuration as jetty xml file
+     *
+     * @param configuration
+     */
+    private void createSslConnector(SslConfig configuration) {
+        HttpConfiguration https = new HttpConfiguration();
+        https.addCustomizer(new SecureRequestCustomizer());
+
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setKeyStorePath(configuration.getKeyStorePath());
+        sslContextFactory.setKeyStorePassword(configuration.getKeyStorePassword());
+        sslContextFactory.setKeyManagerPassword(configuration.getKeyStorePassword());
+        sslContextFactory.setTrustStorePath(configuration.getTrustStorePath());
+        sslContextFactory.setTrustStorePassword(configuration.getTrustStorePassword());
+        sslContextFactory.setTrustStoreType("JKS");
+        sslContextFactory.setNeedClientAuth(false);
+        sslContextFactory.setWantClientAuth(true);
+        sslContextFactory.setIncludeCipherSuites("TLS_ECDHE.*", "TLS_DHE_RSA.*");
+        sslContextFactory.setIncludeProtocols("TLSv1", "TLSv1.1", "TLSv1.2");
+        sslContextFactory.setExcludeCipherSuites(".*NULL.*", ".*RC4.*", ".*MD5.*", ".*DES.*", ".*DSS.");
+        sslContextFactory.setUseCipherSuitesOrder(true);
+        sslContextFactory.setRenegotiationAllowed(true);
+
+        SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, "http/1.1");
+        HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(https);
+        ServerConnector sslConnector =
+            new ServerConnector(server.getServer(), sslConnectionFactory, httpConnectionFactory);
+        sslConnector.setPort(businessPort);
+        sslConnector.setName("business");
+        sslConnector.setHost("localhost");
+        sslConnector.setIdleTimeout(30000);
+        server.getServer().addConnector(sslConnector);
+    }
+
 
     private void prepare(boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
         boolean hasShiroFilter,
@@ -231,11 +283,12 @@ public class VitamServerTestRunner {
 
             context.addServlet(servletHolder, "/*");
             context.setContextPath("/");
+            context.setVirtualHosts(new String[] {"@business"});
 
             // Authorization Filter
             // If you want to enable autorization filter
             if (hasAuthorizationFilter) {
-                VitamConfiguration.setSecret("secret-test");
+                VitamConfiguration.setSecret("vitamsecret");
                 context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
                     DispatcherType.INCLUDE, DispatcherType.REQUEST,
                     DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
@@ -309,6 +362,13 @@ public class VitamServerTestRunner {
         after();
         releasePort();
         VitamClientFactory.resetConnections();
+        try {
+            if (null != factory) {
+                factory.shutdown();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
     }
 
     public void stop() throws Throwable {
