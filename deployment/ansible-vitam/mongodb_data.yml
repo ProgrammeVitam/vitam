@@ -15,7 +15,6 @@
     mongo_bin: mongod
     group_name: "hosts-mongoc-data"
 
-
 # Mongod replicas configuration
 - hosts: hosts-mongod-data
   any_errors_fatal: true
