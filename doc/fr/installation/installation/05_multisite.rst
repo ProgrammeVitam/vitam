@@ -37,7 +37,7 @@ Exemple de configuration pour une installation avec 3 sites.
 
 Site 1:
 
-.. code-block:: yml
+.. code-block:: yaml
 
     consul_remote_sites:
         - dc2:
@@ -47,7 +47,7 @@ Site 1:
 
 Site 2:
 
-.. code-block:: yml
+.. code-block:: yaml
 
     consul_remote_sites:
         - dc1:
@@ -57,7 +57,7 @@ Site 2:
 
 Site 3:
 
-.. code-block:: yml
+.. code-block:: yaml
 
     consul_remote_sites:
         - dc1:
@@ -74,7 +74,7 @@ Cette variable référence toutes les offres disponibles sur la totalité des si
 
 Exemple:
 
-.. code-block:: yml
+.. code-block:: yaml
 
     vitam_offers:
         offer-fs-1:
@@ -96,7 +96,7 @@ Les sites secondaires doivent uniquement écrire sur leur(s) offre(s) locale(s).
 
 Exemple pour le site 1 (site primaire):
 
-.. code-block:: yml
+.. code-block:: yaml
 
     vitam_strategy:
         - name: offer-fs-1
@@ -110,7 +110,7 @@ Exemple pour le site 1 (site primaire):
 
 Exemple pour le site 2 (site secondaire):
 
-.. code-block:: yml
+.. code-block:: yaml
 
     vitam_strategy:
         - name: offer-fs-2
@@ -118,7 +118,7 @@ Exemple pour le site 2 (site secondaire):
 
 Exemple pour le site 3 (site secondaire):
 
-.. code-block:: yml
+.. code-block:: yaml
 
     vitam_strategy:
         - name: offer-fs-3
