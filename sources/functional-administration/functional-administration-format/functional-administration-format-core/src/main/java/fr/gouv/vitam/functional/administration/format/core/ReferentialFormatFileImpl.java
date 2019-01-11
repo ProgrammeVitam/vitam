@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatImportEventDetails;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
@@ -108,6 +110,7 @@ import static fr.gouv.vitam.functional.administration.common.FileFormat.CREATED_
 import static fr.gouv.vitam.functional.administration.common.FileFormat.PUID;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.UPDATE_DATE;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.VERSION_PRONOM;
+import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
@@ -281,18 +284,11 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private void updateExistingFormat(FileFormatModel fileFormatModel) {
         try {
 
-            final UpdateParserSingle
-                updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
-            Update update = new Update();
-            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(fileFormatModel);
-            update.addActions(set(jsonNode));
-            update.setQuery(QueryHelper.eq(PUID, fileFormatModel.getPuid()));
+            mongoAccess.replaceDocument(JsonHandler.toJsonNode(fileFormatModel), fileFormatModel.getPuid(), PUID,
+                    FunctionalAdminCollections.FORMATS);
 
-            updateParserActive.parse(update.getFinalUpdate());
-
-            mongoAccess.updateData(update.getFinalUpdate(), FORMATS);
-        } catch (ReferentialException | SchemaValidationException | BadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
-            throw new RuntimeException(
+        } catch (DatabaseException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException(
                 "Could not update format document with puid " + fileFormatModel.getPuid(), e);
         }
     }
