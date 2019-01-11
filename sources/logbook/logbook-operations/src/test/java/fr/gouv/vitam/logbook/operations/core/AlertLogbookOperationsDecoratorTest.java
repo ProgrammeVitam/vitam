@@ -28,8 +28,8 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -109,7 +109,7 @@ public class AlertLogbookOperationsDecoratorTest {
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         doNothing().when(workspaceClient).createContainer(anyString());
-        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
+        doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
         when(mongoDbAccess.getLogbookOperation(anyString())).thenReturn(new LogbookOperation(logbookParameters));
     }

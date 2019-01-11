@@ -78,48 +78,50 @@ public class FakeDriverImplTest {
 
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
-        final Connection connect = driver.connect(offer.getId());
-        assertNotNull(connect);
-        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
-        assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
+        try (Connection connect = driver.connect(offer.getId())) {
+            assertNotNull(connect);
+            StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
+            assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
 
-        assertThatCode(() -> {
-            connect.getStorageCapacity(-1);
-        }).isInstanceOf(StorageDriverException.class);
+            assertThatCode(() -> {
+                connect.getStorageCapacity(-1);
+            }).isInstanceOf(StorageDriverException.class);
 
-        final StorageGetResult getObjectResult = connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
-        assertNotNull(getObjectResult);
-        assertNotNull(getObjectResult.getTenantId());
-        assertNotNull(getObjectResult.getType());
-        assertNotNull(getObjectResult.getGuid());
-        assertNotNull(getObjectResult.getObject());
-        final StoragePutRequest putObjectRequest = new StoragePutRequest(tenant, "type", "guid",
-            VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam" + " test"));
-        assertNotNull(connect.putObject(putObjectRequest));
+            final StorageGetResult getObjectResult =
+                connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
+            assertNotNull(getObjectResult);
+            assertNotNull(getObjectResult.getTenantId());
+            assertNotNull(getObjectResult.getType());
+            assertNotNull(getObjectResult.getGuid());
+            assertNotNull(getObjectResult.getObject());
+            final StoragePutRequest putObjectRequest = new StoragePutRequest(tenant, "type", "guid",
+                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam" + " test"));
+            assertNotNull(connect.putObject(putObjectRequest));
 
-        assertThatCode(() -> {
-            final StoragePutRequest putObjectRequest2 = new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
-                StreamUtils.toInputStream("Vitam test"));
-            connect.putObject(putObjectRequest2);
-        }).isInstanceOf(StorageDriverException.class);
+            assertThatCode(() -> {
+                final StoragePutRequest putObjectRequest2 =
+                    new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
+                        StreamUtils.toInputStream("Vitam test"));
+                connect.putObject(putObjectRequest2);
+            }).isInstanceOf(StorageDriverException.class);
 
-        final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
-            VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
-        assertNotNull(connect.putObject(putObjectRequest3));
-
-
-        assertNotNull(connect.removeObject(
-            new StorageRemoveRequest(tenant, "type", "guid")));
-
-        assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
-
-        assertThatCode(() -> {
-            StorageOfferLogRequest request = new StorageOfferLogRequest(1, "type", 0L, 0, Order.ASC);
-            connect.getOfferLogs(request);
-        }).doesNotThrowAnyException();
+            final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
+                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
+            assertNotNull(connect.putObject(putObjectRequest3));
 
 
-        connect.close();
+            assertNotNull(connect.removeObject(
+                new StorageRemoveRequest(tenant, "type", "guid")));
+
+            assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
+
+            assertThatCode(() -> {
+                StorageOfferLogRequest request = new StorageOfferLogRequest(1, "type", 0L, 0, Order.ASC);
+                connect.getOfferLogs(request);
+            }).doesNotThrowAnyException();
+
+
+        }
     }
 
     @Test

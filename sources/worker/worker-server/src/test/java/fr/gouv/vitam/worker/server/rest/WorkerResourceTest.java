@@ -57,7 +57,7 @@ import java.io.InputStream;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class WorkerResourceTest {
@@ -182,7 +182,7 @@ public class WorkerResourceTest {
         final ItemStatus responses = new ItemStatus("ID");
         Mockito.reset(worker);
 
-        when(worker.run(anyObject(), anyObject())).thenReturn(responses);
+        when(worker.run(any(), any())).thenReturn(responses);
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep.json");
@@ -197,7 +197,7 @@ public class WorkerResourceTest {
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
         Mockito.reset(worker);
-        when(worker.run(anyObject(), anyObject())).thenThrow(new HandlerNotFoundException(""));
+        when(worker.run(any(), any())).thenThrow(new HandlerNotFoundException(""));
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
@@ -212,7 +212,7 @@ public class WorkerResourceTest {
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
         Mockito.reset(worker);
-        when(worker.run(anyObject(), anyObject())).thenThrow(new ProcessingException(""));
+        when(worker.run(any(), any())).thenThrow(new ProcessingException(""));
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");

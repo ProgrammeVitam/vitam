@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -124,8 +124,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
 
-        PowerMockito.doNothing().when(logbookLifeCycleClient).create(anyObject());
-        PowerMockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        PowerMockito.doNothing().when(logbookLifeCycleClient).create(any());
+        PowerMockito.doNothing().when(logbookLifeCycleClient).update(any());
         Mockito.when(handlerIO.getLifecyclesClient()).thenReturn(logbookLifeCycleClient);
 
         helper = mock(LogbookLifeCyclesClientHelper.class);

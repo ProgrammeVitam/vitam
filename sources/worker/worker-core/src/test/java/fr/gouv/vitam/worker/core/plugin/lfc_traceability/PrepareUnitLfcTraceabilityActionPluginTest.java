@@ -91,11 +91,11 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -165,8 +165,8 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
             Path filePath = Paths.get(storedFilesDirectory.getAbsolutePath(), filename);
             java.nio.file.Files.copy(inputStream, filePath);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
-            anyString(), org.mockito.Matchers.any(InputStream.class));
+        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
+            anyString(), org.mockito.ArgumentMatchers.any(InputStream.class));
 
         metaDataClient = mock(MetaDataClient.class);
         metaDataClientFactory = mock(MetaDataClientFactory.class);
@@ -216,7 +216,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         RequestResponseOK<JsonNode> metadataResponse =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_METADATA_JSON),
@@ -288,7 +288,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         RequestResponseOK<JsonNode> metadataResponse =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_METADATA_JSON),
@@ -351,7 +351,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         reset(logbookOperationsClient);
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         reset(logbookLifeCyclesClient);
         when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
@@ -384,7 +384,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         doThrow(new ContentAddressableStorageServerException("ContentAddressableStorageServerException"))
             .when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
@@ -413,7 +413,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         WorkerParameters params = createExecParams(300, 100000);
         PrepareUnitLfcTraceabilityActionPlugin handler = new PrepareUnitLfcTraceabilityActionPlugin(
@@ -443,7 +443,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         doThrow(new VitamClientException("prb")).when(metaDataClient).getUnitsByIdsRaw(any());
 
@@ -483,7 +483,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
             eq(LocalDateUtil.parseMongoFormattedDate("2018-05-20T00:00:00.010")), any(), eq(10)))
             .thenReturn(unitsLFC2);
         reset(logbookOperationsClient);
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
         Set<String> unitIds1 = unitsLFC1.stream().map(entry -> entry.get("_id").asText()).collect(Collectors.toSet());
         // Skip duplicate first entry

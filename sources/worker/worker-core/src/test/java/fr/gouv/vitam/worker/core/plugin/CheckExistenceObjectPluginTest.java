@@ -2,8 +2,8 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -109,10 +109,10 @@ public class CheckExistenceObjectPluginTest {
 
         reset(storageClient);
         // binary master -> binary exists on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
             .thenReturn(true);
         // physical master -> binary exists on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
             .thenReturn(false);
 
         final ItemStatus response = plugin.execute(params, action);
@@ -125,10 +125,10 @@ public class CheckExistenceObjectPluginTest {
         action.addOutIOParameters(out);
         reset(storageClient);
         // binary master -> binary does not exist on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
             .thenReturn(false);
         // physical master -> binary does not exists on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
             .thenReturn(false);
 
         final ItemStatus response = plugin.execute(params, action);
@@ -144,10 +144,10 @@ public class CheckExistenceObjectPluginTest {
 
         reset(storageClient);
         // binary master -> binary exists on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
             .thenReturn(true);
         // physical master -> binary exists on offers
-        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
             .thenReturn(true);
 
         final ItemStatus response = plugin.execute(params, action);

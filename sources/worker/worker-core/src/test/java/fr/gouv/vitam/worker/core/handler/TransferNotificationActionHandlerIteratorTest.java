@@ -32,7 +32,7 @@ import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.work
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -141,7 +141,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     public void setUp() throws Exception {
         guid = GUIDFactory.newGUID();
         PowerMockito.mockStatic(ValidationXsdUtils.class);
-        PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
                 .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
@@ -201,12 +201,12 @@ public class TransferNotificationActionHandlerIteratorTest {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
 
-            doReturn(getLogbookOperationOK()).when(logbookOperationsClient).selectOperationById(anyObject()
+            doReturn(getLogbookOperationOK()).when(logbookOperationsClient).selectOperationById(any()
             );
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -230,12 +230,12 @@ public class TransferNotificationActionHandlerIteratorTest {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             doReturn(getLogbookOperationWarning()).when(logbookOperationsClient).selectOperationById(
-                anyObject()
+                any()
             );
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOTWarning())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAUWarning())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -314,12 +314,12 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws Exception {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject()
+            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(any()
             );
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -343,12 +343,12 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws Exception {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject()
+            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(any()
             );
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAUOK())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAUOK())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -372,7 +372,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(
-                anyObject()
+                any()
             );
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
@@ -393,16 +393,16 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws Exception {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject()
+            doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(any()
             );
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
             doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAUWarning()))
-                .when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-                anyObject(), anyObject());
+                .when(lifeCyclesClient).unitLifeCyclesByOperationIterator(any(),
+                any(), any());
             doThrow(new LogbookClientException("")).when(lifeCyclesClient)
-                .unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject());
+                .unitLifeCyclesByOperationIterator(any(), any(), any());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             handlerIO.reset();
@@ -422,13 +422,13 @@ public class TransferNotificationActionHandlerIteratorTest {
         // Given
         TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject()
+        doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(any()
         );
 
         doThrow(new LogbookClientException("")).when(lifeCyclesClient)
-            .objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject());
+            .objectGroupLifeCyclesByOperationIterator(any(), any(), any());
 
-        when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+        when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
             .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
             .thenReturn(new RequestResponseOK<JsonNode>());
         

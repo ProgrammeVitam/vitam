@@ -62,7 +62,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.MediaType;
@@ -73,6 +72,7 @@ import java.util.List;
 import java.util.Set;
 
 import static io.restassured.RestAssured.get;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -223,8 +223,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new BadRequestException("Test")).when(processingClient).initVitamProcess(
-            Matchers.anyObject(),
-            Matchers.anyObject());
+            any(),
+            any());
 
         final InputStream inputStreamZip =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
@@ -243,7 +243,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
-            .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
+            .uncompressObject(any(), any(), any(), any());
 
 
         RestAssured.given()
@@ -263,7 +263,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     public void givenContainerAlreadyExistsWhenUploadSipAsStreamThenReturnKO() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Matchers.anyObject());
+        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(any());
 
         RestAssured.given()
             .header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
@@ -302,7 +302,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
-            .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
+            .uncompressObject(any(), any(), any(), any());
 
         RestAssured.given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
@@ -319,8 +319,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(
-            Matchers.anyObject(),
-            Matchers.anyObject());
+            any(),
+            any());
 
         RestAssured.given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
@@ -336,7 +336,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new VitamClientException("")).when(processingClient).getOperationProcessStatus(
-            Matchers.anyObject());
+            any());
 
         RestAssured.given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,

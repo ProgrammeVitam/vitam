@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -152,19 +152,19 @@ public class GenerateAuditReportActionHandlerTest {
         reset(logbookLifeCyclesClient);
         reset(logbookOperationsClient);
         reset(adminManagementClient);
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
-        Mockito.doNothing().when(workspaceClient).deleteObject(anyObject(), anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient).putObject(any(), any(), any());
+        Mockito.doNothing().when(workspaceClient).deleteObject(any(), any());
 
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
+        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any())).thenReturn(null);
 
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
-        when(logbookOperationsClient.selectOperationById(anyObject())).thenReturn(jopResults);
-        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(jopResults);
+        when(logbookOperationsClient.selectOperationById(any())).thenReturn(jopResults);
+        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(any())).thenReturn(lfcResults);
 
         final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();
         requestResponseOK.addAllResults(Lists.newArrayList());
-        when(adminManagementClient.getAccessionRegister(anyObject())).thenReturn(requestResponseOK);
+        when(adminManagementClient.getAccessionRegister(any())).thenReturn(requestResponseOK);
 
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -182,19 +182,19 @@ public class GenerateAuditReportActionHandlerTest {
         reset(logbookLifeCyclesClient);
         reset(logbookOperationsClient);
         reset(adminManagementClient);
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
-        Mockito.doNothing().when(workspaceClient).deleteObject(anyObject(), anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient).putObject(any(), any(), any());
+        Mockito.doNothing().when(workspaceClient).deleteObject(any(), any());
 
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
+        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any())).thenReturn(null);
 
-        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
-        when(logbookOperationsClient.selectOperationById(anyObject())).thenReturn(jopResults);
-        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(jopResults);
+        when(logbookOperationsClient.selectOperationById(any())).thenReturn(jopResults);
+        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(any())).thenReturn(lfcResults);
 
         final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();
         requestResponseOK.addAllResults(Lists.newArrayList());
-        when(adminManagementClient.getAccessionRegister(anyObject()))
+        when(adminManagementClient.getAccessionRegister(any()))
             .thenThrow(new ReferentialException("ReferentialException"));
 
         final ItemStatus response = handler.execute(params, action);

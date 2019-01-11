@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -19,8 +19,9 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -67,7 +68,7 @@ public class BasicAuthenticationFilterTest {
         instance.configure(resourceInfo, featureContext);
 
         verify(featureContext)
-            .register(endpointAuthenticationFilter.capture(), Matchers.eq(Priorities.AUTHORIZATION + 10));
+            .register(endpointAuthenticationFilter.capture(), eq(Priorities.AUTHORIZATION + 10));
         verifyNoMoreInteractions(featureContext);
         Assert.assertEquals(AUTHENTICATION_LEVEL, endpointAuthenticationFilter.getValue().getAuthentLevel());
     }
@@ -83,7 +84,7 @@ public class BasicAuthenticationFilterTest {
         BasicAuthenticationFilter instance = new BasicAuthenticationFilter(configuration);
         instance.configure(resourceInfo, featureContext);
 
-        verify(featureContext, never()).register(anyObject(), anyInt());
+        verify(featureContext, never()).register(any(), anyInt());
     }
 
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)

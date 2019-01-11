@@ -28,8 +28,9 @@ package fr.gouv.vitam.worker.common.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +56,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -121,9 +122,9 @@ public class SedaUtilsTest {
     // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params, new ItemStatus())));
     }
 
@@ -132,9 +133,9 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString()))
+        when(workspaceClient.getObject(any(), anyString()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
@@ -144,18 +145,18 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(is).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
 
     @Test
     public void givenGuidWhenXmlNotExistThenReturnNoFile() throws Exception {
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        when(handlerIO.getInputStreamFromWorkspace(anyObject()))
+        when(handlerIO.getInputStreamFromWorkspace(any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
@@ -163,9 +164,9 @@ public class SedaUtilsTest {
 
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
         assertEquals(3, utils.getMandatoryValues(params).size());
     }
 
@@ -237,32 +238,32 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityWithPDOThenOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(sedaPdo).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaPdo);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaPdo);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
 
     @Test(expected = ProcessingException.class)
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         utils.computeTotalSizeOfObjectsInManifest(params);
     }
 
     @Test
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+        when(workspaceClient.getObjectInformation(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(getSedaTest()));
         final long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
@@ -270,7 +271,7 @@ public class SedaUtilsTest {
 
     @Test(expected = ProcessingException.class)
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
-        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+        when(workspaceClient.getObjectInformation(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(getSedaTestError()));
         utils.getManifestSize(params);
     }
@@ -294,7 +295,7 @@ public class SedaUtilsTest {
         listUri.add(new URI("content/file2.pdf"));
         listUri.add(new URI("manifest.xml"));
         listUri.add(new URI("manifest2.xml"));
-        when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
+        when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
     }
@@ -305,7 +306,7 @@ public class SedaUtilsTest {
         listUri.add(new URI(URLEncoder.encode("content/file.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI(URLEncoder.encode("content2/file2.pdf", CharsetUtils.UTF_8)));
         listUri.add(new URI("manifest.xml"));
-        when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
+        when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }

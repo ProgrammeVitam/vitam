@@ -2,7 +2,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -96,14 +96,14 @@ public class CheckArchiveProfileActionHandlerTest {
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
                 .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
 
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
                 .thenReturn(createProfileRNG());
 
         Response mockResponse = new AbstractMockClient
                 .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
 
-        when(adminClient.downloadProfileFile(anyObject())).thenReturn(mockResponse);
+        when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
 
         ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -126,14 +126,14 @@ public class CheckArchiveProfileActionHandlerTest {
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
                 .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
 
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
                 .thenReturn(createProfileRNG());
 
         Response mockResponse = new AbstractMockClient
                 .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
 
-        when(adminClient.downloadProfileFile(anyObject())).thenReturn(mockResponse);
+        when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
 
         ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);

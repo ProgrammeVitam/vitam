@@ -113,10 +113,12 @@ public class DriverImplTest extends ResteasyTestApplication {
             offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
             offer.setId("default");
             when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-            Driver driver = DriverImpl.getInstance();
-            driver.addOffer(offer, null);
-            Connection connection = driver.connect(offer.getId());
-            connection.getStorageCapacity(0);
+            try (Driver driver = DriverImpl.getInstance()) {
+                driver.addOffer(offer, null);
+                try (Connection connection = driver.connect(offer.getId())) {
+                    connection.getStorageCapacity(0);
+                }
+            }
         } catch (Exception e) {
             LOGGER.error(e);
             throw e;
@@ -128,12 +130,12 @@ public class DriverImplTest extends ResteasyTestApplication {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
         offer.setId("default2");
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        Driver driver = DriverImpl.getInstance();
-        driver.addOffer(offer, null);
-
-        final Connection connection = driver.connect(offer.getId());
-
-        assertNotNull(connection);
+        try (Driver driver = DriverImpl.getInstance()) {
+            driver.addOffer(offer, null);
+            try (Connection connection = driver.connect(offer.getId())) {
+                assertNotNull(connection);
+            }
+        }
     }
 
     @Test()

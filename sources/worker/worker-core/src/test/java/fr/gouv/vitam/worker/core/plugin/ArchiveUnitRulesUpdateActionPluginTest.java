@@ -29,8 +29,8 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -170,11 +170,11 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         try {
             reset(workspaceClient);
             reset(metadataClient);
-            when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
-            when(workspaceClient.getObject(anyObject(),
+            when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+            when(workspaceClient.getObject(any(),
                     eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                     .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
-            when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitUpdated);
+            when(metadataClient.updateUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -205,11 +205,11 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         try {
             reset(workspaceClient);
             reset(metadataClient);
-            when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
-            when(workspaceClient.getObject(anyObject(),
+            when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+            when(workspaceClient.getObject(any(),
                     eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                     .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
-            when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitUpdated);
+            when(metadataClient.updateUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -232,7 +232,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
 
         reset(metadataClient);
         reset(workspaceClient);
-        when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu)))
+        when(metadataClient.selectUnitbyId(any(), eq(guidAu)))
                 .thenThrow(new MetaDataExecutionException("MetaDataExecutionException"));
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -247,7 +247,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         final JsonNode result = JsonHandler.createArrayNode();
         ObjectNode archiveUnitToBeUpdated = JsonHandler.createObjectNode();
         archiveUnitToBeUpdated.set("$results", result);
-        when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+        when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -260,8 +260,8 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         reset(metadataClient);
         reset(workspaceClient);
 
-        when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
-        when(workspaceClient.getObject(anyObject(),
+        when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+        when(workspaceClient.getObject(any(),
                 eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenReturn(Response.status(Status.OK)
                         .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8")).build());
@@ -278,8 +278,8 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         reset(metadataClient);
         reset(workspaceClient);
 
-        when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
-        when(workspaceClient.getObject(anyObject(),
+        when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+        when(workspaceClient.getObject(any(),
                 eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenThrow(
                         new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
@@ -298,12 +298,12 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         reset(metadataClient);
         reset(workspaceClient);
         try {
-            when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
-            when(workspaceClient.getObject(anyObject(),
+            when(metadataClient.selectUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+            when(workspaceClient.getObject(any(),
                     eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                     .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
 
-            when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu)))
+            when(metadataClient.updateUnitbyId(any(), eq(guidAu)))
                     .thenThrow(new InvalidParseOperationException("Bad Request"));
 
             final ItemStatus response2 = plugin.execute(params, action);

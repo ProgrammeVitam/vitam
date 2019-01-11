@@ -93,7 +93,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -111,7 +111,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -429,8 +431,8 @@ public class MetaDataImplTest {
         final JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
             "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
 
-        when(request.execRequest(Matchers.isA(UpdateParserMultiple.class))).thenReturn(updateResult);
-        when(request.execRequest(Matchers.isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
+        when(request.execRequest(isA(UpdateParserMultiple.class))).thenReturn(updateResult);
+        when(request.execRequest(isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
             secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         RequestResponse<JsonNode> requestResponse = metaDataImpl.updateUnitbyId(updateRequest, "unitId");

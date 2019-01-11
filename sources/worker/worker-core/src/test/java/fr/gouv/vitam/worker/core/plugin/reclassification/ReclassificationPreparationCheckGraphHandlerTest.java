@@ -38,8 +38,8 @@ import static fr.gouv.vitam.worker.core.plugin.reclassification.Reclassification
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler.COULD_NOT_LOAD_UNITS;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler.INVALID_UNIT_TYPE_ATTACHMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 @RunWithCustomExecutor
