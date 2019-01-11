@@ -26,14 +26,20 @@ set -e
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
-# Rebuild the entire repository. To be executed at the root of a VITAM repository
-echo "Building maven deb (with parallel build)..."
-vitam-maven-build-only
-echo "Building griffins deb..."
-vitam-build-griffins
-echo "Building platform deb..."
-/code/deb/vitam-product/clean-all.sh
-/code/deb/vitam-product/build-all.sh
-/code/deb/vitam-external/build_repo.sh
+# Rebuild only the vitam code. To be executed at the root of a VITAM repository
 
+if [ ! -d /code/vitam-griffins ]
+then
+    echo "Downloading vitam-griffins repository..."
+    pushd /code
+    git clone https://gitlab.dev.programmevitam.fr/vitam/vitam-griffins.git
+    popd
+fi
+echo "Building griffins..."
+pushd /code/vitam-griffins
+mvn -T 1C -f pom.xml -Denv.SERVICE_NEXUS_URL=https://nexus.dev.programmevitam.fr clean package rpm:rpm -DskipTests
+cd rpm
+./build_repo.sh
+popd
 vitam-recreate-repo
+
